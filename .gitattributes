@@ -1,0 +1,15 @@
+*.manifest text !filter !merge !diff
+*.css text !filter !merge !diff
+*.js text !filter !merge !diff
+*.yml text !filter !merge !diff
+*.txt text !filter !merge !diff
+*.json text !filter !merge !diff
+*.hlsl text !filter !merge !diff
+*.asmdef text !filter !merge !diff
+*.npmignore text !filter !merge !diff
+*.md text !filter !merge !diff
+*.cginc text !filter !merge !diff
+*.shader text !filter !merge !diff
+*.compute text !filter !merge !diff
+*.cs text !filter !merge !diff
+*.meta text !filter !merge !diff

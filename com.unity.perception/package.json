@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "1.1.2",
+    "com.unity.render-pipelines.core": "7.1.6",
+    "com.unity.entities": "0.8.0-preview.8",
+    "com.unity.simulation.capture": "0.0.10-preview.6",
+    "com.unity.simulation.core": "0.0.10-preview.8"
+  }, 
+    "description": "Tools for authoring and executing autonomous vehicle simulations.", 
+    "displayName": "Perception", 
+    "name": "com.unity.perception", 
+    "unity": "2019.3", 
+    "version": "0.1.0-preview.3"
+}

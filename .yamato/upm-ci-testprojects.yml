@@ -1,0 +1,115 @@
+test_editors:
+  - version: 2019.3.7f1
+suites:
+  - name: standalone
+    display_name: standalone
+    args: --suite=playmode --platform=
+  - name: editmode
+    display_name: editmode
+    args: --suite=playmode --suite=editor --platform=Editor
+projects:
+  - name: PerceptionHDRP
+  - name: PerceptionURP
+---
+
+{% for editor in test_editors %}
+{% for suite in suites %}
+{% for project in projects %}
+{{project.name}}_windows_{{suite.name}}_{{editor.version}}:
+  name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Windows)
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - git submodule update --init --recursive
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    {% if suite.name == "standalone" %}
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64
+    {% else %}
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}} 
+    {% endif %}
+  artifacts:
+    logs:
+      paths:
+        - "test-results/**/*"
+
+{% endfor %} 
+{% endfor %} 
+{% endfor %}
+
+{% for editor in test_editors %}
+{% for suite in suites %}
+codecoverage_windows_{{suite.name}}_{{editor.version}}:
+  name : CodeCoverage {{ suite.display_name }} tests ({{ editor.version }}, Windows)
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - git submodule update --init --recursive
+    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors; 
+    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform playmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
+  #  - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;
+  artifacts:
+    logs:
+      paths:
+        - "test-results/**/*"
+        - "TestProjects/PerceptionHDRP/test-results/**/*"
+  dependencies:
+    - .yamato/upm-ci-full.yml#pack_Perception
+{% endfor %} 
+{% endfor %}
+
+{% for editor in test_editors %}
+{% for suite in suites %}
+{% for project in projects %}
+{{project.name}}_linux_{{suite.name}}_{{editor.version}}:
+  name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Linux)
+  agent:
+    type: Unity::VM::GPU
+    image: cds-ops/ubuntu-18.04-base:latest
+    flavor: b1.large
+  commands:
+    - git submodule update --init --recursive
+    - sudo -H pip install --upgrade pip
+    - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
+    - sudo unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    {% if suite.name == "standalone" %}
+    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}}StandaloneLinux64
+    {% else %}
+    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}}
+    {% endif %}
+  artifacts:
+    logs:
+      paths:
+        - "test-results/**/*"
+{% endfor %} 
+{% endfor %} 
+{% endfor %}
+
+# Not including OSX because the only OSX platform on Bokken with a GPU is a Mac Mini, of which there are only a few and setting up Yamato jobs is very complicated.
+
+# {% for variant in package_variants %}
+# {% for editor in test_editors %}
+# code_coverage_win_{{editor.version}}:
+#   name: Code Coverage Report - Windows
+#   agent:
+#     type: Unity::VM
+#     image: package-ci/win10:stable
+#     flavor: b1.large
+#   commands:
+#     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+#     - upm-ci package test --unity-version {{editor.version}} --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport'
+#   artifacts:
+#     logs:
+#       paths:
+#         - "upm-ci~/test-results/**/*"
+#   dependencies:
+#     - .yamato/upm-ci-full.yml#pack_{{ variant.name }}
+# {% endfor %}
+# {% endfor %}

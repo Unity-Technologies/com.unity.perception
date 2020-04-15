@@ -15,21 +15,8 @@ namespace UnityEngine.Perception.Sensors
     public class RenderTextureReader<T> : IDisposable where T : struct
     {
         RenderTexture m_Source;
-        int m_NumSwapFrames = 2;
-
         Action<int, NativeArray<T>, RenderTexture> m_ImageReadCallback;
 
-        struct ReadbackRequest
-        {
-            public AsyncGPUReadbackRequest asyncGpuReadbackRequest;
-            public int frameCount;
-        }
-
-        // this array is 1:1 with the swap chain array and stores the readback requests for each texture
-        ReadbackRequest?[] m_ReadbackRequests;
-
-        Action<AsyncGPUReadbackRequest>[] m_ReadbackRequestDelegates;
-        int m_NextSwapChainIndex;
         int m_NextFrameToCapture;
 
         Texture2D m_CpuTexture;
@@ -45,20 +32,7 @@ namespace UnityEngine.Perception.Sensors
             m_NextFrameToCapture = Time.frameCount;
 
             if (!GraphicsUtilities.SupportsAsyncReadback())
-            {
                 m_CpuTexture = new Texture2D(m_Source.width, m_Source.height, m_Source.graphicsFormat, TextureCreationFlags.None);
-                m_NumSwapFrames = 0;
-            }
-            else
-            {
-                m_ReadbackRequests = new ReadbackRequest?[m_NumSwapFrames];
-                m_ReadbackRequestDelegates = new Action<AsyncGPUReadbackRequest>[m_NumSwapFrames];
-                for (var i = 0; i < m_NumSwapFrames; i++)
-                {
-                    var iForDelegate = i;
-                    m_ReadbackRequestDelegates[i] = request => OnGpuReadback(request, iForDelegate);
-                }
-            }
 
             RenderPipelineManager.endFrameRendering += OnEndFrameRendering;
         }
@@ -90,55 +64,29 @@ namespace UnityEngine.Perception.Sensors
                 return;
             }
 
-            ProcessReadbackRequests(m_NextSwapChainIndex);
-            Assert.IsFalse(m_ReadbackRequests[m_NextSwapChainIndex].HasValue);
-
-            m_ReadbackRequests[m_NextSwapChainIndex] = new ReadbackRequest
-            {
-                asyncGpuReadbackRequest = AsyncGPUReadback.Request(m_Source, 0, m_Source.graphicsFormat, m_ReadbackRequestDelegates[m_NextSwapChainIndex]),
-                frameCount = Time.frameCount
-            };
-
-            m_NextSwapChainIndex = (m_NextSwapChainIndex + 1) % m_NumSwapFrames;
+            var commandBuffer = CommandBufferPool.Get("RenderTextureReader");
+            var frameCount = Time.frameCount;
+            commandBuffer.RequestAsyncReadback(m_Source, r => OnGpuReadback(r, frameCount));
+            context.ExecuteCommandBuffer(commandBuffer);
+            context.Submit();
+            CommandBufferPool.Release(commandBuffer);
         }
 
-        void OnGpuReadback(AsyncGPUReadbackRequest request, int swapChainIndex)
+        void OnGpuReadback(AsyncGPUReadbackRequest request, int frameCount)
         {
-            //TODO: add equality operators to AsyncGPUReadbackRequest
             if (request.hasError)
             {
                 Debug.LogError("Error reading segmentation image from GPU");
             }
             else if (request.done && m_ImageReadCallback != null)
             {
-                m_ImageReadCallback(m_ReadbackRequests[swapChainIndex].Value.frameCount, request.GetData<T>(), m_Source);
-            }
-            m_ReadbackRequests[swapChainIndex] = null;
-        }
-
-        void ProcessReadbackRequests( int swapChainIndexToForce = -1, bool forceAll = false)
-        {
-            for (var i = 0; i < m_NumSwapFrames; i++)
-            {
-                var currentReadbackRequest = m_ReadbackRequests[i];
-                if (currentReadbackRequest.HasValue)
-                {
-                    var readbackRequest = currentReadbackRequest.Value.asyncGpuReadbackRequest;
-
-                    if (swapChainIndexToForce == i || forceAll)
-                    {
-                        using (m_WaitingForCompletionMarker.Auto())
-                            readbackRequest.WaitForCompletion();
-
-                        m_ReadbackRequests[i] = null;
-                    }
-                }
+                m_ImageReadCallback(frameCount, request.GetData<T>(), m_Source);
             }
         }
 
         public void WaitForAllImages()
         {
-            ProcessReadbackRequests(forceAll: true);
+            AsyncGPUReadback.WaitAllRequests();
         }
 
         public void Dispose()

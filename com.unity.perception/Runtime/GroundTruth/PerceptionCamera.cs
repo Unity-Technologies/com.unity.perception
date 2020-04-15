@@ -167,7 +167,6 @@ namespace UnityEngine.Perception
 #if HDRP_PRESENT
         InstanceSegmentationPass m_SegmentationPass;
         SemanticSegmentationPass m_SemanticSegmentationPass;
-        ObjectCountPass m_ObjectCountPass;
 #endif
         MetricDefinition m_ObjectCountMetricDefinition;
         AnnotationDefinition m_BoundingBoxAnnotationDefinition;
@@ -263,16 +262,6 @@ namespace UnityEngine.Perception
             {
                 name = "Labeling Pass"
             };
-
-            m_ObjectCountPass = new ObjectCountPass(myCamera)
-            {
-                name = "Label Histogram Pass",
-                SegmentationTexture = m_SegmentationTexture,
-                LabelingConfiguration = LabelingConfiguration,
-                WriteToLog = false
-            };
-
-            m_ObjectCountPass.ClassCountsReceived += OnClassCountsReceived;
 
             SetupPasses(customPassVolume);
 #endif
@@ -390,18 +379,12 @@ namespace UnityEngine.Perception
         {
             customPassVolume.customPasses.Remove(m_SegmentationPass);
             customPassVolume.customPasses.Remove(m_SemanticSegmentationPass);
-            customPassVolume.customPasses.Remove(m_ObjectCountPass);
 
             if (produceSegmentationImages || produceObjectCountAnnotations)
                 customPassVolume.customPasses.Add(m_SegmentationPass);
 
             if (produceSegmentationImages)
                 customPassVolume.customPasses.Add(m_SemanticSegmentationPass);
-
-            if (produceObjectCountAnnotations)
-            {
-                customPassVolume.customPasses.Add(m_ObjectCountPass);
-            }
         }
 #endif
 
@@ -582,7 +565,7 @@ namespace UnityEngine.Perception
             //Based on logic in HDRenderPipeline.PrepareFinalBlitParameters
             return camera.targetTexture != null || hdAdditionalCameraData.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || camera.cameraType == CameraType.Game;
 #elif URP_PRESENT
-            return false;
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 && (camera.targetTexture != null || camera.cameraType == CameraType.Game);
 #else
             return false;
 #endif
@@ -612,9 +595,6 @@ namespace UnityEngine.Perception
 
         void OnSimulationEnding()
         {
-#if HDRP_PRESENT
-            m_ObjectCountPass.WaitForAllRequests();
-#endif
             m_ClassLabelingTextureReader?.WaitForAllImages();
             m_ClassLabelingTextureReader?.Dispose();
             m_ClassLabelingTextureReader = null;

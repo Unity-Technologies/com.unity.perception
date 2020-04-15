@@ -58,38 +58,6 @@ namespace UnityEngine.Perception.Sensors
             var labelSetupSystem = World.DefaultGameObjectInjectionWorld?.GetExistingSystem<GroundTruthLabelSetupSystem>();
             labelSetupSystem?.Deactivate(this);
         }
-
-
-        protected RendererListDesc CreateRendererListDesc(HDCamera hdCamera, CullingResults cullingResult, string overrideMaterialPassName, int overrideMaterialPassIndex, Material overrideMaterial, LayerMask layerMask)
-        {
-            var shaderPasses = new[]
-            {
-                new ShaderTagId("Forward"), // HD Lit shader
-                new ShaderTagId("ForwardOnly"), // HD Unlit shader
-                new ShaderTagId("SRPDefaultUnlit"), // Cross SRP Unlit shader
-                new ShaderTagId(overrideMaterialPassName), // The override material shader
-            };
-
-            var stateBlock = new RenderStateBlock(0)
-            {
-                depthState = new DepthState(true, CompareFunction.LessEqual),
-            };
-
-            PerObjectData renderConfig = hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
-
-            var result = new RendererListDesc(shaderPasses, cullingResult, hdCamera.camera)
-            {
-                rendererConfiguration = renderConfig,
-                renderQueueRange = GetRenderQueueRange(RenderQueueType.All),
-                sortingCriteria = SortingCriteria.CommonOpaque,
-                excludeObjectMotionVectors = false,
-                overrideMaterial = overrideMaterial,
-                overrideMaterialPassIndex = overrideMaterialPassIndex,
-                stateBlock = stateBlock,
-                layerMask = layerMask,
-            };
-            return result;
-        }
     }
 }
 #endif

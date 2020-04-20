@@ -610,6 +610,10 @@ namespace UnityEngine.Perception
         {
             if (camera != GetComponent<Camera>())
                 return;
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPaused)
+                return;
+#endif
             ReportAsyncAnnotations();
             CaptureRgbData(camera);
         }
@@ -631,7 +635,7 @@ namespace UnityEngine.Perception
 
             if (m_RenderedObjectInfoGenerator != null)
             {
-                World.DefaultGameObjectInjectionWorld.GetExistingSystem<GroundTruthLabelSetupSystem>().Deactivate(m_RenderedObjectInfoGenerator);
+                World.DefaultGameObjectInjectionWorld?.GetExistingSystem<GroundTruthLabelSetupSystem>()?.Deactivate(m_RenderedObjectInfoGenerator);
                 m_RenderedObjectInfoGenerator?.Dispose();
                 m_RenderedObjectInfoGenerator = null;
             }

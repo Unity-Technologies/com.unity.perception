@@ -7,7 +7,8 @@
         "Unity.Mathematics",
         "Unity.Perception.Editor",
         "Unity.Collections",
-        "Unity.Entities"
+        "Unity.Entities",
+        "Unity.Simulation.Core"
     ],
     "includePlatforms": [
         "Editor"

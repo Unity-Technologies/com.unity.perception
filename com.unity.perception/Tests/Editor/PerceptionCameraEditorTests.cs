@@ -1,0 +1,73 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using NUnit.Framework;
+using Unity.Collections;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.Perception;
+using UnityEngine.Perception.Sensors;
+using UnityEngine.TestTools;
+
+namespace EditorTests
+{
+    [TestFixture]
+    public class PerceptionCameraEditorTests
+    {
+        [UnityTest]
+        public IEnumerator EditorPause_DoesNotLogErrors()
+        {
+            int sceneCount = EditorSceneManager.sceneCount;
+            for (int i = sceneCount - 1; i >= 0; i--)
+            {
+                EditorSceneManager.CloseScene(EditorSceneManager.GetSceneAt(i), true);
+            }
+
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+            SetupCamera(ScriptableObject.CreateInstance<LabelingConfiguration>());
+            yield return new EnterPlayMode();
+            var expectedFirstFrame = Time.frameCount;
+            yield return null;
+            EditorApplication.isPaused = true;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            EditorApplication.isPaused = false;
+            var expectedLastFrame = Time.frameCount;
+            yield return null;
+
+            SimulationManager.ResetSimulation();
+
+            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var capturesJson = File.ReadAllText(capturesPath);
+            for (int iFrameCount = expectedFirstFrame; iFrameCount <= expectedLastFrame; iFrameCount++)
+            {
+                var imagePath = Path.Combine(PerceptionCamera.RgbDirectory, $"rgb_{iFrameCount}").Replace(@"\", @"\\");
+                StringAssert.Contains(imagePath, capturesJson);
+            }
+
+            yield return new ExitPlayMode();
+        }
+
+        static GameObject SetupCamera(LabelingConfiguration labelingConfiguration)
+        {
+            var cameraObject = new GameObject();
+            cameraObject.SetActive(false);
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = 1;
+
+            var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
+            perceptionCamera.LabelingConfiguration = labelingConfiguration;
+            perceptionCamera.captureRgbImages = true;
+            perceptionCamera.produceBoundingBoxAnnotations = true;
+            perceptionCamera.produceObjectCountAnnotations = true;
+
+            cameraObject.SetActive(true);
+            return cameraObject;
+        }
+    }
+}

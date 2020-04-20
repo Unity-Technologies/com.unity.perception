@@ -59,6 +59,9 @@ namespace EditorTests
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
             camera.orthographicSize = 1;
+#if HDRP_PRESENT
+            cameraObject.AddComponent<UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData>();
+#endif
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
             perceptionCamera.LabelingConfiguration = labelingConfiguration;

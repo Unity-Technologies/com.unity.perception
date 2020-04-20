@@ -8,7 +8,8 @@
         "Unity.Perception.Editor",
         "Unity.Collections",
         "Unity.Entities",
-        "Unity.Simulation.Core"
+        "Unity.Simulation.Core",
+        "Unity.RenderPipelines.HighDefinition.Runtime"
     ],
     "includePlatforms": [
         "Editor"
@@ -23,6 +24,12 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "",
+            "define": "HDRP_PRESENT"
+        }
+    ],
     "noEngineReferences": false
 }

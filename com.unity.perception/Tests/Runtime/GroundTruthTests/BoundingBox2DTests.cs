@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception;
 using UnityEngine.Perception.Sensors;
 using UnityEngine.TestTools;
@@ -12,22 +14,24 @@ using UnityEngine.TestTools;
 namespace GroundTruthTests
 {
     [TestFixture]
-    public class BoundingBox2DTests : PassTestBase
+    public class BoundingBox2DTests : GroundTruthTestBase
     {
         public class ProducesCorrectBoundingBoxesData
         {
             public uint[] classCountsExpected;
             public RenderedObjectInfo[] boundingBoxesExpected;
             public uint[] data;
+            public BoundingBoxOrigin boundingBoxOrigin;
             public int stride;
             public string name;
-            public ProducesCorrectBoundingBoxesData(uint[] data, RenderedObjectInfo[] boundingBoxesExpected, uint[] classCountsExpected, int stride, string name)
+            public ProducesCorrectBoundingBoxesData(uint[] data, RenderedObjectInfo[] boundingBoxesExpected, uint[] classCountsExpected, int stride, BoundingBoxOrigin boundingBoxOrigin, string name)
             {
                 this.data = data;
                 this.boundingBoxesExpected = boundingBoxesExpected;
                 this.classCountsExpected = classCountsExpected;
                 this.stride = stride;
                 this.name = name;
+                this.boundingBoxOrigin = boundingBoxOrigin;
             }
 
             public override string ToString()
@@ -57,6 +61,7 @@ namespace GroundTruthTests
 					0
                 },
                 2,
+                BoundingBoxOrigin.BottomLeft,
                 "SimpleBox");
             yield return new ProducesCorrectBoundingBoxesData(
                 new uint[]
@@ -85,6 +90,7 @@ namespace GroundTruthTests
                     1
                 },
                 3,
+                BoundingBoxOrigin.BottomLeft,
                 "WithGaps");
             yield return new ProducesCorrectBoundingBoxesData(
                 new uint[]
@@ -113,7 +119,31 @@ namespace GroundTruthTests
                     1
                 },
                 3,
+                BoundingBoxOrigin.BottomLeft,
                 "Interleaved");
+            yield return new ProducesCorrectBoundingBoxesData(
+                new uint[]
+                {
+                    0, 0,
+                    0, 0,
+                    0, 1
+                }, new[]
+                {
+                    new RenderedObjectInfo()
+                    {
+                        boundingBox = new Rect(1, 0, 1, 1),
+                        instanceId = 1,
+                        labelId = 0,
+                        pixelCount = 1
+                    },
+                }, new uint[]
+                {
+                    1,
+                    0
+                },
+                2,
+                BoundingBoxOrigin.TopLeft,
+                "TopLeft");
         }
 
         [UnityTest]
@@ -148,7 +178,7 @@ namespace GroundTruthTests
 
             var dataNativeArray = new NativeArray<uint>(producesCorrectBoundingBoxesData.data, Allocator.Persistent);
 
-            renderedObjectInfoGenerator.Compute(dataNativeArray, producesCorrectBoundingBoxesData.stride, BoundingBoxOrigin.BottomLeft, out var boundingBoxes, out var classCounts, Allocator.Temp);
+            renderedObjectInfoGenerator.Compute(dataNativeArray, producesCorrectBoundingBoxesData.stride, producesCorrectBoundingBoxesData.boundingBoxOrigin, out var boundingBoxes, out var classCounts, Allocator.Temp);
 
             CollectionAssert.AreEqual(producesCorrectBoundingBoxesData.boundingBoxesExpected, boundingBoxes.ToArray());
             CollectionAssert.AreEqual(producesCorrectBoundingBoxesData.classCountsExpected, classCounts.ToArray());

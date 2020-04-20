@@ -208,7 +208,7 @@ MonoBehaviour:
   references:
     version: 1
     00000000:
-      type: {class: InstanceSegmentationPass, ns: UnityEngine.Perception.Sensors, asm: Unity.Perception.GroundTruth}
+      type: {class: InstanceSegmentationPass, ns: UnityEngine.SimViz.Sensors, asm: Unity.SimViz.GroundTruth}
       data:
         name: Custom Pass
         enabled: 1
@@ -225,7 +225,7 @@ MonoBehaviour:
         idStart: 1
         idStep: 1
     00000001:
-      type: {class: SemanticSegmentationPass, ns: UnityEngine.Perception.Sensors, asm: Unity.Perception.GroundTruth}
+      type: {class: SemanticSegmentationPass, ns: UnityEngine.SimViz.Sensors, asm: Unity.SimViz.GroundTruth}
       data:
         name: Custom Pass
         enabled: 1
@@ -238,7 +238,7 @@ MonoBehaviour:
         labelingConfiguration: {fileID: 11400000, guid: 16a81d3f01f4f4345b113509e93fdab6,
           type: 2}
     00000002:
-      type: {class: LabelHistogramPass, ns: UnityEngine.Perception.Sensors, asm: Unity.Perception.GroundTruth}
+      type: {class: LabelHistogramPass, ns: UnityEngine.SimViz.Sensors, asm: Unity.SimViz.GroundTruth}
       data:
         name: Custom Pass
         enabled: 1

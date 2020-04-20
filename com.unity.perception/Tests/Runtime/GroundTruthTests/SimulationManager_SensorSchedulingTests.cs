@@ -57,7 +57,8 @@ namespace GroundTruthTests
                 timeScale * period,
                 timeScale * period
             };
-            for (int i = 0; i < deltaTimeSamplesExpected.Length; i++)
+            float[] deltaTimeSamples = new float[deltaTimeSamplesExpected.Length];
+            for (int i = 0; i < deltaTimeSamples.Length; i++)
             {
                 yield return null;
                 Assert.AreEqual(deltaTimeSamplesExpected[i], Time.deltaTime, 0.0001f);
@@ -115,7 +116,8 @@ namespace GroundTruthTests
                 period,
                 period
             };
-            for (int i = 0; i < deltaTimeSamplesExpected.Length; i++)
+            float[] deltaTimeSamples = new float[deltaTimeSamplesExpected.Length];
+            for (int i = 0; i < deltaTimeSamples.Length; i++)
             {
                 Time.timeScale = newTimeScalesPerFrame[i];
                 yield return null;

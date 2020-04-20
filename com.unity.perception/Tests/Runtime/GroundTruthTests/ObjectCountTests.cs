@@ -23,10 +23,10 @@ namespace GroundTruthTests
     //Graphics issues with OpenGL Linux Editor. https://jira.unity3d.com/browse/AISV-422
     [UnityPlatform(exclude = new[] {RuntimePlatform.LinuxEditor, RuntimePlatform.LinuxPlayer})]
     [TestFixture]
-    class ObjectCountTests : PassTestBase
+    class ObjectCountTests : GroundTruthTestBase
     {
         [UnityTest]
-        public IEnumerator LabeledObjectHistogramPassProducesCorrectValuesWithChangingObjects()
+        public IEnumerator ProducesCorrectValuesWithChangingObjects()
         {
             var label = "label";
             var labelingConfiguration = ScriptableObject.CreateInstance<LabelingConfiguration>();

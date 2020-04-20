@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
 
-namespace UnityEngine.Perception.Sensors.Editor
+namespace UnityEditor.Perception.GroundTruth
 {
     [CustomPassDrawer(typeof(SemanticSegmentationPass))]
-    public class SemanticSegmentationPassEditor : BaseCustomPassDrawer
+    class SemanticSegmentationPassEditor : BaseCustomPassDrawer
     {
         protected override void Initialize(SerializedProperty customPass)
         {

@@ -1,53 +1,55 @@
-﻿using UnityEditor;
-using UnityEditorInternal;
+﻿using UnityEditorInternal;
 using UnityEngine;
 
-[CustomEditor(typeof(Labeling))]
-public class LabelingEditor : Editor
+namespace UnityEditor.Perception.GroundTruth
 {
-    const int k_Indent = 7;
-    ReorderableList m_LabelsList;
-
-    public void OnEnable()
+    [CustomEditor(typeof(Labeling))]
+    class LabelingEditor : Editor
     {
-        m_LabelsList = new ReorderableList(this.serializedObject, this.serializedObject.FindProperty(nameof(Labeling.classes)), true, false, true, true);
-        m_LabelsList.drawElementCallback = DrawElement;
-        m_LabelsList.onAddCallback += OnAdd;
-        m_LabelsList.onRemoveCallback += OnRemove;
-    }
+        const int k_Indent = 7;
+        ReorderableList m_LabelsList;
 
-    void OnRemove(ReorderableList list)
-    {
-        if (list.index != -1)
-            labeling.classes.RemoveAt(list.index);
-    }
-
-    Labeling labeling => (Labeling)this.target;
-
-    void OnAdd(ReorderableList list)
-    {
-        labeling.classes.Add("");
-    }
-
-    void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
-    {
-        using (var change = new EditorGUI.ChangeCheckScope())
+        public void OnEnable()
         {
-            var indent = k_Indent * index;
-            if (indent >= rect.width)
-                return;
+            m_LabelsList = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(global::Labeling.classes)), true, false, true, true);
+            m_LabelsList.drawElementCallback = DrawElement;
+            m_LabelsList.onAddCallback += OnAdd;
+            m_LabelsList.onRemoveCallback += OnRemove;
+        }
 
-            var contentRect = new Rect(rect.x + indent, rect.y, rect.width - indent, rect.height);
-            var value = EditorGUI.TextField(contentRect, labeling.classes[index]);
-            if (change.changed)
+        void OnRemove(ReorderableList list)
+        {
+            if (list.index != -1)
+                Labeling.classes.RemoveAt(list.index);
+        }
+
+        Labeling Labeling => (Labeling)target;
+
+        void OnAdd(ReorderableList list)
+        {
+            Labeling.classes.Add("");
+        }
+
+        void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
+        {
+            using (var change = new EditorGUI.ChangeCheckScope())
             {
-                labeling.classes[index] = value;
+                var indent = k_Indent * index;
+                if (indent >= rect.width)
+                    return;
+
+                var contentRect = new Rect(rect.x + indent, rect.y, rect.width - indent, rect.height);
+                var value = EditorGUI.TextField(contentRect, Labeling.classes[index]);
+                if (change.changed)
+                {
+                    Labeling.classes[index] = value;
+                }
             }
         }
-    }
 
-    public override void OnInspectorGUI()
-    {
-        m_LabelsList.DoLayoutList();
+        public override void OnInspectorGUI()
+        {
+            m_LabelsList.DoLayoutList();
+        }
     }
 }

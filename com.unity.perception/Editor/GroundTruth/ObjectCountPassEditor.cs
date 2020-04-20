@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
 
-namespace UnityEngine.Perception.Sensors.Editor
+namespace UnityEditor.Perception.GroundTruth
 {
     [CustomPassDrawer(typeof(ObjectCountPass))]
     public class ObjectCountPassEditor : BaseCustomPassDrawer

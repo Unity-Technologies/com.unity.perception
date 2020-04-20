@@ -2,8 +2,7 @@
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Assertions.Comparers;
-using UnityEngine.Perception;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
 
 namespace GroundTruthTests

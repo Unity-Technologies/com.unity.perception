@@ -1,28 +1,28 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
 /// <summary>
-/// Defines a set of classes associated with the object and its descendants. Classes can be overwritten 
+/// Defines a set of classes associated with the object and its descendants. Classes can be overwritten
 /// </summary>
 public class Labeling : MonoBehaviour
 {
+    /// <summary>
+    /// The class names to associate with the GameObject.
+    /// </summary>
     public List<string> classes = new List<string>();
 
-    Entity entity;
-
-    // Start is called before the first frame update
+    Entity m_Entity;
     void Awake()
     {
-        entity = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntity();
-        World.DefaultGameObjectInjectionWorld.EntityManager.AddComponentObject(entity, this);
+        m_Entity = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntity();
+        World.DefaultGameObjectInjectionWorld.EntityManager.AddComponentObject(m_Entity, this);
     }
 
-    private void OnDestroy()
+    void OnDestroy()
     {
         if (World.DefaultGameObjectInjectionWorld != null)
-            World.DefaultGameObjectInjectionWorld.EntityManager.DestroyEntity(entity);
+            World.DefaultGameObjectInjectionWorld.EntityManager.DestroyEntity(m_Entity);
     }
 }

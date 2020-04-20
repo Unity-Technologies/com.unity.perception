@@ -5,7 +5,7 @@ using Unity.Simulation;
 using UnityEngine;
 
 #pragma warning disable 649
-namespace UnityEngine.Perception
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Global manager for frame scheduling and output capture for simulations.
@@ -23,16 +23,19 @@ namespace UnityEngine.Perception
         /// </summary>
         public static string SchemaVersion => "0.0.1";
 
+        /// <summary>
+        /// Called when the simulation ends. The simulation ends on playmode exit, application exit, or when <see cref="ResetSimulation"/> is called.
+        /// </summary>
         public static event Action SimulationEnding;
 
         /// <summary>
         /// Register a new ego. Used along with RegisterSensor to organize sensors under a top-level ego container. <seealso cref="RegisterSensor"/>
         /// </summary>
         /// <param name="description">A human-readable description for the ego</param>
-        /// <returns>An <see cref="Ego"/>, which can be used to organize sensors under a common ego.</returns>
-        public static Ego RegisterEgo(string description)
+        /// <returns>An <see cref="EgoHandle"/>, which can be used to organize sensors under a common ego.</returns>
+        public static EgoHandle RegisterEgo(string description)
         {
-            var ego = new Ego(Guid.NewGuid(), description);
+            var ego = new EgoHandle(Guid.NewGuid(), description);
             SimulationState.AddEgo(ego);
             return ego;
         }
@@ -40,7 +43,7 @@ namespace UnityEngine.Perception
         /// <summary>
         /// Register a new sensor under the given ego.
         /// </summary>
-        /// <param name="ego">The ego container for the sensor. Sensor orientation will be reported in the context of the given ego.</param>
+        /// <param name="egoHandle">The ego container for the sensor. Sensor orientation will be reported in the context of the given ego.</param>
         /// <param name="modality">The kind of the sensor (ex. "camera", "lidar")</param>
         /// <param name="description">A human-readable description of the sensor (ex. "front-left rgb camera")</param>
         /// <param name="period">The period, in seconds, on which the sensor should capture. Frames will be scheduled in the simulation such that each sensor is triggered every _period_ seconds.</param>
@@ -48,13 +51,13 @@ namespace UnityEngine.Perception
         /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
         /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
         /// <exception cref="ArgumentException">Thrown if ego is invalid.</exception>
-        public static SensorHandle RegisterSensor(Ego ego, string modality, string description, float period, float firstCaptureTime)
+        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime)
         {
-            if (!SimulationState.Contains(ego.Id))
-                throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(ego));
+            if (!SimulationState.Contains(egoHandle.Id))
+                throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(egoHandle));
 
             var sensor = new SensorHandle(Guid.NewGuid());
-            SimulationState.AddSensor(ego, modality, description, period, firstCaptureTime, sensor);
+            SimulationState.AddSensor(egoHandle, modality, description, period, firstCaptureTime, sensor);
             return sensor;
         }
 
@@ -162,7 +165,10 @@ namespace UnityEngine.Perception
             Manager.Instance.ShutdownNotification += ResetSimulation;
         }
 
-        internal static void ResetSimulation()
+        /// <summary>
+        /// Stop the current simulation and start a new one. All pending data is written to disk before returning.
+        /// </summary>
+        public static void ResetSimulation()
         {
             //this order ensures that exceptions thrown by End() do not prevent the state from being reset
             SimulationEnding?.Invoke();
@@ -302,7 +308,6 @@ namespace UnityEngine.Perception
         /// </summary>
         /// <param name="metricDefinition">The <see cref="MetricDefinition"/> of the metric.</param>
         /// <param name="valuesJsonArray">A string-based JSON array to be placed in the "values" field of the metric</param>
-        /// <typeparam name="T">The value type</typeparam>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
         /// <exception cref="InvalidOperationException">Thrown if <see cref="ShouldCaptureThisFrame"/> is false.</exception>
         public void ReportMetric(MetricDefinition metricDefinition, [NotNull] string valuesJsonArray)
@@ -430,7 +435,6 @@ namespace UnityEngine.Perception
         /// ReportValues may only be called once per AsyncMetric.
         /// </summary>
         /// <param name="valuesJsonArray">A JSON array in string form.</param>
-        /// <typeparam name="T">The type of the values</typeparam>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
         public void ReportValues(string valuesJsonArray)
         {
@@ -535,7 +539,7 @@ namespace UnityEngine.Perception
         /// <param name="values"></param>
         /// <typeparam name="T"></typeparam>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for <see cref="UnityEngine.Perception.SensorHandle.ShouldCaptureThisFrame"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for <see cref="UnityEngine.Perception.GroundTruth.SensorHandle.ShouldCaptureThisFrame"/>.</exception>
         public void ReportMetric<T>(MetricDefinition metricDefinition, [NotNull] T[] values)
         {
             if (values == null)
@@ -553,7 +557,8 @@ namespace UnityEngine.Perception
         /// <param name="metricDefinition"></param>
         /// <param name="valuesJsonArray">A string-based JSON array to be placed in the "values" field of the metric</param>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for <see cref="SensorHandle.ShouldCaptureThisFrame"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for
+        /// <see cref="UnityEngine.Perception.GroundTruth.SensorHandle.ShouldCaptureThisFrame"/>.</exception>
         public void ReportMetric(MetricDefinition metricDefinition, [NotNull] string valuesJsonArray)
         {
             if (valuesJsonArray == null)
@@ -591,7 +596,7 @@ namespace UnityEngine.Perception
     /// <summary>
     /// An ego, which is used to group multiple sensors under a single frame of reference.
     /// </summary>
-    public struct Ego : IEquatable<Ego>
+    public struct EgoHandle : IEquatable<EgoHandle>
     {
         /// <summary>
         /// The ID for this ego. This ID will be used to refer to this ego in the json metadata.
@@ -603,20 +608,20 @@ namespace UnityEngine.Perception
         /// </summary>
         public readonly string Description;
 
-        internal Ego(Guid id, string description)
+        internal EgoHandle(Guid id, string description)
         {
             this.Id = id;
             this.Description = description;
         }
 
-        public bool Equals(Ego other)
+        public bool Equals(EgoHandle other)
         {
             return Id.Equals(other.Id);
         }
 
         public override bool Equals(object obj)
         {
-            return obj is Ego other && Equals(other);
+            return obj is EgoHandle other && Equals(other);
         }
 
         public override int GetHashCode()
@@ -624,12 +629,12 @@ namespace UnityEngine.Perception
             return Id.GetHashCode();
         }
 
-        public static bool operator ==(Ego left, Ego right)
+        public static bool operator ==(EgoHandle left, EgoHandle right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(Ego left, Ego right)
+        public static bool operator !=(EgoHandle left, EgoHandle right)
         {
             return !left.Equals(right);
         }

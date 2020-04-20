@@ -5,10 +5,8 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
-using UnityEngine.Rendering;
-using UnityEngine.Perception.Sensors;
 
-namespace UnityEngine.Perception
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// A CPU-based pass which computes bounding box and pixel counts per-object from instance segmentation images
@@ -87,7 +85,7 @@ namespace UnityEngine.Perception
         /// Create a new CpuRenderedObjectInfoPass with the given LabelingConfiguration.
         /// </summary>
         /// <param name="labelingConfiguration">The LabelingConfiguration to use to determine labelId. Should match the
-        /// one used by the <seealso cref="InstanceSegmentationPass"/> generating the input image. See <see cref="Compute"/></param>
+        /// one used by the <seealso cref="InstanceSegmentationUrpPass"/> generating the input image. See <see cref="Compute"/></param>
         public RenderedObjectInfoGenerator(LabelingConfiguration labelingConfiguration)
         {
             m_LabelingConfiguration = labelingConfiguration;
@@ -108,9 +106,11 @@ namespace UnityEngine.Perception
             }
         }
 
+        // ReSharper disable once InvalidXmlDocComment
+
         /// <summary>
         /// Compute RenderedObjectInfo for each visible object in the given instance segmentation image.
-        /// InstanceSegmentationRawData should be the raw data from a texture filled by <see cref="InstanceSegmentationPass"/>
+        /// InstanceSegmentationRawData should be the raw data from a texture filled by <see cref="InstanceSegmentationUrpPass"/> or  <see cref="InstanceSegmentationPass"/>
         /// using the same LabelingConfiguration that was passed into this object.
         /// </summary>
         /// <param name="instanceSegmentationRawData"></param>

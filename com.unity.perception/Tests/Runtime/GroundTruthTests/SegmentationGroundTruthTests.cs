@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
@@ -107,7 +108,8 @@ namespace GroundTruthTests
                 {
                     CollectionAssert.AreEqual(Enumerable.Repeat(expectedLabelAtFrame[frameCount], data.Length), data);
                 }
-                catch (Exception e)
+                // ReSharper disable once RedundantCatchClause
+                catch (Exception)
                 {
                     //uncomment to get RenderDoc captures while this check is failing
                     //RenderDoc.EndCaptureRenderDoc(gameView);
@@ -178,7 +180,7 @@ namespace GroundTruthTests
 #endif
 #if URP_PRESENT
             var labelingConfiguration = ScriptableObject.CreateInstance<LabelingConfiguration>();
-            var perceptionCamera = cameraObject.AddComponent<UnityEngine.Perception.PerceptionCamera>();
+            var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
             perceptionCamera.LabelingConfiguration = labelingConfiguration;
             perceptionCamera.captureRgbImages = false;
             perceptionCamera.produceBoundingBoxAnnotations = false;

@@ -9,9 +9,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Unity.Mathematics;
-using Unity.Simulation;
 using UnityEngine;
-using UnityEngine.Perception;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
 // ReSharper disable InconsistentNaming
 // ReSharper disable NotAccessedField.Local

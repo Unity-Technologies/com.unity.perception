@@ -5,11 +5,11 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.Perception.Sensors;
+
 // ReSharper disable NotAccessedField.Local
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
-namespace UnityEngine.Perception
+namespace UnityEngine.Perception.GroundTruth
 {
     partial class SimulationState
     {
@@ -17,7 +17,7 @@ namespace UnityEngine.Perception
 
         HashSet<SensorHandle> m_ActiveSensors = new HashSet<SensorHandle>();
         Dictionary<SensorHandle, SensorData> m_Sensors = new Dictionary<SensorHandle, SensorData>();
-        HashSet<Ego> m_Egos = new HashSet<Ego>();
+        HashSet<EgoHandle> m_Egos = new HashSet<EgoHandle>();
         HashSet<Guid> m_Ids = new HashSet<Guid>();
         Guid m_SequenceId = Guid.NewGuid();
 
@@ -127,7 +127,7 @@ namespace UnityEngine.Perception
 
             public float sequenceTimeNextCapture;
             public int lastCaptureFrameCount;
-            public Ego ego;
+            public EgoHandle egoHandle;
         }
 
         struct AnnotationData
@@ -344,7 +344,7 @@ namespace UnityEngine.Perception
             m_LastTimeScale = Time.timeScale;
         }
 
-        public void AddSensor(Ego ego, string modality, string description, float period, float firstCaptureTime, SensorHandle sensor)
+        public void AddSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, SensorHandle sensor)
         {
             var sensorData = new SensorData()
             {
@@ -352,7 +352,7 @@ namespace UnityEngine.Perception
                 description = description,
                 period = period,
                 firstCaptureTime = firstCaptureTime,
-                ego = ego,
+                egoHandle = egoHandle,
                 lastCaptureFrameCount = -1
             };
             sensorData.sequenceTimeNextCapture = SequenceTimeOfNextCapture(sensorData);
@@ -371,10 +371,10 @@ namespace UnityEngine.Perception
 
         public bool Contains(Guid id) => m_Ids.Contains(id);
 
-        public void AddEgo(Ego ego)
+        public void AddEgo(EgoHandle egoHandle)
         {
-            m_Egos.Add(ego);
-            m_Ids.Add(ego.Id);
+            m_Egos.Add(egoHandle);
+            m_Ids.Add(egoHandle.Id);
         }
 
         public bool IsEnabled(SensorHandle sensorHandle) => m_ActiveSensors.Contains(sensorHandle);

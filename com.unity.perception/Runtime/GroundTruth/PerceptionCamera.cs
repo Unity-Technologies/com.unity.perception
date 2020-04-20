@@ -18,7 +18,7 @@ using UnityEngine.Rendering.HighDefinition;
 #endif
 using UnityEngine.Perception.Sensors;
 
-namespace UnityEngine.Perception
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Captures ground truth from the associated Camera.
@@ -113,7 +113,7 @@ namespace UnityEngine.Perception
 
         bool m_CapturedLastFrame;
 
-        EgoMarker m_EgoMarker;
+        Ego m_EgoMarker;
 
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
@@ -226,8 +226,8 @@ namespace UnityEngine.Perception
         {
             //CaptureOptions.useAsyncReadbackIfSupported = false;
 
-            m_EgoMarker = this.GetComponentInParent<EgoMarker>();
-            var ego = m_EgoMarker == null ? SimulationManager.RegisterEgo("") : m_EgoMarker.Ego;
+            m_EgoMarker = this.GetComponentInParent<Ego>();
+            var ego = m_EgoMarker == null ? SimulationManager.RegisterEgo("") : m_EgoMarker.EgoHandle;
             SensorHandle = SimulationManager.RegisterSensor(ego, "camera", description, period, startTime);
 
             var myCamera = GetComponent<Camera>();

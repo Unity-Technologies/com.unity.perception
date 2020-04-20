@@ -3,7 +3,6 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Profiling;
 using Unity.Simulation;
-using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 

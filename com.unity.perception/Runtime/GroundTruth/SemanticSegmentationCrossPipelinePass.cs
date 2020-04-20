@@ -2,13 +2,13 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Perception.Sensors
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Custom Pass which renders labeled images where each object labeled with a Labeling component is drawn with the
     /// value specified by the given LabelingConfiguration.
     /// </summary>
-    public class SemanticSegmentationCrossPipelinePass : GroundTruthCrossPipelinePass
+    class SemanticSegmentationCrossPipelinePass : GroundTruthCrossPipelinePass
     {
         const string k_ShaderName = "Perception/SemanticSegmentation";
         static readonly int k_LabelingId = Shader.PropertyToID("LabelingId");

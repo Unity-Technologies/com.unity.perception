@@ -7,11 +7,11 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Unity.Simulation;
-using UnityEngine.Perception.Sensors;
+
 // ReSharper disable NotAccessedField.Local
 // ReSharper disable CoVariantArrayConversion
 
-namespace UnityEngine.Perception
+namespace UnityEngine.Perception.GroundTruth
 {
     partial class SimulationState
     {
@@ -42,7 +42,7 @@ namespace UnityEngine.Perception
             {
                 var sensorReference = new JObject();
                 sensorReference["id"] = kvp.Key.Id.ToString();
-                sensorReference["ego_id"] = kvp.Value.ego.Id.ToString();
+                sensorReference["ego_id"] = kvp.Value.egoHandle.Id.ToString();
                 sensorReference["modality"] = kvp.Value.modality;
                 if (kvp.Value.description != null)
                     sensorReference["description"] = kvp.Value.description;
@@ -286,7 +286,7 @@ namespace UnityEngine.Perception
         {
             var sensorJObject = new JObject();//new SensorCaptureJson
             sensorJObject["sensor_id"] = pendingCapture.SensorHandle.Id.ToString();
-            sensorJObject["ego_id"] = pendingCapture.SensorData.ego.Id.ToString();
+            sensorJObject["ego_id"] = pendingCapture.SensorData.egoHandle.Id.ToString();
             sensorJObject["modality"] = pendingCapture.SensorData.modality;
             sensorJObject["translation"] = DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.SensorPose.position);
             sensorJObject["rotation"] = DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.SensorPose.rotation);
@@ -298,7 +298,7 @@ namespace UnityEngine.Perception
             }
 
             var egoCaptureJson = new JObject();
-            egoCaptureJson["ego_id"] = pendingCapture.SensorData.ego.Id.ToString();
+            egoCaptureJson["ego_id"] = pendingCapture.SensorData.egoHandle.Id.ToString();
             egoCaptureJson["translation"] = DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoPose.position);
             egoCaptureJson["rotation"] = DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoPose.rotation);
             egoCaptureJson["velocity"] = pendingCapture.SensorSpatialData.EgoVelocity.HasValue ? DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoVelocity.Value) : null;

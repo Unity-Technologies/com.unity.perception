@@ -5,13 +5,9 @@ using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 #if UNITY_EDITOR
-using UnityEditor;
-using UnityEditorInternal;
 #endif
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Perception;
-using UnityEngine.Perception.Sensors;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
 
 #if HDRP_PRESENT

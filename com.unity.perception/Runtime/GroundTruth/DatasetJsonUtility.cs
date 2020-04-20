@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json.Linq;
 using Unity.Mathematics;
 
-namespace UnityEngine.Perception.Sensors
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Utilities for producing Json for datasets.

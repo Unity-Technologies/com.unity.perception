@@ -50,7 +50,7 @@ namespace UnityEngine.Perception.GroundTruth
             var entry = new LabelingConfigurationEntry();
             foreach (var l in m_LabelingConfiguration.LabelingConfigurations)
             {
-                if (labeling.classes.Contains(l.label))
+                if (labeling.labels.Contains(l.label))
                 {
                     entry = l;
                     break;

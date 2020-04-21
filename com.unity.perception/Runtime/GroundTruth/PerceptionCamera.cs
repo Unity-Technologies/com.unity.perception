@@ -16,7 +16,7 @@ using UnityEngine.Rendering;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 #endif
-using UnityEngine.Perception.Sensors;
+using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -359,7 +359,7 @@ namespace UnityEngine.Perception.GroundTruth
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
-                    if (!TryGetClassIdFromInstanceId(objectInfo.instanceId, out var labelId))
+                    if (!TryGetLabelIdFromInstanceId(objectInfo.instanceId, out var labelId))
                         continue;
 
                     m_VisiblePixelsValues[i] = new VisiblePixelsValue
@@ -406,7 +406,7 @@ namespace UnityEngine.Perception.GroundTruth
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
-                    if (!TryGetClassIdFromInstanceId(objectInfo.instanceId, out var labelId))
+                    if (!TryGetLabelIdFromInstanceId(objectInfo.instanceId, out var labelId))
                         continue;
 
                     m_BoundingBoxValues[i] = new BoundingBoxValue
@@ -425,10 +425,17 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        public bool TryGetClassIdFromInstanceId(int instanceId, out int labelId)
+        /// <summary>
+        /// Returns the class ID for the given instance ID resolved by <see cref="LabelingConfiguration"/>. Only valid when bounding boxes are being computed.
+        /// </summary>
+        /// <param name="instanceId">The instanceId of the object</param>
+        /// <param name="labelId">When this method returns, contains the labelId associated with the given instanceId, if one exists. -1 otherwise.</param>
+        /// <returns>True if a valid labelId was found for the given instanceId.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when <see cref="produceBoundingBoxAnnotations"/> was not true on Start.</exception>
+        public bool TryGetLabelIdFromInstanceId(int instanceId, out int labelId)
         {
             if (m_RenderedObjectInfoGenerator == null)
-                throw new InvalidOperationException($"{nameof(TryGetClassIdFromInstanceId)} can only be used when bounding box capture is enabled");
+                throw new InvalidOperationException($"{nameof(TryGetLabelIdFromInstanceId)} can only be used when bounding box capture is enabled");
             return m_RenderedObjectInfoGenerator.TryGetLabelIdFromInstanceId(instanceId, out labelId);
         }
 

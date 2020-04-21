@@ -11,7 +11,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         public void OnEnable()
         {
-            m_LabelsList = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(global::Labeling.classes)), true, false, true, true);
+            m_LabelsList = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(global::Labeling.labels)), true, false, true, true);
             m_LabelsList.drawElementCallback = DrawElement;
             m_LabelsList.onAddCallback += OnAdd;
             m_LabelsList.onRemoveCallback += OnRemove;
@@ -20,14 +20,14 @@ namespace UnityEditor.Perception.GroundTruth
         void OnRemove(ReorderableList list)
         {
             if (list.index != -1)
-                Labeling.classes.RemoveAt(list.index);
+                Labeling.labels.RemoveAt(list.index);
         }
 
         Labeling Labeling => (Labeling)target;
 
         void OnAdd(ReorderableList list)
         {
-            Labeling.classes.Add("");
+            Labeling.labels.Add("");
         }
 
         void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
@@ -39,10 +39,10 @@ namespace UnityEditor.Perception.GroundTruth
                     return;
 
                 var contentRect = new Rect(rect.x + indent, rect.y, rect.width - indent, rect.height);
-                var value = EditorGUI.TextField(contentRect, Labeling.classes[index]);
+                var value = EditorGUI.TextField(contentRect, Labeling.labels[index]);
                 if (change.changed)
                 {
-                    Labeling.classes[index] = value;
+                    Labeling.labels[index] = value;
                 }
             }
         }

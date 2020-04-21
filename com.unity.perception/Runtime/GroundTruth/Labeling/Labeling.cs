@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
-/// Defines a set of classes associated with the object and its descendants. Classes can be overwritten
+/// Defines a set of labels associated with the object and its descendants. A Labeling component will override any Labeling components on the object's ancestors.
 /// </summary>
 public class Labeling : MonoBehaviour
 {
     /// <summary>
-    /// The class names to associate with the GameObject.
+    /// The label names to associate with the GameObject.
     /// </summary>
-    public List<string> classes = new List<string>();
+    [FormerlySerializedAs("classes")]
+    public List<string> labels = new List<string>();
 
     Entity m_Entity;
     void Awake()

@@ -6,11 +6,12 @@ using Unity.Simulation;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Perception.Sensors
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// RenderTextureReader reads a RenderTexture from the GPU each frame and passes the data back through a provided callback.
     /// </summary>
+    /// <typeparam name="T">The type of the raw texture data to be provided.</typeparam>
     public class RenderTextureReader<T> : IDisposable where T : struct
     {
         RenderTexture m_Source;
@@ -23,6 +24,12 @@ namespace UnityEngine.Perception.Sensors
 
         ProfilerMarker m_WaitingForCompletionMarker = new ProfilerMarker("RenderTextureReader_WaitingForCompletion");
 
+        /// <summary>
+        /// Creates a new <see cref="RenderTextureReader{T}"/> for the given <see cref="RenderTexture"/>, <see cref="Camera"/>, and image readback callback
+        /// </summary>
+        /// <param name="source">The <see cref="RenderTexture"/> to read from.</param>
+        /// <param name="cameraRenderingToSource">The <see cref="Camera"/> which renders to the given renderTexture. This is used to determine when to read from the texture.</param>
+        /// <param name="imageReadCallback">The callback to call after reading the texture</param>
         public RenderTextureReader(RenderTexture source, Camera cameraRenderingToSource, Action<int, NativeArray<T>, RenderTexture> imageReadCallback)
         {
             this.m_Source = source;
@@ -83,11 +90,17 @@ namespace UnityEngine.Perception.Sensors
             }
         }
 
+        /// <summary>
+        /// Synchronously wait for all image requests to complete.
+        /// </summary>
         public void WaitForAllImages()
         {
             AsyncGPUReadback.WaitAllRequests();
         }
 
+        /// <summary>
+        /// Shut down the reader, waiting for all requests to return.
+        /// </summary>
         public void Dispose()
         {
             WaitForAllImages();

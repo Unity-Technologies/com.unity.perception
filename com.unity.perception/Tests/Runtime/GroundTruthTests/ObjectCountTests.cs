@@ -11,6 +11,7 @@ using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
 
 #if HDRP_PRESENT
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 #endif
 
@@ -117,9 +118,7 @@ namespace GroundTruthTests
             var InstanceSegmentationPass = new InstanceSegmentationPass()
             {
                 targetCamera = camera,
-                targetTexture = rt,
-                idStart = 1,
-                idStep = 1
+                targetTexture = rt
             };
             InstanceSegmentationPass.name = nameof(InstanceSegmentationPass);
             InstanceSegmentationPass.EnsureInit();

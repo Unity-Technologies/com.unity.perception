@@ -1,6 +1,5 @@
 ﻿#if HDRP_PRESENT
 
-using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEngine.Perception.GroundTruth;
 

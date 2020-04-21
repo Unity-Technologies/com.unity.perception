@@ -8,7 +8,7 @@ using UnityEngine.TestTools;
 namespace GroundTruthTests
 {
     [TestFixture]
-    public class SimulationManager_SensorSchedulingTests
+    public class SimulationManagerSensorSchedulingTests
     {
         [TearDown]
         public void TearDown()
@@ -109,19 +109,12 @@ namespace GroundTruthTests
                 newTimeScalesPerFrame[2] * period,
                 newTimeScalesPerFrame[3] * period
             };
-            float[] unscaledDeltaTimeSamplesExpected = {
-                firstCaptureTime,
-                period,
-                period,
-                period
-            };
             float[] deltaTimeSamples = new float[deltaTimeSamplesExpected.Length];
             for (int i = 0; i < deltaTimeSamples.Length; i++)
             {
                 Time.timeScale = newTimeScalesPerFrame[i];
                 yield return null;
                 Assert.AreEqual(deltaTimeSamplesExpected[i], Time.deltaTime, 0.0001f);
-                //Assert.AreEqual(unscaledDeltaTimeSamplesExpected[i], Time.unscaledDeltaTime, 0.0001f);
             }
         }
 

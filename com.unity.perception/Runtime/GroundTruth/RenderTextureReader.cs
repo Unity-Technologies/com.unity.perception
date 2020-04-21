@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Unity.Collections;
-using Unity.Profiling;
 using Unity.Simulation;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -21,8 +20,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         Texture2D m_CpuTexture;
         Camera m_CameraRenderingToSource;
-
-        ProfilerMarker m_WaitingForCompletionMarker = new ProfilerMarker("RenderTextureReader_WaitingForCompletion");
 
         /// <summary>
         /// Creates a new <see cref="RenderTextureReader{T}"/> for the given <see cref="RenderTexture"/>, <see cref="Camera"/>, and image readback callback

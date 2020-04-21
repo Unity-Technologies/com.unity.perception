@@ -81,6 +81,8 @@ namespace UnityEngine.Perception.GroundTruth
         NativeList<int> m_InstanceIdToClassIdLookup;
         LabelingConfiguration m_LabelingConfiguration;
 
+        // ReSharper disable once InvalidXmlDocComment
+
         /// <summary>
         /// Create a new CpuRenderedObjectInfoPass with the given LabelingConfiguration.
         /// </summary>

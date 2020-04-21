@@ -559,10 +559,8 @@ namespace UnityEngine.Perception
         // ReSharper disable once ParameterHidesMember
         bool ShouldFlipY(Camera camera)
         {
-            Debug.Log(camera);
 #if HDRP_PRESENT
             var hdAdditionalCameraData = GetComponent<HDAdditionalCameraData>();
-            Debug.Log(hdAdditionalCameraData);
 
             //Based on logic in HDRenderPipeline.PrepareFinalBlitParameters
             return camera.targetTexture != null || hdAdditionalCameraData.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || camera.cameraType == CameraType.Game;

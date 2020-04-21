@@ -31,6 +31,7 @@ namespace EditorTests
             var expectedFirstFrame = Time.frameCount;
             yield return null;
             EditorApplication.isPaused = true;
+            //Wait a few editor frames to ensure the issue has a chance to trigger.
             yield return null;
             yield return null;
             yield return null;

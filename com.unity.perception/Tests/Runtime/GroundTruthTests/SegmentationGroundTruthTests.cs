@@ -43,7 +43,7 @@ namespace GroundTruthTests
 
     //Graphics issues with OpenGL Linux Editor. https://jira.unity3d.com/browse/AISV-422
     [UnityPlatform(exclude = new[] {RuntimePlatform.LinuxEditor, RuntimePlatform.LinuxPlayer})]
-    public class SegmentationPassTests : PassTestBase
+    public class SegmentationPassTests : GroundTruthTestBase
     {
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
         // `yield return null;` to skip a frame.

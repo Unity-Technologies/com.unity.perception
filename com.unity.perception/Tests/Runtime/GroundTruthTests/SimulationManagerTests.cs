@@ -21,18 +21,6 @@ namespace GroundTruthTests
     [TestFixture]
     public class SimulationManagerTests
     {
-        [TearDown]
-        public void TearDown()
-        {
-            SimulationManager.ResetSimulation();
-            Time.timeScale = 1;
-            //Manager.Instance.Shutdown();
-            if (Directory.Exists(SimulationManager.OutputDirectory))
-                Directory.Delete(SimulationManager.OutputDirectory, true);
-
-            //Manager.Instance.Start();
-        }
-
         [Test]
         public void RegisterSensor_ReportsProperJson()
         {

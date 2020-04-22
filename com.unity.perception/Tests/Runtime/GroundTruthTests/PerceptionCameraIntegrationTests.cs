@@ -3,12 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
-using Unity.Collections;
 using UnityEngine;
-using UnityEngine.Perception;
-using UnityEngine.Perception.Sensors;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
-using Object = UnityEngine.Object;
 
 namespace GroundTruthTests
 {
@@ -36,7 +33,7 @@ namespace GroundTruthTests
               ""height"": {Screen.height / 2:F1}
             }}";
             var labelingConfiguration = CreateLabelingConfiguration();
-            var camera = SetupCamera(labelingConfiguration, pc =>
+            SetupCamera(labelingConfiguration, pc =>
             {
                 pc.produceBoundingBoxAnnotations = true;
             });

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
-using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using Object = UnityEngine.Object;

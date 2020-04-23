@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 using Unity.Entities;
 
@@ -22,8 +22,8 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void OnCreate()
         {
             //These are here to inform the system runner the queries we are interested in. Without these calls, OnUpdate() might not be called
-            GetEntityQuery( ComponentType.Exclude<GroundTruthInfo>(), ComponentType.ReadOnly<Labeling>());
-            GetEntityQuery( ComponentType.ReadOnly<GroundTruthInfo>(), ComponentType.ReadOnly<Labeling>());
+            GetEntityQuery(ComponentType.Exclude<GroundTruthInfo>(), ComponentType.ReadOnly<Labeling>());
+            GetEntityQuery(ComponentType.ReadOnly<GroundTruthInfo>(), ComponentType.ReadOnly<Labeling>());
         }
 
         /// <inheritdoc/>
@@ -91,7 +91,6 @@ namespace UnityEngine.Perception.GroundTruth
                 var gameObject = labeling.gameObject;
                 InitGameObjectRecursive(gameObject, m_MaterialPropertyBlocks.Value, labeling, info.instanceId);
             });
-
         }
 
         /// <summary>

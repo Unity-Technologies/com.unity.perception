@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +47,7 @@ namespace GroundTruthTests
 
             //TestHelper.LoadAndStartRenderDocCapture(out EditorWindow gameView);
             var startFrameCount = Time.frameCount;
-            var expectedFramesAndCounts= new Dictionary<int, int>()
+            var expectedFramesAndCounts = new Dictionary<int, int>()
             {
                 {Time.frameCount    , 0},
                 {startFrameCount + 1, 1},

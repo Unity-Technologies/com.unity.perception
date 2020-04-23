@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
@@ -25,7 +25,8 @@ namespace GroundTruthTests
             var period = .4f;
             SimulationManager.RegisterSensor(ego, "cam", "", period, firstCaptureTime);
 
-            float[] deltaTimeSamplesExpected = {
+            float[] deltaTimeSamplesExpected =
+            {
                 firstCaptureTime,
                 period,
                 period,
@@ -50,7 +51,8 @@ namespace GroundTruthTests
             Time.timeScale = timeScale;
             SimulationManager.RegisterSensor(ego, "cam", "", period, firstCaptureTime);
 
-            float[] deltaTimeSamplesExpected = {
+            float[] deltaTimeSamplesExpected =
+            {
                 timeScale * firstCaptureTime,
                 timeScale * period,
                 timeScale * period,
@@ -95,7 +97,8 @@ namespace GroundTruthTests
             var ego = SimulationManager.RegisterEgo("ego");
             var firstCaptureTime = 2f;
             var period = 1f;
-            float[] newTimeScalesPerFrame = {
+            float[] newTimeScalesPerFrame =
+            {
                 2f,
                 10f,
                 .01f,
@@ -103,7 +106,8 @@ namespace GroundTruthTests
             };
             SimulationManager.RegisterSensor(ego, "cam", "", period, firstCaptureTime);
 
-            float[] deltaTimeSamplesExpected = {
+            float[] deltaTimeSamplesExpected =
+            {
                 newTimeScalesPerFrame[0] * firstCaptureTime,
                 newTimeScalesPerFrame[1] * period,
                 newTimeScalesPerFrame[2] * period,
@@ -144,14 +148,15 @@ namespace GroundTruthTests
             var sensor3 = SimulationManager.RegisterSensor(ego, "cam", "3", 1, 1);
             sensor3.Enabled = false;
 
-            (float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture)[] samplesExpected = {
+            (float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture)[] samplesExpected =
+            {
                 ((float)firstCaptureTime1, true, true),
                 (4, true, false),
                 (2, false, true),
                 (2, true, false),
                 (4, true, true)
             };
-            var samplesActual = new (float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture)[samplesExpected.Length];
+            var samplesActual = new(float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture)[samplesExpected.Length];
             for (int i = 0; i < samplesActual.Length; i++)
             {
                 yield return null;
@@ -164,7 +169,7 @@ namespace GroundTruthTests
         [Test]
         public void Enabled_StartsTrue()
         {
-            var sensor1 = SimulationManager.RegisterSensor(SimulationManager.RegisterEgo(""), "cam", "1", 1,1);
+            var sensor1 = SimulationManager.RegisterSensor(SimulationManager.RegisterEgo(""), "cam", "1", 1, 1);
             Assert.IsTrue(sensor1.Enabled);
         }
     }

@@ -1,4 +1,4 @@
-﻿using Unity.Entities;
+using Unity.Entities;
 
 namespace UnityEngine.Perception.GroundTruth
 {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using Unity.Simulation;
@@ -270,7 +270,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="sensorSpatialData">Spatial data describing the sensor and the ego containing it.</param>
         /// <param name="additionalSensorValues">Additional values to be emitted as json name/value pairs on the sensor object under the capture.</param>
         /// <exception cref="InvalidOperationException">Thrown if ReportCapture is being called when ShouldCaptureThisFrame is false or it has already been called this frame.</exception>
-        public void ReportCapture(string filename, SensorSpatialData sensorSpatialData, params (string, object)[] additionalSensorValues)
+        public void ReportCapture(string filename, SensorSpatialData sensorSpatialData, params(string, object)[] additionalSensorValues)
         {
             if (!ShouldCaptureThisFrame)
             {
@@ -381,7 +381,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="left">The first SensorHandle.</param>
         /// <param name="right">The second SensorHandle.</param>
         /// <returns>Returns true if the two SensorHandles refer to the same sensor.</returns>
-        public static bool operator ==(SensorHandle left, SensorHandle right)
+        public static bool operator==(SensorHandle left, SensorHandle right)
         {
             return left.Equals(right);
         }
@@ -392,7 +392,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="left">The first SensorHandle.</param>
         /// <param name="right">The second SensorHandle.</param>
         /// <returns>Returns false if the two SensorHandles refer to the same sensor.</returns>
-        public static bool operator !=(SensorHandle left, SensorHandle right)
+        public static bool operator!=(SensorHandle left, SensorHandle right)
         {
             return !left.Equals(right);
         }
@@ -660,11 +660,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="left">The first EgoHandle.</param>
         /// <param name="right">The second EgoHandle.</param>
         /// <returns>Returns true if the two EgoHandles refer to the same ego.</returns>
-        public static bool operator ==(EgoHandle left, EgoHandle right)
+        public static bool operator==(EgoHandle left, EgoHandle right)
         {
             return left.Equals(right);
         }
-
 
         /// <summary>
         /// Compares two <see cref="EgoHandle"/> instances for inequality.
@@ -672,7 +671,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="left">The first EgoHandle.</param>
         /// <param name="right">The second EgoHandle.</param>
         /// <returns>Returns true if the two EgoHandles refer to the same ego.</returns>
-        public static bool operator !=(EgoHandle left, EgoHandle right)
+        public static bool operator!=(EgoHandle left, EgoHandle right)
         {
             return !left.Equals(right);
         }
@@ -692,6 +691,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             Id = id;
         }
+
         /// <inheritdoc />
         public bool Equals(MetricDefinition other)
         {
@@ -802,5 +802,4 @@ namespace UnityEngine.Perception.GroundTruth
             return sensorSpatialData;
         }
     }
-
 }

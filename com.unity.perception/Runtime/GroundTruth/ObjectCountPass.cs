@@ -1,4 +1,4 @@
-﻿#if HDRP_PRESENT
+#if HDRP_PRESENT
 
 using Unity.Collections.LowLevel.Unsafe;
 using System;
@@ -50,7 +50,7 @@ namespace UnityEngine.Perception.GroundTruth
                     m_InstanceIdToClassIdLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
                 }
                 m_IdBuffersNeedUpdating = true;
-                m_InstanceIdToClassIdLookup[(int) instanceId] = index + 1;
+                m_InstanceIdToClassIdLookup[(int)instanceId] = index + 1;
             }
         }
 

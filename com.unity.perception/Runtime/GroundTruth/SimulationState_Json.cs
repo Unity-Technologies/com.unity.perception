@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -293,7 +293,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (pendingCapture.AdditionalSensorValues != null)
             {
-                foreach (var (name, value) in pendingCapture.AdditionalSensorValues)
+                foreach (var(name, value) in pendingCapture.AdditionalSensorValues)
                     sensorJObject.Add(name, DatasetJsonUtility.ToJToken(value));
             }
 

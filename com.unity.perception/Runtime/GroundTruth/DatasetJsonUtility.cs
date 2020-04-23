@@ -19,6 +19,7 @@ namespace UnityEngine.Perception.GroundTruth
             obj.Add(value.z);
             return obj;
         }
+
         public static JToken ToJToken(Quaternion value)
         {
             var obj = new JArray();
@@ -28,6 +29,7 @@ namespace UnityEngine.Perception.GroundTruth
             obj.Add(value.w);
             return obj;
         }
+
         public static JToken ToJToken(float3x3 value)
         {
             var obj = new JArray();
@@ -36,6 +38,7 @@ namespace UnityEngine.Perception.GroundTruth
             obj.Add(ToJToken(value.c2));
             return obj;
         }
+
         public static JToken ToJToken(float3 value)
         {
             var obj = new JArray();
@@ -44,6 +47,7 @@ namespace UnityEngine.Perception.GroundTruth
             obj.Add(value.z);
             return obj;
         }
+
         public static JToken ToJToken<T>(T value)
         {
             switch (value)

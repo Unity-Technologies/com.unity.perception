@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,7 +71,7 @@ namespace GroundTruthTests
 
             //Put a plane in front of the camera
             var planeObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            planeObject.transform.SetPositionAndRotation(new Vector3(0, 0, 10), Quaternion.Euler(90, 0, 0) );
+            planeObject.transform.SetPositionAndRotation(new Vector3(0, 0, 10), Quaternion.Euler(90, 0, 0));
             planeObject.transform.localScale = new Vector3(10, -1, 10);
             planeObject.AddComponent<Labeling>();
             AddTestObjectForCleanup(planeObject);
@@ -86,6 +86,7 @@ namespace GroundTruthTests
 
             Assert.AreEqual(4, timesSegmentationImageReceived);
         }
+
         [UnityTest]
         public IEnumerator SegmentationPassProducesCorrectValuesEachFrame()
         {

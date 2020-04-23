@@ -28,6 +28,7 @@ namespace GroundTruthTests
             var jsonActual = DatasetJsonUtility.ToJToken(new Vector3(x, y, z));
             Assert.AreEqual(jsonExpected, jsonActual.ToString());
         }
+
         [Test]
         [TestCase(-2f, 0f, 3f, 4f, @"[
   -2.0,
@@ -52,6 +53,7 @@ namespace GroundTruthTests
             var jsonActual = DatasetJsonUtility.ToJToken(new Quaternion(x, y, z, w)).ToString();
             Assert.AreEqual(jsonExpected, jsonActual);
         }
+
         [Test]
         [TestCase(0.1f, 0.2f, 0.3f, 4f, 5f, 6f, 70f, 80f, 90f, @"[
   [

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
-using Unity.Collections;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Perception;
-using UnityEngine.Perception.Sensors;
+using UnityEngine.Perception.GroundTruth;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace EditorTests
@@ -19,10 +17,10 @@ namespace EditorTests
         [UnityTest]
         public IEnumerator EditorPause_DoesNotLogErrors()
         {
-            int sceneCount = EditorSceneManager.sceneCount;
+            int sceneCount = SceneManager.sceneCount;
             for (int i = sceneCount - 1; i >= 0; i--)
             {
-                EditorSceneManager.CloseScene(EditorSceneManager.GetSceneAt(i), true);
+                EditorSceneManager.CloseScene(SceneManager.GetSceneAt(i), true);
             }
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
@@ -53,7 +51,7 @@ namespace EditorTests
             yield return new ExitPlayMode();
         }
 
-        static GameObject SetupCamera(LabelingConfiguration labelingConfiguration)
+        static void SetupCamera(LabelingConfiguration labelingConfiguration)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -71,7 +69,6 @@ namespace EditorTests
             perceptionCamera.produceObjectCountAnnotations = true;
 
             cameraObject.SetActive(true);
-            return cameraObject;
         }
     }
 }

@@ -13,12 +13,12 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 #endif
-using UnityEngine.Perception.Sensors;
 
-namespace UnityEngine.Perception
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Captures ground truth from the associated Camera.
@@ -59,7 +59,8 @@ namespace UnityEngine.Perception
         /// <summary>
         /// The ID to use for object count annotations in the resulting dataset
         /// </summary>
-        public string m_ObjectCountID = "51DA3C27-369D-4929-AEA6-D01614635CE2";
+        [FormerlySerializedAs("m_ObjectCountID")]
+        public string objectCountId = "51DA3C27-369D-4929-AEA6-D01614635CE2";
         /// <summary>
         /// Whether object bounding boxes should be computed
         /// </summary>
@@ -67,7 +68,8 @@ namespace UnityEngine.Perception
         /// <summary>
         /// The ID to use for bounding box annotations in the resulting dataset
         /// </summary>
-        public string m_BoundingBoxID = "F9F22E05-443F-4602-A422-EBE4EA9B55CB";
+        [FormerlySerializedAs("m_BoundingBoxID")]
+        public string boundingBoxId = "F9F22E05-443F-4602-A422-EBE4EA9B55CB";
         /// <summary>
         /// Whether visible pixels should be computed for each labeled object
         /// </summary>
@@ -75,7 +77,8 @@ namespace UnityEngine.Perception
         /// <summary>
         /// The ID to use for visible pixels metrics in the resulting dataset
         /// </summary>
-        public string m_VisiblePixelsID = "5BA92024-B3B7-41A7-9D3F-C03A6A8DDD01";
+        [FormerlySerializedAs("m_VisiblePixelsID")]
+        public string visiblePixelsId = "5BA92024-B3B7-41A7-9D3F-C03A6A8DDD01";
         /// <summary>
         /// The corner of the image to use as the origin for bounding boxs.
         /// </summary>
@@ -95,9 +98,9 @@ namespace UnityEngine.Perception
         internal event Action<NativeSlice<uint>, IReadOnlyList<LabelingConfigurationEntry>, int> classCountsReceived;
 
         [NonSerialized]
-        internal RenderTexture m_LabelingTexture;
+        internal RenderTexture labelingTexture;
         [NonSerialized]
-        internal RenderTexture m_SegmentationTexture;
+        internal RenderTexture segmentationTexture;
 
         RenderTextureReader<short> m_ClassLabelingTextureReader;
         RenderTextureReader<uint> m_SegmentationReader;
@@ -113,7 +116,7 @@ namespace UnityEngine.Perception
 
         bool m_CapturedLastFrame;
 
-        EgoMarker m_EgoMarker;
+        Ego m_EgoMarker;
 
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
@@ -226,8 +229,8 @@ namespace UnityEngine.Perception
         {
             //CaptureOptions.useAsyncReadbackIfSupported = false;
 
-            m_EgoMarker = this.GetComponentInParent<EgoMarker>();
-            var ego = m_EgoMarker == null ? SimulationManager.RegisterEgo("") : m_EgoMarker.Ego;
+            m_EgoMarker = this.GetComponentInParent<Ego>();
+            var ego = m_EgoMarker == null ? SimulationManager.RegisterEgo("") : m_EgoMarker.EgoHandle;
             SensorHandle = SimulationManager.RegisterSensor(ego, "camera", description, period, startTime);
 
             var myCamera = GetComponent<Camera>();
@@ -242,10 +245,10 @@ namespace UnityEngine.Perception
                 produceBoundingBoxAnnotations = false;
             }
 
-            m_SegmentationTexture = new RenderTexture(new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8));
-            m_SegmentationTexture.name = "Segmentation";
-            m_LabelingTexture = new RenderTexture(new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8));
-            m_LabelingTexture.name = "Labeling";
+            segmentationTexture = new RenderTexture(new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8));
+            segmentationTexture.name = "Segmentation";
+            labelingTexture = new RenderTexture(new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8));
+            labelingTexture.name = "Labeling";
 
 #if HDRP_PRESENT
             var customPassVolume = this.GetComponent<CustomPassVolume>() ?? gameObject.AddComponent<CustomPassVolume>();
@@ -255,10 +258,10 @@ namespace UnityEngine.Perception
             {
                 name = "Segmentation Pass",
                 targetCamera = myCamera,
-                targetTexture = m_SegmentationTexture
+                targetTexture = segmentationTexture
             };
             m_SegmentationPass.EnsureInit();
-            m_SemanticSegmentationPass = new SemanticSegmentationPass(myCamera, m_LabelingTexture, LabelingConfiguration)
+            m_SemanticSegmentationPass = new SemanticSegmentationPass(myCamera, labelingTexture, LabelingConfiguration)
             {
                 name = "Labeling Pass"
             };
@@ -266,8 +269,8 @@ namespace UnityEngine.Perception
             SetupPasses(customPassVolume);
 #endif
 #if URP_PRESENT
-            instanceSegmentationUrpPass = new InstanceSegmentationUrpPass(myCamera, m_SegmentationTexture);
-            semanticSegmentationUrpPass = new SemanticSegmentationUrpPass(myCamera, m_LabelingTexture, LabelingConfiguration);
+            instanceSegmentationUrpPass = new InstanceSegmentationUrpPass(myCamera, segmentationTexture);
+            semanticSegmentationUrpPass = new SemanticSegmentationUrpPass(myCamera, labelingTexture, LabelingConfiguration);
 #endif
 
             if (produceSegmentationImages)
@@ -281,7 +284,7 @@ namespace UnityEngine.Perception
 
                 m_SegmentationAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition("semantic segmentation", specs, "pixel-wise semantic segmentation label", "PNG");
 
-                m_ClassLabelingTextureReader = new RenderTextureReader<short>(m_LabelingTexture, myCamera,
+                m_ClassLabelingTextureReader = new RenderTextureReader<short>(labelingTexture, myCamera,
                     (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
             }
 
@@ -295,21 +298,21 @@ namespace UnityEngine.Perception
 
                 if (produceObjectCountAnnotations)
                 {
-                    m_ObjectCountMetricDefinition = SimulationManager.RegisterMetricDefinition("object count", labelingMetricSpec, "Counts of objects for each label in the sensor's view", id: new Guid(m_ObjectCountID));
+                    m_ObjectCountMetricDefinition = SimulationManager.RegisterMetricDefinition("object count", labelingMetricSpec, "Counts of objects for each label in the sensor's view", id: new Guid(objectCountId));
                 }
 
                 if (produceBoundingBoxAnnotations)
                 {
-                    m_BoundingBoxAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition("bounding box", labelingMetricSpec, "Bounding boxe for each labeled object visible to the sensor", id: new Guid(m_BoundingBoxID));
+                    m_BoundingBoxAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition("bounding box", labelingMetricSpec, "Bounding boxe for each labeled object visible to the sensor", id: new Guid(boundingBoxId));
                 }
 
                 if (produceVisiblePixelsMetric)
-                    m_VisiblePixelsMetricDefinition = SimulationManager.RegisterMetricDefinition("visible pixels", labelingMetricSpec, "Visible pixels for each visible object", id: new Guid(m_VisiblePixelsID));
+                    m_VisiblePixelsMetricDefinition = SimulationManager.RegisterMetricDefinition("visible pixels", labelingMetricSpec, "Visible pixels for each visible object", id: new Guid(visiblePixelsId));
 
                 m_RenderedObjectInfoGenerator = new RenderedObjectInfoGenerator(LabelingConfiguration);
                 World.DefaultGameObjectInjectionWorld.GetExistingSystem<GroundTruthLabelSetupSystem>().Activate(m_RenderedObjectInfoGenerator);
 
-                m_SegmentationReader = new RenderTextureReader<uint>(m_SegmentationTexture, myCamera, (frameCount, data, tex) =>
+                m_SegmentationReader = new RenderTextureReader<uint>(segmentationTexture, myCamera, (frameCount, data, tex) =>
                 {
                     if (segmentationImageReceived != null)
                         segmentationImageReceived(frameCount, data);
@@ -334,12 +337,17 @@ namespace UnityEngine.Perception
             SimulationManager.SimulationEnding += OnSimulationEnding;
         }
 
+        // ReSharper disable InconsistentNaming
         struct VisiblePixelsValue
         {
+            [UsedImplicitly]
             public int label_id;
+            [UsedImplicitly]
             public int instance_id;
+            [UsedImplicitly]
             public int visible_pixels;
         }
+        // ReSharper restore InconsistentNaming
 
         void ProduceVisiblePixelsMetric(NativeArray<RenderedObjectInfo> renderedObjectInfos, int frameCount)
         {
@@ -359,7 +367,7 @@ namespace UnityEngine.Perception
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
-                    if (!TryGetClassIdFromInstanceId(objectInfo.instanceId, out var labelId))
+                    if (!TryGetLabelIdFromInstanceId(objectInfo.instanceId, out var labelId))
                         continue;
 
                     m_VisiblePixelsValues[i] = new VisiblePixelsValue
@@ -406,7 +414,7 @@ namespace UnityEngine.Perception
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
-                    if (!TryGetClassIdFromInstanceId(objectInfo.instanceId, out var labelId))
+                    if (!TryGetLabelIdFromInstanceId(objectInfo.instanceId, out var labelId))
                         continue;
 
                     m_BoundingBoxValues[i] = new BoundingBoxValue
@@ -425,10 +433,17 @@ namespace UnityEngine.Perception
             }
         }
 
-        public bool TryGetClassIdFromInstanceId(int instanceId, out int labelId)
+        /// <summary>
+        /// Returns the class ID for the given instance ID resolved by <see cref="LabelingConfiguration"/>. Only valid when bounding boxes are being computed.
+        /// </summary>
+        /// <param name="instanceId">The instanceId of the object</param>
+        /// <param name="labelId">When this method returns, contains the labelId associated with the given instanceId, if one exists. -1 otherwise.</param>
+        /// <returns>True if a valid labelId was found for the given instanceId.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when <see cref="produceBoundingBoxAnnotations"/> was not true on Start.</exception>
+        public bool TryGetLabelIdFromInstanceId(int instanceId, out int labelId)
         {
             if (m_RenderedObjectInfoGenerator == null)
-                throw new InvalidOperationException($"{nameof(TryGetClassIdFromInstanceId)} can only be used when bounding box capture is enabled");
+                throw new InvalidOperationException($"{nameof(TryGetLabelIdFromInstanceId)} can only be used when bounding box capture is enabled");
             return m_RenderedObjectInfoGenerator.TryGetLabelIdFromInstanceId(instanceId, out labelId);
         }
 
@@ -484,8 +499,8 @@ namespace UnityEngine.Perception
             if (!SensorHandle.IsValid)
                 return;
 
-            var camera = this.GetComponent<Camera>();
-            camera.enabled = SensorHandle.ShouldCaptureThisFrame;
+            var cam = GetComponent<Camera>();
+            cam.enabled = SensorHandle.ShouldCaptureThisFrame;
 
             m_AsyncCaptureInfos.RemoveSwapBack(i =>
                 !i.SegmentationAsyncAnnotation.IsPending &&
@@ -518,7 +533,7 @@ namespace UnityEngine.Perception
             }
         }
 
-        void CaptureRgbData(Camera camera)
+        void CaptureRgbData(Camera cam)
         {
             Profiler.BeginSample("CaptureDataFromLastFrame");
             if (!captureRgbImages)
@@ -529,9 +544,9 @@ namespace UnityEngine.Perception
             SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(m_EgoMarker == null ? null : m_EgoMarker.gameObject, gameObject), m_PersistentSensorData.Select(kvp => (kvp.Key, kvp.Value)).ToArray());
 
             Func<AsyncRequest<CaptureCamera.CaptureState>, AsyncRequest.Result> colorFunctor = null;
-            var width = camera.pixelWidth;
-            var height = camera.pixelHeight;
-            var flipY = ShouldFlipY(camera);
+            var width = cam.pixelWidth;
+            var height = cam.pixelHeight;
+            var flipY = ShouldFlipY(cam);
 
             colorFunctor = r =>
             {
@@ -551,7 +566,7 @@ namespace UnityEngine.Perception
                 }
             };
 
-            CaptureCamera.Capture(camera, colorFunctor);
+            CaptureCamera.Capture(cam, colorFunctor);
 
             Profiler.EndSample();
         }
@@ -606,16 +621,16 @@ namespace UnityEngine.Perception
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
         }
 
-        void OnBeginCameraRendering(ScriptableRenderContext _, Camera camera)
+        void OnBeginCameraRendering(ScriptableRenderContext _, Camera cam)
         {
-            if (camera != GetComponent<Camera>())
+            if (cam != GetComponent<Camera>())
                 return;
 #if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPaused)
                 return;
 #endif
             ReportAsyncAnnotations();
-            CaptureRgbData(camera);
+            CaptureRgbData(cam);
         }
 
         void OnDisable()
@@ -626,12 +641,12 @@ namespace UnityEngine.Perception
 
             m_ClassLabelingTextureReader?.Dispose();
             m_ClassLabelingTextureReader = null;
-            if (m_SegmentationTexture != null)
-                m_SegmentationTexture.Release();
+            if (segmentationTexture != null)
+                segmentationTexture.Release();
 
-            m_SegmentationTexture = null;
-            if (m_LabelingTexture != null)
-                m_LabelingTexture.Release();
+            segmentationTexture = null;
+            if (labelingTexture != null)
+                labelingTexture.Release();
 
             if (m_RenderedObjectInfoGenerator != null)
             {
@@ -645,7 +660,7 @@ namespace UnityEngine.Perception
 
             SensorHandle = default;
 
-            m_LabelingTexture = null;
+            labelingTexture = null;
         }
 
         void OnSemanticSegmentationImageRead(int frameCount, NativeArray<short> data)
@@ -665,8 +680,8 @@ namespace UnityEngine.Perception
             asyncRequest.data = new AsyncSemanticSegmentationWrite()
             {
                 dataArray = data.ToArray(),
-                width = m_LabelingTexture.width,
-                height = m_LabelingTexture.height,
+                width = labelingTexture.width,
+                height = labelingTexture.height,
                 path = path
             };
             asyncRequest.Start((r) =>

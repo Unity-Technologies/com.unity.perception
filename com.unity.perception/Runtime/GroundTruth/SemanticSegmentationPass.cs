@@ -4,7 +4,7 @@ using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEngine.Perception.Sensors
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Custom Pass which renders labeled images where each object with a Labeling component is drawn with the value

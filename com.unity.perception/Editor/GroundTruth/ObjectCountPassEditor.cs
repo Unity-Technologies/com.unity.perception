@@ -1,11 +1,10 @@
 ﻿#if HDRP_PRESENT
 
 using System;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
+using UnityEngine.Perception.GroundTruth;
 
-namespace UnityEngine.Perception.Sensors.Editor
+namespace UnityEditor.Perception.GroundTruth
 {
     [CustomPassDrawer(typeof(ObjectCountPass))]
     public class ObjectCountPassEditor : BaseCustomPassDrawer

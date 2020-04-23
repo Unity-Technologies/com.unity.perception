@@ -1,28 +1,30 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
-/// Defines a set of classes associated with the object and its descendants. Classes can be overwritten 
+/// Defines a set of labels associated with the object and its descendants. A Labeling component will override any Labeling components on the object's ancestors.
 /// </summary>
 public class Labeling : MonoBehaviour
 {
-    public List<string> classes = new List<string>();
+    /// <summary>
+    /// The label names to associate with the GameObject.
+    /// </summary>
+    [FormerlySerializedAs("classes")]
+    public List<string> labels = new List<string>();
 
-    Entity entity;
-
-    // Start is called before the first frame update
+    Entity m_Entity;
     void Awake()
     {
-        entity = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntity();
-        World.DefaultGameObjectInjectionWorld.EntityManager.AddComponentObject(entity, this);
+        m_Entity = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntity();
+        World.DefaultGameObjectInjectionWorld.EntityManager.AddComponentObject(m_Entity, this);
     }
 
-    private void OnDestroy()
+    void OnDestroy()
     {
         if (World.DefaultGameObjectInjectionWorld != null)
-            World.DefaultGameObjectInjectionWorld.EntityManager.DestroyEntity(entity);
+            World.DefaultGameObjectInjectionWorld.EntityManager.DestroyEntity(m_Entity);
     }
 }

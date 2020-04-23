@@ -5,11 +5,11 @@ using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
 #endif
-using UnityEngine.Perception.Sensors;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
@@ -107,7 +107,8 @@ namespace GroundTruthTests
                 {
                     CollectionAssert.AreEqual(Enumerable.Repeat(expectedLabelAtFrame[frameCount], data.Length), data);
                 }
-                catch (Exception e)
+                // ReSharper disable once RedundantCatchClause
+                catch (Exception)
                 {
                     //uncomment to get RenderDoc captures while this check is failing
                     //RenderDoc.EndCaptureRenderDoc(gameView);
@@ -163,12 +164,12 @@ namespace GroundTruthTests
             customPassVolume.isGlobal = true;
             var rt = new RenderTexture(128, 128, 1, GraphicsFormat.R8G8B8A8_UNorm);
             rt.Create();
-            var InstanceSegmentationPass = new InstanceSegmentationPass();
-            InstanceSegmentationPass.targetCamera = camera;
-            InstanceSegmentationPass.targetTexture = rt;
-            customPassVolume.customPasses.Add(InstanceSegmentationPass);
-            InstanceSegmentationPass.name = nameof(InstanceSegmentationPass);
-            InstanceSegmentationPass.EnsureInit();
+            var instanceSegmentationPass = new InstanceSegmentationPass();
+            instanceSegmentationPass.targetCamera = camera;
+            instanceSegmentationPass.targetTexture = rt;
+            customPassVolume.customPasses.Add(instanceSegmentationPass);
+            instanceSegmentationPass.name = nameof(instanceSegmentationPass);
+            instanceSegmentationPass.EnsureInit();
 
             var reader = cameraObject.AddComponent<ImageReaderBehaviour>();
             reader.source = rt;
@@ -178,7 +179,7 @@ namespace GroundTruthTests
 #endif
 #if URP_PRESENT
             var labelingConfiguration = ScriptableObject.CreateInstance<LabelingConfiguration>();
-            var perceptionCamera = cameraObject.AddComponent<UnityEngine.Perception.PerceptionCamera>();
+            var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
             perceptionCamera.LabelingConfiguration = labelingConfiguration;
             perceptionCamera.captureRgbImages = false;
             perceptionCamera.produceBoundingBoxAnnotations = false;

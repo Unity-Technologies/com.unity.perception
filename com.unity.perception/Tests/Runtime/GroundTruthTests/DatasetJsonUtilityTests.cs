@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Perception.Sensors;
+using UnityEngine.Perception.GroundTruth;
 
 namespace GroundTruthTests
 {

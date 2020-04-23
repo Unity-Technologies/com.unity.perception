@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Perception;
-using UnityEngine.Perception.Sensors;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
 
 namespace GroundTruthTests

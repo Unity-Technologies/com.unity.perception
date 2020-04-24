@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
 
 namespace GroundTruthTests
 {
@@ -15,6 +16,7 @@ namespace GroundTruthTests
             labeling.labels.Add(label);
             return planeObject;
         }
+
 #if UNITY_EDITOR
         public static void LoadAndStartRenderDocCapture(out UnityEditor.EditorWindow gameView)
         {
@@ -24,6 +26,7 @@ namespace GroundTruthTests
             gameView = UnityEditor.EditorWindow.GetWindow(type);
             UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(gameView);
         }
+
 #endif
     }
 }

@@ -1,4 +1,4 @@
-﻿#if URP_PRESENT
+#if URP_PRESENT
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -47,7 +47,7 @@ namespace UnityEngine.Perception.GroundTruth
 
     public class GroundTruthRendererFeature : ScriptableRendererFeature
     {
-        public override void Create() { }
+        public override void Create() {}
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {

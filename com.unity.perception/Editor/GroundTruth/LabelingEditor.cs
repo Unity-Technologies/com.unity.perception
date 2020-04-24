@@ -1,5 +1,6 @@
-﻿using UnityEditorInternal;
+using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEditor.Perception.GroundTruth
 {
@@ -11,7 +12,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         public void OnEnable()
         {
-            m_LabelsList = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(global::Labeling.labels)), true, false, true, true);
+            m_LabelsList = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(global::UnityEngine.Perception.GroundTruth.Labeling.labels)), true, false, true, true);
             m_LabelsList.drawElementCallback = DrawElement;
             m_LabelsList.onAddCallback += OnAdd;
             m_LabelsList.onRemoveCallback += OnRemove;

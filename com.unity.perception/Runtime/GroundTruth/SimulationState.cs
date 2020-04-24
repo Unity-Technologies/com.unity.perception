@@ -77,7 +77,7 @@ namespace UnityEngine.Perception.GroundTruth
             public float Timestamp;
             public Guid SequenceId;
             public (string, object)[] AdditionalSensorValues;
-            public List<(Annotation, AnnotationData )> Annotations = new List<(Annotation, AnnotationData)>();
+            public List<(Annotation, AnnotationData)> Annotations = new List<(Annotation, AnnotationData)>();
             public bool CaptureReported;
 
             public PendingCapture(Guid id, SensorHandle sensorHandle, SensorData sensorData, Guid sequenceId, int frameCount, int step, float timestamp)
@@ -211,7 +211,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        internal void ReportCapture(SensorHandle sensorHandle, string filename, SensorSpatialData sensorSpatialData, params (string, object)[] additionalSensorValues)
+        internal void ReportCapture(SensorHandle sensorHandle, string filename, SensorSpatialData sensorSpatialData, params(string, object)[] additionalSensorValues)
         {
             var sensorData = m_Sensors[sensorHandle];
             var pendingCapture = GetOrCreatePendingCaptureForThisFrame(sensorHandle, out _);
@@ -411,7 +411,8 @@ namespace UnityEngine.Perception.GroundTruth
                 do
                 {
                     sensorData.sequenceTimeNextCapture += sensorData.period;
-                } while (sensorData.sequenceTimeNextCapture <= UnscaledSequenceTime);
+                }
+                while (sensorData.sequenceTimeNextCapture <= UnscaledSequenceTime);
 
                 sensorData.lastCaptureFrameCount = Time.frameCount;
                 m_Sensors[activeSensor] = sensorData;

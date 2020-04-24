@@ -1,4 +1,4 @@
-﻿#if HDRP_PRESENT
+#if HDRP_PRESENT
 
 using System;
 using JetBrains.Annotations;

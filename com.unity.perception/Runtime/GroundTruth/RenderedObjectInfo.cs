@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 // ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace UnityEngine.Perception.GroundTruth

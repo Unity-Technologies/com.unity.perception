@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -53,8 +53,7 @@ namespace UnityEngine.Perception.GroundTruth
             labelSetupSystem?.Deactivate(this);
         }
 
-
-        protected RendererListDesc CreateRendererListDesc(Camera camera, CullingResults cullingResult, string overrideMaterialPassName, int overrideMaterialPassIndex, Material overrideMaterial, LayerMask layerMask/*, PerObjectData perObjectData*/)
+        protected RendererListDesc CreateRendererListDesc(Camera camera, CullingResults cullingResult, string overrideMaterialPassName, int overrideMaterialPassIndex, Material overrideMaterial, LayerMask layerMask /*, PerObjectData perObjectData*/)
         {
             var shaderPasses = new[]
             {
@@ -84,7 +83,6 @@ namespace UnityEngine.Perception.GroundTruth
             };
             return result;
         }
-
 
         public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
         {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Unity.Profiling;
 using UnityEngine;
@@ -31,7 +31,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="targetCamera"></param>
         /// <exception cref="ArgumentNullException"></exception>
         public InstanceSegmentationCrossPipelinePass(Camera targetCamera)
-            :base(targetCamera)
+            : base(targetCamera)
         {
             if (targetCamera == null)
                 throw new ArgumentNullException(nameof(targetCamera));

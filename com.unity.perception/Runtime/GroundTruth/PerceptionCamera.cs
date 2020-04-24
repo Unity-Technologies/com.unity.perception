@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -93,7 +93,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public event Action<int, NativeArray<RenderedObjectInfo>> renderedObjectInfosCalculated;
 
-        internal event Action<int,NativeArray<uint>> segmentationImageReceived;
+        internal event Action<int, NativeArray<uint>> segmentationImageReceived;
 
         internal event Action<NativeSlice<uint>, IReadOnlyList<LabelingConfigurationEntry>, int> classCountsReceived;
 
@@ -394,6 +394,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (produceSegmentationImages)
                 customPassVolume.customPasses.Add(m_SemanticSegmentationPass);
         }
+
 #endif
 
         void ProduceBoundingBoxesAnnotation(NativeArray<RenderedObjectInfo> renderedObjectInfos, List<LabelingConfigurationEntry> labelingConfigurations, int frameCount)
@@ -592,7 +593,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 var stride = dataColorBuffer.Length / height;
                 var buffer = new NativeArray<byte>(stride, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                fixed (byte* colorBufferPtr = &dataColorBuffer[0])
+                fixed(byte* colorBufferPtr = &dataColorBuffer[0])
                 {
                     var unsafePtr = (byte*)buffer.GetUnsafePtr();
                     for (var row = 0; row < height / 2; row++)

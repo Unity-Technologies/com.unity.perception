@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
@@ -55,7 +55,7 @@ namespace GroundTruthTests
                 }, new uint[]
                 {
                     1,
-					0
+                    0
                 },
                 2,
                 BoundingBoxOrigin.BottomLeft,
@@ -144,7 +144,7 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
-        public IEnumerator ProducesCorrectBoundingBoxes([ValueSource(nameof(ProducesCorrectBoundingBoxesTestCases))]ProducesCorrectBoundingBoxesData producesCorrectBoundingBoxesData)
+        public IEnumerator ProducesCorrectBoundingBoxes([ValueSource(nameof(ProducesCorrectBoundingBoxesTestCases))] ProducesCorrectBoundingBoxesData producesCorrectBoundingBoxesData)
         {
             var label = "label";
             var label2 = "label2";

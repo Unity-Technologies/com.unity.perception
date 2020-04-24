@@ -64,11 +64,11 @@ namespace EditorTests.BuildTests
                     }
                     else if (targetPath.EndsWith(".unity"))
                         if (targetPath.EndsWith(".unity"))
-                    {
-                        Debug.Log("Scenes Path : " + targetPath);
+                        {
+                            Debug.Log("Scenes Path : " + targetPath);
 
-                        m_EditorBuildSettingsScenes.Add(new EditorBuildSettingsScene(targetPath, true));
-                    }
+                            m_EditorBuildSettingsScenes.Add(new EditorBuildSettingsScene(targetPath, true));
+                        }
                 }
                 EditorBuildSettings.scenes = m_EditorBuildSettingsScenes.ToArray();
             }
@@ -88,4 +88,3 @@ namespace EditorTests.BuildTests
         }
     }
 }
-

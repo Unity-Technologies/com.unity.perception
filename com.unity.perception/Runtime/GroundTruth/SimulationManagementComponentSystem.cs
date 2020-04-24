@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Entities;
 
 namespace UnityEngine.Perception.GroundTruth

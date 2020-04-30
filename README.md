@@ -10,4 +10,4 @@ com.unity.perception provides a toolkit for generating large-scale datasets for 
 * [Scenario Manager](Documentation~/ScenarioManager.md)
 
 ## License
-* [License](License)
+* [License](com.unity.perception/License)

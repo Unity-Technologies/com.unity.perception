@@ -1,6 +1,6 @@
-<img src="docs/images/unity-wide.png" align="middle" width="3000"/>
+<img src="com.unity.perception/Documentation~/images/unity-wide.png" align="middle" width="3000"/>
 
-<img src="docs/images/banner.PNG" align="middle"/>
+<img src="com.unity.perception/Documentation~/images/banner.PNG" align="middle"/>
 
 # Perception
 com.unity.perception provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.

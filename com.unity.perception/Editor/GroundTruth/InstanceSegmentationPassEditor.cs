@@ -1,9 +1,9 @@
-﻿#if HDRP_PRESENT
+#if HDRP_PRESENT
 
-using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
+using UnityEngine.Perception.GroundTruth;
 
-namespace UnityEngine.Perception.Sensors.Editor
+namespace UnityEditor.Perception.GroundTruth
 {
     [CustomPassDrawer(typeof(InstanceSegmentationPass))]
     public class InstanceSegmentationPassEditor : BaseCustomPassDrawer
@@ -13,9 +13,6 @@ namespace UnityEngine.Perception.Sensors.Editor
             var targetCameraProperty = customPass.FindPropertyRelative(nameof(GroundTruthPass.targetCamera));
             AddProperty(targetCameraProperty);
             AddProperty(customPass.FindPropertyRelative(nameof(InstanceSegmentationPass.targetTexture)));
-            AddProperty(customPass.FindPropertyRelative(nameof(InstanceSegmentationPass.reassignIds)));
-            AddProperty(customPass.FindPropertyRelative(nameof(InstanceSegmentationPass.idStart)));
-            AddProperty(customPass.FindPropertyRelative(nameof(InstanceSegmentationPass.idStep)));
             base.Initialize(customPass);
         }
     }

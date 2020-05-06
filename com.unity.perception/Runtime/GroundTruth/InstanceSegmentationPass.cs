@@ -1,11 +1,11 @@
-﻿#if HDRP_PRESENT
+#if HDRP_PRESENT
 
 using System;
 using JetBrains.Annotations;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Perception.Sensors
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// A CustomPass for creating object instance segmentation images. GameObjects containing Labeling components
@@ -16,9 +16,6 @@ namespace UnityEngine.Perception.Sensors
         InstanceSegmentationCrossPipelinePass m_InstanceSegmentationCrossPipelinePass;
 
         public RenderTexture targetTexture;
-        public bool reassignIds = false;
-        public uint idStart = 1;
-        public uint idStep = 1;
         public Camera targetCamera;
 
         [UsedImplicitly]
@@ -35,7 +32,7 @@ namespace UnityEngine.Perception.Sensors
         {
             if (m_InstanceSegmentationCrossPipelinePass == null)
             {
-                m_InstanceSegmentationCrossPipelinePass = new InstanceSegmentationCrossPipelinePass(targetCamera, idStart, idStep);
+                m_InstanceSegmentationCrossPipelinePass = new InstanceSegmentationCrossPipelinePass(targetCamera);
                 m_InstanceSegmentationCrossPipelinePass.Setup();
             }
         }

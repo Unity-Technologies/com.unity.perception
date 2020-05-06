@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json.Linq;
 using Unity.Mathematics;
 
-namespace UnityEngine.Perception.Sensors
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Utilities for producing Json for datasets.
@@ -19,6 +19,7 @@ namespace UnityEngine.Perception.Sensors
             obj.Add(value.z);
             return obj;
         }
+
         public static JToken ToJToken(Quaternion value)
         {
             var obj = new JArray();
@@ -28,6 +29,7 @@ namespace UnityEngine.Perception.Sensors
             obj.Add(value.w);
             return obj;
         }
+
         public static JToken ToJToken(float3x3 value)
         {
             var obj = new JArray();
@@ -36,6 +38,7 @@ namespace UnityEngine.Perception.Sensors
             obj.Add(ToJToken(value.c2));
             return obj;
         }
+
         public static JToken ToJToken(float3 value)
         {
             var obj = new JArray();
@@ -44,6 +47,7 @@ namespace UnityEngine.Perception.Sensors
             obj.Add(value.z);
             return obj;
         }
+
         public static JToken ToJToken<T>(T value)
         {
             switch (value)

@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 
-namespace UnityEngine.Perception {
+namespace UnityEngine.Perception.GroundTruth
+{
     /// <summary>
     /// The origin to use for bounding box calculation
     /// </summary>

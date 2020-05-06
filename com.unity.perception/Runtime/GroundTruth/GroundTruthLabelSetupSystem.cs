@@ -1,27 +1,32 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 using Unity.Entities;
 
-namespace UnityEngine.Perception.Sensors
+namespace UnityEngine.Perception.GroundTruth
 {
     struct IdAssignmentParameters : IComponentData
     {
         public uint idStart;
         public uint idStep;
     }
+    /// <summary>
+    /// System which notifies the registered <see cref="IGroundTruthGenerator"/> about <see cref="Labeling"/> additions.
+    /// </summary>
     public class GroundTruthLabelSetupSystem : ComponentSystem
     {
         List<IGroundTruthGenerator> m_ActiveGenerators = new List<IGroundTruthGenerator>();
         ThreadLocal<MaterialPropertyBlock> m_MaterialPropertyBlocks = new ThreadLocal<MaterialPropertyBlock>();
         int m_CurrentObjectIndex = -1;
 
+        /// <inheritdoc/>
         protected override void OnCreate()
         {
             //These are here to inform the system runner the queries we are interested in. Without these calls, OnUpdate() might not be called
-            GetEntityQuery( ComponentType.Exclude<GroundTruthInfo>(), ComponentType.ReadOnly<Labeling>());
-            GetEntityQuery( ComponentType.ReadOnly<GroundTruthInfo>(), ComponentType.ReadOnly<Labeling>());
+            GetEntityQuery(ComponentType.Exclude<GroundTruthInfo>(), ComponentType.ReadOnly<Labeling>());
+            GetEntityQuery(ComponentType.ReadOnly<GroundTruthInfo>(), ComponentType.ReadOnly<Labeling>());
         }
 
+        /// <inheritdoc/>
         protected override void OnUpdate()
         {
             var entityQuery = Entities.WithAll<IdAssignmentParameters>().ToEntityQuery();
@@ -73,20 +78,29 @@ namespace UnityEngine.Perception.Sensors
             }
         }
 
-        public void Activate(IGroundTruthGenerator pass)
+        /// <summary>
+        /// Activates the given <see cref="IGroundTruthGenerator"/>. <see cref="IGroundTruthGenerator.SetupMaterialProperties"/>
+        /// will be called for all <see cref="MeshRenderer"/> instances under each object containing a <see cref="Labeling"/> component.
+        /// </summary>
+        /// <param name="generator">The generator to register</param>
+        public void Activate(IGroundTruthGenerator generator)
         {
-            m_ActiveGenerators.Add(pass);
+            m_ActiveGenerators.Add(generator);
             Entities.ForEach((Labeling labeling, ref GroundTruthInfo info) =>
             {
                 var gameObject = labeling.gameObject;
                 InitGameObjectRecursive(gameObject, m_MaterialPropertyBlocks.Value, labeling, info.instanceId);
             });
-
         }
 
-        public void Deactivate(IGroundTruthGenerator pass)
+        /// <summary>
+        /// Deactivates the given <see cref="IGroundTruthGenerator"/>. It will no longer receive calls when <see cref="Labeling"/> instances are created.
+        /// </summary>
+        /// <param name="generator">The generator to deactivate</param>
+        /// <returns>True if the <see cref="generator"/> was successfully removed. False if <see cref="generator"/> was not active.</returns>
+        public bool Deactivate(IGroundTruthGenerator generator)
         {
-            m_ActiveGenerators.Remove(pass);
+            return m_ActiveGenerators.Remove(generator);
         }
     }
 }

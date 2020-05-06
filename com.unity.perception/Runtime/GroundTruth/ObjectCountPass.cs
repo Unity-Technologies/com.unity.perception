@@ -1,4 +1,4 @@
-﻿#if HDRP_PRESENT
+#if HDRP_PRESENT
 
 using Unity.Collections.LowLevel.Unsafe;
 using System;
@@ -7,7 +7,7 @@ using Unity.Collections;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Perception.Sensors
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// CustomPass which computes object count for each label in the given LabelingConfiguration in the frame.
@@ -37,8 +37,6 @@ namespace UnityEngine.Perception.Sensors
         {
         }
 
-        public bool WriteToLog { get; set; }
-
         public override void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId)
         {
             if (!m_InstanceIdToClassIdLookup.IsCreated)
@@ -52,7 +50,7 @@ namespace UnityEngine.Perception.Sensors
                     m_InstanceIdToClassIdLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
                 }
                 m_IdBuffersNeedUpdating = true;
-                m_InstanceIdToClassIdLookup[(int) instanceId] = index + 1;
+                m_InstanceIdToClassIdLookup[(int)instanceId] = index + 1;
             }
         }
 
@@ -64,7 +62,6 @@ namespace UnityEngine.Perception.Sensors
             var objectCount = k_StartingObjectCount;
             UpdateIdBufferSizes(objectCount);
             m_ClassCounts = new ComputeBuffer(LabelingConfiguration.LabelingConfigurations.Count + 1, UnsafeUtility.SizeOf<uint>(), ComputeBufferType.Structured);
-            m_DataLogger = new Unity.Simulation.Logger("LabelHistogram");
 
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
         }
@@ -155,8 +152,6 @@ namespace UnityEngine.Perception.Sensors
 
         internal event Action<NativeSlice<uint>, IReadOnlyList<LabelingConfigurationEntry>, int> ClassCountsReceived;
 
-        Unity.Simulation.Logger m_DataLogger;
-
         void OnClassCountReadback(int requestFrameCount, NativeArray<uint> counts)
         {
 #if PERCEPTION_DEBUG
@@ -170,28 +165,6 @@ namespace UnityEngine.Perception.Sensors
             }
             Debug.Log(sb);
 #endif
-
-            if (WriteToLog)
-            {
-                //This is a bad pattern. We need to be able to log a JSON string without tons of allocations
-                var sensorMetric = new SensorMetric() {
-                    FrameId = Time.frameCount
-                };
-                var sensorMetricData = new MetricData<SensorMetric>(
-                    "sensor_metric",
-                    sensorMetric);
-
-                for (int i = 0; i < LabelingConfiguration.LabelingConfigurations.Count; i++)
-                {
-                    sensorMetric.SegmentedHistogram.Add(new ObjectCountEntry
-                    {
-                        Label = LabelingConfiguration.LabelingConfigurations[i].label,
-                        Count = counts[i + 1]
-                    });
-                }
-
-                m_DataLogger.Log(sensorMetricData);
-            }
 
             ClassCountsReceived?.Invoke(new NativeSlice<uint>(counts, 1), LabelingConfiguration.LabelingConfigurations, requestFrameCount);
         }

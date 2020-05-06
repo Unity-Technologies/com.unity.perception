@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using Unity.Simulation;
 using UnityEngine;
 
 #pragma warning disable 649
-namespace UnityEngine.Perception
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Global manager for frame scheduling and output capture for simulations.
@@ -23,16 +23,19 @@ namespace UnityEngine.Perception
         /// </summary>
         public static string SchemaVersion => "0.0.1";
 
+        /// <summary>
+        /// Called when the simulation ends. The simulation ends on playmode exit, application exit, or when <see cref="ResetSimulation"/> is called.
+        /// </summary>
         public static event Action SimulationEnding;
 
         /// <summary>
         /// Register a new ego. Used along with RegisterSensor to organize sensors under a top-level ego container. <seealso cref="RegisterSensor"/>
         /// </summary>
         /// <param name="description">A human-readable description for the ego</param>
-        /// <returns>An <see cref="Ego"/>, which can be used to organize sensors under a common ego.</returns>
-        public static Ego RegisterEgo(string description)
+        /// <returns>An <see cref="EgoHandle"/>, which can be used to organize sensors under a common ego.</returns>
+        public static EgoHandle RegisterEgo(string description)
         {
-            var ego = new Ego(Guid.NewGuid(), description);
+            var ego = new EgoHandle(Guid.NewGuid(), description);
             SimulationState.AddEgo(ego);
             return ego;
         }
@@ -40,7 +43,7 @@ namespace UnityEngine.Perception
         /// <summary>
         /// Register a new sensor under the given ego.
         /// </summary>
-        /// <param name="ego">The ego container for the sensor. Sensor orientation will be reported in the context of the given ego.</param>
+        /// <param name="egoHandle">The ego container for the sensor. Sensor orientation will be reported in the context of the given ego.</param>
         /// <param name="modality">The kind of the sensor (ex. "camera", "lidar")</param>
         /// <param name="description">A human-readable description of the sensor (ex. "front-left rgb camera")</param>
         /// <param name="period">The period, in seconds, on which the sensor should capture. Frames will be scheduled in the simulation such that each sensor is triggered every _period_ seconds.</param>
@@ -48,13 +51,13 @@ namespace UnityEngine.Perception
         /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
         /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
         /// <exception cref="ArgumentException">Thrown if ego is invalid.</exception>
-        public static SensorHandle RegisterSensor(Ego ego, string modality, string description, float period, float firstCaptureTime)
+        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime)
         {
-            if (!SimulationState.Contains(ego.Id))
-                throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(ego));
+            if (!SimulationState.Contains(egoHandle.Id))
+                throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(egoHandle));
 
             var sensor = new SensorHandle(Guid.NewGuid());
-            SimulationState.AddSensor(ego, modality, description, period, firstCaptureTime, sensor);
+            SimulationState.AddSensor(egoHandle, modality, description, period, firstCaptureTime, sensor);
             return sensor;
         }
 
@@ -79,8 +82,9 @@ namespace UnityEngine.Perception
         /// </summary>
         /// <param name="name">Human readable annotation spec name (e.g. sementic_segmentation, instance_segmentation, etc.)</param>
         /// <param name="description">Description of the annotation.</param>
-        /// <param name="specValues">Format-specific specification for the metric values</param>
+        /// <param name="specValues">Format-specific specification for the metric values. Will be converted to json automatically.</param>
         /// <param name="id">The ID for this metric. This allows metric types to be shared across simulations and sequences.</param>
+        /// <typeparam name="TSpec">The type of the <see cref="specValues"/> struct to write.</typeparam>
         /// <returns>A MetricDefinition, which can be used during this simulation to report metrics.</returns>
         public static MetricDefinition RegisterMetricDefinition<TSpec>(string name, TSpec[] specValues, string description = null, Guid id = default)
         {
@@ -122,6 +126,7 @@ namespace UnityEngine.Perception
         /// </summary>
         /// <param name="metricDefinition">The MetricDefinition associated with this metric. <see cref="RegisterMetricDefinition"/></param>
         /// <param name="values">An array to be converted to json and put in the "values" field of the metric</param>
+        /// <typeparam name="T">The type of the <see cref="values"/> array</typeparam>
         public static void ReportMetric<T>(MetricDefinition metricDefinition, T[] values)
         {
             SimulationState.ReportMetric(metricDefinition, values, default, default);
@@ -140,7 +145,7 @@ namespace UnityEngine.Perception
         /// <summary>
         /// Report a metric not associated with any sensor or annotation.
         /// </summary>
-        /// <param name="metricDefinition"></param>
+        /// <param name="metricDefinition">The metric definition of the metric being reported</param>
         public static AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition) => SimulationState.CreateAsyncMetric(metricDefinition);
 
         /// <summary>
@@ -162,7 +167,10 @@ namespace UnityEngine.Perception
             Manager.Instance.ShutdownNotification += ResetSimulation;
         }
 
-        internal static void ResetSimulation()
+        /// <summary>
+        /// Stop the current simulation and start a new one. All pending data is written to disk before returning.
+        /// </summary>
+        public static void ResetSimulation()
         {
             //this order ensures that exceptions thrown by End() do not prevent the state from being reset
             SimulationEnding?.Invoke();
@@ -223,8 +231,9 @@ namespace UnityEngine.Perception
         /// Report a value-based annotation related to this sensor in this frame.
         /// </summary>
         /// <param name="annotationDefinition">The AnnotationDefinition of this annotation.</param>
-        /// <param name="values">The annotation data.</param>
-        /// <returns>A handle to the reported annotation for reporting annotation-based metrics.</returns>
+        /// <param name="values">The annotation data, which will be automatically converted to json.</param>
+        /// <typeparam name="T">The type of the values array.</typeparam>
+        /// <returns>Returns a handle to the reported annotation for reporting annotation-based metrics.</returns>
         /// <exception cref="InvalidOperationException">Thrown if this method is called during a frame where <see cref="ShouldCaptureThisFrame"/> is false.</exception>
         /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
         public Annotation ReportAnnotationValues<T>(AnnotationDefinition annotationDefinition, T[] values)
@@ -239,10 +248,9 @@ namespace UnityEngine.Perception
 
         /// <summary>
         /// Creates an async annotation for reporting the values for an annotation during a future frame.
-        ///
         /// </summary>
         /// <param name="annotationDefinition">The AnnotationDefinition of this annotation.</param>
-        /// <returns>A handle to the <see cref="AsyncAnnotation"/>, which can be used to report annotation data during a subsequent frame.</returns>
+        /// <returns>Returns a handle to the <see cref="AsyncAnnotation"/>, which can be used to report annotation data during a subsequent frame.</returns>
         /// <exception cref="InvalidOperationException">Thrown if this method is called during a frame where <see cref="ShouldCaptureThisFrame"/> is false.</exception>
         /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
         public AsyncAnnotation ReportAnnotationAsync(AnnotationDefinition annotationDefinition)
@@ -262,7 +270,7 @@ namespace UnityEngine.Perception
         /// <param name="sensorSpatialData">Spatial data describing the sensor and the ego containing it.</param>
         /// <param name="additionalSensorValues">Additional values to be emitted as json name/value pairs on the sensor object under the capture.</param>
         /// <exception cref="InvalidOperationException">Thrown if ReportCapture is being called when ShouldCaptureThisFrame is false or it has already been called this frame.</exception>
-        public void ReportCapture(string filename, SensorSpatialData sensorSpatialData, params (string, object)[] additionalSensorValues)
+        public void ReportCapture(string filename, SensorSpatialData sensorSpatialData, params(string, object)[] additionalSensorValues)
         {
             if (!ShouldCaptureThisFrame)
             {
@@ -302,7 +310,6 @@ namespace UnityEngine.Perception
         /// </summary>
         /// <param name="metricDefinition">The <see cref="MetricDefinition"/> of the metric.</param>
         /// <param name="valuesJsonArray">A string-based JSON array to be placed in the "values" field of the metric</param>
-        /// <typeparam name="T">The value type</typeparam>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
         /// <exception cref="InvalidOperationException">Thrown if <see cref="ShouldCaptureThisFrame"/> is false.</exception>
         public void ReportMetric(MetricDefinition metricDefinition, [NotNull] string valuesJsonArray)
@@ -316,8 +323,9 @@ namespace UnityEngine.Perception
         /// <summary>
         /// Start an async metric for reporting metric values for this frame in a subsequent frame.
         /// </summary>
-        /// <param name="metricDefinition">The <see cref="MetricDefinition"/> of the metric.</param>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="ShouldCaptureThisFrame"/> is false.</exception>
+        /// <param name="metricDefinition">The <see cref="MetricDefinition"/> of the metric</param>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="ShouldCaptureThisFrame"/> is false</exception>
+        /// <returns>An <see cref="AsyncMetric"/> which should be used to report the metric values, potentially in a later frame</returns>
         public AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition)
         {
             if (!ShouldCaptureThisFrame)
@@ -349,27 +357,42 @@ namespace UnityEngine.Perception
                 throw new InvalidOperationException("SensorHandle has been disposed or its simulation has ended");
         }
 
+        /// <inheritdoc/>
         public bool Equals(SensorHandle other)
         {
             return Id.Equals(other.Id);
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             return obj is SensorHandle other && Equals(other);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return Id.GetHashCode();
         }
 
-        public static bool operator ==(SensorHandle left, SensorHandle right)
+        /// <summary>
+        /// Compares two <see cref="SensorHandle"/> instances for equality.
+        /// </summary>
+        /// <param name="left">The first SensorHandle.</param>
+        /// <param name="right">The second SensorHandle.</param>
+        /// <returns>Returns true if the two SensorHandles refer to the same sensor.</returns>
+        public static bool operator==(SensorHandle left, SensorHandle right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(SensorHandle left, SensorHandle right)
+        /// <summary>
+        /// Compares two <see cref="SensorHandle"/> instances for inequality.
+        /// </summary>
+        /// <param name="left">The first SensorHandle.</param>
+        /// <param name="right">The second SensorHandle.</param>
+        /// <returns>Returns false if the two SensorHandles refer to the same sensor.</returns>
+        public static bool operator!=(SensorHandle left, SensorHandle right)
         {
             return !left.Equals(right);
         }
@@ -430,7 +453,6 @@ namespace UnityEngine.Perception
         /// ReportValues may only be called once per AsyncMetric.
         /// </summary>
         /// <param name="valuesJsonArray">A JSON array in string form.</param>
-        /// <typeparam name="T">The type of the values</typeparam>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
         public void ReportValues(string valuesJsonArray)
         {
@@ -488,6 +510,7 @@ namespace UnityEngine.Perception
         /// Report a value-based data for this annotation.
         /// </summary>
         /// <param name="values">The annotation data.</param>
+        /// <typeparam name="T">The type of the data.</typeparam>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
         public void ReportValues<T>(T[] values)
         {
@@ -535,7 +558,7 @@ namespace UnityEngine.Perception
         /// <param name="values"></param>
         /// <typeparam name="T"></typeparam>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for <see cref="UnityEngine.Perception.SensorHandle.ShouldCaptureThisFrame"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for <see cref="UnityEngine.Perception.GroundTruth.SensorHandle.ShouldCaptureThisFrame"/>.</exception>
         public void ReportMetric<T>(MetricDefinition metricDefinition, [NotNull] T[] values)
         {
             if (values == null)
@@ -553,7 +576,8 @@ namespace UnityEngine.Perception
         /// <param name="metricDefinition"></param>
         /// <param name="valuesJsonArray">A string-based JSON array to be placed in the "values" field of the metric</param>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for <see cref="SensorHandle.ShouldCaptureThisFrame"/>.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for
+        /// <see cref="UnityEngine.Perception.GroundTruth.SensorHandle.ShouldCaptureThisFrame"/>.</exception>
         public void ReportMetric(MetricDefinition metricDefinition, [NotNull] string valuesJsonArray)
         {
             if (valuesJsonArray == null)
@@ -572,16 +596,19 @@ namespace UnityEngine.Perception
         /// <returns>A handle to an AsyncMetric, which can be used to report values for this metric in future frames.</returns>
         public AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition) => SimulationManager.SimulationState.CreateAsyncMetric(metricDefinition, SensorHandle, this);
 
+        /// <inheritdoc/>
         public bool Equals(Annotation other)
         {
             return Id.Equals(other.Id);
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             return obj is Annotation other && Equals(other);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return Id.GetHashCode();
@@ -591,7 +618,7 @@ namespace UnityEngine.Perception
     /// <summary>
     /// An ego, which is used to group multiple sensors under a single frame of reference.
     /// </summary>
-    public struct Ego : IEquatable<Ego>
+    public struct EgoHandle : IEquatable<EgoHandle>
     {
         /// <summary>
         /// The ID for this ego. This ID will be used to refer to this ego in the json metadata.
@@ -603,33 +630,48 @@ namespace UnityEngine.Perception
         /// </summary>
         public readonly string Description;
 
-        internal Ego(Guid id, string description)
+        internal EgoHandle(Guid id, string description)
         {
             this.Id = id;
             this.Description = description;
         }
 
-        public bool Equals(Ego other)
+        /// <inheritdoc/>
+        public bool Equals(EgoHandle other)
         {
             return Id.Equals(other.Id);
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
-            return obj is Ego other && Equals(other);
+            return obj is EgoHandle other && Equals(other);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return Id.GetHashCode();
         }
 
-        public static bool operator ==(Ego left, Ego right)
+        /// <summary>
+        /// Compares two <see cref="EgoHandle"/> instances for equality.
+        /// </summary>
+        /// <param name="left">The first EgoHandle.</param>
+        /// <param name="right">The second EgoHandle.</param>
+        /// <returns>Returns true if the two EgoHandles refer to the same ego.</returns>
+        public static bool operator==(EgoHandle left, EgoHandle right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(Ego left, Ego right)
+        /// <summary>
+        /// Compares two <see cref="EgoHandle"/> instances for inequality.
+        /// </summary>
+        /// <param name="left">The first EgoHandle.</param>
+        /// <param name="right">The second EgoHandle.</param>
+        /// <returns>Returns true if the two EgoHandles refer to the same ego.</returns>
+        public static bool operator!=(EgoHandle left, EgoHandle right)
         {
             return !left.Equals(right);
         }
@@ -649,6 +691,7 @@ namespace UnityEngine.Perception
         {
             Id = id;
         }
+
         /// <inheritdoc />
         public bool Equals(MetricDefinition other)
         {
@@ -728,6 +771,10 @@ namespace UnityEngine.Perception
         /// <summary>
         /// Create a new SensorSpatialData with the given values.
         /// </summary>
+        /// <param name="egoPose">The pose of the ego.</param>
+        /// <param name="sensorPose">The pose of the sensor relative to the ego.</param>
+        /// <param name="egoVelocity">The velocity of the ego.</param>
+        /// <param name="egoAcceleration">The acceleration of the ego.</param>
         public SensorSpatialData(Pose egoPose, Pose sensorPose, Vector3? egoVelocity, Vector3? egoAcceleration)
         {
             EgoPose = egoPose;
@@ -741,7 +788,7 @@ namespace UnityEngine.Perception
         /// </summary>
         /// <param name="ego">The ego GameObject.</param>
         /// <param name="sensor">The sensor GameObject.</param>
-        /// <returns></returns>
+        /// <returns>Returns a SensorSpatialData filled out with EgoPose and SensorPose based on the given objects.</returns>
         public static SensorSpatialData FromGameObjects(GameObject ego, GameObject sensor)
         {
             ego = ego == null ? sensor : ego;
@@ -755,5 +802,4 @@ namespace UnityEngine.Perception
             return sensorSpatialData;
         }
     }
-
 }

@@ -1,20 +1,17 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 #if UNITY_EDITOR
-using UnityEditor;
-using UnityEditorInternal;
 #endif
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Perception;
-using UnityEngine.Perception.Sensors;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
-
+using Object = UnityEngine.Object;
 #if HDRP_PRESENT
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 #endif
 
@@ -50,7 +47,7 @@ namespace GroundTruthTests
 
             //TestHelper.LoadAndStartRenderDocCapture(out EditorWindow gameView);
             var startFrameCount = Time.frameCount;
-            var expectedFramesAndCounts= new Dictionary<int, int>()
+            var expectedFramesAndCounts = new Dictionary<int, int>()
             {
                 {Time.frameCount    , 0},
                 {startFrameCount + 1, 1},
@@ -64,18 +61,18 @@ namespace GroundTruthTests
             //Put a plane in front of the camera
             var planeObject = TestHelper.CreateLabeledPlane(.1f, label);
             yield return null;
-            GameObject.DestroyImmediate(planeObject);
+            Object.DestroyImmediate(planeObject);
             planeObject = TestHelper.CreateLabeledPlane(.1f, label);
             yield return null;
             var planeObject2 = TestHelper.CreateLabeledPlane(.1f, label);
             planeObject2.transform.Translate(.5f, 0, 0);
 
             yield return null;
-            GameObject.DestroyImmediate(planeObject);
+            Object.DestroyImmediate(planeObject);
             yield return null;
             yield return null;
 
-            GameObject.DestroyImmediate(planeObject2);
+            Object.DestroyImmediate(planeObject2);
 #if HDRP_PRESENT
             //TODO: Remove this when DestroyImmediate properly calls Cleanup on the pass
             var labelHistogramPass = (ObjectCountPass)cameraObject.GetComponent<CustomPassVolume>().customPasses.First(p => p is ObjectCountPass);
@@ -118,23 +115,21 @@ namespace GroundTruthTests
             customPassVolume.isGlobal = true;
             var rt = new RenderTexture(128, 128, 1, GraphicsFormat.R8G8B8A8_UNorm);
             rt.Create();
-            var InstanceSegmentationPass = new InstanceSegmentationPass()
+            var instanceSegmentationPass = new InstanceSegmentationPass()
             {
                 targetCamera = camera,
-                targetTexture = rt,
-                idStart = 1,
-                idStep = 1
+                targetTexture = rt
             };
-            InstanceSegmentationPass.name = nameof(InstanceSegmentationPass);
-            InstanceSegmentationPass.EnsureInit();
-            customPassVolume.customPasses.Add(InstanceSegmentationPass);
-            var ObjectCountPass = new ObjectCountPass(camera);
-            ObjectCountPass.SegmentationTexture = rt;
-            ObjectCountPass.LabelingConfiguration = labelingConfiguration;
-            ObjectCountPass.name = nameof(ObjectCountPass);
-            customPassVolume.customPasses.Add(ObjectCountPass);
+            instanceSegmentationPass.name = nameof(instanceSegmentationPass);
+            instanceSegmentationPass.EnsureInit();
+            customPassVolume.customPasses.Add(instanceSegmentationPass);
+            var objectCountPass = new ObjectCountPass(camera);
+            objectCountPass.SegmentationTexture = rt;
+            objectCountPass.LabelingConfiguration = labelingConfiguration;
+            objectCountPass.name = nameof(objectCountPass);
+            customPassVolume.customPasses.Add(objectCountPass);
 
-            ObjectCountPass.ClassCountsReceived += onClassCountsReceived;
+            objectCountPass.ClassCountsReceived += onClassCountsReceived;
 #endif
 #if URP_PRESENT
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();

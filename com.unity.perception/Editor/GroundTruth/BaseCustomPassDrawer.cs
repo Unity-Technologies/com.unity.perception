@@ -1,11 +1,11 @@
-﻿#if HDRP_PRESENT
+#if HDRP_PRESENT
 
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
+using UnityEngine;
 
-namespace UnityEngine.Perception.Sensors.Editor
+namespace UnityEditor.Perception.GroundTruth
 {
     public class BaseCustomPassDrawer : CustomPassDrawer
     {

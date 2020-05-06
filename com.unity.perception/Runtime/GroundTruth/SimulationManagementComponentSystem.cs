@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using Unity.Entities;
 
-namespace UnityEngine.Perception
+namespace UnityEngine.Perception.GroundTruth
 {
     class SimulationManagementComponentSystem : ComponentSystem
     {

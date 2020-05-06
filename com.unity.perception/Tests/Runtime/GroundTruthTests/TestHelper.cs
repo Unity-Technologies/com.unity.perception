@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
 
 namespace GroundTruthTests
 {
@@ -12,9 +13,10 @@ namespace GroundTruthTests
             planeObject.transform.SetPositionAndRotation(new Vector3(0, 0, 10), Quaternion.Euler(90, 0, 0));
             planeObject.transform.localScale = new Vector3(scale, -1, scale);
             var labeling = planeObject.AddComponent<Labeling>();
-            labeling.classes.Add(label);
+            labeling.labels.Add(label);
             return planeObject;
         }
+
 #if UNITY_EDITOR
         public static void LoadAndStartRenderDocCapture(out UnityEditor.EditorWindow gameView)
         {
@@ -24,6 +26,7 @@ namespace GroundTruthTests
             gameView = UnityEditor.EditorWindow.GetWindow(type);
             UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(gameView);
         }
+
 #endif
     }
 }

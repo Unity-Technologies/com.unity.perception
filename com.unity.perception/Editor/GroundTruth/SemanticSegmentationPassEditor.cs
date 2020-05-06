@@ -1,14 +1,13 @@
-﻿#if HDRP_PRESENT
+#if HDRP_PRESENT
 
 using System;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
+using UnityEngine.Perception.GroundTruth;
 
-namespace UnityEngine.Perception.Sensors.Editor
+namespace UnityEditor.Perception.GroundTruth
 {
     [CustomPassDrawer(typeof(SemanticSegmentationPass))]
-    public class SemanticSegmentationPassEditor : BaseCustomPassDrawer
+    class SemanticSegmentationPassEditor : BaseCustomPassDrawer
     {
         protected override void Initialize(SerializedProperty customPass)
         {

@@ -2,11 +2,10 @@
 
 using System;
 using Unity.Entities;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEngine.Perception.Sensors
+namespace UnityEngine.Perception.GroundTruth
 {
     public abstract class GroundTruthPass : CustomPass, IGroundTruthGenerator
     {

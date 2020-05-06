@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,9 +9,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Unity.Mathematics;
-using Unity.Simulation;
 using UnityEngine;
-using UnityEngine.Perception;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
 // ReSharper disable InconsistentNaming
 // ReSharper disable NotAccessedField.Local
@@ -168,7 +167,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator StartNewSequence_ProperlyIncrementsSequence()
         {
-            var timingsExpected = new (int step, int timestamp, bool expectNewSequence)[]
+            var timingsExpected = new(int step, int timestamp, bool expectNewSequence)[]
             {
                 (0, 0, true),
                 (1, 2, false),
@@ -241,7 +240,7 @@ namespace GroundTruthTests
             var filename = "my/file.png";
             var annotationDefinitionGuid = Guid.NewGuid();
 
-            var annotationDefinitionsJsonExpected=
+            var annotationDefinitionsJsonExpected =
                 $@"{{
   ""version"": ""{SimulationManager.SchemaVersion}"",
   ""annotation_definitions"": [
@@ -253,7 +252,7 @@ namespace GroundTruthTests
     }}
   ]
 }}";
-            var annotationsJsonExpected=
+            var annotationsJsonExpected =
                 $@"      ""annotations"": [
         {{
           ""id"": <guid>,
@@ -334,7 +333,7 @@ namespace GroundTruthTests
             var ego = SimulationManager.RegisterEgo("");
             var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
             var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
-            Assert.Throws<InvalidOperationException>(()=>sensorHandle.ReportAnnotationFile(annotationDefinition, ""));
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationFile(annotationDefinition, ""));
         }
 
         [Test]
@@ -343,7 +342,7 @@ namespace GroundTruthTests
             var ego = SimulationManager.RegisterEgo("");
             var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
             var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
-            Assert.Throws<InvalidOperationException>(()=>sensorHandle.ReportAnnotationValues(annotationDefinition, new int[0]));
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationValues(annotationDefinition, new int[0]));
         }
 
         [Test]
@@ -352,7 +351,7 @@ namespace GroundTruthTests
             var ego = SimulationManager.RegisterEgo("");
             var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
             var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
-            Assert.Throws<InvalidOperationException>(()=>sensorHandle.ReportAnnotationAsync(annotationDefinition));
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationAsync(annotationDefinition));
         }
 
         [Test]
@@ -418,7 +417,6 @@ namespace GroundTruthTests
             StringAssert.Contains(expectedAnnotation, EscapeGuids(File.ReadAllText(capturesPath)));
         }
 
-
         public struct TestValues
         {
             public string a;
@@ -480,7 +478,7 @@ namespace GroundTruthTests
         {
             var annotationDefinitionGuid = new Guid(10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-            var annotationDefinitionsJsonExpected=
+            var annotationDefinitionsJsonExpected =
                 $@"{{
   ""version"": ""{SimulationManager.SchemaVersion}"",
   ""annotation_definitions"": [
@@ -509,7 +507,7 @@ namespace GroundTruthTests
         {
             var annotationDefinitionGuid = new Guid(10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-            var annotationDefinitionsJsonExpected=
+            var annotationDefinitionsJsonExpected =
                 $@"{{
   ""version"": ""{SimulationManager.SchemaVersion}"",
   ""annotation_definitions"": [
@@ -545,7 +543,7 @@ namespace GroundTruthTests
             var ego = SimulationManager.RegisterEgo("");
             var metricDefinition = SimulationManager.RegisterMetricDefinition("");
             var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
-            Assert.Throws<InvalidOperationException>(()=>sensorHandle.ReportMetric(metricDefinition, new int[0]));
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetric(metricDefinition, new int[0]));
         }
 
         [Test]
@@ -554,7 +552,7 @@ namespace GroundTruthTests
             var ego = SimulationManager.RegisterEgo("");
             var metricDefinition = SimulationManager.RegisterMetricDefinition("");
             var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
-            Assert.Throws<InvalidOperationException>(()=>sensorHandle.ReportMetricAsync(metricDefinition));
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetricAsync(metricDefinition));
         }
 
         [Test]
@@ -740,7 +738,7 @@ namespace GroundTruthTests
         {
             var metricDefinitionGuid = new Guid(10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
-            var metricDefinitionsJsonExpected=
+            var metricDefinitionsJsonExpected =
                 $@"{{
   ""version"": ""{SimulationManager.SchemaVersion}"",
   ""metric_definitions"": [
@@ -785,7 +783,7 @@ namespace GroundTruthTests
         public void CreateAnnotationOrMetric_WithSpecValues_WritesProperTypes(
             [Values(AdditionalInfoKind.Annotation, AdditionalInfoKind.Metric)] AdditionalInfoKind additionalInfoKind)
         {
-            var specValues = new []
+            var specValues = new[]
             {
                 new TestSpec
                 {
@@ -816,7 +814,7 @@ namespace GroundTruthTests
                 jsonContainerName = "metric_definitions";
             }
 
-            var annotationDefinitionsJsonExpected=
+            var annotationDefinitionsJsonExpected =
                 $@"{{
   ""version"": ""{SimulationManager.SchemaVersion}"",
   ""{jsonContainerName}"": [

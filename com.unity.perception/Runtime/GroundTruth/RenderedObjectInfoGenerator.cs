@@ -97,14 +97,14 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         public void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId)
         {
-            if (m_LabelingConfiguration.TryGetMatchingConfigurationIndex(labeling, out var index))
+            if (m_LabelingConfiguration.TryGetMatchingConfigurationEntry(labeling, out var entry))
             {
                 if (m_InstanceIdToClassIdLookup.Length <= instanceId)
                 {
                     m_InstanceIdToClassIdLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
                 }
 
-                m_InstanceIdToClassIdLookup[(int)instanceId] = index;
+                m_InstanceIdToClassIdLookup[(int)instanceId] = entry.id;
             }
         }
 
@@ -155,7 +155,7 @@ namespace UnityEngine.Perception.GroundTruth
                 JobHandle.CompleteAll(handles);
             }
 
-            classCounts = new NativeArray<uint>(m_LabelingConfiguration.LabelingConfigurations.Count, allocator);
+            classCounts = new NativeArray<uint>(m_LabelingConfiguration.LabelEntries.Count, allocator);
             var boundingBoxMap = new NativeHashMap<int, RenderedObjectInfo>(100, Allocator.Temp);
             using (s_LabelMerge.Auto())
             {

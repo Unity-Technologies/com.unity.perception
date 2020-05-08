@@ -24,11 +24,9 @@ These option is walkthrough in creating a new project, then adding the Perceptio
 	2. In the Package Manager window find and click the ***+*** button in the upper lefthand corner of the window
 	3. Select the ***add package from disk*** option
 	4. Navigate to the com.unity.perception folder in your cloned repository and select the package.json file
-3. Navigate to the root of your project and open your project's `<project root>/Packages/manifest.json` in a text editor
-	1. To allow the compilation and running of tests, add `"testables": [ "com.unity.perception" ]` 
-    2. For an example `manifest.json`, see `TestProjects/PerceptionTest/Packages/manifest.json`
-    3. For more on the `manifest.json` schema, see the [Package Manager documentation](https://docs.unity3d.com/Packages/com.unity.package-manager-ui@1.7/manual/index.html#advanced-package-topics)
-4. Once you have a project with Perception SDK installed you can move forward to the Getting Started walkthrough 
+3. Once you have a project with Perception SDK installed you can move forward to the Getting Started walkthrough 
+
+Once completed you can move on to the getting started steps, click [here](Documentation~/GettingStarted.md) to start project setup.
 
 ## Suggested IDE Setup
 For closest standards conformity and best experience overall, JetBrains Rider or Visual Studio w/ JetBrains Resharper are suggested. For optimal experience, perform the following additional steps:

@@ -49,7 +49,7 @@ namespace GroundTruthTests
                     {
                         boundingBox = new Rect(0, 0, 2, 2),
                         instanceId = 1,
-                        labelId = 0,
+                        labelId = 1,
                         pixelCount = 4
                     }
                 }, new uint[]
@@ -71,14 +71,14 @@ namespace GroundTruthTests
                     {
                         boundingBox = new Rect(0, 0, 1, 2),
                         instanceId = 1,
-                        labelId = 0,
+                        labelId = 1,
                         pixelCount = 2
                     },
                     new RenderedObjectInfo()
                     {
                         boundingBox = new Rect(2, 0, 1, 1),
                         instanceId = 2,
-                        labelId = 1,
+                        labelId = 2,
                         pixelCount = 1
                     }
                 }, new uint[]
@@ -100,14 +100,14 @@ namespace GroundTruthTests
                     {
                         boundingBox = new Rect(0, 0, 3, 2),
                         instanceId = 1,
-                        labelId = 0,
+                        labelId = 1,
                         pixelCount = 4
                     },
                     new RenderedObjectInfo()
                     {
                         boundingBox = new Rect(1, 0, 1, 2),
                         instanceId = 2,
-                        labelId = 1,
+                        labelId = 2,
                         pixelCount = 2
                     }
                 }, new uint[]
@@ -130,7 +130,7 @@ namespace GroundTruthTests
                     {
                         boundingBox = new Rect(1, 0, 1, 1),
                         instanceId = 1,
-                        labelId = 0,
+                        labelId = 1,
                         pixelCount = 1
                     },
                 }, new uint[]
@@ -150,15 +150,17 @@ namespace GroundTruthTests
             var label2 = "label2";
             var labelingConfiguration = ScriptableObject.CreateInstance<LabelingConfiguration>();
 
-            labelingConfiguration.LabelingConfigurations = new List<LabelingConfigurationEntry>
+            labelingConfiguration.LabelEntries = new List<LabelEntry>
             {
-                new LabelingConfigurationEntry
+                new LabelEntry
                 {
+                    id = 1,
                     label = label,
                     value = 500
                 },
-                new LabelingConfigurationEntry
+                new LabelEntry
                 {
+                    id = 2,
                     label = label2,
                     value = 500
                 }

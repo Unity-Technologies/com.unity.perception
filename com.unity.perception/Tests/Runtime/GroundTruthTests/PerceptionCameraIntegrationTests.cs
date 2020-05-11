@@ -73,10 +73,11 @@ namespace GroundTruthTests
             var label = "label";
             var labelingConfiguration = ScriptableObject.CreateInstance<LabelingConfiguration>();
 
-            labelingConfiguration.LabelingConfigurations = new List<LabelingConfigurationEntry>
+            labelingConfiguration.LabelEntries = new List<LabelEntry>
             {
-                new LabelingConfigurationEntry
+                new LabelEntry
                 {
+                    id = 1,
                     label = label,
                     value = 500
                 }

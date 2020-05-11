@@ -23,7 +23,7 @@ namespace UnityEngine.Perception.GroundTruth
         ComputeBuffer m_InstanceIdPresenceMask;
         ComputeBuffer m_InstanceIdToClassId;
         ComputeBuffer m_ClassCounts;
-        NativeList<int> m_InstanceIdToClassIdLookup;
+        NativeList<int> m_InstanceIdToLabelIndexLookup;
         HashSet<Camera> m_CamerasRendered = new HashSet<Camera>();
         bool m_IdBuffersNeedUpdating;
         bool m_DidComputeLastFrame;
@@ -39,18 +39,18 @@ namespace UnityEngine.Perception.GroundTruth
 
         public override void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId)
         {
-            if (!m_InstanceIdToClassIdLookup.IsCreated)
+            if (!m_InstanceIdToLabelIndexLookup.IsCreated)
             {
-                m_InstanceIdToClassIdLookup = new NativeList<int>(k_StartingObjectCount, Allocator.Persistent);
+                m_InstanceIdToLabelIndexLookup = new NativeList<int>(k_StartingObjectCount, Allocator.Persistent);
             }
-            if (LabelingConfiguration.TryGetMatchingConfigurationIndex(labeling, out var index))
+            if (LabelingConfiguration.TryGetMatchingConfigurationEntry(labeling, out LabelEntry labelEntry, out var index))
             {
-                if (m_InstanceIdToClassIdLookup.Length <= instanceId)
+                if (m_InstanceIdToLabelIndexLookup.Length <= instanceId)
                 {
-                    m_InstanceIdToClassIdLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
+                    m_InstanceIdToLabelIndexLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
                 }
                 m_IdBuffersNeedUpdating = true;
-                m_InstanceIdToClassIdLookup[(int)instanceId] = index + 1;
+                m_InstanceIdToLabelIndexLookup[(int)instanceId] = index + 1;
             }
         }
 
@@ -61,7 +61,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             var objectCount = k_StartingObjectCount;
             UpdateIdBufferSizes(objectCount);
-            m_ClassCounts = new ComputeBuffer(LabelingConfiguration.LabelingConfigurations.Count + 1, UnsafeUtility.SizeOf<uint>(), ComputeBufferType.Structured);
+            m_ClassCounts = new ComputeBuffer(LabelingConfiguration.LabelEntries.Count + 1, UnsafeUtility.SizeOf<uint>(), ComputeBufferType.Structured);
 
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
         }
@@ -89,9 +89,9 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
         {
             //If there are no objects to label, skip the pass
-            if (!m_InstanceIdToClassIdLookup.IsCreated || m_InstanceIdToClassIdLookup.Length == 0)
+            if (!m_InstanceIdToLabelIndexLookup.IsCreated || m_InstanceIdToLabelIndexLookup.Length == 0)
             {
-                var counts = new NativeArray<uint>(LabelingConfiguration.LabelingConfigurations.Count + 1, Allocator.Temp);
+                var counts = new NativeArray<uint>(LabelingConfiguration.LabelEntries.Count + 1, Allocator.Temp);
                 OnClassCountReadback(Time.frameCount, counts);
                 counts.Dispose();
                 return;
@@ -101,8 +101,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (m_IdBuffersNeedUpdating)
             {
-                UpdateIdBufferSizes(m_InstanceIdToClassIdLookup.Capacity);
-                m_InstanceIdToClassId.SetData(m_InstanceIdToClassIdLookup.AsArray());
+                UpdateIdBufferSizes(m_InstanceIdToLabelIndexLookup.Capacity);
+                m_InstanceIdToClassId.SetData(m_InstanceIdToLabelIndexLookup.AsArray());
             }
 
             //The following section kicks off the four kernels in LabeledObjectHistogram.compute
@@ -126,7 +126,7 @@ namespace UnityEngine.Perception.GroundTruth
             cmd.SetComputeBufferParam(m_ComputeShader, 3, "InstanceIdPresenceMask", m_InstanceIdPresenceMask);
             cmd.SetComputeBufferParam(m_ComputeShader, 3, "InstanceIdToClassId", m_InstanceIdToClassId);
             cmd.SetComputeBufferParam(m_ComputeShader, 3, "ClassCounts", m_ClassCounts);
-            cmd.DispatchCompute(m_ComputeShader, 3, m_InstanceIdToClassIdLookup.Length, 1, 1);
+            cmd.DispatchCompute(m_ComputeShader, 3, m_InstanceIdToLabelIndexLookup.Length, 1, 1);
 
             var requestFrameCount = Time.frameCount;
             cmd.RequestAsyncReadback(m_ClassCounts, request => OnClassCountReadback(requestFrameCount, request.GetData<uint>()));
@@ -143,14 +143,14 @@ namespace UnityEngine.Perception.GroundTruth
             m_ClassCounts = null;
             WaitForAllRequests();
 
-            if (m_InstanceIdToClassIdLookup.IsCreated)
+            if (m_InstanceIdToLabelIndexLookup.IsCreated)
             {
-                m_InstanceIdToClassIdLookup.Dispose();
-                m_InstanceIdToClassIdLookup = default;
+                m_InstanceIdToLabelIndexLookup.Dispose();
+                m_InstanceIdToLabelIndexLookup = default;
             }
         }
 
-        internal event Action<NativeSlice<uint>, IReadOnlyList<LabelingConfigurationEntry>, int> ClassCountsReceived;
+        internal event Action<NativeSlice<uint>, IReadOnlyList<LabelEntry>, int> ClassCountsReceived;
 
         void OnClassCountReadback(int requestFrameCount, NativeArray<uint> counts)
         {
@@ -166,7 +166,7 @@ namespace UnityEngine.Perception.GroundTruth
             Debug.Log(sb);
 #endif
 
-            ClassCountsReceived?.Invoke(new NativeSlice<uint>(counts, 1), LabelingConfiguration.LabelingConfigurations, requestFrameCount);
+            ClassCountsReceived?.Invoke(new NativeSlice<uint>(counts, 1), LabelingConfiguration.LabelEntries, requestFrameCount);
         }
 
         public void WaitForAllRequests()

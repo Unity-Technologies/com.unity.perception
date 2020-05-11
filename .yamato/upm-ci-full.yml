@@ -42,7 +42,7 @@ pack_{{ variant.name }}:
     flavor: b1.large
   commands:
      - git submodule update --init --recursive
-     - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
+     - npm install upm-ci-utils -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
      - upm-ci package pack --package-path ./com.unity.perception/ 
   artifacts:
     packages:
@@ -61,7 +61,7 @@ pkg_test_{{variant.name}}_{{ platform.name }}_{{ editor.version }}:
     flavor: {{ platform.flavor}}
   commands:
     - git submodule update --init --recursive
-    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package test -u {{ editor.version }} --package-path ./com.unity.perception --type vetting-tests
   artifacts:
     logs:
@@ -123,7 +123,7 @@ publish:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package publish --package-path com.unity.perception
   triggers:
     tags:

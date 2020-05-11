@@ -27,17 +27,6 @@ namespace UnityEditor.Perception.GroundTruth
             if (!autoAssign)
                 return;
 
-            var newFirstElement = list.serializedProperty.GetArrayElementAtIndex(0);
-            if (newIndex == 0 && list.serializedProperty.arraySize > 1)
-            {
-                var oldFirstId = list.serializedProperty.GetArrayElementAtIndex(1).FindPropertyRelative(nameof(LabelEntry.id)).intValue;
-                newFirstElement.FindPropertyRelative(nameof(LabelEntry.id)).intValue = oldFirstId;
-            }
-            if (oldIndex == 0)
-            {
-                var oldFirstId = list.serializedProperty.GetArrayElementAtIndex(newIndex).FindPropertyRelative(nameof(LabelEntry.id)).intValue;
-                newFirstElement.FindPropertyRelative(nameof(LabelEntry.id)).intValue = oldFirstId;
-            }
             AutoAssignIds();
         }
 
@@ -90,7 +79,7 @@ namespace UnityEditor.Perception.GroundTruth
             using (var change = new EditorGUI.ChangeCheckScope())
             {
                 var contentRect = new Rect(rect.position, new Vector2(rect.width, EditorGUIUtility.singleLineHeight));
-                using (new EditorGUI.DisabledScope(autoAssign && index != 0))
+                using (new EditorGUI.DisabledScope(autoAssign))
                 {
                     var newLabel = EditorGUI.IntField(contentRect, nameof(LabelEntry.id), idProperty.intValue);
                     if (change.changed)
@@ -125,19 +114,22 @@ namespace UnityEditor.Perception.GroundTruth
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+            var autoAssignIdsProperty = serializedObject.FindProperty(nameof(LabelingConfiguration.AutoAssignIds));
             using (var change = new EditorGUI.ChangeCheckScope())
             {
-                var autoAssignIdsProperty = serializedObject.FindProperty(nameof(LabelingConfiguration.AutoAssignIds));
                 EditorGUILayout.PropertyField(autoAssignIdsProperty);
                 if (change.changed && autoAssignIdsProperty.boolValue)
+                    AutoAssignIds();
+            }
+
+            if (autoAssignIdsProperty.boolValue)
+            {
+                using (var change = new EditorGUI.ChangeCheckScope())
                 {
-                    var ok = EditorUtility.DisplayDialog("Enable auto-assigned labels", "Existing label ids will be overwritten. Enable label auto-assignment?", "Yes", "Cancel");
-                    if (ok)
-                    {
+                    var startingLabelIdProperty = serializedObject.FindProperty(nameof(LabelingConfiguration.StartingLabelId));
+                    EditorGUILayout.PropertyField(startingLabelIdProperty);
+                    if (change.changed)
                         AutoAssignIds();
-                    }
-                    else
-                        autoAssignIdsProperty.boolValue = false;
                 }
             }
 
@@ -152,8 +144,10 @@ namespace UnityEditor.Perception.GroundTruth
             if (size == 0)
                 return;
 
-            var nextId = serializedProperty.GetArrayElementAtIndex(0).FindPropertyRelative(nameof(LabelEntry.id)).intValue + 1;
-            for (int i = 1; i < size; i++)
+            var startingLabelId  = (StartingLabelId)serializedObject.FindProperty(nameof(LabelingConfiguration.StartingLabelId)).enumValueIndex;
+
+            var nextId = startingLabelId == StartingLabelId.One ? 1 : 0;
+            for (int i = 0; i < size; i++)
             {
                 serializedProperty.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(LabelEntry.id)).intValue = nextId;
                 nextId++;

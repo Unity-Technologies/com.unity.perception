@@ -11,9 +11,14 @@ namespace UnityEngine.Perception.GroundTruth
     public class LabelingConfiguration : ScriptableObject
     {
         /// <summary>
-        /// Whether the inspector will auto-assign ids based on the id of the first element
+        /// Whether the inspector will auto-assign ids based on the id of the first element.
         /// </summary>
         public bool AutoAssignIds = true;
+
+        /// <summary>
+        /// Whether the inspector will start label ids at zero or one when <see cref="AutoAssignIds"/> is enabled.
+        /// </summary>
+        public StartingLabelId StartingLabelId = StartingLabelId.One;
 
         /// <summary>
         /// A sequence of <see cref="LabelEntry"/> which defines the labels relevant for this configuration and their values.

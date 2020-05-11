@@ -78,7 +78,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        NativeList<int> m_InstanceIdToClassIdLookup;
+        NativeList<int> m_InstanceIdToLabelEntryIndexLookup;
         LabelingConfiguration m_LabelingConfiguration;
 
         // ReSharper disable once InvalidXmlDocComment
@@ -91,7 +91,7 @@ namespace UnityEngine.Perception.GroundTruth
         public RenderedObjectInfoGenerator(LabelingConfiguration labelingConfiguration)
         {
             m_LabelingConfiguration = labelingConfiguration;
-            m_InstanceIdToClassIdLookup = new NativeList<int>(k_StartingObjectCount, Allocator.Persistent);
+            m_InstanceIdToLabelEntryIndexLookup = new NativeList<int>(k_StartingObjectCount, Allocator.Persistent);
         }
 
         /// <inheritdoc/>
@@ -99,12 +99,12 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (m_LabelingConfiguration.TryGetMatchingConfigurationEntry(labeling, out var entry))
             {
-                if (m_InstanceIdToClassIdLookup.Length <= instanceId)
+                if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
                 {
-                    m_InstanceIdToClassIdLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
+                    m_InstanceIdToLabelEntryIndexLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
                 }
 
-                m_InstanceIdToClassIdLookup[(int)instanceId] = entry.id;
+                m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] = entry.id;
             }
         }
 
@@ -192,10 +192,10 @@ namespace UnityEngine.Perception.GroundTruth
                 for (var i = 0; i < keyValueArrays.Keys.Length; i++)
                 {
                     var instanceId = keyValueArrays.Keys[i];
-                    if (m_InstanceIdToClassIdLookup.Length <= instanceId)
+                    if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
                         continue;
 
-                    var classId = m_InstanceIdToClassIdLookup[instanceId];
+                    var classId = m_InstanceIdToLabelEntryIndexLookup[instanceId];
                     classCounts[classId]++;
                     var renderedObjectInfo = keyValueArrays.Values[i];
                     var boundingBox = renderedObjectInfo.boundingBox;
@@ -234,17 +234,17 @@ namespace UnityEngine.Perception.GroundTruth
         public bool TryGetLabelIdFromInstanceId(int instanceId, out int labelId)
         {
             labelId = -1;
-            if (m_InstanceIdToClassIdLookup.Length <= instanceId)
+            if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
                 return false;
 
-            labelId = m_InstanceIdToClassIdLookup[instanceId];
+            labelId = m_InstanceIdToLabelEntryIndexLookup[instanceId];
             return true;
         }
 
         /// <inheritdoc />
         public void Dispose()
         {
-            m_InstanceIdToClassIdLookup.Dispose();
+            m_InstanceIdToLabelEntryIndexLookup.Dispose();
         }
     }
 }

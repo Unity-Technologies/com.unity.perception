@@ -33,6 +33,21 @@ namespace UnityEngine.Perception.GroundTruth
         /// <returns>Returns true if a match was found. False if not.</returns>
         public bool TryGetMatchingConfigurationEntry(Labeling labeling, out LabelEntry labelEntry)
         {
+            return TryGetMatchingConfigurationEntry(labeling, out labelEntry, out int _);
+        }
+
+        /// <summary>
+        /// Attempts to find the matching index in <see cref="LabelEntries"/> for the given <see cref="Labeling"/>.
+        /// </summary>
+        /// <remarks>
+        /// The matching index is the first class name in the given Labeling which matches an entry in <see cref="LabelEntries"/>.
+        /// </remarks>
+        /// <param name="labeling">The <see cref="Labeling"/> to match </param>
+        /// <param name="labelEntry">When this method returns, contains the matching <see cref="LabelEntry"/>, or <code>default</code> if no match was found.</param>
+        /// <param name="labelEntryIndex">When this method returns, contains the index of the matching <see cref="LabelEntry"/>, or <code>-1</code> if no match was found.</param>
+        /// <returns>Returns true if a match was found. False if not.</returns>
+        public bool TryGetMatchingConfigurationEntry(Labeling labeling, out LabelEntry labelEntry, out int labelEntryIndex)
+        {
             foreach (var labelingClass in labeling.labels)
             {
                 for (var i = 0; i < LabelEntries.Count; i++)
@@ -41,11 +56,13 @@ namespace UnityEngine.Perception.GroundTruth
                     if (string.Equals(entry.label, labelingClass))
                     {
                         labelEntry = entry;
+                        labelEntryIndex = i;
                         return true;
                     }
                 }
             }
 
+            labelEntryIndex = -1;
             labelEntry = default;
             return false;
         }

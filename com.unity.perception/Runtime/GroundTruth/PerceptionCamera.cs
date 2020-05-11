@@ -277,9 +277,9 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (produceSegmentationImages)
             {
-                var specs = LabelingConfiguration.LabelEntries.Select((l, index) => new SemanticSegmentationSpec()
+                var specs = LabelingConfiguration.LabelEntries.Select((l) => new SemanticSegmentationSpec()
                 {
-                    label_id = index,
+                    label_id = l.id,
                     label_name = l.label,
                     pixel_value = l.value
                 }).ToArray();
@@ -292,9 +292,9 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (produceObjectCountAnnotations || produceBoundingBoxAnnotations || produceRenderedObjectInfoMetric)
             {
-                var labelingMetricSpec = LabelingConfiguration.LabelEntries.Select((l, index) => new ObjectCountSpec()
+                var labelingMetricSpec = LabelingConfiguration.LabelEntries.Select((l) => new ObjectCountSpec()
                 {
-                    label_id = index,
+                    label_id = l.id,
                     label_name = l.label,
                 }).ToArray();
 
@@ -472,7 +472,7 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     m_ClassCountValues[i] = new ClassCountValue()
                     {
-                        label_id = i,
+                        label_id = entries[i].id,
                         label_name = entries[i].label,
                         count = counts[i]
                     };

@@ -1,0 +1,40 @@
+{
+  "version": "0.0.1",
+  "metrics": [
+    {
+      "capture_id": "e8b44709-dddf-439d-94d2-975460924903",
+      "annotation_id": null,
+      "sequence_id": "e96b97cd-8130-4ab4-a105-1b911a6d912b",
+      "step": 1,
+      "metric_definition": 1,
+      "values": [
+        {"label_id": 27, "label_name": "car", "count": 5},
+        {"label_id": 34, "label_name": "bicycle", "count": 1},
+        {"label_id": 25, "label_name": "person", "count": 7}
+      ]
+    },
+    {
+      "capture_id": "4b35a47a-3f63-4af3-b0e8-e68cb384ad75",
+      "annotation_id": "35cbdf6e-96e5-446e-852d-fe40be79ce77",
+      "sequence_id": "e96b97cd-8130-4ab4-a105-1b911a6d912b",
+      "step": 1,
+      "metric_definition": 1,
+      "values": [
+        {"label_id": 27, "label_name": "car", "count": 3},
+        {"label_id": 25, "label_name": "person", "count": 2}
+      ]
+    },
+    {
+      "capture_id": "3d09bbce-7f7b-4d9c-8c8a-2f75158e0c8e",
+      "annotation_id": null,
+      "sequence_id": "e96b97cd-8130-4ab4-a105-1b911a6d912b",
+      "step": 1,
+      "metric_definition": 1,
+      "values": [
+        {"label_id": 27, "label_name": "car", "count": 1},
+        {"label_id": 34, "label_name": "bicycle", "count": 2},
+        {"label_id": 25, "label_name": "person", "count": 2}
+      ]
+    }
+  ]
+}

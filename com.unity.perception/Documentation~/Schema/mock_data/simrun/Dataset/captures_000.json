@@ -1,0 +1,41 @@
+{
+  "version": "0.0.1",
+  "captures": [
+    {
+      "id": "e8b44709-dddf-439d-94d2-975460924903",
+      "sequence_id": "e96b97cd-8130-4ab4-a105-1b911a6d912b",
+      "step": 1,
+      "timestamp": 1,
+      "sensor": {
+        "sensor_id": "b4f6a75e-12de-4b4c-9574-5b135cecac6f",
+        "ego_id": "4f80234d-4342-420f-9187-07004613cd1f",
+        "modality": "camera",
+        "translation": [0.2, 1.1, 0.3],
+        "rotation": [0.3, 0.2, 0.1, 0.5],
+        "camera_intrinsic": [
+          [0.1, 0, 0],
+          [3.0, 0.1, 0],
+          [0.5, 0.45, 1]
+        ]
+      },
+      "ego": {
+        "ego_id": 1,
+        "translation": [0.02, 0.0, 0.0],
+        "rotation": [0.1, 0.1, 0.3, 0.0],
+        "velocity": [0.1, 0.1, 0.0],
+        "acceleration": null
+      },
+      "filename": "captures/camera_000.png",
+      "format": "PNG",
+      "annotations": [
+        {
+          "id": "35cbdf6e-96e5-446e-852d-fe40be79ce77",
+          "annotation_definition": 1,
+          "filename": "annotations/semantic_segmentation_000.png",
+          "values": null
+        }
+      ]
+    }
+  ]
+}
+

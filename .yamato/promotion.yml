@@ -1,4 +1,4 @@
-# The Yamato build step `publish` will publish the com.unity.perception package to the `upm-candidates` registry. To see which versions of the package have been published, see 
+# The Yamato build step `publish` will publish the com.unity.perception package to the `upm-candidates` registry. To see which versions of the package have been published, see
 #   * https://artifactory.prd.cds.internal.unity3d.com/artifactory/webapp/#/artifacts/browse/tree/General/upm-candidates/com.unity.perception
 #   * https://bintray.com/unity
 #test_editors:
@@ -20,7 +20,7 @@
 #  variables:
 #    UPMCI_PROMOTION: 1
 #  commands:
-#    - npm install upm-ci-utils@latest -g --registry https://api.bintray.com/npm/unity/unity-npm
+#    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
 #    - upm-ci package test --unity-version {{ editor.version }}
 #  artifacts:
 #    logs:
@@ -60,7 +60,7 @@
 #  variables:
 #    UPMCI_PROMOTION: 1
 #  commands:
-#    - npm install upm-ci-utils@latest -g --registry https://api.bintray.com/npm/unity/unity-npm
+#    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
 #    - upm-ci package promote
 #  triggers:
 #    tags:

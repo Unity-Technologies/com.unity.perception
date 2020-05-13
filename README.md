@@ -9,6 +9,7 @@ com.unity.perception provides a toolkit for generating large-scale datasets for 
 
 ## Documenation 
 **Click [here](Documentation~/SetupSteps.md) to setup a Perception project**
+
 **Click [here](Documentation~/GettingStarted.md) to get the started with Perception**
 
 * [Overview](Documentation~/GroundTruth-Overview.md)

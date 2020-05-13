@@ -8,8 +8,8 @@ com.unity.perception provides a toolkit for generating large-scale datasets for 
 [![license badge](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
 ## Documenation 
-**Click [here](Documentation~/SetupSteps.md) to setup a Perception project
-Click [here](Documentation~/GettingStarted.md) to get the started with Perception**
+**Click [here](Documentation~/SetupSteps.md) to setup a Perception project**
+**Click [here](Documentation~/GettingStarted.md) to get the started with Perception**
 
 * [Overview](Documentation~/GroundTruth-Overview.md)
 * [Labeling](Documentation~/GroundTruth-Labeling.md)

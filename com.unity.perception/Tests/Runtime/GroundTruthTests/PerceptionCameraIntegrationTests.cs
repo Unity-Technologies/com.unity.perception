@@ -6,6 +6,11 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
+
+#if MOQ_PRESENT
+using Moq;
+#endif
 
 namespace GroundTruthTests
 {
@@ -33,9 +38,9 @@ namespace GroundTruthTests
               ""height"": {Screen.height / 2:F1}
             }}";
             var labelingConfiguration = CreateLabelingConfiguration();
-            SetupCamera(labelingConfiguration, pc =>
+            SetupCamera(pc =>
             {
-                pc.produceBoundingBoxAnnotations = true;
+                pc.AddLabeler(new BoundingBox2DLabeler(labelingConfiguration));
             });
 
             var plane = TestHelper.CreateLabeledPlane();
@@ -53,8 +58,10 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator EnableSemanticSegmentation_GeneratesCorrectDataset()
         {
-            var labelingConfiguration = CreateLabelingConfiguration();
-            SetupCamera(labelingConfiguration, pc => pc.produceSegmentationImages = true);
+            SetupCamera(pc =>
+            {
+                pc.AddLabeler(new SemanticSegmentationLabeler(CreateSemanticSegmentationLabelConfig()));
+            });
 
             string expectedImageFilename = $"segmentation_{Time.frameCount}.png";
 
@@ -68,24 +75,38 @@ namespace GroundTruthTests
             StringAssert.Contains(imagePath, capturesJson);
         }
 
-        static LabelingConfiguration CreateLabelingConfiguration()
+        static IdLabelConfig CreateLabelingConfiguration()
         {
             var label = "label";
-            var labelingConfiguration = ScriptableObject.CreateInstance<LabelingConfiguration>();
+            var labelingConfiguration = ScriptableObject.CreateInstance<IdLabelConfig>();
 
-            labelingConfiguration.LabelEntries = new List<LabelEntry>
+            labelingConfiguration.Init(new List<IdLabelEntry>
             {
-                new LabelEntry
+                new IdLabelEntry
                 {
                     id = 100,
-                    label = label,
-                    value = 500
+                    label = label
                 }
-            };
+            });
+            return labelingConfiguration;
+        }
+        static SemanticSegmentationLabelConfig CreateSemanticSegmentationLabelConfig()
+        {
+            var label = "label";
+            var labelingConfiguration = ScriptableObject.CreateInstance<SemanticSegmentationLabelConfig>();
+
+            labelingConfiguration.Init(new List<SemanticSegmentationLabelEntry>
+            {
+                new SemanticSegmentationLabelEntry()
+                {
+                    label = label,
+                    color = Color.blue
+                }
+            });
             return labelingConfiguration;
         }
 
-        GameObject SetupCamera(LabelingConfiguration labelingConfiguration, Action<PerceptionCamera> initPerceptionCamera)
+        GameObject SetupCamera(Action<PerceptionCamera> initPerceptionCamera)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -94,13 +115,8 @@ namespace GroundTruthTests
             camera.orthographicSize = 1;
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
-            perceptionCamera.produceSegmentationImages = false;
-            perceptionCamera.produceRenderedObjectInfoMetric = false;
-            perceptionCamera.produceBoundingBoxAnnotations = false;
-            perceptionCamera.produceObjectCountAnnotations = false;
             perceptionCamera.captureRgbImages = false;
-            perceptionCamera.LabelingConfiguration = labelingConfiguration;
-            initPerceptionCamera(perceptionCamera);
+            initPerceptionCamera?.Invoke(perceptionCamera);
 
             cameraObject.SetActive(true);
             AddTestObjectForCleanup(cameraObject);

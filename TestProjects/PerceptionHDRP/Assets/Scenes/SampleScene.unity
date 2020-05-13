@@ -121,41 +121,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &4662619
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4662620}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4662620
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4662619}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.7286716, y: -2.380882, z: 5.498973}
-  m_LocalScale: {x: 36.249973, y: 36.249973, z: 36.249973}
-  m_Children:
-  - {fileID: 963194228}
-  - {fileID: 705507995}
-  - {fileID: 1640252283}
-  - {fileID: 464025709}
-  - {fileID: 411238281}
-  m_Father: {fileID: 0}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &411238276
 GameObject:
   m_ObjectHideFlags: 0
@@ -171,7 +136,7 @@ GameObject:
   - component: {fileID: 411238277}
   - component: {fileID: 411238282}
   m_Layer: 0
-  m_Name: Cube (2)
+  m_Name: Crate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -189,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  classes:
+  labels:
   - Crate
 --- !u!65 &411238278
 BoxCollider:
@@ -259,11 +224,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 411238276}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.3786716, y: 2.380882, z: -4.288973}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 155.99806, y: 83.926025, z: -149.97618}
+  m_LocalScale: {x: 36.249973, y: 36.249973, z: 36.249973}
   m_Children: []
-  m_Father: {fileID: 4662620}
-  m_RootOrder: 4
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &411238282
 MonoBehaviour:
@@ -293,7 +258,7 @@ GameObject:
   - component: {fileID: 464025705}
   - component: {fileID: 464025710}
   m_Layer: 0
-  m_Name: Cube (1)
+  m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -311,7 +276,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  classes:
+  labels:
   - Cube
 --- !u!65 &464025706
 BoxCollider:
@@ -381,11 +346,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 464025704}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.6386716, y: 2.380882, z: -3.9089727}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 92.92311, y: 83.926025, z: -136.20119}
+  m_LocalScale: {x: 36.249973, y: 36.249973, z: 36.249973}
   m_Children: []
-  m_Father: {fileID: 4662620}
-  m_RootOrder: 3
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &464025710
 MonoBehaviour:
@@ -475,7 +440,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 6.25e-43, y: 1.0156355e+12, z: 6.25e-43, w: 2.8676e-41}
+  m_BoundingSphereOverride: {x: 6.3e-43, y: 108.39679, z: 6.3e-43, w: 0}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -487,11 +452,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 2.7286716, y: 5.3808823, z: -5.498973}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 96.1856, y: 192.67596, z: -193.83864}
+  m_LocalScale: {x: 36.249973, y: 36.249977, z: 36.249973}
   m_Children: []
-  m_Father: {fileID: 4662620}
-  m_RootOrder: 1
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!114 &705507996
 MonoBehaviour:
@@ -505,7 +470,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 9
+  m_Version: 10
   m_ObsoleteShadowResolutionTier: 1
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
@@ -551,6 +516,8 @@ MonoBehaviour:
   m_FilterSizeTraced: 16
   m_SunLightConeAngle: 0.5
   m_LightShadowRadius: 0.5
+  m_SemiTransparentShadow: 0
+  m_ColorShadow: 1
   m_EvsmExponent: 15
   m_EvsmLightLeakBias: 0
   m_EvsmVarianceBias: 0.00001
@@ -599,6 +566,8 @@ MonoBehaviour:
   useVolumetric: 1
   featuresFoldout: 1
   showAdditionalSettings: 0
+  m_AreaLightEmissiveMeshShadowCastingMode: 0
+  m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -678,11 +647,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: -0.17179534, y: 0.30667058, z: -0.056378223, w: -0.93448436}
-  m_LocalPosition: {x: 5.5378666, y: 3.5565922, z: -7.528791}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 198.01884, y: 126.545494, z: -267.4195}
+  m_LocalScale: {x: 36.249973, y: 36.249973, z: 36.249973}
   m_Children: []
-  m_Father: {fileID: 4662620}
-  m_RootOrder: 0
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &963194229
 MonoBehaviour:
@@ -803,10 +772,48 @@ MonoBehaviour:
   description: The main camera
   period: 0.0166
   startTime: 0
-  produceSegmentationImages: 1
-  produceObjectCountAnnotations: 1
-  LabelingConfiguration: {fileID: 11400000, guid: be3971a848968144e8d07d9136a5bf49,
-    type: 2}
+  captureRgbImages: 1
+  m_Labelers:
+  - id: 0
+  - id: 1
+  - id: 2
+  - id: 3
+  references:
+    version: 1
+    00000000:
+      type: {class: BoundingBox2DLabeler, ns: UnityEngine.Perception.GroundTruth,
+        asm: Unity.Perception.Runtime}
+      data:
+        enabled: 1
+        foldout: 0
+        annotationId: F9F22E05-443F-4602-A422-EBE4EA9B55CB
+        labelingConfiguration: {fileID: 11400000, guid: be3971a848968144e8d07d9136a5bf49,
+          type: 2}
+    00000001:
+      type: {class: SemanticSegmentationLabeler, ns: UnityEngine.Perception.GroundTruth,
+        asm: Unity.Perception.Runtime}
+      data:
+        enabled: 1
+        foldout: 0
+        annotationId: 12F94D8D-5425-4DEB-9B21-5E53AD957D66
+        labelConfig: {fileID: 11400000, guid: c140c5aa05dd09e4fadaa26de31b1f39, type: 2}
+    00000002:
+      type: {class: ObjectCountLabeler, ns: UnityEngine.Perception.GroundTruth, asm: Unity.Perception.Runtime}
+      data:
+        enabled: 1
+        foldout: 0
+        objectCountMetricId: 51DA3C27-369D-4929-AEA6-D01614635CE2
+        m_LabelingConfiguration: {fileID: 11400000, guid: be3971a848968144e8d07d9136a5bf49,
+          type: 2}
+    00000003:
+      type: {class: RenderedObjectInfoLabeler, ns: UnityEngine.Perception.GroundTruth,
+        asm: Unity.Perception.Runtime}
+      data:
+        enabled: 1
+        foldout: 0
+        objectInfoMetricId: 5BA92024-B3B7-41A7-9D3F-C03A6A8DDD01
+        labelingConfiguration: {fileID: 11400000, guid: be3971a848968144e8d07d9136a5bf49,
+          type: 2}
 --- !u!1 &1640252278
 GameObject:
   m_ObjectHideFlags: 0
@@ -822,7 +829,7 @@ GameObject:
   - component: {fileID: 1640252279}
   - component: {fileID: 1640252284}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -840,7 +847,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  classes:
+  labels:
   - Box
 --- !u!65 &1640252280
 BoxCollider:
@@ -910,10 +917,10 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1640252278}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.7286716, y: 2.380882, z: -5.498973}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 96.1856, y: 83.926025, z: -193.83864}
+  m_LocalScale: {x: 36.249973, y: 36.249973, z: 36.249973}
   m_Children: []
-  m_Father: {fileID: 4662620}
+  m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1640252284

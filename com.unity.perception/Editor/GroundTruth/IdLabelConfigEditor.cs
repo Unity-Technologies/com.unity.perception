@@ -6,16 +6,16 @@ using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEditor.Perception.GroundTruth
 {
-    [CustomEditor(typeof(LabelingConfiguration))]
-    class LabelingConfigurationEditor : Editor
+    [CustomEditor(typeof(IdLabelConfig))]
+    class IdLabelConfigEditor : Editor
     {
         ReorderableList m_LabelsList;
         const float k_Margin = 5f;
 
         public void OnEnable()
         {
-            m_LabelsList = new ReorderableList(this.serializedObject, this.serializedObject.FindProperty(nameof(LabelingConfiguration.LabelEntries)), true, false, true, true);
-            m_LabelsList.elementHeight = EditorGUIUtility.singleLineHeight * 3 + k_Margin;
+            m_LabelsList = new ReorderableList(this.serializedObject, this.serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName), true, false, true, true);
+            m_LabelsList.elementHeight = EditorGUIUtility.singleLineHeight * 2 + k_Margin;
             m_LabelsList.drawElementCallback = DrawElement;
             m_LabelsList.onAddCallback += OnAdd;
             m_LabelsList.onRemoveCallback += OnRemove;
@@ -51,17 +51,15 @@ namespace UnityEditor.Perception.GroundTruth
             for (int i = 0; i < list.serializedProperty.arraySize; i++)
             {
                 var item = list.serializedProperty.GetArrayElementAtIndex(i);
-                maxLabel = math.max(maxLabel, item.FindPropertyRelative(nameof(LabelEntry.id)).intValue);
+                maxLabel = math.max(maxLabel, item.FindPropertyRelative(nameof(IdLabelEntry.id)).intValue);
             }
             var index = list.serializedProperty.arraySize;
             list.serializedProperty.InsertArrayElementAtIndex(index);
             var element = list.serializedProperty.GetArrayElementAtIndex(index);
-            var idProperty = element.FindPropertyRelative(nameof(LabelEntry.id));
+            var idProperty = element.FindPropertyRelative(nameof(IdLabelEntry.id));
             idProperty.intValue = maxLabel + 1;
-            var labelProperty = element.FindPropertyRelative(nameof(LabelEntry.label));
+            var labelProperty = element.FindPropertyRelative(nameof(IdLabelEntry.label));
             labelProperty.stringValue = "";
-            var valueProperty = element.FindPropertyRelative(nameof(LabelEntry.value));
-            valueProperty.intValue = 0;
 
             if (autoAssign)
                 AutoAssignIds();
@@ -73,15 +71,14 @@ namespace UnityEditor.Perception.GroundTruth
         void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
         {
             var element = m_LabelsList.serializedProperty.GetArrayElementAtIndex(index);
-            var idProperty = element.FindPropertyRelative(nameof(LabelEntry.id));
-            var labelProperty = element.FindPropertyRelative(nameof(LabelEntry.label));
-            var valueProperty = element.FindPropertyRelative(nameof(LabelEntry.value));
+            var idProperty = element.FindPropertyRelative(nameof(IdLabelEntry.id));
+            var labelProperty = element.FindPropertyRelative(nameof(IdLabelEntry.label));
             using (var change = new EditorGUI.ChangeCheckScope())
             {
                 var contentRect = new Rect(rect.position, new Vector2(rect.width, EditorGUIUtility.singleLineHeight));
                 using (new EditorGUI.DisabledScope(autoAssign))
                 {
-                    var newLabel = EditorGUI.IntField(contentRect, nameof(LabelEntry.id), idProperty.intValue);
+                    var newLabel = EditorGUI.IntField(contentRect, nameof(IdLabelEntry.id), idProperty.intValue);
                     if (change.changed)
                     {
                         idProperty.intValue = newLabel;
@@ -93,28 +90,20 @@ namespace UnityEditor.Perception.GroundTruth
             using (var change = new EditorGUI.ChangeCheckScope())
             {
                 var contentRect = new Rect(rect.position + new Vector2(0, EditorGUIUtility.singleLineHeight), new Vector2(rect.width, EditorGUIUtility.singleLineHeight));
-                var newLabel = EditorGUI.TextField(contentRect, nameof(LabelEntry.label), labelProperty.stringValue);
+                var newLabel = EditorGUI.TextField(contentRect, nameof(IdLabelEntry.label), labelProperty.stringValue);
                 if (change.changed)
                 {
                     labelProperty.stringValue = newLabel;
                 }
             }
-
-            using (var change = new EditorGUI.ChangeCheckScope())
-            {
-                var contentRect = new Rect(rect.position + new Vector2(0, EditorGUIUtility.singleLineHeight * 2), new Vector2(rect.width, EditorGUIUtility.singleLineHeight));
-                var newValue = EditorGUI.IntField(contentRect, nameof(LabelEntry.value), valueProperty.intValue);
-                if (change.changed)
-                    valueProperty.intValue = newValue;
-            }
         }
 
-        bool autoAssign => serializedObject.FindProperty(nameof(LabelingConfiguration.AutoAssignIds)).boolValue;
+        bool autoAssign => serializedObject.FindProperty(nameof(IdLabelConfig.autoAssignIds)).boolValue;
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            var autoAssignIdsProperty = serializedObject.FindProperty(nameof(LabelingConfiguration.AutoAssignIds));
+            var autoAssignIdsProperty = serializedObject.FindProperty(nameof(IdLabelConfig.autoAssignIds));
             using (var change = new EditorGUI.ChangeCheckScope())
             {
                 EditorGUILayout.PropertyField(autoAssignIdsProperty, new GUIContent("Auto Assign IDs"));
@@ -126,7 +115,7 @@ namespace UnityEditor.Perception.GroundTruth
             {
                 using (var change = new EditorGUI.ChangeCheckScope())
                 {
-                    var startingLabelIdProperty = serializedObject.FindProperty(nameof(LabelingConfiguration.StartingLabelId));
+                    var startingLabelIdProperty = serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId));
                     EditorGUILayout.PropertyField(startingLabelIdProperty, new GUIContent("Starting Label ID"));
                     if (change.changed)
                         AutoAssignIds();
@@ -139,17 +128,17 @@ namespace UnityEditor.Perception.GroundTruth
 
         void AutoAssignIds()
         {
-            var serializedProperty = serializedObject.FindProperty(nameof(LabelingConfiguration.LabelEntries));
+            var serializedProperty = serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName);
             var size = serializedProperty.arraySize;
             if (size == 0)
                 return;
 
-            var startingLabelId  = (StartingLabelId)serializedObject.FindProperty(nameof(LabelingConfiguration.StartingLabelId)).enumValueIndex;
+            var startingLabelId  = (StartingLabelId)serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId)).enumValueIndex;
 
             var nextId = startingLabelId == StartingLabelId.One ? 1 : 0;
             for (int i = 0; i < size; i++)
             {
-                serializedProperty.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(LabelEntry.id)).intValue = nextId;
+                serializedProperty.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(IdLabelEntry.id)).intValue = nextId;
                 nextId++;
             }
         }

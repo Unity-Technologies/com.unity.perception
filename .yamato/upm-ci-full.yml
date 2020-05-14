@@ -9,7 +9,7 @@ test_platforms:
     standalone-platform: StandaloneWindows64
   - name: mac
     type: Unity::VM::osx
-    image: buildfarm/mac:stable
+    image: package-ci/mac:stable
     flavor: m1.mac
     extra-args: --force-metal
     standalone-platform: StandaloneOSX

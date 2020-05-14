@@ -71,14 +71,16 @@ namespace UnityEngine.Perception.GroundTruth
         [FormerlySerializedAs("m_BoundingBoxID")]
         public string boundingBoxId = "F9F22E05-443F-4602-A422-EBE4EA9B55CB";
         /// <summary>
-        /// Whether visible pixels should be computed for each labeled object
+        /// Whether rendered object info metrics should be generated. This metric currently contains label id, instance id, and visible pixels.
         /// </summary>
-        public bool produceVisiblePixelsMetric = true;
+        [FormerlySerializedAs("produceVisiblePixelsMetric")]
+        public bool produceRenderedObjectInfoMetric = true;
         /// <summary>
         /// The ID to use for visible pixels metrics in the resulting dataset
         /// </summary>
+        [FormerlySerializedAs("visiblePixelsId")]
         [FormerlySerializedAs("m_VisiblePixelsID")]
-        public string visiblePixelsId = "5BA92024-B3B7-41A7-9D3F-C03A6A8DDD01";
+        public string renderedObjectInfoId = "5BA92024-B3B7-41A7-9D3F-C03A6A8DDD01";
         /// <summary>
         /// The corner of the image to use as the origin for bounding boxs.
         /// </summary>
@@ -89,7 +91,7 @@ namespace UnityEngine.Perception.GroundTruth
         public LabelingConfiguration LabelingConfiguration;
 
         /// <summary>
-        /// Invoked when RenderedObjectInfos (bounding boxes) are calculated. The first parameter is the Time.frameCount at which the objects were rendered. This may be called many frames after the frame in which the objects were rendered.
+        /// Invoked when RenderedObjectInfos are calculated. The first parameter is the Time.frameCount at which the objects were rendered. This may be called many frames after the frame in which the objects were rendered.
         /// </summary>
         public event Action<int, NativeArray<RenderedObjectInfo>> renderedObjectInfosCalculated;
 
@@ -135,7 +137,7 @@ namespace UnityEngine.Perception.GroundTruth
             public int FrameCount;
             public AsyncAnnotation SegmentationAsyncAnnotation;
             public AsyncMetric ClassCountAsyncMetric;
-            public AsyncMetric VisiblePixelsAsyncMetric;
+            public AsyncMetric RenderedObjectInfoAsyncMetric;
             public AsyncAnnotation BoundingBoxAsyncMetric;
         }
 
@@ -165,7 +167,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         ClassCountValue[] m_ClassCountValues;
         BoundingBoxValue[] m_BoundingBoxValues;
-        VisiblePixelsValue[] m_VisiblePixelsValues;
+        RenderedObjectInfoValue[] m_VisiblePixelsValues;
 
 #if HDRP_PRESENT
         InstanceSegmentationPass m_SegmentationPass;
@@ -174,7 +176,7 @@ namespace UnityEngine.Perception.GroundTruth
         MetricDefinition m_ObjectCountMetricDefinition;
         AnnotationDefinition m_BoundingBoxAnnotationDefinition;
         AnnotationDefinition m_SegmentationAnnotationDefinition;
-        MetricDefinition m_VisiblePixelsMetricDefinition;
+        MetricDefinition m_RenderedObjectInfoMetricDefinition;
 
         static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
         static ProfilerMarker s_FlipY = new ProfilerMarker("Flip Y (PerceptionCamera)");
@@ -182,7 +184,7 @@ namespace UnityEngine.Perception.GroundTruth
         static ProfilerMarker s_ClassCountCallback = new ProfilerMarker("OnClassLabelsReceived");
         static ProfilerMarker s_RenderedObjectInfosCalculatedEvent = new ProfilerMarker("renderedObjectInfosCalculated event");
         static ProfilerMarker s_BoundingBoxCallback = new ProfilerMarker("OnBoundingBoxesReceived");
-        static ProfilerMarker s_ProduceVisiblePixelsMetric = new ProfilerMarker("ProduceVisiblePixelsMetric");
+        static ProfilerMarker s_ProduceRenderedObjectInfoMetric = new ProfilerMarker("ProduceRenderedObjectInfoMetric");
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         struct SemanticSegmentationSpec
@@ -288,7 +290,7 @@ namespace UnityEngine.Perception.GroundTruth
                     (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
             }
 
-            if (produceObjectCountAnnotations || produceBoundingBoxAnnotations)
+            if (produceObjectCountAnnotations || produceBoundingBoxAnnotations || produceRenderedObjectInfoMetric)
             {
                 var labelingMetricSpec = LabelingConfiguration.LabelingConfigurations.Select((l, index) => new ObjectCountSpec()
                 {
@@ -303,11 +305,11 @@ namespace UnityEngine.Perception.GroundTruth
 
                 if (produceBoundingBoxAnnotations)
                 {
-                    m_BoundingBoxAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition("bounding box", labelingMetricSpec, "Bounding boxe for each labeled object visible to the sensor", id: new Guid(boundingBoxId));
+                    m_BoundingBoxAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition("bounding box", labelingMetricSpec, "Bounding box for each labeled object visible to the sensor", id: new Guid(boundingBoxId));
                 }
 
-                if (produceVisiblePixelsMetric)
-                    m_VisiblePixelsMetricDefinition = SimulationManager.RegisterMetricDefinition("visible pixels", labelingMetricSpec, "Visible pixels for each visible object", id: new Guid(visiblePixelsId));
+                if (produceRenderedObjectInfoMetric)
+                    m_RenderedObjectInfoMetricDefinition = SimulationManager.RegisterMetricDefinition("rendered object info", labelingMetricSpec, "Information about each labeled object visible to the sensor", id: new Guid(renderedObjectInfoId));
 
                 m_RenderedObjectInfoGenerator = new RenderedObjectInfoGenerator(LabelingConfiguration);
                 World.DefaultGameObjectInjectionWorld.GetExistingSystem<GroundTruthLabelSetupSystem>().Activate(m_RenderedObjectInfoGenerator);
@@ -328,8 +330,8 @@ namespace UnityEngine.Perception.GroundTruth
                     if (produceBoundingBoxAnnotations)
                         ProduceBoundingBoxesAnnotation(renderedObjectInfos, LabelingConfiguration.LabelingConfigurations, frameCount);
 
-                    if (produceVisiblePixelsMetric)
-                        ProduceVisiblePixelsMetric(renderedObjectInfos, frameCount);
+                    if (produceRenderedObjectInfoMetric)
+                        ProduceRenderedObjectInfoMetric(renderedObjectInfos, frameCount);
                 });
             }
 
@@ -338,7 +340,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         // ReSharper disable InconsistentNaming
-        struct VisiblePixelsValue
+        struct RenderedObjectInfoValue
         {
             [UsedImplicitly]
             public int label_id;
@@ -349,20 +351,20 @@ namespace UnityEngine.Perception.GroundTruth
         }
         // ReSharper restore InconsistentNaming
 
-        void ProduceVisiblePixelsMetric(NativeArray<RenderedObjectInfo> renderedObjectInfos, int frameCount)
+        void ProduceRenderedObjectInfoMetric(NativeArray<RenderedObjectInfo> renderedObjectInfos, int frameCount)
         {
-            using (s_ProduceVisiblePixelsMetric.Auto())
+            using (s_ProduceRenderedObjectInfoMetric.Auto())
             {
                 var findResult = FindAsyncCaptureInfo(frameCount);
                 if (findResult.index == -1)
                     return;
                 var asyncCaptureInfo = findResult.asyncCaptureInfo;
-                var visiblePixelsAsyncMetric = asyncCaptureInfo.VisiblePixelsAsyncMetric;
-                if (!visiblePixelsAsyncMetric.IsValid)
+                var metric = asyncCaptureInfo.RenderedObjectInfoAsyncMetric;
+                if (!metric.IsValid)
                     return;
 
                 if (m_VisiblePixelsValues == null || m_VisiblePixelsValues.Length != renderedObjectInfos.Length)
-                    m_VisiblePixelsValues = new VisiblePixelsValue[renderedObjectInfos.Length];
+                    m_VisiblePixelsValues = new RenderedObjectInfoValue[renderedObjectInfos.Length];
 
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
@@ -370,7 +372,7 @@ namespace UnityEngine.Perception.GroundTruth
                     if (!TryGetLabelIdFromInstanceId(objectInfo.instanceId, out var labelId))
                         continue;
 
-                    m_VisiblePixelsValues[i] = new VisiblePixelsValue
+                    m_VisiblePixelsValues[i] = new RenderedObjectInfoValue
                     {
                         label_id = labelId,
                         instance_id = objectInfo.instanceId,
@@ -378,7 +380,7 @@ namespace UnityEngine.Perception.GroundTruth
                     };
                 }
 
-                visiblePixelsAsyncMetric.ReportValues(m_VisiblePixelsValues);
+                metric.ReportValues(m_VisiblePixelsValues);
             }
         }
 
@@ -506,13 +508,13 @@ namespace UnityEngine.Perception.GroundTruth
             m_AsyncCaptureInfos.RemoveSwapBack(i =>
                 !i.SegmentationAsyncAnnotation.IsPending &&
                 !i.BoundingBoxAsyncMetric.IsPending &&
-                !i.VisiblePixelsAsyncMetric.IsPending &&
+                !i.RenderedObjectInfoAsyncMetric.IsPending &&
                 !i.ClassCountAsyncMetric.IsPending);
         }
 
         void ReportAsyncAnnotations()
         {
-            if (produceSegmentationImages || produceObjectCountAnnotations || produceBoundingBoxAnnotations || produceVisiblePixelsMetric)
+            if (produceSegmentationImages || produceObjectCountAnnotations || produceBoundingBoxAnnotations || produceRenderedObjectInfoMetric)
             {
                 var captureInfo = new AsyncCaptureInfo()
                 {
@@ -527,8 +529,8 @@ namespace UnityEngine.Perception.GroundTruth
                 if (produceBoundingBoxAnnotations)
                     captureInfo.BoundingBoxAsyncMetric = SensorHandle.ReportAnnotationAsync(m_BoundingBoxAnnotationDefinition);
 
-                if (produceVisiblePixelsMetric)
-                    captureInfo.VisiblePixelsAsyncMetric = SensorHandle.ReportMetricAsync(m_VisiblePixelsMetricDefinition);
+                if (produceRenderedObjectInfoMetric)
+                    captureInfo.RenderedObjectInfoAsyncMetric = SensorHandle.ReportMetricAsync(m_RenderedObjectInfoMetricDefinition);
 
                 m_AsyncCaptureInfos.Add(captureInfo);
             }

@@ -94,7 +94,7 @@ namespace GroundTruthTests
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
             perceptionCamera.produceSegmentationImages = false;
-            perceptionCamera.produceVisiblePixelsMetric = false;
+            perceptionCamera.produceRenderedObjectInfoMetric = false;
             perceptionCamera.produceBoundingBoxAnnotations = false;
             perceptionCamera.produceObjectCountAnnotations = false;
             perceptionCamera.captureRgbImages = false;

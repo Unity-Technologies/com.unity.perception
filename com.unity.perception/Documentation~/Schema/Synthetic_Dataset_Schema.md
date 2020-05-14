@@ -363,4 +363,4 @@ Defining new metric_definitions or annotation_definitions will not change the sc
 ## example
 
 A mockup of synthetic dataset according to this schema can be found 
-[here](https://github.com/Unity-Technologies/com.unity.perception/tree/master/com.unity.perception/Documentation~/Schema/mock_data/simrun). In this mockup, we have:
+[here](https://github.com/Unity-Technologies/com.unity.perception/tree/master/com.unity.perception/Documentation~/Schema/mock_data/simrun).

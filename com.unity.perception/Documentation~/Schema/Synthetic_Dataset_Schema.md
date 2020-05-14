@@ -56,7 +56,7 @@ For more on adding labels to GameObjects, see [labeling](../GroundTruth-Labeling
 
 ## Design
 
-The schema is based on the [nuScenes data format](#heading=h.ng38ehm32lgs). 
+The schema is based on the [nuScenes data format](https://www.nuscenes.org/data-format). 
 The main difference between this schema and nuScenes is that we use **document based schema design** instead of **relational database schema design**. 
 This means that instead of requiring multiple id-based "joins" to explore the data, data is nested and sometimes duplicated for ease of consumption.
 
@@ -88,7 +88,7 @@ For example, if we generate randomly placed objects in a scene for X steps of si
 In this case, sequence, step and timestamp are irrelevant for the captured data. 
 We can add a default value to the sequence, step and timestamp for these types of captures.
 
-In cases where we need to maintain time order relationship between captures (e.g. a sequence of camera capture in a 10 second video) and [metrics](#heading=h.9mpbqqwxedti), we need to add a sequence, step and timestamp to maintain the time ordered relationship of captures. 
+In cases where we need to maintain time order relationship between captures (e.g. a sequence of camera capture in a 10 second video) and [metrics](#metrics), we need to add a sequence, step and timestamp to maintain the time ordered relationship of captures. 
 Sequence represents the collection of any time ordered captures and annotations. 
 Timestamps refer to the simulation wall clock in milliseconds since the sequence started. 
 Steps are integer values which increase when a capture or metric event is triggered. 
@@ -332,7 +332,7 @@ annotation_definition.spec {
 A json file that stores collections of metric specifications records (metric_definition). 
 Each specification record describes a particular metric stored in [metrics](#metrics) values. 
 Each metric_definition record is assigned a unique identifier to a collection of specification records, which is stored as a list of key-value pairs. 
-The design is very similar to [annotation_definitions](#annotation_definitions).
+The design is very similar to [annotation_definitions](#annotation_definitions.json).
 
 ```
 metric_definition {
@@ -363,24 +363,4 @@ Defining new metric_definitions or annotation_definitions will not change the sc
 ## example
 
 A mockup of synthetic dataset according to this schema can be found 
-[here](com.unity.perception/Schema/mock_data/simrun/README.md). In this mockup, we have:
-
-* 1 ego
-
-* 2 sensors: 1 camera and 1 LIDAR
-
-* 19 labels
-
-* 3 captures, 2 metrics, 1 sequence, 2 steps 
-
-    * the first includes 1 camera capture and 1 semantic segmentation annotation.
-
-    *   two captures, 1 camera capture and 1 LIDAR capture, are triggered at the same time. 
-    For the camera, semantic segmentation, instance segmentation and 3d bounding box annotations are provided. 
-    For the LIDAR sensor, semantic segmentation annotation of point cloud is included.
-
-    * one of the metric events is emitted for metrics at capture level. The other one is emitted at annotation level.
-
-* 3 types of annotations: semantic segmentation, 3d bound box and LIDAR semantic segmentation. 
-
-* 1 type of metric: object counts
+[here](https://github.com/Unity-Technologies/com.unity.perception/tree/master/com.unity.perception/Documentation~/Schema/mock_data/simrun). In this mockup, we have:

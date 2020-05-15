@@ -1,4 +1,4 @@
-# The Yamato build step `publish` will publish the com.unity.perception package to the `upm-candidates` registry. To see which versions of the package have been published, see 
+# The Yamato build step `publish` will publish the com.unity.perception package to the `upm-candidates` registry. To see which versions of the package have been published, see
 #   * https://artifactory.prd.cds.internal.unity3d.com/artifactory/webapp/#/artifacts/browse/tree/General/upm-candidates/com.unity.perception
 #   * https://bintray.com/unity
 #test_editors:

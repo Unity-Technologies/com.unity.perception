@@ -29,15 +29,15 @@ projects:
     {% if suite.name == "standalone" %}
     - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64
     {% else %}
-    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}} 
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}
     {% endif %}
   artifacts:
     logs:
       paths:
         - "test-results/**/*"
 
-{% endfor %} 
-{% endfor %} 
+{% endfor %}
+{% endfor %}
 {% endfor %}
 
 {% for editor in test_editors %}
@@ -51,7 +51,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
   commands:
     - git submodule update --init --recursive
     - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
-    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors; 
+    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
     - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform playmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
   #  - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;
   artifacts:
@@ -61,7 +61,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
         - "TestProjects/PerceptionHDRP/test-results/**/*"
   dependencies:
     - .yamato/upm-ci-full.yml#pack_Perception
-{% endfor %} 
+{% endfor %}
 {% endfor %}
 
 {% for editor in test_editors %}
@@ -88,8 +88,8 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
     logs:
       paths:
         - "test-results/**/*"
-{% endfor %} 
-{% endfor %} 
+{% endfor %}
+{% endfor %}
 {% endfor %}
 
 # Not including OSX because the only OSX platform on Bokken with a GPU is a Mac Mini, of which there are only a few and setting up Yamato jobs is very complicated.

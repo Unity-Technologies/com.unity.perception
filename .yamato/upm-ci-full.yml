@@ -43,7 +43,7 @@ pack_{{ variant.name }}:
   commands:
      - git submodule update --init --recursive
      - npm install upm-ci-utils -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-     - upm-ci package pack --package-path ./com.unity.perception/ 
+     - upm-ci package pack --package-path ./com.unity.perception/
   artifacts:
     packages:
       paths:
@@ -70,8 +70,8 @@ pkg_test_{{variant.name}}_{{ platform.name }}_{{ editor.version }}:
   dependencies:
     - .yamato/upm-ci-full.yml#pack_{{ variant.name }}
 {% endfor %}
-{% endfor %} 
-{% endfor %} 
+{% endfor %}
+{% endfor %}
 
 test_trigger:
   name: All Tests

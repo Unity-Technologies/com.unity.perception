@@ -105,7 +105,7 @@ namespace UnityEngine.Perception.GroundTruth
                     WriteJObjectToFile(metricDefinitionsJObject, "metric_definitions.json");
                 }
             }
-            Debug.Log($"Dataset written to {OutputDirectory}");
+            Debug.Log($"Dataset written to {Path.GetDirectoryName(OutputDirectory)}");
         }
 
         void WriteJObjectToFile(JObject jObject, string filename)

@@ -117,7 +117,7 @@ namespace UnityEditor.Perception.GroundTruth
             var autoAssignIdsProperty = serializedObject.FindProperty(nameof(LabelingConfiguration.AutoAssignIds));
             using (var change = new EditorGUI.ChangeCheckScope())
             {
-                EditorGUILayout.PropertyField(autoAssignIdsProperty);
+                EditorGUILayout.PropertyField(autoAssignIdsProperty, new GUIContent("Auto Assign IDs"));
                 if (change.changed && autoAssignIdsProperty.boolValue)
                     AutoAssignIds();
             }
@@ -127,7 +127,7 @@ namespace UnityEditor.Perception.GroundTruth
                 using (var change = new EditorGUI.ChangeCheckScope())
                 {
                     var startingLabelIdProperty = serializedObject.FindProperty(nameof(LabelingConfiguration.StartingLabelId));
-                    EditorGUILayout.PropertyField(startingLabelIdProperty);
+                    EditorGUILayout.PropertyField(startingLabelIdProperty, new GUIContent("Starting Label ID"));
                     if (change.changed)
                         AutoAssignIds();
                 }

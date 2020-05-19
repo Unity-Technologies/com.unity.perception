@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -583,7 +583,8 @@ namespace UnityEngine.Perception.GroundTruth
             //Based on logic in HDRenderPipeline.PrepareFinalBlitParameters
             return camera.targetTexture != null || hdAdditionalCameraData.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || camera.cameraType == CameraType.Game;
 #elif URP_PRESENT
-            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 && (camera.targetTexture != null || camera.cameraType == CameraType.Game);
+            return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal) &&
+                (camera.targetTexture != null || camera.cameraType == CameraType.Game);
 #else
             return false;
 #endif

@@ -373,9 +373,11 @@ namespace UnityEngine.Perception.GroundTruth
 
         public void AddEgo(EgoHandle egoHandle)
         {
+            CheckDatasetAllowed();
             m_Egos.Add(egoHandle);
             m_Ids.Add(egoHandle.Id);
         }
+
 
         public bool IsEnabled(SensorHandle sensorHandle) => m_ActiveSensors.Contains(sensorHandle);
 
@@ -385,6 +387,14 @@ namespace UnityEngine.Perception.GroundTruth
                 m_ActiveSensors.Remove(sensorHandle);
             else
                 m_ActiveSensors.Add(sensorHandle);
+        }
+
+        void CheckDatasetAllowed()
+        {
+            if (!Application.isPlaying)
+            {
+                throw new NotSupportedException("Dataset generation is only supported in play mode.");
+            }
         }
 
         public void Update()
@@ -485,6 +495,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         void RegisterAdditionalInfoType<TSpec>(string name, TSpec[] specValues, string description, string format, Guid id, AdditionalInfoKind additionalInfoKind)
         {
+            CheckDatasetAllowed();
             var annotationDefinitionInfo = new AdditionalInfoTypeData()
             {
                 additionalInfoKind = additionalInfoKind,

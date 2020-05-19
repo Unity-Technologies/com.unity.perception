@@ -393,7 +393,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (!Application.isPlaying)
             {
-                throw new NotSupportedException("Dataset generation is only supported in play mode.");
+                throw new InvalidOperationException("Dataset generation is only supported in play mode.");
             }
         }
 

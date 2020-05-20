@@ -97,7 +97,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal event Action<int, NativeArray<uint>> segmentationImageReceived;
 
-        internal event Action<NativeSlice<uint>, IReadOnlyList<LabelingConfigurationEntry>, int> classCountsReceived;
+        internal event Action<NativeSlice<uint>, IReadOnlyList<LabelEntry>, int> classCountsReceived;
 
         [NonSerialized]
         internal RenderTexture labelingTexture;
@@ -277,9 +277,9 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (produceSegmentationImages)
             {
-                var specs = LabelingConfiguration.LabelingConfigurations.Select((l, index) => new SemanticSegmentationSpec()
+                var specs = LabelingConfiguration.LabelEntries.Select((l) => new SemanticSegmentationSpec()
                 {
-                    label_id = index,
+                    label_id = l.id,
                     label_name = l.label,
                     pixel_value = l.value
                 }).ToArray();
@@ -292,9 +292,9 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (produceObjectCountAnnotations || produceBoundingBoxAnnotations || produceRenderedObjectInfoMetric)
             {
-                var labelingMetricSpec = LabelingConfiguration.LabelingConfigurations.Select((l, index) => new ObjectCountSpec()
+                var labelingMetricSpec = LabelingConfiguration.LabelEntries.Select((l) => new ObjectCountSpec()
                 {
-                    label_id = index,
+                    label_id = l.id,
                     label_name = l.label,
                 }).ToArray();
 
@@ -325,10 +325,10 @@ namespace UnityEngine.Perception.GroundTruth
                         renderedObjectInfosCalculated?.Invoke(frameCount, renderedObjectInfos);
 
                     if (produceObjectCountAnnotations)
-                        OnObjectCountsReceived(classCounts, LabelingConfiguration.LabelingConfigurations, frameCount);
+                        OnObjectCountsReceived(classCounts, LabelingConfiguration.LabelEntries, frameCount);
 
                     if (produceBoundingBoxAnnotations)
-                        ProduceBoundingBoxesAnnotation(renderedObjectInfos, LabelingConfiguration.LabelingConfigurations, frameCount);
+                        ProduceBoundingBoxesAnnotation(renderedObjectInfos, LabelingConfiguration.LabelEntries, frameCount);
 
                     if (produceRenderedObjectInfoMetric)
                         ProduceRenderedObjectInfoMetric(renderedObjectInfos, frameCount);
@@ -399,7 +399,7 @@ namespace UnityEngine.Perception.GroundTruth
 
 #endif
 
-        void ProduceBoundingBoxesAnnotation(NativeArray<RenderedObjectInfo> renderedObjectInfos, List<LabelingConfigurationEntry> labelingConfigurations, int frameCount)
+        void ProduceBoundingBoxesAnnotation(NativeArray<RenderedObjectInfo> renderedObjectInfos, List<LabelEntry> labelingConfigurations, int frameCount)
         {
             using (s_BoundingBoxCallback.Auto())
             {
@@ -450,7 +450,7 @@ namespace UnityEngine.Perception.GroundTruth
             return m_RenderedObjectInfoGenerator.TryGetLabelIdFromInstanceId(instanceId, out labelId);
         }
 
-        void OnObjectCountsReceived(NativeSlice<uint> counts, IReadOnlyList<LabelingConfigurationEntry> entries, int frameCount)
+        void OnObjectCountsReceived(NativeSlice<uint> counts, IReadOnlyList<LabelEntry> entries, int frameCount)
         {
             using (s_ClassCountCallback.Auto())
             {
@@ -472,7 +472,7 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     m_ClassCountValues[i] = new ClassCountValue()
                     {
-                        label_id = i,
+                        label_id = entries[i].id,
                         label_name = entries[i].label,
                         count = counts[i]
                     };

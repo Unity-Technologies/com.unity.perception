@@ -28,16 +28,17 @@ namespace GroundTruthTests
             var label = "label";
             var labelingConfiguration = ScriptableObject.CreateInstance<LabelingConfiguration>();
 
-            labelingConfiguration.LabelingConfigurations = new List<LabelingConfigurationEntry>
+            labelingConfiguration.LabelEntries = new List<LabelEntry>
             {
-                new LabelingConfigurationEntry
+                new LabelEntry
                 {
+                    id = 1,
                     label = label,
                     value = 500
                 }
             };
 
-            var receivedResults = new List<(uint[] counts, LabelingConfigurationEntry[] labels, int frameCount)>();
+            var receivedResults = new List<(uint[] counts, LabelEntry[] labels, int frameCount)>();
 
             var cameraObject = SetupCamera(labelingConfiguration, (counts, labels, frameCount) =>
             {
@@ -101,7 +102,7 @@ namespace GroundTruthTests
         }
 
         static GameObject SetupCamera(LabelingConfiguration labelingConfiguration,
-            Action<NativeSlice<uint>, IReadOnlyList<LabelingConfigurationEntry>, int> onClassCountsReceived)
+            Action<NativeSlice<uint>, IReadOnlyList<LabelEntry>, int> onClassCountsReceived)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);

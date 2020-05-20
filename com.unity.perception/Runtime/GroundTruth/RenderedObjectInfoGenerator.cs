@@ -78,7 +78,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        NativeList<int> m_InstanceIdToClassIdLookup;
+        NativeList<int> m_InstanceIdToLabelEntryIndexLookup;
         LabelingConfiguration m_LabelingConfiguration;
 
         // ReSharper disable once InvalidXmlDocComment
@@ -91,20 +91,20 @@ namespace UnityEngine.Perception.GroundTruth
         public RenderedObjectInfoGenerator(LabelingConfiguration labelingConfiguration)
         {
             m_LabelingConfiguration = labelingConfiguration;
-            m_InstanceIdToClassIdLookup = new NativeList<int>(k_StartingObjectCount, Allocator.Persistent);
+            m_InstanceIdToLabelEntryIndexLookup = new NativeList<int>(k_StartingObjectCount, Allocator.Persistent);
         }
 
         /// <inheritdoc/>
         public void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId)
         {
-            if (m_LabelingConfiguration.TryGetMatchingConfigurationIndex(labeling, out var index))
+            if (m_LabelingConfiguration.TryGetMatchingConfigurationEntry(labeling, out var entry, out var index))
             {
-                if (m_InstanceIdToClassIdLookup.Length <= instanceId)
+                if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
                 {
-                    m_InstanceIdToClassIdLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
+                    m_InstanceIdToLabelEntryIndexLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
                 }
 
-                m_InstanceIdToClassIdLookup[(int)instanceId] = index;
+                m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] = index;
             }
         }
 
@@ -115,13 +115,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// InstanceSegmentationRawData should be the raw data from a texture filled by <see cref="InstanceSegmentationUrpPass"/> or  <see cref="InstanceSegmentationPass"/>
         /// using the same LabelingConfiguration that was passed into this object.
         /// </summary>
-        /// <param name="instanceSegmentationRawData"></param>
-        /// <param name="stride"></param>
-        /// <param name="boundingBoxOrigin"></param>
-        /// <param name="boundingBoxes"></param>
-        /// <param name="classCounts"></param>
-        /// <param name="allocator"></param>
-        public void Compute(NativeArray<uint> instanceSegmentationRawData, int stride, BoundingBoxOrigin boundingBoxOrigin, out NativeArray<RenderedObjectInfo> boundingBoxes, out NativeArray<uint> classCounts, Allocator allocator)
+        /// <param name="instanceSegmentationRawData">The raw instance segmentation image.</param>
+        /// <param name="stride">Stride of the image data. Should be equal to the width of the image.</param>
+        /// <param name="boundingBoxOrigin">Whether bounding boxes should be top-left or bottom-right-based.</param>
+        /// <param name="renderedObjectInfos">When this method returns, filled with RenderedObjectInfo entries for each object visible in the frame.</param>
+        /// <param name="perLabelEntryObjectCount">When the method returns, filled with a NativeArray with the count of objects for each entry in <see cref="LabelingConfiguration.LabelEntries"/> in the LabelingConfiguration passed into the constructor.</param>
+        /// <param name="allocator">The allocator to use for allocating renderedObjectInfos and perLabelEntryObjectCount.</param>
+        public void Compute(NativeArray<uint> instanceSegmentationRawData, int stride, BoundingBoxOrigin boundingBoxOrigin, out NativeArray<RenderedObjectInfo> renderedObjectInfos, out NativeArray<uint> perLabelEntryObjectCount, Allocator allocator)
         {
             const int jobCount = 24;
             var height = instanceSegmentationRawData.Length / stride;
@@ -155,7 +155,7 @@ namespace UnityEngine.Perception.GroundTruth
                 JobHandle.CompleteAll(handles);
             }
 
-            classCounts = new NativeArray<uint>(m_LabelingConfiguration.LabelingConfigurations.Count, allocator);
+            perLabelEntryObjectCount = new NativeArray<uint>(m_LabelingConfiguration.LabelEntries.Count, allocator);
             var boundingBoxMap = new NativeHashMap<int, RenderedObjectInfo>(100, Allocator.Temp);
             using (s_LabelMerge.Auto())
             {
@@ -188,15 +188,16 @@ namespace UnityEngine.Perception.GroundTruth
                 }
 
                 var keyValueArrays = boundingBoxMap.GetKeyValueArrays(Allocator.Temp);
-                boundingBoxes = new NativeArray<RenderedObjectInfo>(keyValueArrays.Keys.Length, allocator);
+                renderedObjectInfos = new NativeArray<RenderedObjectInfo>(keyValueArrays.Keys.Length, allocator);
                 for (var i = 0; i < keyValueArrays.Keys.Length; i++)
                 {
                     var instanceId = keyValueArrays.Keys[i];
-                    if (m_InstanceIdToClassIdLookup.Length <= instanceId)
+                    if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
                         continue;
 
-                    var classId = m_InstanceIdToClassIdLookup[instanceId];
-                    classCounts[classId]++;
+                    var labelIndex = m_InstanceIdToLabelEntryIndexLookup[instanceId];
+                    var labelId = m_LabelingConfiguration.LabelEntries[labelIndex].id;
+                    perLabelEntryObjectCount[labelIndex]++;
                     var renderedObjectInfo = keyValueArrays.Values[i];
                     var boundingBox = renderedObjectInfo.boundingBox;
                     if (boundingBoxOrigin == BoundingBoxOrigin.TopLeft)
@@ -204,10 +205,10 @@ namespace UnityEngine.Perception.GroundTruth
                         var y = height - boundingBox.yMax;
                         boundingBox = new Rect(boundingBox.x, y, boundingBox.width, boundingBox.height);
                     }
-                    boundingBoxes[i] = new RenderedObjectInfo
+                    renderedObjectInfos[i] = new RenderedObjectInfo
                     {
                         instanceId = instanceId,
-                        labelId = classId,
+                        labelId = labelId,
                         boundingBox = boundingBox,
                         pixelCount = renderedObjectInfo.pixelCount
                     };
@@ -234,17 +235,17 @@ namespace UnityEngine.Perception.GroundTruth
         public bool TryGetLabelIdFromInstanceId(int instanceId, out int labelId)
         {
             labelId = -1;
-            if (m_InstanceIdToClassIdLookup.Length <= instanceId)
+            if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
                 return false;
 
-            labelId = m_InstanceIdToClassIdLookup[instanceId];
+            labelId = m_InstanceIdToLabelEntryIndexLookup[instanceId];
             return true;
         }
 
         /// <inheritdoc />
         public void Dispose()
         {
-            m_InstanceIdToClassIdLookup.Dispose();
+            m_InstanceIdToLabelEntryIndexLookup.Dispose();
         }
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
@@ -47,8 +47,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         public override void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId)
         {
-            var entry = new LabelingConfigurationEntry();
-            foreach (var l in m_LabelingConfiguration.LabelingConfigurations)
+            var entry = new LabelEntry();
+            foreach (var l in m_LabelingConfiguration.LabelEntries)
             {
                 if (labeling.labels.Contains(l.label))
                 {

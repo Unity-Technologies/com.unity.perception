@@ -3,7 +3,7 @@
     "com.unity.collab-proxy": "1.2.16",
     "com.unity.ext.nunit": "1.0.0",
     "com.unity.ide.rider": "1.1.4",
-    "com.unity.ide.vscode": "1.1.4",
+    "com.unity.ide.vscode": "1.2.0",
     "com.unity.package-validation-suite": "0.9.1-preview",
     "com.unity.perception": "file:../../../com.unity.perception",
     "com.unity.render-pipelines.core": "7.3.1",

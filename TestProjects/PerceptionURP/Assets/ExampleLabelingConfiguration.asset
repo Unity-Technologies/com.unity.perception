@@ -12,10 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bad10bec3eccd8e49a9d725b2c30f74c, type: 3}
   m_Name: ExampleLabelingConfiguration
   m_EditorClassIdentifier: 
-  LabelingConfigurations:
-  - label: Box
+  AutoAssignIds: 1
+  StartingLabelId: 1
+  LabelEntries:
+  - id: 1
+    label: Box
     value: 10000
-  - label: Cube
+  - id: 2
+    label: Cube
     value: 20000
-  - label: Crate
+  - id: 3
+    label: Crate
     value: 30000

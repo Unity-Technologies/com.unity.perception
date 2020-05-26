@@ -332,7 +332,7 @@ annotation_definition.spec {
 A json file that stores collections of metric specifications records (metric_definition). 
 Each specification record describes a particular metric stored in [metrics](#metrics) values. 
 Each metric_definition record is assigned a unique identifier to a collection of specification records, which is stored as a list of key-value pairs. 
-The design is very similar to [annotation_definitions](#annotation_definitions.json).
+The design is very similar to [annotation_definitions](#annotation_definitionsjson).
 
 ```
 metric_definition {

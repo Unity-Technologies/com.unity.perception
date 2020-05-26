@@ -813,6 +813,8 @@ namespace GroundTruthTests
                 filename = "metric_definitions.json";
                 jsonContainerName = "metric_definitions";
             }
+            var additionalInfoString = (additionalInfoKind == AdditionalInfoKind.Annotation ? @"
+      ""format"": ""json""," : null);
 
             var annotationDefinitionsJsonExpected =
                 $@"{{
@@ -820,8 +822,7 @@ namespace GroundTruthTests
   ""{jsonContainerName}"": [
     {{
       ""id"": <guid>,
-      ""name"": ""name"",{(additionalInfoKind == AdditionalInfoKind.Annotation ? @"
-      ""format"": ""json""," : null)}
+      ""name"": ""name"",{additionalInfoString}
       ""spec"": [
         {{
           ""label_id"": 1,

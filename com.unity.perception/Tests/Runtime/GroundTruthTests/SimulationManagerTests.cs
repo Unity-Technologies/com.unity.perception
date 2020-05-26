@@ -814,7 +814,7 @@ namespace GroundTruthTests
                 jsonContainerName = "metric_definitions";
             }
             var additionalInfoString = (additionalInfoKind == AdditionalInfoKind.Annotation ? @"
-      ""format"": ""json""," : null)
+      ""format"": ""json""," : null);
 
             var annotationDefinitionsJsonExpected =
                 $@"{{

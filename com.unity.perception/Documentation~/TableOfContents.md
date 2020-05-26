@@ -3,3 +3,4 @@
 * [Labeling](GroundTruth-Labeling.md)
 * [Perception Camera](PerceptionCamera.md)
 * [Dataset Capture](DatasetCapture.md)
+* [Randomization](Randomization/Index.md)

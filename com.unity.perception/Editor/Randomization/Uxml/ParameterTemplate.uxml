@@ -1,0 +1,36 @@
+<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <Box name="parameter-properties-box" class="parameter-properties-box">
+        <VisualElement class="move-buttons-container">
+            <Button name="move-up-button" class="small-icon move-button-up"/>
+            <Button name="move-down-button" class="small-icon move-button-down"/>
+        </VisualElement>
+        <VisualElement class="parameter-properties-container">
+            <VisualElement class="parameter-type-label-container">
+                <VisualElement/>
+                <Box class="parameter-type-label-box">
+                    <Label name="parameter-type-label" text="Type:" class="parameter-type-label"/>
+                    <TextField binding-path="parameterName" name="parameter-name" text="Parameter Name" class="parameter-name-field"/>
+                </Box>
+                <Button name="remove-parameter" class="small-icon remove-parameter-button"/>
+            </VisualElement>
+
+            <VisualElement class="unity-base-field">
+                <Label text="Apply To Target" class="unity-base-field__label"/>
+                <Toggle binding-path="hasTarget" name="has-target-toggle"/>
+            </VisualElement>
+            <VisualElement name="target-container" class="unity-foldout__content">
+                <editor:PropertyField binding-path="target" name="target-field" label="Target Object"/>
+                <VisualElement class="unity-base-field">
+                    <Label text="Property" class="unity-base-field__label"/>
+                    <editor:ToolbarMenu text="Select A Property" name="property-select-menu" class="property-select-menu"/>
+                </VisualElement>
+            </VisualElement>
+            
+            <VisualElement class="unity-base-field">
+                <Label text="Sampler Type" class="unity-base-field__label"/>
+                <editor:ToolbarMenu text="Placeholder Sampler Type" name="sampler-type-dropdown" class="sampler-type-menu"/>
+            </VisualElement>
+            <VisualElement name="sampler-fields-container"/>
+        </VisualElement>
+    </Box>
+</UXML>

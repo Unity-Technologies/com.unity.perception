@@ -9,7 +9,8 @@
         "Unity.Collections",
         "Unity.Perception.Runtime",
         "PathCreatorEditor",
-        "PathCreator"
+        "PathCreator",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

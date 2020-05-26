@@ -1,0 +1,30 @@
+<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement>
+        <Style src="../Uss/Styles.uss"/>
+
+        <Label text="Parameters" style="font-size: 20px; -unity-text-align: middle-center;"/>
+        <ScrollView show-vertical-scroller="true" name="parameter-viewport" class="dark-viewport parameter-container-scroll">
+            <VisualElement name="parameter-container" class="parameter-container">
+            </VisualElement>
+        </ScrollView>
+
+        <VisualElement style="flex-direction: row; justify-content: space-between;">
+            <VisualElement style="flex-grow: 1"/>
+            <editor:ToolbarMenu text="Add New Parameter" name="parameter-type-menu" class="parameter-type-menu"/>
+            <VisualElement style="flex-grow: 1"/>
+        </VisualElement>
+
+        <Label text="Runtime" style="margin-top: 20px; font-size: 20px; -unity-text-align: middle-center;"/>
+        <VisualElement name="configuration-container" class="dark-viewport">
+            <editor:PropertyField name="scenario-field" text="Scenario" binding-path="scenario"/>
+            <VisualElement class="unity-base-field">
+                <Label text="Total Iteration Count" class="unity-base-field__label"/>
+                <Label name="total-iteration-count-label" text="0"/>
+            </VisualElement>
+            <VisualElement class="unity-base-field">
+                <Label text="Total Frame Count" class="unity-base-field__label"/>
+                <Label name="total-frame-count-label" text="0"/>
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

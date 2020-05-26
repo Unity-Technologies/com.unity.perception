@@ -1,0 +1,126 @@
+.dark-viewport {
+    border-radius: 5px;
+    background-color: #191919;
+    padding: 2px;
+}
+
+.parameter-container-scroll {
+    min-height: 100px;
+    max-height: 600px;
+}
+
+.parameter-container {
+    flex-shrink: 0;
+}
+
+.parameter-properties-box {
+    border-width: 2px;
+    border-radius: 5px;
+    flex-direction: row;
+    margin: 2px 1px;
+}
+
+.parameter-properties-container {
+    flex-grow: 1;
+}
+
+.parameter-type-menu {
+    flex-grow: 2;
+    border-width: 2px;
+    border-radius: 5px;
+    background-color: #585858;
+}
+
+#parameter-type-menu .unity-toolbar-menu__text {
+    -unity-text-align: middle-center;
+    font-size: 13px;
+    -unity-font-style: bold;
+    padding: 3px;
+}
+
+.sampler-type-menu {
+    flex-grow: 1.5;
+    border-radius: 3px;
+    border-width: 1px;
+    padding-bottom: 1px;
+    margin-bottom: 1px;
+    margin-right: 1px;
+}
+
+.parameter-type-label-container {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1px;
+}
+
+.parameter-type-label-box {
+    flex-direction: row;
+    flex-grow: 0;
+    -unity-text-align: middle-center;
+    border-width: 0;
+    padding: 1px 13px;
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.parameter-type-label {
+    color: cornflowerblue;
+}
+
+.parameter-type-label-box .unity-base-text-field__input {
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.unity-toggle {
+    margin-left: 0;
+}
+
+.property-selection-container {
+    flex-direction: row;
+}
+
+.property-select-menu {
+    flex-grow: 1;
+    border-width: 1px;
+    padding-bottom: 1px;
+    border-radius: 3px;
+    margin-right: 1px;
+}
+
+.remove-parameter-button {
+    background-image: resource("Packages/com.unity.collab-proxy/Editor/Assets/Icons/clear-dark.png");
+}
+
+.move-buttons-container {
+    margin-right: 6px;
+    width: 28px;
+    border-color: black;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    background-color: #2A2A2A;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+}
+
+.move-button-up {
+    background-image: resource("Packages/com.unity.shadergraph/Editor/Resources/GraphView/Nodes/NodeChevronUp.png");
+}
+
+.move-button-down {
+    background-image: resource("Packages/com.unity.shadergraph/Editor/Resources/GraphView/Nodes/NodeChevronDown.png");
+}
+
+.small-icon {
+    border-width: 0;
+    width: 16px;
+    height: 16px;
+    padding: 9px;
+}
+
+.unity-imgui-container {
+    margin-left: 1px;
+    margin-right: 3px;
+}

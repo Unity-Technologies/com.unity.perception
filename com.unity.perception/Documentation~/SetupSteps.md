@@ -1,6 +1,6 @@
 # Setup for local development
 * Clone the [Perception](https://github.com/Unity-Technologies/com.unity.perception) repository
-* Install and use Unity latest [2019.3 Unity editor](https://unity3d.com/unity/beta/2019.3#downloads) 
+* Install and use Unity latest [2019.3 Unity editor](https://unity.com/releases/2019-3) 
 
 ## Setting up a Project
 Below are two options for getting started using the Perception package. Option 1 is opening existing test projects in the repository. Option 2 new Unity project and integrate the Perception package.

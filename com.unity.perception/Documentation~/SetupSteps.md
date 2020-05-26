@@ -1,10 +1,9 @@
 # Setup for local development
-* Clone the [Perception](https://github.com/Unity-Technologies/com.unity.perception) repository into an arbirary directory on disk
+* Clone the [Perception](https://github.com/Unity-Technologies/com.unity.perception) repository
 * Install and use Unity latest [2019.3 Unity editor](https://unity3d.com/unity/beta/2019.3#downloads) 
 
 ## Setting up a Project
-Down below are 2 options for getting started using the Perception SDK, Option 1 is opening existing test projects in the repository. Option 2 a guide on how to create a new 
-Unity project and intergrate the Perception 
+Below are two options for getting started using the Perception package. Option 1 is opening existing test projects in the repository. Option 2 new Unity project and integrate the Perception package.
 
 ### Option 1: PerceptionHDRP & PerceptionURP Projects
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP. You can open these with the Unity
@@ -27,9 +26,3 @@ These option is walkthrough in creating a new project, then adding the Perceptio
 3. Once you have a project with Perception SDK installed you can move forward to the Getting Started walkthrough 
 
 Once completed you can move on to the getting started steps, click [here](Documentation~/GettingStarted.md) to start project setup.
-
-## Suggested IDE Setup
-For closest standards conformity and best experience overall, JetBrains Rider or Visual Studio w/ JetBrains Resharper are suggested. For optimal experience, perform the following additional steps:
-* To allow navigating to code in all packages included in your project, in your Unity Editor, navigate to `Edit -> Preferences... -> External Tools` and check `Generate all .csproj files.` 
-* To get automatic feedback and fixups on formatting and naming convention violations, set up Rider/JetBrains with our Unity standard .dotsettings file by following [these instructions](https://github.cds.internal.unity3d.com/unity/com.unity.coding/tree/master/UnityCoding/Packages/com.unity.coding/Coding~/Configs/JetBrains).
-* If you use VS Code, install the Editorconfig extension to get automatic code formatting according to our convention

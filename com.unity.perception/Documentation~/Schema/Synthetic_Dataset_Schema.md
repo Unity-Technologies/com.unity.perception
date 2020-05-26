@@ -63,7 +63,7 @@ This means that instead of requiring multiple id-based "joins" to explore the da
 ## Components
 ![image alt text](image_0.png)
 
-### capture
+### captures
 
 A capture record contains the relationship between a captured file, a collection of annotations, and extra metadata that describes the state of the sensor.
 
@@ -227,7 +227,7 @@ bounding_box_3d {
 ```
 
 
-#### instances (V2, WIP) TODO should we include this section? 
+#### instances (V2, WIP)
 
 Although we don’t have a specific table that account for instances, it should be noted that instances should be checked against the following cases
 

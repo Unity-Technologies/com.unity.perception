@@ -11,28 +11,28 @@ If you have not already done the setup steps for the project, click [here](Docum
 	1. In the inspector panel of the main camera select Add Component
 	2. Add a **Perception Camera** component
 
-<img src="docs/images/MainCameraConfig.PNG" align="middle"/>
+<img src="images/MainCameraConfig.PNG" align="middle"/>
 
 ## Step 2: Create labeled objects
 1. In the Hierarchy window right click -> Go to 3D Object -> Select Cube 
 	1. Create 3 Cubes
 	2. Change the names of the cubes to have 3 seperate names Cube, Box, Crate
 	3. Position the Cubes in front of the FOV of the main Camera, example image of the completed scene for reference down below
-<img src="docs/images/CompletedScene.PNG" align="middle"/>
+<img src="images/CompletedScene.PNG" align="middle"/>
 2. For each object in the scene that was created, from the inspector panel add the script called **Labeling** 
 	1. Click the **+**
 	2. In the text field add the name of the object i.e Crate 
-<img src="docs/images/LabeledObject.PNG" align="middle"/>
+<img src="images/LabeledObject.PNG" align="middle"/>
 3. In the Project panel right click -> Perception -> Labeling Configuration
 4. Select the **Labeling Configuration** created in the project panel 
 	1. Click the **+**
 	2. In the label text field add the same text that the Label script contains on the objects created in the scene (i.e Cube, Box, Crate)
 	3. Add a numerical value to the value field 
 		1. Make sure the labels all have different values, for this example use values of 10,000
-<img src="docs/images/LabelingConfigurationFinished.PNG" align="middle"/>
+<img src="images/LabelingConfigurationFinished.PNG" align="middle"/>
 9. Select the Main Camera in the Hierarchy panel 
 	1. In the Perception Camera script in the Labeling Configuration field add the Labeling Configuration script created in previous step 
-<img src="docs/images/MainCameraConfig.PNG" align="middle"/>
+<img src="images/MainCameraConfig.PNG" align="middle"/>
 
 ## Step 3: Checking local files
 1. Press play in the editor and allow the scene to run for 10 seconds before ending playmode
@@ -44,5 +44,5 @@ If you have not already done the setup steps for the project, click [here](Docum
 	2. Semantic segmentation images
 	3. Logs
 	4. JSON Dataset
-<img src="docs/images/rgb_2.png" align="middle"/>
-<img src="docs/images/segmentation_2.png" align="middle"/>
+<img src="images/rgb_2.png" align="middle"/>
+<img src="images/segmentation_2.png" align="middle"/>

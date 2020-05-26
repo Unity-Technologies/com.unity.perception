@@ -8,9 +8,9 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 [![license badge](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
 
 ## Documenation 
-**Click [here](Documentation~/SetupSteps.md) to set up a Perception project**
+**Click [here](com.unity.perception/Documentation~/SetupSteps.md) to set up a Perception project**
 
-**Click [here](Documentation~/GettingStarted.md) to get the started with Perception**
+**Click [here](com.unity.perception/Documentation~/GettingStarted.md) to get the started with Perception**
 
 ## Suggested IDE Setup
 For closest standards conformity and best experience overall, JetBrains Rider or Visual Studio w/ JetBrains Resharper are suggested. For optimal experience, perform the following additional steps:

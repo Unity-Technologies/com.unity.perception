@@ -13,12 +13,14 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 > com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.
 
 
-## Documenation 
+## Documentation 
 [Installation instructions](com.unity.perception/Documentation~/SetupSteps.md)
 
 [Setting up your first perception scene](com.unity.perception/Documentation~/GettingStarted.md)
 
 [Perception manual](com.unity.perception/Documentation~/index.md)
+
+[Randomizing your simulation](com.unity.perception/Documentation~/Randomization/Index.md)
 
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.

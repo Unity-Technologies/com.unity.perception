@@ -1,0 +1,32 @@
+{
+  "version": "0.1.0",
+  "bbox2d": [
+    {
+      "instance_id": "85149ab1-3b75-443b-8540-773b31559a26",
+      "label_id": 27,
+      "label_name": "car",
+      "x": 30,
+      "y": 50,
+      "width": 100,
+      "height": 100
+    },
+    {
+      "instance_id": "f2e56dad-9bfd-4930-9dca-bfe08672de3a",
+      "label_id": 34,
+      "label_name": "bicycle",
+      "x": 120,
+      "y": 331,
+      "width": 50,
+      "height": 20
+    },
+    {
+      "instance_id": "a52dfb48-e5a4-4008-96b6-80da91caa777",
+      "label_id": 25,
+      "label_name": "person",
+      "x": 432,
+      "y": 683,
+      "width": 10,
+      "height": 20
+    }
+  ]
+}

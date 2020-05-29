@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1",
+  "version": "0.1.0",
   "captures": [
     {
       "id": "4521949a-2a71-4c03-beb0-4f6362676639",
@@ -31,79 +31,17 @@
         {
           "id": "a79ab4fb-acf3-47ad-8a6f-20af795e23e1",
           "annotation_definition": 1,
-          "filename": "annotations/semantic_segmentation_001.png",
-          "values": null
+          "filename": "annotations/semantic_segmentation_001.png"
         },
         {
           "id": "36db01f8-e322-4c81-a650-bec89a7e6100",
           "annotation_definition": 2,
-          "filename": null,
-          "values": [
-            {
-              "instance_id": "85149ab1-3b75-443b-8540-773b31559a26",
-              "label_id": 27,
-              "label_name": "car",
-              "translation": [24.0, 12.1, 0.0],
-              "size": [2.0, 3.0, 1.0],
-              "rotation": [0.0, 1.0, 2.0, 0.0],
-              "velocity": [0.5, 0.0, 0.0],
-              "acceleration": null
-            },
-            {
-              "instance_id": "f2e56dad-9bfd-4930-9dca-bfe08672de3a",
-              "label_id": 34,
-              "label_name": "bicycle",
-              "translation": [5.2, 7.9, 0.0],
-              "size": [0.3, 0.5, 1.0],
-              "rotation": [0.0, 1.0, 2.0, 0.0],
-              "velocity": [0.0, 0.1, 0.0],
-              "acceleration": null
-            },
-            {
-              "instance_id": "a52dfb48-e5a4-4008-96b6-80da91caa777",
-              "label_id": 25,
-              "label_name": "person",
-              "translation": [41.2, 1.5, 0.0],
-              "size": [0.3, 0.3, 1.8],
-              "rotation": [0.0, 1.0, 2.0, 0.0],
-              "velocity": [0.05, 0.0, 0.0],
-              "acceleration": null
-            }
-          ]
+          "filename": "annotations/bounding_box_3d_000.json"
         },
         {
           "id": "36db01f8-e322-4c81-a650-bec89a7e6100",
           "annotation_definition": 4,
-          "filename": null,
-          "values": [
-            {
-              "instance_id": "85149ab1-3b75-443b-8540-773b31559a26",
-              "label_id": 27,
-              "label_name": "car",
-              "x": 30,
-              "y": 50,
-              "width": 100,
-              "height": 100
-            },
-            {
-              "instance_id": "f2e56dad-9bfd-4930-9dca-bfe08672de3a",
-              "label_id": 34,
-              "label_name": "bicycle",
-              "x": 120,
-              "y": 331,
-              "width": 50,
-              "height": 20
-            },
-            {
-              "instance_id": "a52dfb48-e5a4-4008-96b6-80da91caa777",
-              "label_id": 25,
-              "label_name": "person",
-              "x": 432,
-              "y": 683,
-              "width": 10,
-              "height": 20
-            }
-          ]
+          "filename": "annotations/bounding_box_2d_000.json"
         }
       ]
     },

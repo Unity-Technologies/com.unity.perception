@@ -1,10 +1,10 @@
 Mockup of Synthetic Dataset
+===========================
 
-This is a mock dataset that is created according to this schema [design](https://docs.google.com/document/d/1lKPm06z09uX9gZIbmBUMO6WKlIGXiv3hgXb_taPOnU0)
+This is a mock dataset that is created according to this schema [design](https://github.com/Unity-Technologies/com.unity.perception/tree/master/com.unity.perception/Documentation~/Schema/Synthetic_Dataset_Schema.md)
 
-Included in this mockup:
 
-- 1 ego car
+- 1 ego
 - 2 sensors: 1 camera and 1 LIDAR
 - 19 labels
 - 3 captures, 2 metrics, 1 sequence, 2 steps

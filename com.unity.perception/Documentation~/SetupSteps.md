@@ -6,7 +6,7 @@
 Below are two options for getting started using the Perception package. Option 1 is opening existing test projects in the repository. Option 2 new Unity project and integrate the Perception package.
 
 ### Option 1: PerceptionHDRP & PerceptionURP Projects
-The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP. You can open these with the Unity Editor you installed in Setup instructions.
+The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP. These can be opened in by adding them to the Unity Hub.
 
 <img src="images/TestProjects.PNG" align="middle"/>
 
@@ -20,4 +20,4 @@ You can also set up a new or existing project to use Perception.
 	2. Select the ***add package from disk*** option
 	3. Navigate to the com.unity.perception folder in your cloned repository and select the package.json file
 
-Once completed you can continue with the [getting started steps](com.unity.perception/Documentation~/GettingStarted.md).
+Once completed you can continue with the [getting started steps](GettingStarted.md).

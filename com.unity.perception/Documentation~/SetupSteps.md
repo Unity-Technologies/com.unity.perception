@@ -1,4 +1,4 @@
-# Setup for local development
+# Using Perception in your project
 * Clone the [Perception](https://github.com/Unity-Technologies/com.unity.perception) repository
 * Install and use Unity latest [2019.3 Unity editor](https://unity.com/releases/2019-3) 
 

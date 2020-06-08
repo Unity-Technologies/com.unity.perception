@@ -2,15 +2,6 @@
 * Clone the [Perception](https://github.com/Unity-Technologies/com.unity.perception) repository
 * Install and use Unity latest [2019.3 Unity editor](https://unity.com/releases/2019-3) 
 
-## Setting up a Project
-Below are two options for getting started using the Perception package. Option 1 is opening existing test projects in the repository. Option 2 new Unity project and integrate the Perception package.
-
-### Option 1: PerceptionHDRP & PerceptionURP Projects
-The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP. These can be opened in by adding them to the Unity Hub.
-
-<img src="images/TestProjects.PNG" align="middle"/>
-
-### Option 2: Create a new Project 
 You can also set up a new or existing project to use Perception.
 *The following instructions reference the Unity doc's page on [installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html)*
 

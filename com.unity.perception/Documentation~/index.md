@@ -5,9 +5,9 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 > com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.
 
-[Installation instructions](com.unity.perception/Documentation~/SetupSteps.md)
+[Installation instructions](SetupSteps.md)
 
-[Setting up your first perception scene](com.unity.perception/Documentation~/GettingStarted.md)
+[Setting up your first perception scene](GettingStarted.md)
 
 ## Package contents
 
@@ -15,5 +15,5 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 |---|---|
 |[Labeling](GroundTruth-Labeling.md)|Component which marks a GameObject and its descendants with a set of labels|
 |[Labeling Configuration](GroundTruth-Labeling.md#LabelingConfiguration)|Asset which defines a taxonomy of labels for ground truth generation|
-|Perception Camera|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html)|
+|[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html)|
 |[SimulationManager](SimulationManager.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset|

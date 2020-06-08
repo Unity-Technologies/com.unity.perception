@@ -3,7 +3,7 @@
 # com.unity.perception
 The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on capturing ground truth for camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
 
-> com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.
+> Perception is in active development. Its features and API are subject to significant change as development progresses.
 
 [Installation instructions](SetupSteps.md)
 

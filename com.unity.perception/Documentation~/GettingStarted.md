@@ -1,9 +1,10 @@
 # Getting Started with Perception
 This walkthrough will provide creating a new scene for generating perception datasets including segmentation data and image captures.
 
-If you have not already done the setup steps for the project, click [here](Documentation~/SetupSteps.md) to start project setup.
+## Step 1: Create a project and install Perception
+First, follow [this guide](SetupSteps.md) to install Perception in your project.
 
-## Step 1: Create a new scene and camera
+## Step 2: Create a new scene and camera
 1. Create a new scene using File -> New Scene
 2. `ctrl+s` to save the scene and give it a name
 3. Select the Main Camera and reset the Position transform to 0 
@@ -13,7 +14,7 @@ If you have not already done the setup steps for the project, click [here](Docum
 
 <img src="images/MainCameraConfig.PNG" align="middle"/>
 
-## Step 2: Create labeled objects
+## Step 3: Create labeled objects
 1. Create a cube by right-clicking in the Hierarchy window, select 3D Object -> Cube 
 1. Create 2 more cubes this way
 1. Change the names of the cubes to Cube, Box, and Crate
@@ -34,7 +35,7 @@ If you have not already done the setup steps for the project, click [here](Docum
 	1. In the Perception Camera script in the Labeling Configuration field add the Labeling Configuration script created in previous step 
 <img src="images/MainCameraConfig.PNG" align="middle"/>
 
-## Step 3: Checking local files
+## Step 4: Checking local files
 1. Press play in the editor, allow the scene to run for a few seconds, and then exit playmode
 2. In the console log you will see a Shutdown in Progress message that will show a file path to the location of the generated dataset.
 >Example file path on a Windows PC : `C:/Users/<User Name>/AppData/LocalLow/DefaultCompany/UnityTestFramework\2e10ec21-9d97-4cee-b5a2-7e95e299afa4\RGB18f61842-ef8d-4b31-acb5-cb1da36fb7b1`

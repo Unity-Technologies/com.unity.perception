@@ -1,4 +1,4 @@
-# Using Perception in your project
+# Installing Perception in your project
 You can also set up a new or existing project to use Perception.
 *The following instructions reference the Unity doc's page on [installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html)*
 

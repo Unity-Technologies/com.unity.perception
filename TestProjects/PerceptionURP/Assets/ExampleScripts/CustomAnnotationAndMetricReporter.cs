@@ -1,25 +1,4 @@
-# SimulationManager
-
-`SimulationManager` tracks egos, sensors, annotations, and metrics, combining them into a unified [JSON-based dataset](Schema/Synthetic_Dataset_Schema.md) on disk. It also controls the simulation time elapsed per frame to accommodate the active sensors.
-
-
-## Sensor scheduling
- While sensors are registered, `SimulationManager` ensures that frame timing is deterministic and run at the appropriate simulation times to let each sensor run at its own rate.
- 
- Using [Time.CaptureDeltaTime](https://docs.unity3d.com/ScriptReference/Time-captureDeltaTime.html), it also decouples wall clock time from simulation time, allowing the simulation to run as fast as possible.
-
-## Custom sensors
-Custom sensors can be registered using `SimulationManager.RegisterSensor()`. The `period` passed in at registration time determines how often in simulation time frames should be scheduled for the sensor to run. The sensor implementation would then check `ShouldCaptureThisFrame` on the returned `SensorHandle` each frame to determine whether it is time for the sensor to perform a capture. `SensorHandle.ReportCapture` should then be called in each of these frames to report the state of the sensor to populate the dataset.
-
-## Custom annotations and metrics
-In addition to the common annotations and metrics produced by [PerceptionCamera](PerceptionCamera.md), scripts can produce their own via `SimulationManager`. Annotation and metric definitions must first be registered using `SimulationManager.RegisterAnnotationDefinition()` or `SimulationManager.RegisterMetricDefinition()`. These return `AnnotationDefinition` and `MetricDefinition` instances which can then be used to report values during runtime.
-
-Annotations and metrics are always associated with the frame they are reported in. They may also be associated with a specific sensor by using the `Report*` methods on `SensorHandle`.
-
-### Example
-<!-- If you change this, change it in PerceptionURP/Assets/Examples/CustomAnnotationAndMetricReporter.cs as well -->
-```csharp
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 
@@ -87,5 +66,3 @@ public class CustomAnnotationAndMetricReporter : MonoBehaviour
 //     ]
 //   ]
 // }
-
-```

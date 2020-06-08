@@ -10,13 +10,14 @@ Many labelers require require a `Labeling Configuration` asset.
 This file specifies a list of all labels to be captured in the dataset for a labeler along with extra information used by the various labelers.
 
 ## Best practices
-Generally algorithm testing and training requires a single label on an asset for proper identification such as “chair”, “table”, or “door". To maximize asset reuse, however, it is useful to give each object multiple labels in a heirarchy.
+Generally algorithm testing and training requires a single label on an asset for proper identification such as “chair”, “table”, or “door". To maximize asset reuse, however, it is useful to give each object multiple labels in a hierarchy.
 
 For example
-An asset representing a box of Rice Krispies cereal could b labeled as: food\cereal\kellogs\ricekrispies
-“food” - type
-“cereal” - subtype
-“kellogs” - main descriptor
-“ricekrispies” - sub descriptor
+An asset representing a box of Rice Krispies cereal could be labeled as `food\cereal\kellogs\ricekrispies`
+
+* “food” - type
+* “cereal” - subtype
+* “kellogs” - main descriptor
+* “ricekrispies” - sub descriptor
 
 If the goal of the algorithm is to identify all objects in a scene that is “food” that label is available and can be used. Conversely if the goal is to identify only Rice Krispies cereal within a scene that label is also available. Depending on the goal of the algorithm any mix of labels in the hierarchy can be used.

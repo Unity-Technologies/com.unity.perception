@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using UnityEngine.Perception.Randomization.Parameters.Abstractions;
 using UnityEngine.Perception.Randomization.Parameters.MonoBehaviours;
 
 namespace UnityEngine.Perception.Randomization.Scenarios.Abstractions
@@ -9,12 +10,14 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Abstractions
         string m_Delimiter;
         StreamWriter m_File;
         ParameterConfiguration m_Config;
+        ParameterBase[] m_SelectedParameters;
 
         public CsvWriter(
             string filePath,
             ParameterConfiguration config,
             bool overwriteData,
-            string[] additionalHeaders,
+            ParameterBase[] selectedParameters = null,
+            string[] additionalHeaders = null,
             string delimiter = "\t")
         {
             m_File = overwriteData
@@ -23,6 +26,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Abstractions
             m_File.AutoFlush = true;
             m_Config = config;
             m_Delimiter = delimiter;
+            m_SelectedParameters = selectedParameters ?? m_Config.parameters.ToArray();
             WriteHeaders(additionalHeaders);
         }
 
@@ -39,7 +43,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Abstractions
         void WriteHeaders(string[] additionalHeaders)
         {
             var output = $"Global Iteration{m_Delimiter}";
-            foreach (var parameter in m_Config.parameters)
+            foreach (var parameter in m_SelectedParameters)
             {
                 output += $"{parameter.parameterName} ({parameter.ParameterTypeName}){m_Delimiter}";
             }
@@ -55,7 +59,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Abstractions
         public void WriteParameterIterationToFile(string[] additionalData = null)
         {
             var output = $"{m_Config.GlobalIterationIndex}{m_Delimiter}";
-            foreach (var parameter in m_Config.parameters)
+            foreach (var parameter in m_SelectedParameters)
             {
                 output += $"{parameter.sampler.GetSampleString()}{m_Delimiter}";
             }

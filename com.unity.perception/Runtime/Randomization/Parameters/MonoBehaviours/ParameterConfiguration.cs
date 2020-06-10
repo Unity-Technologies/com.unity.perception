@@ -56,6 +56,7 @@ namespace UnityEngine.Perception.Randomization.Parameters.MonoBehaviours
             m_IterationState = new int[parameters.Count];
             if (scenario == null)
                 scenario = gameObject.AddComponent<EmptyScenario>();
+            scenario.parameterConfiguration = this;
         }
 
         void Start()

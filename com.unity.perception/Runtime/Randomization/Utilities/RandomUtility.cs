@@ -22,7 +22,7 @@ namespace UnityEngine.Perception.Randomization.Utilities
 
         public static uint CombineSeeds(uint seed1, uint seed2)
         {
-            return seed1 ^ seed2;
+            return seed1 * seed2;
         }
     }
 }

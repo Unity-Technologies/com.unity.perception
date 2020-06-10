@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine.Perception.Randomization.Parameters.Abstractions;
 using UnityEngine.Perception.Randomization.Samplers.Abstractions;
@@ -119,7 +118,7 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
 
             var targetField = templateClone.Query<PropertyField>("target-field").First();
             var propertyMenu = templateClone.Query<ToolbarMenu>("property-select-menu").First();
-            targetField.RegisterCallback<ChangeEvent<UnityEngine.Object>>(
+            targetField.RegisterCallback<ChangeEvent<Object>>(
                 evt =>
                 {
                     propertyMenu.text = "";
@@ -223,7 +222,7 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             return options;
         }
 
-        void AppendActionsToPropertySelectMenu(ParameterBase parameterComponent, ToolbarMenu propertyMenu)
+        static void AppendActionsToPropertySelectMenu(ParameterBase parameterComponent, ToolbarMenu propertyMenu)
         {
             propertyMenu.menu.MenuItems().Clear();
             if (parameterComponent.target == null) return;
@@ -254,7 +253,7 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             var newSampler = (SamplerBase)m_Config.gameObject.AddComponent(samplerType);
             newSampler.parameter = parameterComponent;
             newSampler.hideFlags = HideFlags.HideInInspector;
-            parameterComponent.sampler = (SamplerBase)newSampler;
+            parameterComponent.sampler = newSampler;
         }
 
         void UpdateStatsContainer()
@@ -267,7 +266,7 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             totalFrameCountLabel.text = $"{m_Config.TotalFrameCount}";
         }
 
-        void CreateSamplerPropertyFields(VisualElement samplerFieldsContainer, SamplerBase sampler)
+        static void CreateSamplerPropertyFields(VisualElement samplerFieldsContainer, SamplerBase sampler)
         {
             samplerFieldsContainer.Clear();
             var serializedSampler = new SerializedObject(sampler);
@@ -287,13 +286,26 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
 
         static Type[] GetDerivedTypeOptions(Type derivedType)
         {
-            var samplerTypes = (
-                from domainAssembly in AppDomain.CurrentDomain.GetAssemblies()
-                from assemblyType in domainAssembly.GetTypes()
-                where (derivedType.IsAssignableFrom(assemblyType) &&
-                    (assemblyType.Attributes & TypeAttributes.Abstract) == 0)
-                select assemblyType).ToArray();
-            return samplerTypes;
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var samplerTypes = new List<Type>();
+            foreach (var assembly in assemblies)
+            {
+                try
+                {
+                    foreach (var assemblyType in assembly.GetTypes())
+                    {
+                        var isNotAbstract = (assemblyType.Attributes & TypeAttributes.Abstract) == 0;
+                        if (derivedType.IsAssignableFrom(assemblyType) && isNotAbstract)
+                            samplerTypes.Add(assemblyType);
+                    }
+                }
+                catch (ReflectionTypeLoadException)
+                {
+                    // We can safely ignore this exception
+                }
+            }
+
+            return samplerTypes.ToArray();
         }
     }
 }

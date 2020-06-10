@@ -5,7 +5,7 @@ namespace UnityEngine.Perception.Randomization.Samplers.Abstractions
 {
     public abstract class SamplerBase : MonoBehaviour
     {
-        public ParameterBase parameter;
+        [HideInInspector] public ParameterBase parameter;
         public abstract int SampleCount { get; }
 
         public abstract string GetSampleString();

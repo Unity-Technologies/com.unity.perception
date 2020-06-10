@@ -5,6 +5,7 @@ using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -97,7 +98,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         public void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId)
         {
-            if (m_LabelingConfiguration.TryGetMatchingConfigurationEntry(labeling, out var entry, out var index))
+            if (m_LabelingConfiguration.TryGetMatchingConfigurationEntry(labeling, out _, out var index))
             {
                 if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
                 {
@@ -230,15 +231,16 @@ namespace UnityEngine.Perception.GroundTruth
         /// Attempts to find the label id for the given instance id using the LabelingConfiguration passed into the constructor.
         /// </summary>
         /// <param name="instanceId">The instanceId of the object for which the labelId should be found</param>
-        /// <param name="labelId">The labelId of the object. -1 if not found</param>
+        /// <param name="labelEntry">The LabelEntry associated with the object. default if not found</param>
         /// <returns>True if a labelId is found for the given instanceId.</returns>
-        public bool TryGetLabelIdFromInstanceId(int instanceId, out int labelId)
+        public bool TryGetLabelEntryFromInstanceId(int instanceId, out LabelEntry labelEntry)
         {
-            labelId = -1;
+            labelEntry = default;
             if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
                 return false;
 
-            labelId = m_InstanceIdToLabelEntryIndexLookup[instanceId];
+            var labelEntryIndex = m_InstanceIdToLabelEntryIndexLookup[instanceId];
+            labelEntry = m_LabelingConfiguration.LabelEntries[labelEntryIndex];
             return true;
         }
 

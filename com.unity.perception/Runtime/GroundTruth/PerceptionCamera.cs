@@ -369,12 +369,12 @@ namespace UnityEngine.Perception.GroundTruth
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
-                    if (!TryGetLabelIdFromInstanceId(objectInfo.instanceId, out var labelId))
+                    if (!TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry))
                         continue;
 
                     m_VisiblePixelsValues[i] = new RenderedObjectInfoValue
                     {
-                        label_id = labelId,
+                        label_id = labelEntry.id,
                         instance_id = objectInfo.instanceId,
                         visible_pixels = objectInfo.pixelCount
                     };
@@ -417,13 +417,13 @@ namespace UnityEngine.Perception.GroundTruth
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
-                    if (!TryGetLabelIdFromInstanceId(objectInfo.instanceId, out var labelId))
+                    if (!TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry))
                         continue;
 
                     m_BoundingBoxValues[i] = new BoundingBoxValue
                     {
-                        label_id = labelId,
-                        label_name = labelingConfigurations[labelId].label,
+                        label_id = labelEntry.id,
+                        label_name = labelEntry.label,
                         instance_id = objectInfo.instanceId,
                         x = objectInfo.boundingBox.x,
                         y = objectInfo.boundingBox.y,
@@ -440,14 +440,14 @@ namespace UnityEngine.Perception.GroundTruth
         /// Returns the class ID for the given instance ID resolved by <see cref="LabelingConfiguration"/>. Only valid when bounding boxes are being computed.
         /// </summary>
         /// <param name="instanceId">The instanceId of the object</param>
-        /// <param name="labelId">When this method returns, contains the labelId associated with the given instanceId, if one exists. -1 otherwise.</param>
-        /// <returns>True if a valid labelId was found for the given instanceId.</returns>
+        /// <param name="labelEntry">When this method returns, contains the LabelEntry associated with the given instanceId if one exists. default otherwise.</param>
+        /// <returns>True if a valid LabelEntry was found for the given instanceId.</returns>
         /// <exception cref="InvalidOperationException">Thrown when <see cref="produceBoundingBoxAnnotations"/> was not true on Start.</exception>
-        public bool TryGetLabelIdFromInstanceId(int instanceId, out int labelId)
+        public bool TryGetLabelEntryFromInstanceId(int instanceId, out LabelEntry labelEntry)
         {
             if (m_RenderedObjectInfoGenerator == null)
-                throw new InvalidOperationException($"{nameof(TryGetLabelIdFromInstanceId)} can only be used when bounding box capture is enabled");
-            return m_RenderedObjectInfoGenerator.TryGetLabelIdFromInstanceId(instanceId, out labelId);
+                throw new InvalidOperationException($"{nameof(TryGetLabelEntryFromInstanceId)} can only be used when bounding box capture is enabled");
+            return m_RenderedObjectInfoGenerator.TryGetLabelEntryFromInstanceId(instanceId, out labelEntry);
         }
 
         void OnObjectCountsReceived(NativeSlice<uint> counts, IReadOnlyList<LabelEntry> entries, int frameCount)

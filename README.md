@@ -7,12 +7,20 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 [![license badge](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
 
+> com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.
+
+
 ## Documenation 
-**Click [here](com.unity.perception/Documentation~/SetupSteps.md) to set up a Perception project**
+[Installation instructions](com.unity.perception/Documentation~/SetupSteps.md)
 
-**Click [here](com.unity.perception/Documentation~/GettingStarted.md) to get the started with Perception**
+[Setting up your first perception scene](com.unity.perception/Documentation~/GettingStarted.md)
 
-## Suggested IDE Setup
+[Perception manual](com.unity.perception/Documentation~/index.md)
+
+## Local development
+The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.
+
+### Suggested IDE Setup
 For closest standards conformity and best experience overall, JetBrains Rider or Visual Studio w/ JetBrains Resharper are suggested. For optimal experience, perform the following additional steps:
 * To allow navigating to code in all packages included in your project, in your Unity Editor, navigate to `Edit -> Preferences... -> External Tools` and check `Generate all .csproj files.` 
 * To get automatic feedback and fixups on formatting and naming convention violations, set up Rider/JetBrains with our Unity standard .dotsettings file by following [these instructions](https://github.cds.internal.unity3d.com/unity/com.unity.coding/tree/master/UnityCoding/Packages/com.unity.coding/Coding~/Configs/JetBrains).

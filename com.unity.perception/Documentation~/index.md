@@ -1,15 +1,19 @@
-# About the Perception SDK
-com.unity.perception provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
+<img src="images/banner2.PNG" align="middle"/>
 
-# Technical details
-## Requirements
+# Unity Perception package (com.unity.perception)
+The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on capturing ground truth for camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
 
-This version of _Perception_ is compatible Unity Editor 2019.3 and later
+> The Perception package is in active development. Its features and API are subject to significant change as development progresses.
+
+[Installation instructions](SetupSteps.md)
+
+[Setting up your first perception scene](GettingStarted.md)
 
 ## Package contents
-|Ground Truth|Captures semantic segmentation, bounding boxes, and other forms of ground truth.|
+
+|Feature|Description
 |---|---|
-|Labeling|MonoBehaviour which marks an object and its descendants with a set of labels|
-|Labeling Configuration|Asset which defines a taxonomy of labels used for ground truth generation |
-|Perception Camera|Captures RGB images and ground truth on a Unity Camera|
-|---|---|
+|[Labeling](GroundTruth-Labeling.md)|Component which marks a GameObject and its descendants with a set of labels|
+|[Labeling Configuration](GroundTruth-Labeling.md#LabelingConfiguration)|Asset which defines a taxonomy of labels for ground truth generation|
+|[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html)|
+|[SimulationManager](SimulationManager.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset|

@@ -189,7 +189,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  classes:
+  labels:
   - Crate
 --- !u!65 &411238278
 BoxCollider:
@@ -311,7 +311,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  classes:
+  labels:
   - Cube
 --- !u!65 &464025706
 BoxCollider:
@@ -518,6 +518,7 @@ GameObject:
   - component: {fileID: 963194230}
   - component: {fileID: 963194229}
   - component: {fileID: 963194227}
+  - component: {fileID: 963194231}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -549,7 +550,6 @@ MonoBehaviour:
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
-  m_CameraOutput: 0
   m_Cameras: []
   m_RendererIndex: -1
   m_VolumeLayerMask:
@@ -561,6 +561,7 @@ MonoBehaviour:
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
+  m_ClearDepth: 1
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
@@ -639,8 +640,28 @@ MonoBehaviour:
   captureRgbImages: 1
   produceSegmentationImages: 1
   produceObjectCountAnnotations: 1
+  objectCountId: 51DA3C27-369D-4929-AEA6-D01614635CE2
+  produceBoundingBoxAnnotations: 1
+  boundingBoxId: F9F22E05-443F-4602-A422-EBE4EA9B55CB
+  produceRenderedObjectInfoMetric: 1
+  renderedObjectInfoId: 5BA92024-B3B7-41A7-9D3F-C03A6A8DDD01
+  boundingBoxOrigin: 0
   LabelingConfiguration: {fileID: 11400000, guid: e74234fe725079e4aa7ecd74797ceb79,
     type: 2}
+--- !u!114 &963194231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c51d9f2c5784bb4aee3fdf021966e14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  light: {fileID: 705507993}
+  target: {fileID: 1640252278}
 --- !u!1 &1640252278
 GameObject:
   m_ObjectHideFlags: 0
@@ -674,7 +695,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  classes:
+  labels:
   - Box
 --- !u!65 &1640252280
 BoxCollider:

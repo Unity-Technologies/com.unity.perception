@@ -24,7 +24,7 @@ namespace GroundTruthTests
             yield return null;
 
             var jsonExpected = $@"            {{
-              ""label_id"": 0,
+              ""label_id"": 100,
               ""label_name"": ""label"",
               ""instance_id"": 1,
               ""x"": 0.0,
@@ -77,7 +77,7 @@ namespace GroundTruthTests
             {
                 new LabelEntry
                 {
-                    id = 1,
+                    id = 100,
                     label = label,
                     value = 500
                 }

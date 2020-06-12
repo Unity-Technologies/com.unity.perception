@@ -39,7 +39,7 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
         public override VisualElement CreateInspectorGUI()
         {
             m_Root = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                $"{k_TemplatesFolder}/ParameterConfiguration.uxml").Instantiate();
+                $"{k_TemplatesFolder}/ParameterConfiguration.uxml").CloneTree();
 
             m_ParameterContainer = m_Root.Query<VisualElement>("parameter-container").First();
             m_ScenarioContainer = m_Root.Query<VisualElement>("configuration-container");

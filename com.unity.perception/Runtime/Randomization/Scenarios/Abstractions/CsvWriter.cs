@@ -45,7 +45,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Abstractions
             var output = $"Global Iteration{m_Delimiter}";
             foreach (var parameter in m_SelectedParameters)
             {
-                output += $"{parameter.parameterName} ({parameter.ParameterTypeName}){m_Delimiter}";
+                output += $"{parameter.parameterName}{m_Delimiter}";
             }
             if (additionalHeaders != null)
             {

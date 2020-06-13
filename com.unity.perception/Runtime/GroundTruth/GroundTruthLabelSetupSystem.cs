@@ -58,14 +58,17 @@ namespace UnityEngine.Perception.GroundTruth
 
         void InitGameObjectRecursive(GameObject gameObject, MaterialPropertyBlock mpb, Labeling labeling, uint instanceId)
         {
-            var meshRenderer = gameObject.GetComponent<MeshRenderer>();
-            if (meshRenderer != null)
-            {
-                meshRenderer.GetPropertyBlock(mpb);
-                foreach (var pass in m_ActiveGenerators)
-                    pass.SetupMaterialProperties(mpb, meshRenderer, labeling, instanceId);
+            var renderer = (Renderer)gameObject.GetComponent<MeshRenderer>();
+            if (renderer == null)
+                renderer = gameObject.GetComponent<SkinnedMeshRenderer>();
 
-                meshRenderer.SetPropertyBlock(mpb);
+            if (renderer != null)
+            {
+                renderer.GetPropertyBlock(mpb);
+                foreach (var pass in m_ActiveGenerators)
+                    pass.SetupMaterialProperties(mpb, renderer, labeling, instanceId);
+
+                renderer.SetPropertyBlock(mpb);
             }
 
             for (var i = 0; i < gameObject.transform.childCount; i++)

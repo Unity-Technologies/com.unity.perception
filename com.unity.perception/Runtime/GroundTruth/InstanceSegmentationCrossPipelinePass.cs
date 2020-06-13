@@ -63,7 +63,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId)
+        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
             mpb.SetInt(k_SegmentationIdProperty, (int)instanceId);
     #if PERCEPTION_DEBUG

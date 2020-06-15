@@ -45,7 +45,7 @@ namespace UnityEngine.Perception.GroundTruth
             DrawRendererList(renderContext, cmd, RendererList.Create(renderList));
         }
 
-        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId)
+        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
             var entry = new LabelEntry();
             foreach (var l in m_LabelingConfiguration.LabelEntries)

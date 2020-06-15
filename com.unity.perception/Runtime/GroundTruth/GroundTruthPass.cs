@@ -12,7 +12,7 @@ namespace UnityEngine.Perception.GroundTruth
         public Camera targetCamera;
 
         bool m_IsActivated;
-        public abstract void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId);
+        public abstract void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer meshRenderer, Labeling labeling, uint instanceId);
 
         protected GroundTruthPass(Camera targetCamera)
         {

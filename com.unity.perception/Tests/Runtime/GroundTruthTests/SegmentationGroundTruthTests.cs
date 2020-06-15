@@ -48,7 +48,7 @@ namespace GroundTruthTests
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
         // `yield return null;` to skip a frame.
         [UnityTest]
-        public IEnumerator SegmentationPassTestsWithEnumeratorPasses()
+        public IEnumerator SegmentationPassTestsWithEnumeratorPasses([Values(false, true)] bool useSkinnedMeshRenderer)
         {
             int timesSegmentationImageReceived = 0;
             int? frameStart = null;
@@ -71,6 +71,19 @@ namespace GroundTruthTests
 
             //Put a plane in front of the camera
             var planeObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            if (useSkinnedMeshRenderer)
+            {
+                var oldObject = planeObject;
+                planeObject = new GameObject();
+
+                var meshFilter = oldObject.GetComponent<MeshFilter>();
+                var meshRenderer = oldObject.GetComponent<MeshRenderer>();
+                var skinnedMeshRenderer = planeObject.AddComponent<SkinnedMeshRenderer>();
+                skinnedMeshRenderer.sharedMesh = meshFilter.sharedMesh;
+                skinnedMeshRenderer.material = meshRenderer.material;
+                
+                Object.DestroyImmediate(oldObject);
+            }
             planeObject.transform.SetPositionAndRotation(new Vector3(0, 0, 10), Quaternion.Euler(90, 0, 0));
             planeObject.transform.localScale = new Vector3(10, -1, 10);
             planeObject.AddComponent<Labeling>();

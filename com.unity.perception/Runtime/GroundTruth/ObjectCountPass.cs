@@ -37,7 +37,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
         }
 
-        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId)
+        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer meshRenderer, Labeling labeling, uint instanceId)
         {
             if (!m_InstanceIdToLabelIndexLookup.IsCreated)
             {

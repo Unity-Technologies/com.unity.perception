@@ -11,9 +11,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// Called by <see cref="GroundTruthLabelSetupSystem"/> when first registered or when a Labeling is created at runtime.
         /// </summary>
         /// <param name="mpb">The MaterialPropertyBlock for the given meshRenderer. Can be used to set properties for custom rendering.</param>
-        /// <param name="meshRenderer">The MeshRenderer which exists under the given Labeling.</param>
+        /// <param name="renderer">The Renderer under the given Labeling.</param>
         /// <param name="labeling">The Labeling component created</param>
         /// <param name="instanceId">The instanceId assigned to the given Labeling instance.</param>
-        void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId);
+        void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId);
     }
 }

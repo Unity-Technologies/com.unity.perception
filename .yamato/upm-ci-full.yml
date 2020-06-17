@@ -103,17 +103,16 @@ test_trigger:
     {% endfor %}
     {% endfor %}
     {% endfor %}
-
     # Disabling trigger of standalone tests which aren't working at the moment
-    {% for editor in test_editors %}
-    - .yamato/upm-ci-testprojects.yml#codecoverage_windows_editmode_{{editor.version}}
-    {% for project in projects %}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{editor.version}}
-    {% endfor %}
-    {% endfor %}
+    #{% for editor in test_editors %}
+    #- .yamato/upm-ci-testprojects.yml#codecoverage_windows_editmode_{{editor.version}}
+    #{% for project in projects %}
+    #- .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{editor.version}}
+    #- .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{editor.version}}
+    #- .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{editor.version}}
+    #- .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{editor.version}}
+    #{% endfor %}
+    #{% endfor %}
 
 {% for variant in package_variants %}
 publish:

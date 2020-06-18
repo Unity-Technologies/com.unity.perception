@@ -24,7 +24,7 @@ publish:
     - .yamato/upm-ci-full.yml#pack_{{ variant.name }}
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/upm-ci-full.yml#test_simviz_{{ platform.name }}_{{ editor.version }}
+    - .yamato/upm-ci-full.yml#test_{{ variant.name }}_{{ platform.name }}_{{ editor.version }}
     {% endfor %}
     {% endfor %}
 {% endfor %}

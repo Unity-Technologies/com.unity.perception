@@ -1,4 +1,4 @@
-{% metadata_file .yamato/upm-ci-full.yml %}
+{% metadata_file com.unity.perception/.yamato/upm-ci-full.yml %}
 
 ---
 

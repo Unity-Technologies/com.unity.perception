@@ -11,7 +11,7 @@ publish:
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-    - upm-ci package publish --package-path com.unity.simviz
+    - upm-ci package publish --package-path com.unity.perception
   triggers:
     tags:
       only:

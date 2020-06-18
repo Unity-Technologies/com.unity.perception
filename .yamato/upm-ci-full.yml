@@ -115,7 +115,7 @@ test_trigger:
     #{% endfor %}
 
 {% for variant in package_variants %}
-publish:
+deploy:
   name: Publish {{ variant.name }} package to internal registry
   agent:
     type: Unity::VM

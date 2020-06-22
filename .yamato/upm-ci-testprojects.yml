@@ -1,5 +1,5 @@
 test_editors:
-  - version: 2019.3.7f1
+  - version: 2019.3.15f1
 suites:
   - name: standalone
     display_name: standalone

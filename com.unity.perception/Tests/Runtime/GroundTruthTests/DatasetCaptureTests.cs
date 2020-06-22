@@ -18,7 +18,7 @@ using UnityEngine.TestTools;
 namespace GroundTruthTests
 {
     [TestFixture]
-    public class SimulationManagerTests
+    public class DatasetCaptureTests
     {
         [Test]
         public void RegisterSensor_ReportsProperJson()
@@ -29,7 +29,7 @@ namespace GroundTruthTests
 
             var egoJsonExpected =
                 $@"{{
-  ""version"": ""{SimulationManager.SchemaVersion}"",
+  ""version"": ""{DatasetCapture.SchemaVersion}"",
   ""egos"": [
     {{
       ""id"": <guid>,
@@ -39,7 +39,7 @@ namespace GroundTruthTests
 }}";
             var sensorJsonExpected =
                 $@"{{
-  ""version"": ""{SimulationManager.SchemaVersion}"",
+  ""version"": ""{DatasetCapture.SchemaVersion}"",
   ""sensors"": [
     {{
       ""id"": <guid>,
@@ -50,14 +50,14 @@ namespace GroundTruthTests
   ]
 }}";
 
-            var ego = SimulationManager.RegisterEgo(egoDescription);
-            var sensorHandle = SimulationManager.RegisterSensor(ego, modality, sensorDescription, 1, 1);
+            var ego = DatasetCapture.RegisterEgo(egoDescription);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, modality, sensorDescription, 1, 1);
             Assert.IsTrue(sensorHandle.IsValid);
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
 
-            var sensorsPath = Path.Combine(SimulationManager.OutputDirectory, "sensors.json");
-            var egosPath = Path.Combine(SimulationManager.OutputDirectory, "egos.json");
+            var sensorsPath = Path.Combine(DatasetCapture.OutputDirectory, "sensors.json");
+            var egosPath = Path.Combine(DatasetCapture.OutputDirectory, "egos.json");
 
             FileAssert.Exists(egosPath);
             FileAssert.Exists(sensorsPath);
@@ -83,7 +83,7 @@ namespace GroundTruthTests
 
             var capturesJsonExpected =
                 $@"{{
-  ""version"": ""{SimulationManager.SchemaVersion}"",
+  ""version"": ""{DatasetCapture.SchemaVersion}"",
   ""captures"": [
     {{
       ""id"": <guid>,
@@ -149,15 +149,15 @@ namespace GroundTruthTests
   ]
 }}";
 
-            var ego = SimulationManager.RegisterEgo("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "camera", "", 1, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "camera", "", 1, 0);
             var sensorSpatialData = new SensorSpatialData(new Pose(egoPosition, egoRotation), new Pose(position, rotation), egoVelocity, null);
             sensorHandle.ReportCapture(filename, sensorSpatialData, ("camera_intrinsic", intrinsics));
 
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
 
-            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
 
             FileAssert.Exists(capturesPath);
 
@@ -175,8 +175,8 @@ namespace GroundTruthTests
                 (1, 2, false)
             };
 
-            var ego = SimulationManager.RegisterEgo("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 2, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 2, 0);
             var sensorSpatialData = new SensorSpatialData(default, default, null, null);
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
             sensorHandle.ReportCapture("f", sensorSpatialData);
@@ -184,19 +184,19 @@ namespace GroundTruthTests
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
             sensorHandle.ReportCapture("f", sensorSpatialData);
             yield return null;
-            SimulationManager.StartNewSequence();
+            DatasetCapture.StartNewSequence();
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
             sensorHandle.ReportCapture("f", sensorSpatialData);
             yield return null;
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
             sensorHandle.ReportCapture("f", sensorSpatialData);
 
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
 
             //read all captures from the output directory
             List<JObject> captures = new List<JObject>();
-            foreach (var capturesPath in Directory.EnumerateFiles(SimulationManager.OutputDirectory, "captures_*.json"))
+            foreach (var capturesPath in Directory.EnumerateFiles(DatasetCapture.OutputDirectory, "captures_*.json"))
             {
                 var capturesText = File.ReadAllText(capturesPath);
                 var jObject = JToken.ReadFrom(new JsonTextReader(new StringReader(capturesText)));
@@ -242,7 +242,7 @@ namespace GroundTruthTests
 
             var annotationDefinitionsJsonExpected =
                 $@"{{
-  ""version"": ""{SimulationManager.SchemaVersion}"",
+  ""version"": ""{DatasetCapture.SchemaVersion}"",
   ""annotation_definitions"": [
     {{
       ""id"": <guid>,
@@ -261,17 +261,17 @@ namespace GroundTruthTests
         }}
       ]";
 
-            var ego = SimulationManager.RegisterEgo("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
             sensorHandle.ReportCapture(filename, default);
-            var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("semantic segmentation", "pixel-wise semantic segmentation label", "PNG", annotationDefinitionGuid);
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("semantic segmentation", "pixel-wise semantic segmentation label", "PNG", annotationDefinitionGuid);
             sensorHandle.ReportAnnotationFile(annotationDefinition, "annotations/semantic_segmentation_000.png");
 
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
 
-            var annotationDefinitionsPath = Path.Combine(SimulationManager.OutputDirectory, "annotation_definitions.json");
-            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var annotationDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, "annotation_definitions.json");
+            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
 
 
             AssertJsonFileEquals(annotationDefinitionsJsonExpected, annotationDefinitionsPath);
@@ -314,14 +314,14 @@ namespace GroundTruthTests
         }}
       ]";
 
-            var ego = SimulationManager.RegisterEgo("");
-            var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
 
             sensorHandle.ReportAnnotationValues(annotationDefinition, values);
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
 
             FileAssert.Exists(capturesPath);
             StringAssert.Contains(expectedAnnotation, EscapeGuids(File.ReadAllText(capturesPath)));
@@ -330,38 +330,38 @@ namespace GroundTruthTests
         [Test]
         public void ReportAnnotationFile_WhenCaptureNotExpected_Throws()
         {
-            var ego = SimulationManager.RegisterEgo("");
-            var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
+            var ego = DatasetCapture.RegisterEgo("");
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationFile(annotationDefinition, ""));
         }
 
         [Test]
         public void ReportAnnotationValues_WhenCaptureNotExpected_Throws()
         {
-            var ego = SimulationManager.RegisterEgo("");
-            var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
+            var ego = DatasetCapture.RegisterEgo("");
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationValues(annotationDefinition, new int[0]));
         }
 
         [Test]
         public void ReportAnnotationAsync_WhenCaptureNotExpected_Throws()
         {
-            var ego = SimulationManager.RegisterEgo("");
-            var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
+            var ego = DatasetCapture.RegisterEgo("");
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationAsync(annotationDefinition));
         }
 
         [Test]
         public void ResetSimulation_WithUnreportedAnnotationAsync_LogsError()
         {
-            var ego = SimulationManager.RegisterEgo("");
-            var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
             sensorHandle.ReportAnnotationAsync(annotationDefinition);
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending .*"));
         }
 
@@ -369,9 +369,9 @@ namespace GroundTruthTests
         public void ResetSimulation_CallsSimulationEnding()
         {
             int timesCalled = 0;
-            SimulationManager.SimulationEnding += () => timesCalled++;
-            SimulationManager.ResetSimulation();
-            SimulationManager.ResetSimulation();
+            DatasetCapture.SimulationEnding += () => timesCalled++;
+            DatasetCapture.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             Assert.AreEqual(2, timesCalled);
         }
 
@@ -380,13 +380,13 @@ namespace GroundTruthTests
         {
             LogAssert.ignoreFailingMessages = true; //we aren't worried about "Simulation ended with pending..."
 
-            var ego = SimulationManager.RegisterEgo("");
-            var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
             var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
 
             Assert.IsTrue(asyncAnnotation.IsValid);
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             Assert.IsFalse(asyncAnnotation.IsValid);
         }
 
@@ -401,17 +401,17 @@ namespace GroundTruthTests
         }}
       ]";
 
-            var ego = SimulationManager.RegisterEgo("");
-            var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
             var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
 
             Assert.IsTrue(asyncAnnotation.IsPending);
             asyncAnnotation.ReportFile("annotations/output.png");
             Assert.IsFalse(asyncAnnotation.IsPending);
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
 
             FileAssert.Exists(capturesPath);
             StringAssert.Contains(expectedAnnotation, EscapeGuids(File.ReadAllText(capturesPath)));
@@ -457,17 +457,17 @@ namespace GroundTruthTests
         }}
       ]";
 
-            var ego = SimulationManager.RegisterEgo("");
-            var annotationDefinition = SimulationManager.RegisterAnnotationDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
             var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
 
             Assert.IsTrue(asyncAnnotation.IsPending);
             asyncAnnotation.ReportValues(values);
             Assert.IsFalse(asyncAnnotation.IsPending);
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
 
             FileAssert.Exists(capturesPath);
             StringAssert.Contains(expectedAnnotation, EscapeGuids(File.ReadAllText(capturesPath)));
@@ -480,7 +480,7 @@ namespace GroundTruthTests
 
             var annotationDefinitionsJsonExpected =
                 $@"{{
-  ""version"": ""{SimulationManager.SchemaVersion}"",
+  ""version"": ""{DatasetCapture.SchemaVersion}"",
   ""annotation_definitions"": [
     {{
       ""id"": ""{annotationDefinitionGuid}"",
@@ -489,12 +489,12 @@ namespace GroundTruthTests
     }}
   ]
 }}";
-            var annotationDefinition1 = SimulationManager.RegisterAnnotationDefinition("name", id: annotationDefinitionGuid);
-            var annotationDefinition2 = SimulationManager.RegisterAnnotationDefinition("name", id: annotationDefinitionGuid);
+            var annotationDefinition1 = DatasetCapture.RegisterAnnotationDefinition("name", id: annotationDefinitionGuid);
+            var annotationDefinition2 = DatasetCapture.RegisterAnnotationDefinition("name", id: annotationDefinitionGuid);
 
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var annotationDefinitionsPath = Path.Combine(SimulationManager.OutputDirectory, "annotation_definitions.json");
+            var annotationDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, "annotation_definitions.json");
 
             Assert.AreEqual(annotationDefinition1, annotationDefinition2);
             Assert.AreEqual(annotationDefinitionGuid, annotationDefinition1.Id);
@@ -509,7 +509,7 @@ namespace GroundTruthTests
 
             var annotationDefinitionsJsonExpected =
                 $@"{{
-  ""version"": ""{SimulationManager.SchemaVersion}"",
+  ""version"": ""{DatasetCapture.SchemaVersion}"",
   ""annotation_definitions"": [
     {{
       ""id"": <guid>,
@@ -524,12 +524,12 @@ namespace GroundTruthTests
     }}
   ]
 }}";
-            var annotationDefinition1 = SimulationManager.RegisterAnnotationDefinition("name", id: annotationDefinitionGuid);
-            var annotationDefinition2 = SimulationManager.RegisterAnnotationDefinition("name2", description: "description");
+            var annotationDefinition1 = DatasetCapture.RegisterAnnotationDefinition("name", id: annotationDefinitionGuid);
+            var annotationDefinition2 = DatasetCapture.RegisterAnnotationDefinition("name2", description: "description");
 
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var annotationDefinitionsPath = Path.Combine(SimulationManager.OutputDirectory, "annotation_definitions.json");
+            var annotationDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, "annotation_definitions.json");
 
             Assert.AreEqual(annotationDefinitionGuid, annotationDefinition1.Id);
             Assert.AreNotEqual(default(Guid), annotationDefinition2.Id);
@@ -540,29 +540,29 @@ namespace GroundTruthTests
         [Test]
         public void ReportMetricValues_WhenCaptureNotExpected_Throws()
         {
-            var ego = SimulationManager.RegisterEgo("");
-            var metricDefinition = SimulationManager.RegisterMetricDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
+            var ego = DatasetCapture.RegisterEgo("");
+            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetric(metricDefinition, new int[0]));
         }
 
         [Test]
         public void ReportMetricAsync_WhenCaptureNotExpected_Throws()
         {
-            var ego = SimulationManager.RegisterEgo("");
-            var metricDefinition = SimulationManager.RegisterMetricDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 100);
+            var ego = DatasetCapture.RegisterEgo("");
+            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetricAsync(metricDefinition));
         }
 
         [Test]
         public void ResetSimulation_WithUnreportedMetricAsync_LogsError()
         {
-            var ego = SimulationManager.RegisterEgo("");
-            var metricDefinition = SimulationManager.RegisterMetricDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
             sensorHandle.ReportMetricAsync(metricDefinition);
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending .*"));
         }
 
@@ -571,13 +571,13 @@ namespace GroundTruthTests
         {
             LogAssert.ignoreFailingMessages = true; //we aren't worried about "Simulation ended with pending..."
 
-            var ego = SimulationManager.RegisterEgo("");
-            var metricDefinition = SimulationManager.RegisterMetricDefinition("");
-            var sensorHandle = SimulationManager.RegisterSensor(ego, "", "", 1, 0);
+            var ego = DatasetCapture.RegisterEgo("");
+            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
             var asyncMetric = sensorHandle.ReportMetricAsync(metricDefinition);
 
             Assert.IsTrue(asyncMetric.IsValid);
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             Assert.IsFalse(asyncMetric.IsValid);
         }
 
@@ -595,16 +595,16 @@ namespace GroundTruthTests
 
             var expectedLine = @"""step"": 0";
 
-            var metricDefinition = SimulationManager.RegisterMetricDefinition("");
-            SimulationManager.RegisterSensor(SimulationManager.RegisterEgo(""), "", "", 1, 0);
+            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
+            DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 1, 0);
 
             yield return null;
             yield return null;
             yield return null;
-            SimulationManager.ReportMetric(metricDefinition, values);
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ReportMetric(metricDefinition, values);
+            DatasetCapture.ResetSimulation();
 
-            var text = File.ReadAllText(Path.Combine(SimulationManager.OutputDirectory, "metrics_000.json"));
+            var text = File.ReadAllText(Path.Combine(DatasetCapture.OutputDirectory, "metrics_000.json"));
             StringAssert.Contains(expectedLine, text);
         }
 
@@ -615,16 +615,16 @@ namespace GroundTruthTests
 
             var expectedLine = @"""step"": 0";
 
-            var metricDefinition = SimulationManager.RegisterMetricDefinition("");
-            var sensor = SimulationManager.RegisterSensor(SimulationManager.RegisterEgo(""), "", "", 1, 0);
+            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
+            var sensor = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 1, 0);
 
             yield return null;
             sensor.ReportMetric(metricDefinition, values);
             sensor.ReportCapture("file", new SensorSpatialData(Pose.identity, Pose.identity, null, null));
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var metricsTest = File.ReadAllText(Path.Combine(SimulationManager.OutputDirectory, "metrics_000.json"));
-            var captures = File.ReadAllText(Path.Combine(SimulationManager.OutputDirectory, "captures_000.json"));
+            var metricsTest = File.ReadAllText(Path.Combine(DatasetCapture.OutputDirectory, "metrics_000.json"));
+            var captures = File.ReadAllText(Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json"));
             StringAssert.Contains(expectedLine, metricsTest);
             StringAssert.Contains(expectedLine, captures);
         }
@@ -672,9 +672,9 @@ namespace GroundTruthTests
   ]
 }}";
 
-            var metricDefinition = SimulationManager.RegisterMetricDefinition("");
-            var sensor = SimulationManager.RegisterSensor(SimulationManager.RegisterEgo(""), "", "", 1, 0);
-            var annotation = sensor.ReportAnnotationFile(SimulationManager.RegisterAnnotationDefinition(""), "");
+            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
+            var sensor = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 1, 0);
+            var annotation = sensor.ReportAnnotationFile(DatasetCapture.RegisterAnnotationDefinition(""), "");
             var valuesJsonArray = JArray.FromObject(values).ToString(Formatting.Indented);
             if (async)
             {
@@ -682,7 +682,7 @@ namespace GroundTruthTests
                 switch (metricTarget)
                 {
                     case MetricTarget.Global:
-                        asyncMetric = SimulationManager.ReportMetricAsync(metricDefinition);
+                        asyncMetric = DatasetCapture.ReportMetricAsync(metricDefinition);
                         break;
                     case MetricTarget.Capture:
                         asyncMetric = sensor.ReportMetricAsync(metricDefinition);
@@ -708,9 +708,9 @@ namespace GroundTruthTests
                 {
                     case MetricTarget.Global:
                         if (asStringJsonArray)
-                            SimulationManager.ReportMetric(metricDefinition, valuesJsonArray);
+                            DatasetCapture.ReportMetric(metricDefinition, valuesJsonArray);
                         else
-                            SimulationManager.ReportMetric(metricDefinition, values);
+                            DatasetCapture.ReportMetric(metricDefinition, values);
                         break;
                     case MetricTarget.Capture:
                         if (asStringJsonArray)
@@ -728,9 +728,9 @@ namespace GroundTruthTests
                         throw new Exception("unsupported");
                 }
             }
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            AssertJsonFileEquals(expectedMetric, Path.Combine(SimulationManager.OutputDirectory, "metrics_000.json"), escapeGuids: true, ignoreFormatting: true);
+            AssertJsonFileEquals(expectedMetric, Path.Combine(DatasetCapture.OutputDirectory, "metrics_000.json"), escapeGuids: true, ignoreFormatting: true);
         }
 
         [Test]
@@ -740,7 +740,7 @@ namespace GroundTruthTests
 
             var metricDefinitionsJsonExpected =
                 $@"{{
-  ""version"": ""{SimulationManager.SchemaVersion}"",
+  ""version"": ""{DatasetCapture.SchemaVersion}"",
   ""metric_definitions"": [
     {{
       ""id"": <guid>,
@@ -753,12 +753,12 @@ namespace GroundTruthTests
     }}
   ]
 }}";
-            var metricDefinition1 = SimulationManager.RegisterMetricDefinition("name", id: metricDefinitionGuid);
-            var metricDefinition2 = SimulationManager.RegisterMetricDefinition("name2", description: "description");
+            var metricDefinition1 = DatasetCapture.RegisterMetricDefinition("name", id: metricDefinitionGuid);
+            var metricDefinition2 = DatasetCapture.RegisterMetricDefinition("name2", description: "description");
 
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var metricDefinitionsPath = Path.Combine(SimulationManager.OutputDirectory, "metric_definitions.json");
+            var metricDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, "metric_definitions.json");
 
             Assert.AreEqual(metricDefinitionGuid, metricDefinition1.Id);
             Assert.AreNotEqual(default(Guid), metricDefinition2.Id);
@@ -803,13 +803,13 @@ namespace GroundTruthTests
             string jsonContainerName;
             if (additionalInfoKind == AdditionalInfoKind.Annotation)
             {
-                SimulationManager.RegisterAnnotationDefinition("name", specValues);
+                DatasetCapture.RegisterAnnotationDefinition("name", specValues);
                 filename = "annotation_definitions.json";
                 jsonContainerName = "annotation_definitions";
             }
             else
             {
-                SimulationManager.RegisterMetricDefinition("name", specValues);
+                DatasetCapture.RegisterMetricDefinition("name", specValues);
                 filename = "metric_definitions.json";
                 jsonContainerName = "metric_definitions";
             }
@@ -818,7 +818,7 @@ namespace GroundTruthTests
 
             var annotationDefinitionsJsonExpected =
                 $@"{{
-  ""version"": ""{SimulationManager.SchemaVersion}"",
+  ""version"": ""{DatasetCapture.SchemaVersion}"",
   ""{jsonContainerName}"": [
     {{
       ""id"": <guid>,
@@ -846,9 +846,9 @@ namespace GroundTruthTests
     }}
   ]
 }}";
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var annotationDefinitionsPath = Path.Combine(SimulationManager.OutputDirectory, filename);
+            var annotationDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, filename);
 
             AssertJsonFileEquals(annotationDefinitionsJsonExpected, annotationDefinitionsPath);
         }

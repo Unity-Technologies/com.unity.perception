@@ -19,10 +19,10 @@ namespace GroundTruthTests
 
             m_ObjectsToDestroy.Clear();
 
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
             Time.timeScale = 1;
-            if (Directory.Exists(SimulationManager.OutputDirectory))
-                Directory.Delete(SimulationManager.OutputDirectory, true);
+            if (Directory.Exists(DatasetCapture.OutputDirectory))
+                Directory.Delete(DatasetCapture.OutputDirectory, true);
         }
 
         public void AddTestObjectForCleanup(GameObject @object) => m_ObjectsToDestroy.Add(@object);

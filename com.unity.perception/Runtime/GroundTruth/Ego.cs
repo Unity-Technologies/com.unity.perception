@@ -32,7 +32,7 @@ namespace UnityEngine.Perception.GroundTruth
         void EnsureEgoInitialized()
         {
             if (m_EgoHandle == default)
-                m_EgoHandle = SimulationManager.RegisterEgo(Description);
+                m_EgoHandle = DatasetCapture.RegisterEgo(Description);
         }
     }
 }

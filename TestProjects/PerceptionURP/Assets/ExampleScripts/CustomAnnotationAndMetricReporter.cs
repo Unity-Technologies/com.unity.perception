@@ -15,11 +15,11 @@ public class CustomAnnotationAndMetricReporter : MonoBehaviour
     public void Start()
     {
         //Metrics and annotations are registered up-front
-        lightMetricDefinition = SimulationManager.RegisterMetricDefinition(
+        lightMetricDefinition = DatasetCapture.RegisterMetricDefinition(
             "Light position",
             "The world-space position of the light",
             Guid.Parse("1F6BFF46-F884-4CC5-A878-DB987278FE35"));
-        boundingBoxAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition(
+        boundingBoxAnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition(
             "Target bounding box",
             "The position of the target in the camera's local space",
             id: Guid.Parse("C0B4A22C-0420-4D9F-BAFC-954B8F7B35A7"));
@@ -29,7 +29,7 @@ public class CustomAnnotationAndMetricReporter : MonoBehaviour
     {
         //Report the light's position by manually creating the json array string.
         var lightPos = light.transform.position;
-        SimulationManager.ReportMetric(lightMetricDefinition,
+        DatasetCapture.ReportMetric(lightMetricDefinition,
             $@"[{{ ""x"": {lightPos.x}, ""y"": {lightPos.y}, ""z"": {lightPos.z} }}]");
         //compute the location of the object in the camera's local space
         Vector3 targetPos = transform.worldToLocalMatrix * target.transform.position;

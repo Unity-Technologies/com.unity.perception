@@ -7,7 +7,7 @@ namespace UnityEngine.Perception.GroundTruth
     {
         protected override void OnUpdate()
         {
-            SimulationManager.SimulationState?.Update();
+            DatasetCapture.SimulationState?.Update();
         }
     }
 }

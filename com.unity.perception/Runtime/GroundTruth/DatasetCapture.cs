@@ -11,7 +11,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// Global manager for frame scheduling and output capture for simulations.
     /// Data capture follows the schema defined in *TODO: Expose schema publicly*
     /// </summary>
-    public static class SimulationManager
+    public static class DatasetCapture
     {
         static readonly Guid k_DatasetGuid = Guid.NewGuid();
         internal static SimulationState SimulationState { get; private set; } = CreateSimulationData();
@@ -19,7 +19,7 @@ namespace UnityEngine.Perception.GroundTruth
         internal static string OutputDirectory => SimulationState.OutputDirectory;
 
         /// <summary>
-        /// The json metadata schema version the SimulationManager's output conforms to.
+        /// The json metadata schema version the DatasetCapture's output conforms to.
         /// </summary>
         public static string SchemaVersion => "0.0.1";
 
@@ -181,7 +181,7 @@ namespace UnityEngine.Perception.GroundTruth
     }
 
     /// <summary>
-    /// A handle to a sensor managed by the <see cref="SimulationManager"/>. It can be used to check whether the sensor
+    /// A handle to a sensor managed by the <see cref="DatasetCapture"/>. It can be used to check whether the sensor
     /// is expected to capture this frame and report captures, annotations, and metrics regarding the sensor.
     /// </summary>
     public struct SensorHandle : IDisposable, IEquatable<SensorHandle>
@@ -197,15 +197,15 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <summary>
-        /// Whether the sensor is currently enabled. When disabled, the SimulationManager will no longer schedule frames for running captures on this sensor.
+        /// Whether the sensor is currently enabled. When disabled, the DatasetCapture will no longer schedule frames for running captures on this sensor.
         /// </summary>
         public bool Enabled
         {
-            get => SimulationManager.SimulationState.IsEnabled(this);
+            get => DatasetCapture.SimulationState.IsEnabled(this);
             set
             {
                 CheckValid();
-                SimulationManager.SimulationState.SetEnabled(this, value);
+                DatasetCapture.SimulationState.SetEnabled(this, value);
             }
         }
 
@@ -224,7 +224,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!annotationDefinition.IsValid)
                 throw new ArgumentException("The given annotationDefinition is invalid", nameof(annotationDefinition));
 
-            return SimulationManager.SimulationState.ReportAnnotationFile(annotationDefinition, this, filename);
+            return DatasetCapture.SimulationState.ReportAnnotationFile(annotationDefinition, this, filename);
         }
 
         /// <summary>
@@ -243,7 +243,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!annotationDefinition.IsValid)
                 throw new ArgumentException("The given annotationDefinition is invalid", nameof(annotationDefinition));
 
-            return SimulationManager.SimulationState.ReportAnnotationValues(annotationDefinition, this, values);
+            return DatasetCapture.SimulationState.ReportAnnotationValues(annotationDefinition, this, values);
         }
 
         /// <summary>
@@ -260,7 +260,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!annotationDefinition.IsValid)
                 throw new ArgumentException("The given annotationDefinition is invalid", nameof(annotationDefinition));
 
-            return SimulationManager.SimulationState.ReportAnnotationAsync(annotationDefinition, this);
+            return DatasetCapture.SimulationState.ReportAnnotationAsync(annotationDefinition, this);
         }
 
         /// <summary>
@@ -277,14 +277,14 @@ namespace UnityEngine.Perception.GroundTruth
                 throw new InvalidOperationException("Capture reported in frame when ShouldCaptureThisFrame is false.");
             }
 
-            SimulationManager.SimulationState.ReportCapture(this, filename, sensorSpatialData, additionalSensorValues);
+            DatasetCapture.SimulationState.ReportCapture(this, filename, sensorSpatialData, additionalSensorValues);
         }
 
         /// <summary>
         /// Whether the sensor should capture this frame. Sensors are expected to call this method each frame to determine whether
         /// they should capture during the frame. Captures should only be reported when this is true.
         /// </summary>
-        public bool ShouldCaptureThisFrame => SimulationManager.SimulationState.ShouldCaptureThisFrame(this);
+        public bool ShouldCaptureThisFrame => DatasetCapture.SimulationState.ShouldCaptureThisFrame(this);
 
         /// <summary>
         /// Report a metric regarding this sensor in the current frame.
@@ -302,7 +302,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!ShouldCaptureThisFrame)
                 throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
 
-            SimulationManager.SimulationState.ReportMetric(metricDefinition, values, this, default);
+            DatasetCapture.SimulationState.ReportMetric(metricDefinition, values, this, default);
         }
 
         /// <summary>
@@ -317,7 +317,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!ShouldCaptureThisFrame)
                 throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
 
-            SimulationManager.SimulationState.ReportMetric(metricDefinition, new JRaw(valuesJsonArray), this, default);
+            DatasetCapture.SimulationState.ReportMetric(metricDefinition, new JRaw(valuesJsonArray), this, default);
         }
 
         /// <summary>
@@ -331,7 +331,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!ShouldCaptureThisFrame)
                 throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
 
-            return SimulationManager.SimulationState.CreateAsyncMetric(metricDefinition, this);
+            return DatasetCapture.SimulationState.CreateAsyncMetric(metricDefinition, this);
         }
 
         /// <summary>
@@ -345,7 +345,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Returns whether this SensorHandle is valid in the current simulation. Nil SensorHandles are never valid.
         /// </summary>
-        public bool IsValid => SimulationManager.IsValid(this.Id);
+        public bool IsValid => DatasetCapture.IsValid(this.Id);
         /// <summary>
         /// Returns true if this SensorHandle was default-instantiated.
         /// </summary>
@@ -353,7 +353,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         void CheckValid()
         {
-            if (!SimulationManager.IsValid(this.Id))
+            if (!DatasetCapture.IsValid(this.Id))
                 throw new InvalidOperationException("SensorHandle has been disposed or its simulation has ended");
         }
 
@@ -567,7 +567,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!SensorHandle.ShouldCaptureThisFrame)
                 throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
 
-            SimulationManager.SimulationState.ReportMetric(metricDefinition, values, SensorHandle, this);
+            DatasetCapture.SimulationState.ReportMetric(metricDefinition, values, SensorHandle, this);
         }
 
         /// <summary>
@@ -586,7 +586,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!SensorHandle.ShouldCaptureThisFrame)
                 throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
 
-            SimulationManager.SimulationState.ReportMetric(metricDefinition, new JRaw(valuesJsonArray), SensorHandle, this);
+            DatasetCapture.SimulationState.ReportMetric(metricDefinition, new JRaw(valuesJsonArray), SensorHandle, this);
         }
 
         /// <summary>
@@ -594,7 +594,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         /// <param name="metricDefinition">The type of the metric.</param>
         /// <returns>A handle to an AsyncMetric, which can be used to report values for this metric in future frames.</returns>
-        public AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition) => SimulationManager.SimulationState.CreateAsyncMetric(metricDefinition, SensorHandle, this);
+        public AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition) => DatasetCapture.SimulationState.CreateAsyncMetric(metricDefinition, SensorHandle, this);
 
         /// <inheritdoc/>
         public bool Equals(Annotation other)
@@ -678,7 +678,7 @@ namespace UnityEngine.Perception.GroundTruth
     }
 
     /// <summary>
-    /// A metric type, used to define a kind of metric. <see cref="SimulationManager.RegisterMetricDefinition"/>.
+    /// A metric type, used to define a kind of metric. <see cref="DatasetCapture.RegisterMetricDefinition"/>.
     /// </summary>
     public struct MetricDefinition : IEquatable<MetricDefinition>
     {
@@ -712,7 +712,7 @@ namespace UnityEngine.Perception.GroundTruth
     }
 
     /// <summary>
-    /// A metric type, used to define a kind of annotation. <see cref="SimulationManager.RegisterAnnotationDefinition"/>.
+    /// A metric type, used to define a kind of annotation. <see cref="DatasetCapture.RegisterAnnotationDefinition"/>.
     /// </summary>
     public struct AnnotationDefinition : IEquatable<AnnotationDefinition>
     {
@@ -738,7 +738,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// The ID of the annotation type. Used in the json metadata to associate anntations with the type.
         /// </summary>
         public readonly Guid Id;
-        internal bool IsValid => SimulationManager.IsValid(Id);
+        internal bool IsValid => DatasetCapture.IsValid(Id);
 
         internal AnnotationDefinition(Guid id)
         {

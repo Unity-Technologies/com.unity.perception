@@ -16,4 +16,4 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 |[Labeling](GroundTruth-Labeling.md)|Component which marks a GameObject and its descendants with a set of labels|
 |[Labeling Configuration](GroundTruth-Labeling.md#LabelingConfiguration)|Asset which defines a taxonomy of labels for ground truth generation|
 |[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html)|
-|[SimulationManager](SimulationManager.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset|
+|[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset|

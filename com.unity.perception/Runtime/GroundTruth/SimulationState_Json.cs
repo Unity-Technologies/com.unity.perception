@@ -23,7 +23,7 @@ namespace UnityEngine.Perception.GroundTruth
         public void WriteReferences()
         {
             var egoReference = new JObject();
-            egoReference["version"] = SimulationManager.SchemaVersion;
+            egoReference["version"] = DatasetCapture.SchemaVersion;
             egoReference["egos"] = new JArray(m_Egos.Select(e =>
             {
                 var egoObj = new JObject();
@@ -37,7 +37,7 @@ namespace UnityEngine.Perception.GroundTruth
             WriteJObjectToFile(egoReference, "egos.json");
 
             var sensorReferenceDoc = new JObject();
-            sensorReferenceDoc["version"] = SimulationManager.SchemaVersion;
+            sensorReferenceDoc["version"] = DatasetCapture.SchemaVersion;
             sensorReferenceDoc["sensors"] = new JArray(m_Sensors.Select(kvp =>
             {
                 var sensorReference = new JObject();
@@ -92,7 +92,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (annotationDefinitionsJArray.Count > 0)
                 {
                     var annotationDefinitionsJObject = new JObject();
-                    annotationDefinitionsJObject.Add("version", SimulationManager.SchemaVersion);
+                    annotationDefinitionsJObject.Add("version", DatasetCapture.SchemaVersion);
                     annotationDefinitionsJObject.Add("annotation_definitions", annotationDefinitionsJArray);
                     WriteJObjectToFile(annotationDefinitionsJObject, "annotation_definitions.json");
                 }
@@ -100,7 +100,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (metricDefinitionsJArray.Count > 0)
                 {
                     var metricDefinitionsJObject = new JObject();
-                    metricDefinitionsJObject.Add("version", SimulationManager.SchemaVersion);
+                    metricDefinitionsJObject.Add("version", DatasetCapture.SchemaVersion);
                     metricDefinitionsJObject.Add("metric_definitions", metricDefinitionsJArray);
                     WriteJObjectToFile(metricDefinitionsJObject, "metric_definitions.json");
                 }
@@ -167,7 +167,7 @@ namespace UnityEngine.Perception.GroundTruth
                     capturesJArray.Add(JObjectFromPendingCapture(pendingCapture));
 
                 var capturesJObject = new JObject();
-                capturesJObject.Add("version", SimulationManager.SchemaVersion);
+                capturesJObject.Add("version", DatasetCapture.SchemaVersion);
                 capturesJObject.Add("captures", capturesJArray);
 
                 simulationState.WriteJObjectToFile(capturesJObject,
@@ -237,7 +237,7 @@ namespace UnityEngine.Perception.GroundTruth
                     jArray.Add(JObjectFromPendingMetric(pendingMetric));
 
                 var metricsJObject = new JObject();
-                metricsJObject.Add("version", SimulationManager.SchemaVersion);
+                metricsJObject.Add("version", DatasetCapture.SchemaVersion);
                 metricsJObject.Add("metrics", jArray);
 
                 WriteJObjectToFile(metricsJObject, $"metrics_{metricsFileIndex:000}.json");

@@ -1,5 +1,5 @@
 # The Perception Camera component
-The Perception Camera component ensures the attached [Camera](https://docs.unity3d.com/Manual/class-Camera.html) runs at deterministic rates and captures RGB and other Camera-related ground truth to the [JSON dataset](Schema/Synthetic_Dataset_Schema.md) using [SimulationManager](SimulationManager.md). It supports HDRP and URP.
+The Perception Camera component ensures the attached [Camera](https://docs.unity3d.com/Manual/class-Camera.html) runs at deterministic rates and captures RGB and other Camera-related ground truth to the [JSON dataset](Schema/Synthetic_Dataset_Schema.md) using [DatasetCapture](DatasetCapture.md). It supports HDRP and URP.
 
 <img src="images/PerceptionCamera.PNG" align="middle"/>
 
@@ -7,7 +7,7 @@ The Perception Camera component ensures the attached [Camera](https://docs.unity
 | Property: | Function: |
 |--|--|
 | Description | A description of the camera to be registered in the JSON dataset. |
-| Period | The amount of simulation time in seconds between frames for this camera. For more on sensor scheduling, see [SimulationManager](SimulationManager.md). |
+| Period | The amount of simulation time in seconds between frames for this camera. For more on sensor scheduling, see [DatasetCapture](DatasetCapture.md). |
 | Start Time | The simulation time at which to run the first frame. This time will offset the period, useful for allowing multiple cameras to run at the right times relative to each other. |
 | Capture Rgb Images | When this is checked, RGB images will be captured as PNG files in the dataset each frame. |
 | Produce Segmentation Images| When this is checked at startup, semantic segmentation images will be captured as PNG files in the dataset each frame. Pixel colors are derived from the [Labeling](GroundTruth-Labeling.md) components attached to the GameObjects and the Labeling Configuration specified on the Perception Camera. |

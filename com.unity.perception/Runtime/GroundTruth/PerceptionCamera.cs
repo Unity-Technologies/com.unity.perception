@@ -232,8 +232,8 @@ namespace UnityEngine.Perception.GroundTruth
             //CaptureOptions.useAsyncReadbackIfSupported = false;
 
             m_EgoMarker = this.GetComponentInParent<Ego>();
-            var ego = m_EgoMarker == null ? SimulationManager.RegisterEgo("") : m_EgoMarker.EgoHandle;
-            SensorHandle = SimulationManager.RegisterSensor(ego, "camera", description, period, startTime);
+            var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
+            SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime);
 
             var myCamera = GetComponent<Camera>();
             var width = myCamera.pixelWidth;
@@ -284,7 +284,7 @@ namespace UnityEngine.Perception.GroundTruth
                     pixel_value = l.value
                 }).ToArray();
 
-                m_SegmentationAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition("semantic segmentation", specs, "pixel-wise semantic segmentation label", "PNG");
+                m_SegmentationAnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("semantic segmentation", specs, "pixel-wise semantic segmentation label", "PNG");
 
                 m_ClassLabelingTextureReader = new RenderTextureReader<short>(labelingTexture, myCamera,
                     (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
@@ -300,16 +300,16 @@ namespace UnityEngine.Perception.GroundTruth
 
                 if (produceObjectCountAnnotations)
                 {
-                    m_ObjectCountMetricDefinition = SimulationManager.RegisterMetricDefinition("object count", labelingMetricSpec, "Counts of objects for each label in the sensor's view", id: new Guid(objectCountId));
+                    m_ObjectCountMetricDefinition = DatasetCapture.RegisterMetricDefinition("object count", labelingMetricSpec, "Counts of objects for each label in the sensor's view", id: new Guid(objectCountId));
                 }
 
                 if (produceBoundingBoxAnnotations)
                 {
-                    m_BoundingBoxAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition("bounding box", labelingMetricSpec, "Bounding box for each labeled object visible to the sensor", id: new Guid(boundingBoxId));
+                    m_BoundingBoxAnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("bounding box", labelingMetricSpec, "Bounding box for each labeled object visible to the sensor", id: new Guid(boundingBoxId));
                 }
 
                 if (produceRenderedObjectInfoMetric)
-                    m_RenderedObjectInfoMetricDefinition = SimulationManager.RegisterMetricDefinition("rendered object info", labelingMetricSpec, "Information about each labeled object visible to the sensor", id: new Guid(renderedObjectInfoId));
+                    m_RenderedObjectInfoMetricDefinition = DatasetCapture.RegisterMetricDefinition("rendered object info", labelingMetricSpec, "Information about each labeled object visible to the sensor", id: new Guid(renderedObjectInfoId));
 
                 m_RenderedObjectInfoGenerator = new RenderedObjectInfoGenerator(LabelingConfiguration);
                 World.DefaultGameObjectInjectionWorld.GetExistingSystem<GroundTruthLabelSetupSystem>().Activate(m_RenderedObjectInfoGenerator);
@@ -336,7 +336,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            SimulationManager.SimulationEnding += OnSimulationEnding;
+            DatasetCapture.SimulationEnding += OnSimulationEnding;
         }
 
         // ReSharper disable InconsistentNaming
@@ -639,7 +639,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         void OnDisable()
         {
-            SimulationManager.SimulationEnding -= OnSimulationEnding;
+            DatasetCapture.SimulationEnding -= OnSimulationEnding;
 
             OnSimulationEnding();
 

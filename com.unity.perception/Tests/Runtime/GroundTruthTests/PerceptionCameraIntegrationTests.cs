@@ -43,9 +43,9 @@ namespace GroundTruthTests
             //a plane is 10x10 by default, so scale it down to be 10x1 to cover the center half of the image
             plane.transform.localScale = new Vector3(10f, -1f, .1f);
             yield return null;
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
             StringAssert.Contains(jsonExpected, capturesJson);
         }
@@ -60,9 +60,9 @@ namespace GroundTruthTests
 
             this.AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
             yield return null;
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
             var imagePath = Path.Combine("SemanticSegmentation", expectedImageFilename).Replace(@"\", @"\\");
             StringAssert.Contains(imagePath, capturesJson);

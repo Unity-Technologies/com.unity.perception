@@ -4,22 +4,22 @@ using UnityEngine.Perception.GroundTruth;
 
 namespace GroundTruth
 {
-    public class SimulationManagerEditorTests
+    public class DatasetCaptureEditorTests
     {
         [Test]
         public void RegisterEgo_InEditMode_Throws()
         {
-            Assert.Throws<InvalidOperationException>(() => SimulationManager.RegisterEgo(""));
+            Assert.Throws<InvalidOperationException>(() => DatasetCapture.RegisterEgo(""));
         }
         [Test]
         public void RegisterAnnotationDefinition_InEditMode_Throws()
         {
-            Assert.Throws<InvalidOperationException>(() => SimulationManager.RegisterAnnotationDefinition(""));
+            Assert.Throws<InvalidOperationException>(() => DatasetCapture.RegisterAnnotationDefinition(""));
         }
         [Test]
         public void RegisterMetricDefinition_InEditMode_Throws()
         {
-            Assert.Throws<InvalidOperationException>(() => SimulationManager.RegisterMetricDefinition(""));
+            Assert.Throws<InvalidOperationException>(() => DatasetCapture.RegisterMetricDefinition(""));
         }
     }
 }

@@ -38,9 +38,9 @@ namespace EditorTests
             var expectedLastFrame = Time.frameCount;
             yield return null;
 
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
             for (int iFrameCount = expectedFirstFrame; iFrameCount <= expectedLastFrame; iFrameCount++)
             {

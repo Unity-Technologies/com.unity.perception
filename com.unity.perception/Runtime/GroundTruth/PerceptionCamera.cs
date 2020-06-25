@@ -74,7 +74,9 @@ namespace UnityEngine.Perception.GroundTruth
         static ProfilerMarker s_FlipY = new ProfilerMarker("Flip Y (PerceptionCamera)");
         static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
 
+#if URP_PRESENT
         bool m_GroundTruthRendererFeatureRun;
+#endif
 
         /// <summary>
         /// Add a data object which will be added to the dataset with each capture. Overrides existing sensor data associated with the given key.
@@ -310,9 +312,11 @@ namespace UnityEngine.Perception.GroundTruth
             return false;
         }
 
+#if URP_PRESENT
         internal void OnGroundTruthRendererFeatureRun()
         {
             m_GroundTruthRendererFeatureRun = true;
         }
+#endif
     }
 }

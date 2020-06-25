@@ -19,11 +19,11 @@ namespace EditorTests
         [TearDown]
         public void TearDown()
         {
-            GraphicsSettings.renderPipelineAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/UniversalRPAsset.asset");;
+            GraphicsSettings.renderPipelineAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/UniversalRPAsset.asset");
         }
 
         [UnityTest]
-        public IEnumerator NoLabelingConfiguration_ProducesLogError()
+        public IEnumerator MissingRendererFeature_ProducesLogError()
         {
             int sceneCount = SceneManager.sceneCount;
             for (int i = sceneCount - 1; i >= 0; i--)
@@ -33,7 +33,7 @@ namespace EditorTests
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
 
-            var urpAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/NoRendererFeatureURPAsset.asset");
+            var urpAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/NoGroundTruthURPAsset.asset");
             GraphicsSettings.renderPipelineAsset = urpAsset;
 
             yield return new EnterPlayMode();
@@ -43,11 +43,11 @@ namespace EditorTests
             gameObject.AddComponent<Camera>();
             var perceptionCamera = gameObject.AddComponent<PerceptionCamera>();
             gameObject.SetActive(true);
-
+            LogAssert.Expect(LogType.Error, "GroundTruthRendererFeature must be present on the ScriptableRenderer associated with the camera. The ScriptableRenderer can be accessed through Edit -> Project Settings... -> Graphics -> Scriptable Render Pipeline Settings -> Renderer List.");
             yield return null;
             Assert.IsFalse(perceptionCamera.enabled);
-            LogAssert.Expect(LogType.Error, "GroundTruthRendererFeature must be present on the ScriptableRenderer associated with the camera. The ScriptableRenderer can be accessed through Edit -> Project Settings... -> Graphics -> Scriptable Render Pipeline Settings -> Renderer List.");
             yield return new ExitPlayMode();
+            GraphicsSettings.renderPipelineAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/UniversalRPAsset.asset");
         }
     }
 }

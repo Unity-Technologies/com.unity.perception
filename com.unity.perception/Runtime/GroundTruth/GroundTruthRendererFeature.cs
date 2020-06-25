@@ -61,6 +61,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!EditorApplication.isPlaying)
                 return;
 #endif
+            perceptionCamera.OnGroundTruthRendererFeatureRun();
             foreach (var pass in perceptionCamera.passes)
                 renderer.EnqueuePass(pass);
         }

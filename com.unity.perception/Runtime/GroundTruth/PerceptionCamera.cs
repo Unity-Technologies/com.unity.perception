@@ -74,6 +74,8 @@ namespace UnityEngine.Perception.GroundTruth
         static ProfilerMarker s_FlipY = new ProfilerMarker("Flip Y (PerceptionCamera)");
         static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
 
+        bool m_GroundTruthRendererFeatureRun;
+
         /// <summary>
         /// Add a data object which will be added to the dataset with each capture. Overrides existing sensor data associated with the given key.
         /// </summary>
@@ -104,9 +106,25 @@ namespace UnityEngine.Perception.GroundTruth
             SetupInstanceSegmentation();
 
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
             DatasetCapture.SimulationEnding += OnSimulationEnding;
         }
 
+
+        void CheckForRendererFeature(ScriptableRenderContext arg1, Camera arg2)
+        {
+            if (arg2 == GetComponent<Camera>())
+            {
+#if URP_PRESENT
+                if (!m_GroundTruthRendererFeatureRun)
+                {
+                    Debug.LogError("GroundTruthRendererFeature must be present on the ScriptableRenderer associated with the camera. The ScriptableRenderer can be accessed through Edit -> Project Settings... -> Graphics -> Scriptable Render Pipeline Settings -> Renderer List.");
+                    enabled = false;
+                }
+#endif
+                RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
+            }
+        }
         // Update is called once per frame
         void Update()
         {
@@ -285,6 +303,11 @@ namespace UnityEngine.Perception.GroundTruth
                 return true;
             }
             return false;
+        }
+
+        internal void OnGroundTruthRendererFeatureRun()
+        {
+            m_GroundTruthRendererFeatureRun = true;
         }
     }
 }

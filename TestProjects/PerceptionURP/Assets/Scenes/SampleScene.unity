@@ -615,7 +615,7 @@ MonoBehaviour:
       data:
         enabled: 1
         objectCountMetricId: 51DA3C27-369D-4929-AEA6-D01614635CE2
-        m_IdLabelConfig: {fileID: 11400000, guid: cedcacfb1d9beb34fbbb231166c472fe,
+        m_LabelConfig: {fileID: 11400000, guid: cedcacfb1d9beb34fbbb231166c472fe,
           type: 2}
     00000001:
       type: {class: BoundingBox2DLabeler, ns: UnityEngine.Perception.GroundTruth,

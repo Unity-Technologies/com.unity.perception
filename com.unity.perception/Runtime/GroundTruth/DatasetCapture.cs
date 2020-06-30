@@ -146,6 +146,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Report a metric not associated with any sensor or annotation.
         /// </summary>
         /// <param name="metricDefinition">The metric definition of the metric being reported</param>
+        /// <returns>An <see cref="AsyncMetric"/> which should be used to report the metric values, potentially in a later frame</returns>
         public static AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition) => SimulationState.CreateAsyncMetric(metricDefinition);
 
         /// <summary>

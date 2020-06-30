@@ -332,8 +332,6 @@ namespace UnityEngine.Perception.GroundTruth
 
                     if (produceRenderedObjectInfoMetric)
                         ProduceRenderedObjectInfoMetric(renderedObjectInfos, frameCount);
-
-                    //
                 });
             }
 

@@ -9,7 +9,7 @@ publish:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - npm install upm-ci-utils@stable -g --registry {{ upmci_registry }}
     - upm-ci package publish --package-path com.unity.perception
   triggers:
     tags:

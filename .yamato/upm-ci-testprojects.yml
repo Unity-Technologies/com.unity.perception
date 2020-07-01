@@ -1,17 +1,6 @@
-test_editors:
-  - version: 2019.3.15f1
-suites:
-  - name: standalone
-    display_name: standalone
-    args: --suite=playmode --platform=
-  - name: editmode
-    display_name: editmode
-    args: --suite=playmode --suite=editor --platform=Editor
-projects:
-  - name: PerceptionHDRP
-  - name: PerceptionURP
----
+{% metadata_file .yamato/environments.yml %}
 
+---
 {% for editor in test_editors %}
 {% for suite in suites %}
 {% for project in projects %}

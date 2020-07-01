@@ -19,6 +19,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// <summary>
     /// A definition for how a <see cref="Labeling"/> should be resolved to a single label and id for ground truth generation.
     /// </summary>
+    /// <typeparam name="T"> The entry type. Must derive from <see cref="ILabelEntry"/> </typeparam>
     public class LabelConfig<T> : ScriptableObject where T : ILabelEntry
     {
         /// <summary>

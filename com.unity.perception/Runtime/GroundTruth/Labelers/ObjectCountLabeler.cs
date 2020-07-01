@@ -66,6 +66,7 @@ namespace UnityEngine.Perception.GroundTruth
             public uint count;
         }
 
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (labelConfig == null)
@@ -81,6 +82,7 @@ namespace UnityEngine.Perception.GroundTruth
             };
         }
 
+        /// <inheritdoc/>
         protected override void OnBeginRendering()
         {
             if (m_ObjectCountMetricDefinition.Equals(default))

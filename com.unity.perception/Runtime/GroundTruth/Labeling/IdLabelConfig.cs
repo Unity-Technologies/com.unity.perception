@@ -24,7 +24,7 @@ namespace UnityEngine.Perception.GroundTruth {
     /// A definition for how a <see cref="Labeling"/> should be resolved to a single label and id for ground truth generation.
     /// </summary>
     [CreateAssetMenu(fileName = "IdLabelConfig", menuName = "Perception/ID Label Config", order = 1)]
-    public class IdLabelConfig : LabelConfig<IdLabelEntry>
+    public sealed class IdLabelConfig : LabelConfig<IdLabelEntry>
     {
         /// <summary>
         /// Whether the inspector will auto-assign ids based on the id of the first element.
@@ -64,6 +64,7 @@ namespace UnityEngine.Perception.GroundTruth {
             return m_LabelEntryMatchCache.TryGetLabelEntryFromInstanceId(instanceId, out labelEntry, out index);
         }
 
+        /// <inheritdoc/>
         protected override void OnInit()
         {
             if (m_LabelEntryMatchCache != null)

@@ -13,10 +13,15 @@ namespace UnityEngine.Perception.GroundTruth
 {
     partial class PerceptionCamera
     {
+        /// <summary>
+        /// Invoked when instance segmentation images are read back from the graphics system. The first parameter is the
+        /// Time.frameCount at which the objects were rendered. May be invoked many frames after the objects were rendered.
+        /// </summary>
         public event Action<int, NativeArray<uint>, RenderTexture> InstanceSegmentationImageReadback;
 
         /// <summary>
-        /// Invoked when RenderedObjectInfos are calculated. The first parameter is the Time.frameCount at which the objects were rendered. This may be called many frames after the frame in which the objects were rendered.
+        /// Invoked when RenderedObjectInfos are calculated. The first parameter is the Time.frameCount at which the
+        /// objects were rendered. This may be called many frames after the objects were rendered.
         /// </summary>
         public event Action<int, NativeArray<RenderedObjectInfo>> RenderedObjectInfosCalculated;
 

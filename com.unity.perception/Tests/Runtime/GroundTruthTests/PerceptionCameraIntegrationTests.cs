@@ -6,7 +6,6 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
-using Object = UnityEngine.Object;
 
 #if MOQ_PRESENT
 using Moq;
@@ -106,7 +105,7 @@ namespace GroundTruthTests
             return labelingConfiguration;
         }
 
-        GameObject SetupCamera(Action<PerceptionCamera> initPerceptionCamera)
+        void SetupCamera(Action<PerceptionCamera> initPerceptionCamera)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -120,7 +119,6 @@ namespace GroundTruthTests
 
             cameraObject.SetActive(true);
             AddTestObjectForCleanup(cameraObject);
-            return cameraObject;
         }
     }
 }

@@ -58,6 +58,7 @@ namespace UnityEngine.Perception.GroundTruth
             this.idLabelConfig = idLabelConfig;
         }
 
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (idLabelConfig == null)
@@ -71,6 +72,7 @@ namespace UnityEngine.Perception.GroundTruth
             };
         }
 
+        /// <inheritdoc/>
         protected override void OnBeginRendering()
         {
             if (m_RenderedObjectInfoMetricDefinition.Equals(default))

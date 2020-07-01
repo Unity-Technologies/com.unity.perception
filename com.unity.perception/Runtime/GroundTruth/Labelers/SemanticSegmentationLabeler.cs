@@ -105,6 +105,7 @@ namespace UnityEngine.Perception.GroundTruth
             public string path;
         }
 
+        /// <inheritdoc/>
         protected override void Setup()
         {
             var myCamera = perceptionCamera.GetComponent<Camera>();
@@ -153,8 +154,6 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_SemanticSegmentationTextureReader = new RenderTextureReader<Color32>(semanticSegmentationTexture, myCamera,
                 (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
-
-            DatasetCapture.SimulationEnding += Cleanup;
         }
 
         void OnSemanticSegmentationImageRead(int frameCount, NativeArray<Color32> data)
@@ -195,11 +194,13 @@ namespace UnityEngine.Perception.GroundTruth
             });
         }
 
+        /// <inheritdoc/>
         protected override void OnBeginRendering()
         {
             m_AsyncAnnotations[Time.frameCount] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_SemanticSegmentationAnnotationDefinition);
         }
 
+        /// <inheritdoc/>
         protected override void Cleanup()
         {
             m_SemanticSegmentationTextureReader?.WaitForAllImages();

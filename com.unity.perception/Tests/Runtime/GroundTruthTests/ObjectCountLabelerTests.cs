@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Unity.Collections;
 #if UNITY_EDITOR
@@ -26,6 +25,7 @@ namespace GroundTruthTests
         [Test]
         public void NullLabelingConfiguration_ProducesInvalidOperationException()
         {
+            // ReSharper disable once ObjectCreationAsStatement
             Assert.Throws<ArgumentNullException>(() => new ObjectCountLabeler(null));
         }
         [UnityTest]

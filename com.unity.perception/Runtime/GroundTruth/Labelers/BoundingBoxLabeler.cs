@@ -58,6 +58,7 @@ namespace UnityEngine.Perception.GroundTruth
             this.idLabelConfig = labelConfig;
         }
 
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (idLabelConfig == null)
@@ -71,6 +72,7 @@ namespace UnityEngine.Perception.GroundTruth
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfosCalculated;
         }
 
+        /// <inheritdoc/>
         protected override void OnBeginRendering()
         {
             m_AsyncAnnotations[Time.frameCount] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_BoundingBoxAnnotationDefinition);

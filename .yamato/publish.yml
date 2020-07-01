@@ -12,9 +12,9 @@ publish:
     - npm install upm-ci-utils@stable -g --registry {{ upmci_registry }}
     - upm-ci package publish --package-path com.unity.perception
   triggers:
-    tags:
+    branches:
       only:
-        - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
+        - "/.*/"
   artifacts:
     artifacts:
       paths:

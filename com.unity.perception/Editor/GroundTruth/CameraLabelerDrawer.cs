@@ -14,7 +14,7 @@ namespace UnityEditor.Perception.GroundTruth {
     {
         SerializedProperty m_Enabled;
 
-        bool m_IsInitialized = true;
+        bool m_IsInitialized;
         List<SerializedProperty> m_LabelerUserProperties = new List<SerializedProperty>();
 
         /// <summary>

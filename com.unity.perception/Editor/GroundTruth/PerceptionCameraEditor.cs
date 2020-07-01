@@ -70,12 +70,14 @@ namespace UnityEditor.Perception.GroundTruth
 
         void AddLabeler(SerializedProperty labelers, Type labelerType)
         {
-            var insertIndex = labelers.arraySize;
-            labelers.InsertArrayElementAtIndex(insertIndex);
-            var element = labelers.GetArrayElementAtIndex(insertIndex);
             var labeler = (CameraLabeler)Activator.CreateInstance(labelerType);
             labeler.enabled = true;
-            element.managedReferenceValue = labeler;
+            perceptionCamera.AddLabeler(labeler);
+            // var insertIndex = labelers.arraySize;
+            // labelers.InsertArrayElementAtIndex(insertIndex);
+            // serializedObject.ApplyModifiedProperties();
+            // var element = labelers.GetArrayElementAtIndex(insertIndex);
+            // element.managedReferenceValue = labeler;
             serializedObject.ApplyModifiedProperties();
         }
 

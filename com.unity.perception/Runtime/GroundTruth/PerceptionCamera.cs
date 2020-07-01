@@ -98,13 +98,13 @@ namespace UnityEngine.Perception.GroundTruth
         void Awake()
         {
             m_EgoMarker = this.GetComponentInParent<Ego>();
-            var ego = m_EgoMarker == null ? SimulationManager.RegisterEgo("") : m_EgoMarker.EgoHandle;
-            SensorHandle = SimulationManager.RegisterSensor(ego, "camera", description, period, startTime);
+            var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
+            SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime);
 
             SetupInstanceSegmentation();
 
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            SimulationManager.SimulationEnding += OnSimulationEnding;
+            DatasetCapture.SimulationEnding += OnSimulationEnding;
         }
 
         // Update is called once per frame
@@ -246,7 +246,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         void OnDisable()
         {
-            SimulationManager.SimulationEnding -= OnSimulationEnding;
+            DatasetCapture.SimulationEnding -= OnSimulationEnding;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
 
             OnSimulationEnding();

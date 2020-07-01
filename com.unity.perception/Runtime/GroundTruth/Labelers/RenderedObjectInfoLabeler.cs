@@ -75,7 +75,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (m_RenderedObjectInfoMetricDefinition.Equals(default))
             {
-                m_RenderedObjectInfoMetricDefinition = SimulationManager.RegisterMetricDefinition(
+                m_RenderedObjectInfoMetricDefinition = DatasetCapture.RegisterMetricDefinition(
                     "rendered object info",
                     idLabelConfig.GetAnnotationSpecification(),
                     "Information about each labeled object visible to the sensor",

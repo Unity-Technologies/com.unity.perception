@@ -65,7 +65,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
 
-            m_BoundingBoxAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition("bounding box", idLabelConfig.GetAnnotationSpecification(),
+            m_BoundingBoxAnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("bounding box", idLabelConfig.GetAnnotationSpecification(),
                 "Bounding box for each labeled object visible to the sensor", id: new Guid(annotationId));
 
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfosCalculated;

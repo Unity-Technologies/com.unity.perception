@@ -144,7 +144,7 @@ namespace UnityEngine.Perception.GroundTruth
                 pixel_value = l.color
             }).ToArray();
 
-            m_SemanticSegmentationAnnotationDefinition = SimulationManager.RegisterAnnotationDefinition(
+            m_SemanticSegmentationAnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition(
                 "semantic segmentation",
                 specs,
                 "pixel-wise semantic segmentation label",
@@ -154,7 +154,7 @@ namespace UnityEngine.Perception.GroundTruth
             m_SemanticSegmentationTextureReader = new RenderTextureReader<Color32>(semanticSegmentationTexture, myCamera,
                 (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
 
-            SimulationManager.SimulationEnding += Cleanup;
+            DatasetCapture.SimulationEnding += Cleanup;
         }
 
         void OnSemanticSegmentationImageRead(int frameCount, NativeArray<Color32> data)

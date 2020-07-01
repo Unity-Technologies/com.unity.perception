@@ -85,7 +85,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (m_ObjectCountMetricDefinition.Equals(default))
             {
-                m_ObjectCountMetricDefinition = SimulationManager.RegisterMetricDefinition("object count",
+                m_ObjectCountMetricDefinition = DatasetCapture.RegisterMetricDefinition("object count",
                     m_LabelConfig.GetAnnotationSpecification(),
                     "Counts of objects for each label in the sensor's view", id: new Guid(objectCountMetricId));
             }

@@ -1,6 +1,7 @@
 {% metadata_file .yamato/environments.yml %}
 
 ---
+
 {% for editor in test_editors %}
 {% for suite in suites %}
 {% for project in projects %}

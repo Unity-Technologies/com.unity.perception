@@ -50,7 +50,7 @@ suites:
     args: --suite=playmode --platform=
   - name: editmode
     display_name: editmode
-    args: --suite=playmode --suite=editor --platform=editmode
+    args: --suite=playmode --suite=editor --platform=Editor
 
 package_variants:
   - name: Perception

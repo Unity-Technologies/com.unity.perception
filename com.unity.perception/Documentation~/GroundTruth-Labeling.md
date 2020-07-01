@@ -1,5 +1,5 @@
 # Labeling
-Accurately labeling assets with a predefined taxonomy will inform training and testing of algorithms as to which objects in a dataset have importance. Example: assets labeled with “table” and “chair” will provide an algorithm with the information it needs to train on identifying these objects separately within a scene.
+Labeling is the process of mapping objects in the scene to a taxonomy for a perception task.
 
 You can add a Labeling component to individual GameObjects within a scene although it is a good practice to create a prefab of a GameModel and apply the Labeling component to it.
 

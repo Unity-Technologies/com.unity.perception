@@ -37,9 +37,9 @@ The Bounding Box 2D Labeler produces 2D bounding boxes for each visible object w
     "count": 1
 }
 ```
-_example object count from [SynthDet](https://github.com/Unity-Technologies/SynthDet)_
+_Example object count for a single label_
 
-The Object Count Labeler 
+The Object Count Labeler records object counts for each label in the provided ID Label Config. Only objects with at least one visible pixel in the camera frame will be recorded.
 
 ### Rendered Object Info Labeler
 ```
@@ -49,3 +49,6 @@ The Object Count Labeler
     "visible_pixels": 28957
 }
 ```
+_Example rendered object info for a single object_
+
+The Rendered Object Info Labeler records a list of all objects visible in the camera image, including its instance id, resolved label id and visible pixels. Objects not resolved to a label in the given ID Label Config are not recorded.

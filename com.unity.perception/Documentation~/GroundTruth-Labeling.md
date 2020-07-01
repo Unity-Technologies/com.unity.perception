@@ -1,19 +1,21 @@
 # Labeling
-Labeling is the process of mapping objects in the scene to a taxonomy for a perception task.
+Many labelers require mapping the objects in the view to the values recorded in the dataset. As an example, Semantic Segmentation needs to determine the color to draw each object in the segmentation image.
 
-You can add a Labeling component to individual GameObjects within a scene although it is a good practice to create a prefab of a GameModel and apply the Labeling component to it.
+This mapping is accomplished for a GameObject by:
+* Finding the nearest Labeling component attached to the object or its ancestors.
+* Find the first label in the Labeling which is present anywhere in the Labeler's Label Config.
+* The resolved Label Entry from the Label Config is used to produce the final output.
 
-Multiple labels can be assigned to the same `Labeling`. When ground truth which requires unique labels per object is being generated, the first label in the `Labeling` present anywhere in the `LabelingConfiguration` is used.
+## Labeling component
+The `Labeling` component associates a list of string-based labels with a GameObject and its descendants. A `Labeling` component on a descendant overrides its parent's labels.
 
-## Labeling Configuration
-Many labelers require require a `Labeling Configuration` asset.
-This file specifies a list of all labels to be captured in the dataset for a labeler along with extra information used by the various labelers.
+## Label Config
+Many labelers require require a `Label Config` asset. This asset specifies a list of all labels to be captured in the dataset along with extra information used by the various labelers.
 
 ## Best practices
 Generally algorithm testing and training requires a single label on an asset for proper identification such as “chair”, “table”, or “door". To maximize asset reuse, however, it is useful to give each object multiple labels in a hierarchy.
 
-For example
-An asset representing a box of Rice Krispies cereal could be labeled as `food\cereal\kellogs\ricekrispies`
+For example, an asset representing a box of Rice Krispies cereal could be labeled as `food\cereal\kellogs\ricekrispies`
 
 * “food” - type
 * “cereal” - subtype

@@ -29,17 +29,20 @@ promotion_test_{{ platform.name }}_{{ editor.version }}:
 promotion_test_trigger:
   name: Promotion Tests Trigger
   dependencies:
-{% for editor in publish_editors %}
-{% for platform in publish_platforms %}
-{% for suite in suites %}
-{% for project in projects %}
+    {% for editor in publish_editors %}
+    {% for platform in publish_platforms %}
+    {% for suite in suites %}
+    {% for project in projects %}
+    {% for variant in package_variants %}
     - .yamato/promote.yml#promotion_test_{{platform.name}}_{{editor.version}}
     - .yamato/upm-ci-full.yml#pkg_test_{{variant.name}}_{{platform.name}}_{{editor.version}}
-    - .yamato/upm-ci-testprojects#{{project.name}}_windows_{{suite.name}}_{{editor.version}}.yml#
-{% endfor %}
-{% endfor %}
-{% endfor %}
-{% endfor %}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_{{suite.name}}_{{editor.version}}
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}
+
 
 promote:
   name: Promote to Production
@@ -61,11 +64,11 @@ promote:
       paths:
         - "upm-ci~/packages/*.tgz"
   dependencies:
-{% for variant in package_variants %}
+    {% for variant in package_variants %}
+    {% for editor in publish_editors %}
+    {% for platform in publish_platforms %}
     - .yamato/upm-ci-full.yml#pack_{{ variant.name }}
-{% for editor in publish_editors %}
-{% for platform in publish_platforms %}
     - .yamato/promote.yml#promotion_test_{{ platform.name }}_{{ editor.version }}
-{% endfor %}
-{% endfor %}
-{% endfor %}
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}

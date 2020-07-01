@@ -448,6 +448,9 @@ namespace UnityEngine.Perception.GroundTruth
 
         public bool ShouldCaptureThisFrame(SensorHandle sensorHandle)
         {
+            if (!m_Sensors.ContainsKey(sensorHandle))
+                return false;
+
             var data = m_Sensors[sensorHandle];
             if (data.lastCaptureFrameCount == Time.frameCount)
                 return true;

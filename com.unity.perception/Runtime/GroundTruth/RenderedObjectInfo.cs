@@ -11,11 +11,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The instanceId of the rendered object.
         /// </summary>
-        public int instanceId;
-        /// <summary>
-        /// The labelId of the object resolved by a <see cref="LabelingConfiguration"/>
-        /// </summary>
-        public int labelId;
+        public uint instanceId;
         /// <summary>
         /// The bounding box of the object in pixel coordinates.
         /// </summary>
@@ -28,13 +24,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{nameof(instanceId)}: {instanceId}, {nameof(labelId)}: {labelId}, {nameof(boundingBox)}: {boundingBox}, {nameof(pixelCount)}: {pixelCount}";
+            return $"{nameof(instanceId)}: {instanceId}, {nameof(boundingBox)}: {boundingBox}, {nameof(pixelCount)}: {pixelCount}";
         }
 
         /// <inheritdoc />
         public bool Equals(RenderedObjectInfo other)
         {
-            return instanceId == other.instanceId && labelId == other.labelId && boundingBox.Equals(other.boundingBox) && pixelCount == other.pixelCount;
+            return instanceId == other.instanceId && boundingBox.Equals(other.boundingBox) && pixelCount == other.pixelCount;
         }
 
         /// <inheritdoc />
@@ -48,8 +44,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             unchecked
             {
-                var hashCode = instanceId;
-                hashCode = (hashCode * 397) ^ labelId;
+                var hashCode = (int)instanceId;
                 hashCode = (hashCode * 397) ^ boundingBox.GetHashCode();
                 hashCode = (hashCode * 397) ^ pixelCount;
                 return hashCode;

@@ -20,27 +20,32 @@ namespace GroundTruthTests
     //Graphics issues with OpenGL Linux Editor. https://jira.unity3d.com/browse/AISV-422
     [UnityPlatform(exclude = new[] {RuntimePlatform.LinuxEditor, RuntimePlatform.LinuxPlayer})]
     [TestFixture]
-    class ObjectCountTests : GroundTruthTestBase
+    class ObjectCountLabelerTests : GroundTruthTestBase
     {
+        [Test]
+        public void NullLabelingConfiguration_ProducesInvalidOperationException()
+        {
+            // ReSharper disable once ObjectCreationAsStatement
+            Assert.Throws<ArgumentNullException>(() => new ObjectCountLabeler(null));
+        }
         [UnityTest]
         public IEnumerator ProducesCorrectValuesWithChangingObjects()
         {
             var label = "label";
-            var labelingConfiguration = ScriptableObject.CreateInstance<LabelingConfiguration>();
+            var labelingConfiguration = ScriptableObject.CreateInstance<IdLabelConfig>();
 
-            labelingConfiguration.LabelEntries = new List<LabelEntry>
+            labelingConfiguration.Init(new List<IdLabelEntry>
             {
-                new LabelEntry
+                new IdLabelEntry
                 {
                     id = 1,
-                    label = label,
-                    value = 500
+                    label = label
                 }
-            };
+            });
 
-            var receivedResults = new List<(uint[] counts, LabelEntry[] labels, int frameCount)>();
+            var receivedResults = new List<(uint[] counts, IdLabelEntry[] labels, int frameCount)>();
 
-            var cameraObject = SetupCamera(labelingConfiguration, (counts, labels, frameCount) =>
+            var cameraObject = SetupCamera(labelingConfiguration, (frameCount, counts, labels) =>
             {
                 receivedResults.Add((counts.ToArray(), labels.ToArray(), frameCount));
             });
@@ -74,11 +79,6 @@ namespace GroundTruthTests
             yield return null;
 
             Object.DestroyImmediate(planeObject2);
-#if HDRP_PRESENT
-            //TODO: Remove this when DestroyImmediate properly calls Cleanup on the pass
-            var labelHistogramPass = (ObjectCountPass)cameraObject.GetComponent<CustomPassVolume>().customPasses.First(p => p is ObjectCountPass);
-            labelHistogramPass.WaitForAllRequests();
-#endif
             //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
             DestroyTestObject(cameraObject);
 
@@ -101,8 +101,8 @@ namespace GroundTruthTests
             CollectionAssert.IsEmpty(expectedFramesAndCounts);
         }
 
-        static GameObject SetupCamera(LabelingConfiguration labelingConfiguration,
-            Action<NativeSlice<uint>, IReadOnlyList<LabelEntry>, int> onClassCountsReceived)
+        static GameObject SetupCamera(IdLabelConfig idLabelConfig,
+            Action<int, NativeSlice<uint>, IReadOnlyList<IdLabelEntry>> onClassCountsReceived)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -110,37 +110,15 @@ namespace GroundTruthTests
             camera.orthographic = true;
             camera.orthographicSize = 1;
 
-#if HDRP_PRESENT
-            cameraObject.AddComponent<HDAdditionalCameraData>();
-            var customPassVolume = cameraObject.AddComponent<CustomPassVolume>();
-            customPassVolume.isGlobal = true;
-            var rt = new RenderTexture(128, 128, 1, GraphicsFormat.R8G8B8A8_UNorm);
-            rt.Create();
-            var instanceSegmentationPass = new InstanceSegmentationPass()
-            {
-                targetCamera = camera,
-                targetTexture = rt
-            };
-            instanceSegmentationPass.name = nameof(instanceSegmentationPass);
-            instanceSegmentationPass.EnsureInit();
-            customPassVolume.customPasses.Add(instanceSegmentationPass);
-            var objectCountPass = new ObjectCountPass(camera);
-            objectCountPass.SegmentationTexture = rt;
-            objectCountPass.LabelingConfiguration = labelingConfiguration;
-            objectCountPass.name = nameof(objectCountPass);
-            customPassVolume.customPasses.Add(objectCountPass);
-
-            objectCountPass.ClassCountsReceived += onClassCountsReceived;
-#endif
-#if URP_PRESENT
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
-            perceptionCamera.LabelingConfiguration = labelingConfiguration;
             perceptionCamera.captureRgbImages = false;
-            perceptionCamera.produceBoundingBoxAnnotations = false;
-            perceptionCamera.produceObjectCountAnnotations = true;
-            perceptionCamera.classCountsReceived += onClassCountsReceived;
-#endif
+            var classCountLabeler = new ObjectCountLabeler(idLabelConfig);
+            if (onClassCountsReceived != null)
+                classCountLabeler.ObjectCountsComputed += onClassCountsReceived;
+
+            perceptionCamera.AddLabeler(classCountLabeler);
             cameraObject.SetActive(true);
+
             return cameraObject;
         }
     }

@@ -30,9 +30,9 @@ namespace UnityEngine.Perception.GroundTruth
     {
         SemanticSegmentationCrossPipelinePass m_SemanticSegmentationCrossPipelinePass;
 
-        public SemanticSegmentationUrpPass(Camera camera, RenderTexture targetTexture, LabelingConfiguration labelingConfiguration)
+        public SemanticSegmentationUrpPass(Camera camera, RenderTexture targetTexture, SemanticSegmentationLabelConfig labelConfig)
         {
-            m_SemanticSegmentationCrossPipelinePass = new SemanticSegmentationCrossPipelinePass(camera, labelingConfiguration);
+            m_SemanticSegmentationCrossPipelinePass = new SemanticSegmentationCrossPipelinePass(camera, labelConfig);
             ConfigureTarget(targetTexture, targetTexture.depthBuffer);
             m_SemanticSegmentationCrossPipelinePass.Setup();
         }
@@ -61,9 +61,8 @@ namespace UnityEngine.Perception.GroundTruth
             if (!EditorApplication.isPlaying)
                 return;
 #endif
-
-            renderer.EnqueuePass(perceptionCamera.instanceSegmentationUrpPass);
-            renderer.EnqueuePass(perceptionCamera.semanticSegmentationUrpPass);
+            foreach (var pass in perceptionCamera.passes)
+                renderer.EnqueuePass(pass);
         }
     }
 }

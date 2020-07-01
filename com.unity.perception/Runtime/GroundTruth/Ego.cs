@@ -14,9 +14,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public string Description;
         EgoHandle m_EgoHandle;
-        
+
         /// <summary>
-        /// The EgoHandle registered with the SimulationManager at runtime.
+        /// The EgoHandle registered with DatasetCapture at runtime.
         /// </summary>
         public EgoHandle EgoHandle
         {

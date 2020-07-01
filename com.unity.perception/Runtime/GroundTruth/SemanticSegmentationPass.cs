@@ -13,15 +13,15 @@ namespace UnityEngine.Perception.GroundTruth
     public class SemanticSegmentationPass : CustomPass
     {
         public RenderTexture targetTexture;
-        public LabelingConfiguration labelingConfiguration;
+        public SemanticSegmentationLabelConfig semanticSegmentationLabelConfig;
         public Camera targetCamera;
 
         SemanticSegmentationCrossPipelinePass m_SemanticSegmentationCrossPipelinePass;
 
-        public SemanticSegmentationPass(Camera targetCamera, RenderTexture targetTexture, LabelingConfiguration labelingConfiguration)
+        public SemanticSegmentationPass(Camera targetCamera, RenderTexture targetTexture, SemanticSegmentationLabelConfig semanticSegmentationLabelConfig)
         {
             this.targetTexture = targetTexture;
-            this.labelingConfiguration = labelingConfiguration;
+            this.semanticSegmentationLabelConfig = semanticSegmentationLabelConfig;
             this.targetCamera = targetCamera;
             EnsureInit();
         }
@@ -30,7 +30,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (m_SemanticSegmentationCrossPipelinePass == null)
             {
-                m_SemanticSegmentationCrossPipelinePass = new SemanticSegmentationCrossPipelinePass(targetCamera, labelingConfiguration);
+                m_SemanticSegmentationCrossPipelinePass = new SemanticSegmentationCrossPipelinePass(targetCamera, semanticSegmentationLabelConfig);
                 m_SemanticSegmentationCrossPipelinePass.EnsureActivated();
             }
         }

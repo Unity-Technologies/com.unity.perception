@@ -2,7 +2,7 @@
 {
     Properties
     {
-        [PerObjectData] LabelingId("Labeling Id", int) = 0
+        [PerObjectData] LabelingId("Labeling Id", Color) = (1,1,1,1)
     }
 
     HLSLINCLUDE
@@ -38,7 +38,7 @@
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
-            uint LabelingId;
+            float4 LabelingId;
 
             struct appdata
             {
@@ -50,8 +50,6 @@
                 float4 vertex : SV_POSITION;
             };
 
-            uint _SegmentationId;
-
             v2f vert (appdata v)
             {
                 v2f o;
@@ -61,7 +59,7 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-                return float4(UnpackUIntToFloat((uint)LabelingId, 0, 8), UnpackUIntToFloat((uint)LabelingId, 8, 8), 0, 1.0);
+                return LabelingId;
             }
 
             ENDCG

@@ -9,18 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bad10bec3eccd8e49a9d725b2c30f74c, type: 3}
-  m_Name: LabelingConfiguration
+  m_Script: {fileID: 11500000, guid: a9d0176327854820ab53adc46cbec7c1, type: 3}
+  m_Name: SemanticSegmentationLabelingConfiguration
   m_EditorClassIdentifier: 
-  AutoAssignIds: 1
-  StartingLabelId: 1
   LabelEntries:
-  - id: 1
-    label: Box
-    value: 10000
-  - id: 2
-    label: Crate
-    value: 20000
-  - id: 3
-    label: Cube
-    value: 30000
+  - label: Box
+    color: {r: 1, g: 0, b: 0, a: 1}
+  - label: Cube
+    color: {r: 0, g: 0.024693727, b: 1, a: 1}
+  - label: Crate
+    color: {r: 0, g: 1, b: 0.16973758, a: 1}

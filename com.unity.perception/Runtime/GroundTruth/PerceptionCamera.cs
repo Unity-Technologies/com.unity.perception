@@ -62,8 +62,9 @@ namespace UnityEngine.Perception.GroundTruth
 #endif
 
         bool m_CapturedLastFrame;
-
         Ego m_EgoMarker;
+        //only used to confirm that GroundTruthRendererFeature is present in URP
+        bool m_GroundTruthRendererFeatureRun;
 
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
@@ -73,10 +74,6 @@ namespace UnityEngine.Perception.GroundTruth
         static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
         static ProfilerMarker s_FlipY = new ProfilerMarker("Flip Y (PerceptionCamera)");
         static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
-
-#if URP_PRESENT
-        bool m_GroundTruthRendererFeatureRun;
-#endif
 
         /// <summary>
         /// Add a data object which will be added to the dataset with each capture. Overrides existing sensor data associated with the given key.
@@ -113,9 +110,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
 
-        void CheckForRendererFeature(ScriptableRenderContext arg1, Camera arg2)
+        void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)
         {
-            if (arg2 == GetComponent<Camera>())
+            if (camera == GetComponent<Camera>())
             {
 #if URP_PRESENT
                 if (!m_GroundTruthRendererFeatureRun)
@@ -307,11 +304,10 @@ namespace UnityEngine.Perception.GroundTruth
             return false;
         }
 
-#if URP_PRESENT
         internal void OnGroundTruthRendererFeatureRun()
         {
+            //only used to confirm that GroundTruthRendererFeature is present in URP
             m_GroundTruthRendererFeatureRun = true;
         }
-#endif
     }
 }

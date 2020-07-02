@@ -2,9 +2,9 @@
 
 namespace UnityEngine.Perception.GroundTruth {
     /// <summary>
-    /// A definition for how a <see cref="Labeling"/> should be resolved to a single label and id for ground truth generation.
+    /// A definition for how a <see cref="Labeling"/> should be resolved to a single label and color for semantic segmentation generation.
     /// </summary>
-    [CreateAssetMenu(fileName = "SemanticSegmentationLabelgConfig", menuName = "Perception/Semantic Segmentation Label Config", order = 1)]
+    [CreateAssetMenu(fileName = "SemanticSegmentationLabelConfig", menuName = "Perception/Semantic Segmentation Label Config", order = 1)]
     public class SemanticSegmentationLabelConfig : LabelConfig<SemanticSegmentationLabelEntry>
     {
     }

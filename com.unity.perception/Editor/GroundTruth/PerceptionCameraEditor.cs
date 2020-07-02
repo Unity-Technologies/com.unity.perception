@@ -62,22 +62,17 @@ namespace UnityEditor.Perception.GroundTruth
                 var localOption = option;
                 menu.AddItem(new GUIContent(option.Name),
                     false,
-                    () => AddLabeler(labelers, localOption));
+                    () => AddLabeler(localOption));
             }
 
             menu.ShowAsContext();
         }
 
-        void AddLabeler(SerializedProperty labelers, Type labelerType)
+        void AddLabeler(Type labelerType)
         {
             var labeler = (CameraLabeler)Activator.CreateInstance(labelerType);
             labeler.enabled = true;
             perceptionCamera.AddLabeler(labeler);
-            // var insertIndex = labelers.arraySize;
-            // labelers.InsertArrayElementAtIndex(insertIndex);
-            // serializedObject.ApplyModifiedProperties();
-            // var element = labelers.GetArrayElementAtIndex(insertIndex);
-            // element.managedReferenceValue = labeler;
             serializedObject.ApplyModifiedProperties();
         }
 

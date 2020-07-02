@@ -33,11 +33,9 @@ promotion_test_trigger:
     {% for platform in publish_platforms %}
     {% for suite in suites %}
     {% for project in projects %}
-    {% for variant in package_variants %}
     - .yamato/promote.yml#promotion_test_{{platform.name}}_{{editor.version}}
-    - .yamato/upm-ci-full.yml#pkg_test_{{variant.name}}_{{platform.name}}_{{editor.version}}
+    - .yamato/upm-ci-full.yml#pkg_test_Perception_{{platform.name}}_{{editor.version}}
     - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_{{suite.name}}_{{editor.version}}
-    {% endfor %}
     {% endfor %}
     {% endfor %}
     {% endfor %}

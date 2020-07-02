@@ -1,9 +1,9 @@
 {% metadata_file .yamato/environments.yml %}
 
 ---
-{% for variant in package_variants %}
+
 publish:
-  name: Publish {{ variant.name }} package to internal registry
+  name: Publish Perception package to internal registry
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -20,10 +20,16 @@ publish:
       paths:
         - "upm-ci~/packages/*.tgz"
   dependencies:
-    - .yamato/upm-ci-full.yml#pack_{{ variant.name }}
-    {% for editor in test_editors %}
-    {% for platform in test_platforms %}
-    - .yamato/upm-ci-full.yml#pkg_test_{{variant.name}}_{{platform.name}}_{{editor.version}}
+    - .yamato/upm-ci-full.yml#pack_Perception
+    {% for editor in publish_editors %}
+    {% for platform in publish_platforms %}
+    {% for suite in suites %}
+    {% for project in projects %}
+    - .yamato/promote.yml#promotion_test_{{platform.name}}_{{editor.version}}
+    - .yamato/upm-ci-full.yml#pkg_test_Perception_{{platform.name}}_{{editor.version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_{{suite.name}}_{{editor.version}}
     {% endfor %}
     {% endfor %}
-{% endfor %}
+    {% endfor %}
+    {% endfor %}
+

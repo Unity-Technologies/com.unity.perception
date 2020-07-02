@@ -1,37 +1,5 @@
-test_editors:
-  - version: 2019.3.15f1
-test_platforms:
-  - name: win
-    type: Unity::VM
-    image: package-ci/win10:stable
-    flavor: b1.large
-    extra-args: --force-d3d11
-    standalone-platform: StandaloneWindows64
-  - name: mac
-    type: Unity::VM::osx
-    image: package-ci/mac:stable
-    flavor: m1.mac
-    extra-args: --force-metal
-    standalone-platform: StandaloneOSX
-  - name: ubuntu
-    type: Unity::VM
-    image: package-ci/ubuntu:latest
-    flavor: b1.large
+{% metadata_file .yamato/environments.yml %}
 
-suites:
-  - name: standalone
-    display_name: standalone
-    args: --suite=playmode --platform=
-  - name: editmode
-    display_name: editmode
-    args: --suite=playmode --suite=editor --platform=editmode
-
-package_variants:
-  - name: Perception
-
-projects:
-  - name: PerceptionHDRP
-  - name: PerceptionURP
 ---
 {% for variant in package_variants %}
 pack_{{ variant.name }}:
@@ -61,7 +29,7 @@ pkg_test_{{variant.name}}_{{ platform.name }}_{{ editor.version }}:
     flavor: {{ platform.flavor}}
   commands:
     - git submodule update --init --recursive
-    - npm install upm-ci-utils -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - npm install upm-ci-utils -g --registry {{ upmci_registry }}
     - upm-ci package test -u {{ editor.version }} --package-path ./com.unity.perception --type vetting-tests
   artifacts:
     logs:

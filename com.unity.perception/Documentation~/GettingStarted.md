@@ -20,7 +20,7 @@ This step can be skipped for HDRP projects.
 	1. In the inspector panel of the main camera select Add Component
 	2. Add a **Perception Camera** component
 
-<img src="images/MainCameraConfig.PNG" align="middle"/>
+<img src="images/PerceptionCameraFinished.PNG" align="middle"/>
 
 ## Step 4: Create labeled objects
 1. Create a cube by right-clicking in the Hierarchy window, select 3D Object -> Cube 
@@ -41,12 +41,12 @@ This step can be skipped for HDRP projects.
 	1. Click the **+**
 	2. In the label text field add the same text that the Label script contains on the objects created in the scene (i.e Cube, Box, Crate)
 		
-<img src="images/LabelingConfigurationFinished.PNG" align="middle"/>
+<img src="images/IDLabelingConfigurationFinished.PNG" align="middle"/>
 
 8. Select the Main Camera in the Hierarchy panel 
 9. In the Perception Camera attach the ID Label Config created in previous step for each ID Label config 
 
-<img src="images/MainCameraConfig.PNG" align="middle"/>
+<img src="images/MainCameraLabelConfig.PNG" align="middle"/>
 
 ## Step 5: Run simulation and generate dataset
 1. Press play in the editor, allow the scene to run for a few seconds, and then exit playmode

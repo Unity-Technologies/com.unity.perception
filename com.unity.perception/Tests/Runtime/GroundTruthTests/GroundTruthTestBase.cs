@@ -10,7 +10,7 @@ namespace GroundTruthTests
 {
     public class GroundTruthTestBase
     {
-        List<GameObject> m_ObjectsToDestroy = new List<GameObject>();
+        List<Object> m_ObjectsToDestroy = new List<Object>();
         [TearDown]
         public void TearDown()
         {
@@ -25,9 +25,9 @@ namespace GroundTruthTests
                 Directory.Delete(DatasetCapture.OutputDirectory, true);
         }
 
-        public void AddTestObjectForCleanup(GameObject @object) => m_ObjectsToDestroy.Add(@object);
+        public void AddTestObjectForCleanup(Object @object) => m_ObjectsToDestroy.Add(@object);
 
-        public void DestroyTestObject(GameObject @object)
+        public void DestroyTestObject(Object @object)
         {
             Object.DestroyImmediate(@object);
             m_ObjectsToDestroy.Remove(@object);

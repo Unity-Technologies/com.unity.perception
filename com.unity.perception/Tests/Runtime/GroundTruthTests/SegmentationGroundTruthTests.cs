@@ -5,12 +5,15 @@ using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Rendering;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
 #endif
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
 namespace GroundTruthTests
@@ -122,6 +125,90 @@ namespace GroundTruthTests
             DestroyTestObject(planeObject);
 
             Assert.AreEqual(4, timesSegmentationImageReceived);
+        }
+
+        [UnityTest]
+        public IEnumerator SemanticSegmentationPass_WithLabeledButNotMatchingObject_ProducesBlack()
+        {
+            int timesSegmentationImageReceived = 0;
+            var expectedPixelValue = new Color32(0, 0, 0, 255);
+            void OnSegmentationImageReceived(NativeArray<Color32> data)
+            {
+                timesSegmentationImageReceived++;
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data);
+            }
+
+            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data));
+
+            AddTestObjectForCleanup(TestHelper.CreateLabeledPlane(label: "non-matching"));
+            yield return null;
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            Assert.AreEqual(1, timesSegmentationImageReceived);
+        }
+
+        [UnityTest]
+        public IEnumerator SemanticSegmentationPass_WithEmptyFrame_ProducesBlack()
+        {
+            int timesSegmentationImageReceived = 0;
+            var expectedPixelValue = new Color32(0, 0, 0, 255);
+            void OnSegmentationImageReceived(NativeArray<Color32> data)
+            {
+                timesSegmentationImageReceived++;
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data);
+            }
+
+            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data));
+
+            yield return null;
+            var segLabeler = (SemanticSegmentationLabeler)cameraObject.GetComponent<PerceptionCamera>().labelers[0];
+            var request = AsyncGPUReadback.Request(segLabeler.targetTexture, callback: r =>
+            {
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, segLabeler.targetTexture.width * segLabeler.targetTexture.height), r.GetData<Color32>());
+            });
+            AsyncGPUReadback.WaitAllRequests();
+            //request.WaitForCompletion();
+            Assert.IsTrue(request.done);
+            Assert.IsFalse(request.hasError);
+
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            Assert.AreEqual(1, timesSegmentationImageReceived);
+        }
+
+        [UnityTest]
+        public IEnumerator SemanticSegmentationPass_WithTextureOverride_RendersToOverride()
+        {
+            int timesSegmentationImageReceived = 0;
+            var expectedPixelValue = new Color32(0, 0, 255, 255);
+            var targetTextureOverride = new RenderTexture(2, 2, 1, RenderTextureFormat.R8);
+
+            var cameraObject = SetupCamera(out var perceptionCamera);
+            var labelConfig = ScriptableObject.CreateInstance<SemanticSegmentationLabelConfig>();
+            labelConfig.Init(new List<SemanticSegmentationLabelEntry>()
+            {
+                new SemanticSegmentationLabelEntry()
+                {
+                    label = "label",
+                    color = expectedPixelValue
+                }
+            });
+            var semanticSegmentationLabeler = new SemanticSegmentationLabeler(labelConfig, targetTextureOverride);
+            perceptionCamera.AddLabeler(semanticSegmentationLabeler);
+            cameraObject.SetActive(true);
+            AddTestObjectForCleanup(cameraObject);
+            AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
+
+            yield return null;
+            //NativeArray<Color32> readbackArray = new NativeArray<Color32>(targetTextureOverride.width * targetTextureOverride.height, Allocator.Temp);
+            var request = AsyncGPUReadback.Request(targetTextureOverride, callback: r =>
+            {
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, targetTextureOverride.width * targetTextureOverride.height), r.GetData<Color32>());
+            });
+            AsyncGPUReadback.WaitAllRequests();
+            //request.WaitForCompletion();
+            Assert.IsTrue(request.done);
+            Assert.IsFalse(request.hasError);
         }
 
         [UnityTest]

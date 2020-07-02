@@ -49,24 +49,27 @@ namespace UnityEngine.Perception.GroundTruth
 
             s_LastFrameExecuted = Time.frameCount;
             var renderList = CreateRendererListDesc(camera, cullingResult, "FirstPass", 0, m_OverrideMaterial, -1);
-            cmd.ClearRenderTarget(true, true, Color.clear);
+            cmd.ClearRenderTarget(true, true, Color.black);
             DrawRendererList(renderContext, cmd, RendererList.Create(renderList));
         }
 
         public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
             var entry = new SemanticSegmentationLabelEntry();
+            bool found = false;
             foreach (var l in m_LabelConfig.labelEntries)
             {
                 if (labeling.labels.Contains(l.label))
                 {
                     entry = l;
+                    found = true;
                     break;
                 }
             }
 
             //Set the labeling ID so that it can be accessed in ClassSemanticSegmentationPass.shader
-            mpb.SetColor(k_LabelingId, entry.color);
+            if (found)
+                mpb.SetColor(k_LabelingId, entry.color);
         }
     }
 }

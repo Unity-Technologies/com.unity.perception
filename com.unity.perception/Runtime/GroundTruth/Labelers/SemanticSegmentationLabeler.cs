@@ -62,8 +62,14 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public event Action<ImageReadbackEventArgs> imageReadback;
 
-        [NonSerialized]
-        internal RenderTexture semanticSegmentationTexture;
+        /// <summary>
+        /// The RenderTexture on which semantic segmentation images are drawn. Will be resized on startup to match
+        /// the camera resolution.
+        /// </summary>
+        public RenderTexture targetTexture => m_TargetTextureOverride;
+        [Tooltip("(Optional) The RenderTexture on which semantic segmentation images will be drawn. Will be reformatted on startup.")]
+        [SerializeField]
+        RenderTexture m_TargetTextureOverride;
 
         AnnotationDefinition m_SemanticSegmentationAnnotationDefinition;
         RenderTextureReader<Color32> m_SemanticSegmentationTextureReader;
@@ -83,9 +89,11 @@ namespace UnityEngine.Perception.GroundTruth
         /// Creates a new SemanticSegmentationLabeler with the given <see cref="SemanticSegmentationLabelConfig"/>.
         /// </summary>
         /// <param name="labelConfig">The label config associating labels with colors.</param>
-        public SemanticSegmentationLabeler(SemanticSegmentationLabelConfig labelConfig)
+        /// <param name="targetTextureOverride">Override the target texture of the labeler. Will be reformatted on startup.</param>
+        public SemanticSegmentationLabeler(SemanticSegmentationLabelConfig labelConfig, RenderTexture targetTextureOverride = null)
         {
             this.labelConfig = labelConfig;
+            this.m_TargetTextureOverride = targetTextureOverride;
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -120,23 +128,28 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
 
-            semanticSegmentationTexture = new RenderTexture(
-                new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8));
-            semanticSegmentationTexture.name = "Labeling";
+            var renderTextureDescriptor = new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8);
+            if (targetTexture != null)
+                targetTexture.descriptor = renderTextureDescriptor;
+            else
+                m_TargetTextureOverride = new RenderTexture(renderTextureDescriptor);
+
+            targetTexture.Create();
+            targetTexture.name = "Labeling";
 
 #if HDRP_PRESENT
             var gameObject = perceptionCamera.gameObject;
             var customPassVolume = gameObject.GetComponent<CustomPassVolume>() ?? gameObject.AddComponent<CustomPassVolume>();
             customPassVolume.injectionPoint = CustomPassInjectionPoint.BeforeRendering;
             customPassVolume.isGlobal = true;
-            m_SemanticSegmentationPass = new SemanticSegmentationPass(myCamera, semanticSegmentationTexture, labelConfig)
+            m_SemanticSegmentationPass = new SemanticSegmentationPass(myCamera, targetTexture, labelConfig)
             {
                 name = "Labeling Pass"
             };
             customPassVolume.customPasses.Add(m_SemanticSegmentationPass);
 #endif
 #if URP_PRESENT
-            perceptionCamera.AddScriptableRenderPass(new SemanticSegmentationUrpPass(myCamera, semanticSegmentationTexture, labelConfig));
+            perceptionCamera.AddScriptableRenderPass(new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig));
 #endif
 
             var specs = labelConfig.labelEntries.Select((l) => new SemanticSegmentationSpec()
@@ -152,7 +165,7 @@ namespace UnityEngine.Perception.GroundTruth
                 "PNG",
                 id: Guid.Parse(annotationId));
 
-            m_SemanticSegmentationTextureReader = new RenderTextureReader<Color32>(semanticSegmentationTexture, myCamera,
+            m_SemanticSegmentationTextureReader = new RenderTextureReader<Color32>(targetTexture, myCamera,
                 (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
         }
 
@@ -171,13 +184,13 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 data = data,
                 frameCount = frameCount,
-                sourceTexture = semanticSegmentationTexture
+                sourceTexture = targetTexture
             });
             asyncRequest.data = new AsyncSemanticSegmentationWrite
             {
                 data = new NativeArray<Color32>(data, Allocator.TempJob),
-                width = semanticSegmentationTexture.width,
-                height = semanticSegmentationTexture.height,
+                width = targetTexture.width,
+                height = targetTexture.height,
                 path = localPath
             };
             asyncRequest.Start((r) =>
@@ -207,10 +220,10 @@ namespace UnityEngine.Perception.GroundTruth
             m_SemanticSegmentationTextureReader?.Dispose();
             m_SemanticSegmentationTextureReader = null;
 
-            if (semanticSegmentationTexture != null)
-                semanticSegmentationTexture.Release();
+            if (m_TargetTextureOverride != null)
+                m_TargetTextureOverride.Release();
 
-            semanticSegmentationTexture = null;
+            m_TargetTextureOverride = null;
         }
     }
 }

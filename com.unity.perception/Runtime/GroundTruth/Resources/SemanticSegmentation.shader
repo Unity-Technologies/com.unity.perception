@@ -2,7 +2,7 @@
 {
     Properties
     {
-        [PerObjectData] LabelingId("Labeling Id", Color) = (1,1,1,1)
+        [PerObjectData] LabelingId("Labeling Id", Color) = (0,0,0,1)
     }
 
     HLSLINCLUDE

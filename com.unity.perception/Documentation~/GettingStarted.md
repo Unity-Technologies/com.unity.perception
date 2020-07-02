@@ -24,29 +24,27 @@ This step can be skipped for HDRP projects.
 
 ## Step 4: Create labeled objects
 1. Create a cube by right-clicking in the Hierarchy window, select 3D Object -> Cube 
-1. Create 2 more cubes this way
-1. Change the names of the cubes to Cube, Box, and Crate
-1. Position the Cubes in front of the main Camera
+2. Create 2 more cubes this way
+3. Change the names of the cubes to Cube, Box, and Crate
+4. Position the Cubes in front of the main Camera
 
 <img src="images/CompletedScene.PNG" align="middle"/>
 
-1. On each cube, from the inspector panel add a **Labeling** component 
+5. On each cube, from the inspector panel add a **Labeling** component 
 	1. Click the **+**
 	2. In the text field add the name of the object i.e Crate. This will be the label used in the semantic segmentation images 
+
 <img src="images/LabeledObject.PNG" align="middle"/>
 
-1. In the Project panel right click -> Perception -> Labeling Configuration
-1. Select the new **Labeling Configuration**
+6. In the Project panel right click -> Perception -> Labeling Configuration
+7. Select the new **ID Label Config**
 	1. Click the **+**
 	2. In the label text field add the same text that the Label script contains on the objects created in the scene (i.e Cube, Box, Crate)
-	3. Add a numerical value to the value field 
 		
-		Make sure the labels all have different values, for this example use increments of 10,000 to ensure they show up as very distinct colors in the segmentation images
-
 <img src="images/LabelingConfigurationFinished.PNG" align="middle"/>
 
-1. Select the Main Camera in the Hierarchy panel 
-1. In the Perception Camera attach the Labeling Configuration created in previous step 
+8. Select the Main Camera in the Hierarchy panel 
+9. In the Perception Camera attach the ID Label Config created in previous step for each ID Label config 
 
 <img src="images/MainCameraConfig.PNG" align="middle"/>
 

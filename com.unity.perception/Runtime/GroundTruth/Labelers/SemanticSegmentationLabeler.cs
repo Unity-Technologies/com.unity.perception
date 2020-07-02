@@ -129,12 +129,12 @@ namespace UnityEngine.Perception.GroundTruth
             m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
 
             var renderTextureDescriptor = new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8);
-            if (m_TargetTextureOverride != null)
-                m_TargetTextureOverride.descriptor = renderTextureDescriptor;
+            if (targetTexture != null)
+                targetTexture.descriptor = renderTextureDescriptor;
             else
                 m_TargetTextureOverride = new RenderTexture(renderTextureDescriptor);
 
-            m_TargetTextureOverride.Create();
+            targetTexture.Create();
             targetTexture.name = "Labeling";
 
 #if HDRP_PRESENT
@@ -142,7 +142,7 @@ namespace UnityEngine.Perception.GroundTruth
             var customPassVolume = gameObject.GetComponent<CustomPassVolume>() ?? gameObject.AddComponent<CustomPassVolume>();
             customPassVolume.injectionPoint = CustomPassInjectionPoint.BeforeRendering;
             customPassVolume.isGlobal = true;
-            m_SemanticSegmentationPass = new SemanticSegmentationPass(myCamera, semanticSegmentationTexture, labelConfig)
+            m_SemanticSegmentationPass = new SemanticSegmentationPass(myCamera, targetTexture, labelConfig)
             {
                 name = "Labeling Pass"
             };

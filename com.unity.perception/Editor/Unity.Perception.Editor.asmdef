@@ -27,6 +27,11 @@
             "name": "com.unity.render-pipelines.high-definition",
             "expression": "",
             "define": "HDRP_PRESENT"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "URP_PRESENT"
         }
     ],
     "noEngineReferences": false

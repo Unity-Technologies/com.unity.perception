@@ -77,9 +77,9 @@ namespace GroundTruthTests
         static IdLabelConfig CreateLabelingConfiguration()
         {
             var label = "label";
-            var labelingConfiguration = ScriptableObject.CreateInstance<IdLabelConfig>();
+            var labelConfig = ScriptableObject.CreateInstance<IdLabelConfig>();
 
-            labelingConfiguration.Init(new List<IdLabelEntry>
+            labelConfig.Init(new List<IdLabelEntry>
             {
                 new IdLabelEntry
                 {
@@ -87,7 +87,7 @@ namespace GroundTruthTests
                     label = label
                 }
             });
-            return labelingConfiguration;
+            return labelConfig;
         }
         static SemanticSegmentationLabelConfig CreateSemanticSegmentationLabelConfig()
         {

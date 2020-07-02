@@ -24,6 +24,11 @@ namespace UnityEngine.Perception.GroundTruth
             m_InstanceSegmentationPass.Execute(context, commandBuffer, renderingData.cameraData.camera, renderingData.cullResults);
             CommandBufferPool.Release(commandBuffer);
         }
+
+        public void Cleanup()
+        {
+            m_InstanceSegmentationPass.Cleanup();
+        }
     }
 
     class SemanticSegmentationUrpPass : ScriptableRenderPass
@@ -43,6 +48,11 @@ namespace UnityEngine.Perception.GroundTruth
             m_SemanticSegmentationCrossPipelinePass.Execute(context, commandBuffer, renderingData.cameraData.camera, renderingData.cullResults);
             CommandBufferPool.Release(commandBuffer);
         }
+
+        public void Cleanup()
+        {
+            m_SemanticSegmentationCrossPipelinePass.Cleanup();
+        }
     }
 
     public class GroundTruthRendererFeature : ScriptableRendererFeature
@@ -61,6 +71,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!EditorApplication.isPlaying)
                 return;
 #endif
+            perceptionCamera.OnGroundTruthRendererFeatureRun();
             foreach (var pass in perceptionCamera.passes)
                 renderer.EnqueuePass(pass);
         }

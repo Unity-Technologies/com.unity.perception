@@ -62,8 +62,9 @@ namespace UnityEngine.Perception.GroundTruth
 #endif
 
         bool m_CapturedLastFrame;
-
         Ego m_EgoMarker;
+        //only used to confirm that GroundTruthRendererFeature is present in URP
+        bool m_GroundTruthRendererFeatureRun;
 
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
@@ -104,9 +105,25 @@ namespace UnityEngine.Perception.GroundTruth
             SetupInstanceSegmentation();
 
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
             DatasetCapture.SimulationEnding += OnSimulationEnding;
         }
 
+
+        void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)
+        {
+            if (camera == GetComponent<Camera>())
+            {
+#if URP_PRESENT
+                if (!m_GroundTruthRendererFeatureRun)
+                {
+                    Debug.LogError("GroundTruthRendererFeature must be present on the ScriptableRenderer associated with the camera. The ScriptableRenderer can be accessed through Edit -> Project Settings... -> Graphics -> Scriptable Render Pipeline Settings -> Renderer List.");
+                    enabled = false;
+                }
+#endif
+                RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
+            }
+        }
         // Update is called once per frame
         void Update()
         {
@@ -285,6 +302,12 @@ namespace UnityEngine.Perception.GroundTruth
                 return true;
             }
             return false;
+        }
+
+        internal void OnGroundTruthRendererFeatureRun()
+        {
+            //only used to confirm that GroundTruthRendererFeature is present in URP
+            m_GroundTruthRendererFeatureRun = true;
         }
     }
 }

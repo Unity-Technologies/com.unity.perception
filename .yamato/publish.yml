@@ -14,7 +14,7 @@ publish:
   triggers:
     tags:
       only:
-        - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
+        - /^(r|R)(c|C)-+(-preview?)?$/
   artifacts:
     artifacts:
       paths:

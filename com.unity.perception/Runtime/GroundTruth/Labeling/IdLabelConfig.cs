@@ -5,26 +5,10 @@ using JetBrains.Annotations;
 
 namespace UnityEngine.Perception.GroundTruth {
     /// <summary>
-    /// An entry for <see cref="IdLabelConfig"/> mapping a label to an integer id.
-    /// </summary>
-    [Serializable]
-    public struct IdLabelEntry : ILabelEntry
-    {
-        string ILabelEntry.label => this.label;
-        /// <summary>
-        /// The label string to associate with the id.
-        /// </summary>
-        public string label;
-        /// <summary>
-        /// The id to associate with the label.
-        /// </summary>
-        public int id;
-    }
-    /// <summary>
     /// A definition for how a <see cref="Labeling"/> should be resolved to a single label and id for ground truth generation.
     /// </summary>
     [CreateAssetMenu(fileName = "IdLabelConfig", menuName = "Perception/ID Label Config", order = 1)]
-    public sealed class IdLabelConfig : LabelConfig<IdLabelEntry>
+    public class IdLabelConfig : LabelConfig<IdLabelEntry>
     {
         /// <summary>
         /// Whether the inspector will auto-assign ids based on the id of the first element.

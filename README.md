@@ -6,7 +6,8 @@
 
 The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
 
-![ReleaseBadge](https://badges.cds.internal.unity3d.com/packages/com.unity.perception/release-badge.svg)
+![ReleaseBadge](https://badge-proxy.cds.internal.unity3d.com/5ab9a162-9dd0-4ba1-ba41-cf25378a927a)
+
 [![license badge](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
 
 > com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.

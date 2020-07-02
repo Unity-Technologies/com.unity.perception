@@ -1,5 +1,7 @@
 # Installing the Perception package in your project
 
+![ReleaseBadge](https://badge-proxy.cds.internal.unity3d.com/5ab9a162-9dd0-4ba1-ba41-cf25378a927a)
+
 1. Install the latest [2019.3 Unity Editor](https://unity.com/releases/2019-4) 
 1. Create a new HDRP or URP project, or open an existing project
 1. Open `Window` ->  `Package Manager`

@@ -10,7 +10,7 @@ This step can be skipped for HDRP projects.
 1. Select your project's `ScriptableRenderer` asset and open the inspector window. In most projects it is located at `Assets/Settings/ForwardRenderer.asset`.
 2. Click `Add Renderer Feature` and select `Ground Truth Renderer Feature`
 
-<img src="images/ScriptableRendererStep.PNG" align="middle"/>
+<img src="images/ScriptableRendererStep.png" align="middle"/>
 
 ## Step 3: Create a new scene and camera
 1. Create a new scene using File -> New Scene
@@ -20,7 +20,7 @@ This step can be skipped for HDRP projects.
 	1. In the inspector panel of the main camera select Add Component
 	2. Add a **Perception Camera** component
 
-<img src="images/PerceptionCameraFinished.PNG" align="middle"/>
+<img src="images/PerceptionCameraFinished.png" align="middle"/>
 
 ## Step 4: Create labeled objects
 1. Create a cube by right-clicking in the Hierarchy window, select 3D Object -> Cube 

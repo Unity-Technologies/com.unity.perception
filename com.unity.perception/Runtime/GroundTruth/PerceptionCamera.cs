@@ -271,11 +271,6 @@ namespace UnityEngine.Perception.GroundTruth
 
             OnSimulationEnding();
 
-#if URP_PRESENT
-            instanceSegmentationUrpPass?.Cleanup();
-            semanticSegmentationUrpPass?.Cleanup();
-#endif
-
             if (SensorHandle.IsValid)
                 SensorHandle.Dispose();
 

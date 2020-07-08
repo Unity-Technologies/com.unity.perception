@@ -171,9 +171,7 @@ namespace UnityEngine.Perception.GroundTruth
                 using (s_WriteFrame.Auto())
                 {
                     var dataColorBuffer = (byte[])r.data.colorBuffer;
-                    if (flipY)
-                        FlipImageY(dataColorBuffer, height);
-
+                    
                     byte[] encodedData;
                     using (s_EncodeAndSave.Auto())
                     {
@@ -184,7 +182,7 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             };
 
-            CaptureCamera.Capture(cam, colorFunctor);
+            CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
 
             Profiler.EndSample();
         }
@@ -203,28 +201,6 @@ namespace UnityEngine.Perception.GroundTruth
 #else
             return false;
 #endif
-        }
-
-        static unsafe void FlipImageY(byte[] dataColorBuffer, int height)
-        {
-            using (s_FlipY.Auto())
-            {
-                var stride = dataColorBuffer.Length / height;
-                var buffer = new NativeArray<byte>(stride, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-                fixed(byte* colorBufferPtr = &dataColorBuffer[0])
-                {
-                    var unsafePtr = (byte*)buffer.GetUnsafePtr();
-                    for (var row = 0; row < height / 2; row++)
-                    {
-                        var nearRowStartPtr = colorBufferPtr + stride * row;
-                        var oppositeRowStartPtr = colorBufferPtr + stride * (height - row - 1);
-                        UnsafeUtility.MemCpy(unsafePtr, oppositeRowStartPtr, stride);
-                        UnsafeUtility.MemCpy(oppositeRowStartPtr, nearRowStartPtr, stride);
-                        UnsafeUtility.MemCpy(nearRowStartPtr, unsafePtr, stride);
-                    }
-                }
-                buffer.Dispose();
-            }
         }
 
         void OnSimulationEnding()

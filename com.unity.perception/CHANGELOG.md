@@ -17,6 +17,7 @@ Changed Semantic Segmentation to take a SemanticSegmentationLabelConfig, which m
 ### Removed
 
 ### Fixed
+Fixed bug that prevented RGB captures to be written out to disk
 
 ### Security
 

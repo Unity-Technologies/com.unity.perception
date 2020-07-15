@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [0.2.0-preview.2] - 2020-07-15
+### Fixed
+Fixed bug that prevented RGB captures to be written out to disk
+Fixed compatibility with com.unity.simulation.capture@0.0.10-preview.8
+
 ## [0.2.0-preview.1] - 2020-07-02
 ### Added
 Added CameraLabeler, an extensible base type for all forms of dataset output from a camera.
@@ -12,15 +17,6 @@ Added LabelConfig\<T\>, a base class for mapping labels to data used by a labele
 Moved the various forms of ground truth from PerceptionCamera into various subclasses of CameraLabeler.
 Renamed SimulationManager to DatasetCapture.
 Changed Semantic Segmentation to take a SemanticSegmentationLabelConfig, which maps labels to color pixel values.
-
-### Deprecated
-
-### Removed
-
-### Fixed
-Fixed bug that prevented RGB captures to be written out to disk
-
-### Security
 
 ## [0.1.0] - 2020-06-24
 ### This is the first release of the _Perception_ package

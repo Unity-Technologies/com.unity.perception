@@ -13,5 +13,14 @@ Moved the various forms of ground truth from PerceptionCamera into various subcl
 Renamed SimulationManager to DatasetCapture.
 Changed Semantic Segmentation to take a SemanticSegmentationLabelConfig, which maps labels to color pixel values.
 
+### Deprecated
+
+### Removed
+
+### Fixed
+Fixed bug that prevented RGB captures to be written out to disk
+
+### Security
+
 ## [0.1.0] - 2020-06-24
 ### This is the first release of the _Perception_ package

@@ -22,12 +22,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
         //         return;
         //     space.Apply(target, samplerBase.Sample());
         // }
-
-        public void OnDestroy()
-        {
-            foreach (var sampler in Samplers)
-                DestroyImmediate(sampler);
-        }
     }
 
     [Serializable]

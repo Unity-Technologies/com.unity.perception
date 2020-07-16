@@ -10,7 +10,6 @@ namespace UnityEngine.Perception.Randomization.Configuration
 {
     public class ParameterConfiguration : MonoBehaviour
     {
-        public int iterationCount;
         public string configurationFileName;
         public Scenario scenario;
         public CurriculumBase curriculum;
@@ -35,10 +34,12 @@ namespace UnityEngine.Perception.Randomization.Configuration
         public void Awake()
         {
             // Deserialize();
-            curriculum.Initialize();
+            if (curriculum == null)
+                throw new ParameterConfigurationException("Curriculum is null");
             if (scenario == null)
-                scenario = gameObject.AddComponent<DefaultScenario>();
+                throw new ParameterConfigurationException("Scenario is null");
             scenario.parameterConfiguration = this;
+            curriculum.parameterConfiguration = this;
         }
 
         void Start()
@@ -50,11 +51,13 @@ namespace UnityEngine.Perception.Randomization.Configuration
         {
             yield return null;
             scenario.Initialize();
-            while (!curriculum.FinishedIterating)
+            while (!curriculum.Complete)
             {
                 scenario.Setup();
-                while (scenario.Running)
+
+                while (scenario.Running || !curriculum.FinishedIteration)
                     yield return null;
+
                 scenario.Teardown();
                 curriculum.Iterate();
             }

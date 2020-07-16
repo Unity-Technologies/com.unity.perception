@@ -74,10 +74,6 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             var parameterComponent = (Parameter)m_Config.gameObject.AddComponent(parameterType);
             parameterComponent.hideFlags = HideFlags.HideInInspector;
             m_Config.parameters.Add(parameterComponent);
-
-            // var samplerTypes = GetDerivedTypeOptions(parameterComponent.SamplerType());
-            // SetNewSampler(parameterComponent, samplerTypes[0]);
-
             AddNewParameterToContainer(parameterComponent);
         }
 
@@ -89,6 +85,8 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             var param = m_Config.parameters[paramIndex];
             m_Config.parameters.RemoveAt(paramIndex);
 
+            foreach (var sampler in param.Samplers)
+                DestroyImmediate(sampler);
             DestroyImmediate(param);
         }
 

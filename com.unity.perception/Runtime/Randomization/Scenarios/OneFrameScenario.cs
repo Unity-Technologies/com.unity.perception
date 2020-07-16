@@ -3,7 +3,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     /// <summary>
     /// An example scenario that runs for exactly one frame
     /// </summary>
-    public class DefaultScenario : Scenario
+    public class OneFrameScenario : Scenario
     {
         bool m_RanForOneFrame;
         public override bool Running
@@ -12,7 +12,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             {
                 if (m_RanForOneFrame)
                     return false;
-
                 m_RanForOneFrame = true;
                 return true;
             }

@@ -16,8 +16,8 @@
 
         <Label text="Runtime" style="margin-top: 20px; font-size: 20px; -unity-text-align: middle-center;"/>
         <VisualElement name="configuration-container" class="dark-viewport">
+            <editor:PropertyField name="curriculum-field" text="Curriculum" binding-path="curriculum"/>
             <editor:PropertyField name="scenario-field" text="Scenario" binding-path="scenario"/>
-            <editor:PropertyField text="Total Iteration Count" binding-path="iterationCount"/>
         </VisualElement>
     </VisualElement>
 </UXML>

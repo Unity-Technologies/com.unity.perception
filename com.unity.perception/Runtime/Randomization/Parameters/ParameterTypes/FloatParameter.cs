@@ -1,11 +1,22 @@
-using System;
-using UnityEngine.Perception.Randomization.Parameters.Abstractions;
-using UnityEngine;
+﻿using System;
+using UnityEngine.Perception.Randomization.Parameters.Attributes;
+using UnityEngine.Perception.Randomization.Samplers;
 
-namespace UnityEngine.Perception.Randomization.Parameters.ParameterTypes
+namespace UnityEngine.Perception.Randomization.Parameters
 {
-    public class FloatParameter : Parameter<float>
+    [AddComponentMenu("")]
+    [ParameterMetaData("Float")]
+    public class FloatParameter : Parameter
     {
-        public override string ParameterTypeName => "Float";
+        public Sampler value;
+
+        public override Type OutputType => typeof(float);
+
+        public override Sampler[] Samplers => new []{ value };
+
+        public float Sample(int iteration)
+        {
+            return value.Sample(iteration);
+        }
     }
 }

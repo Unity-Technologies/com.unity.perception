@@ -17,14 +17,7 @@
         <Label text="Runtime" style="margin-top: 20px; font-size: 20px; -unity-text-align: middle-center;"/>
         <VisualElement name="configuration-container" class="dark-viewport">
             <editor:PropertyField name="scenario-field" text="Scenario" binding-path="scenario"/>
-            <VisualElement class="unity-base-field">
-                <Label text="Total Iteration Count" class="unity-base-field__label"/>
-                <Label name="total-iteration-count-label" text="0"/>
-            </VisualElement>
-            <VisualElement class="unity-base-field">
-                <Label text="Total Frame Count" class="unity-base-field__label"/>
-                <Label name="total-frame-count-label" text="0"/>
-            </VisualElement>
+            <editor:PropertyField text="Total Iteration Count" binding-path="iterationCount"/>
         </VisualElement>
     </VisualElement>
 </UXML>

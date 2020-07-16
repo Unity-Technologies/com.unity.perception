@@ -47,6 +47,10 @@
     margin-right: 1px;
 }
 
+.sampler-name {
+    color: lightgreen;
+}
+
 .parameter-type-label-container {
     flex-direction: row;
     justify-content: space-between;
@@ -90,7 +94,7 @@
 }
 
 .remove-parameter-button {
-    background-image: resource("Packages/com.unity.collab-proxy/Editor/Assets/Icons/clear-dark.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/X.png");
 }
 
 .move-buttons-container {
@@ -123,4 +127,13 @@
 .unity-imgui-container {
     margin-left: 1px;
     margin-right: 3px;
+}
+
+.adr-float-template .unity-base-field__label {
+    min-width: 50px;
+}
+
+.adr-float-field {
+    flex-grow: 1;
+    width: 0;
 }

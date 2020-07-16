@@ -1,0 +1,9 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <Box name="sampler-template" class="sampler-template">
+        <VisualElement class="unity-base-field">
+            <Label name="sampler-name" text="Sampler Name" class="unity-base-field__label sampler-name"/>
+            <editor:ToolbarMenu name="sampler-type-dropdown" text="Placeholder Sampler Type" class="sampler-type-menu"/>
+        </VisualElement>
+        <VisualElement name="fields-container"/>
+    </Box>
+</UXML>

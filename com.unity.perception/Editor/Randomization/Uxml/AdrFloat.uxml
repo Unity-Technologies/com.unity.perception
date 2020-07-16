@@ -1,0 +1,12 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement name="adr-float-template" class="adr-float-template">
+        <VisualElement style="flex-direction: row;">
+            <editor:FloatField label="Min" binding-path="minimum" class="adr-float-field"/>
+            <editor:FloatField label="Max" binding-path="maximum" class="adr-float-field"/>
+        </VisualElement>
+        <VisualElement style="flex-direction: row;">
+            <editor:FloatField label="Default" binding-path="defaultValue" class="adr-float-field"/>
+            <editor:IntegerField name="seed" label="Seed" binding-path="baseRandomSeed" class="adr-float-field"/>
+        </VisualElement>
+    </VisualElement>
+</UXML>

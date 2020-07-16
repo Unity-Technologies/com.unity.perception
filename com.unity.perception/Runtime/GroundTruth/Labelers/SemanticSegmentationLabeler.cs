@@ -81,6 +81,9 @@ namespace UnityEngine.Perception.GroundTruth
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
 
+        private float defaultSegmentTransparency = 0.8f;
+        private float defaultBackgroundTransparency = 0.0f;
+
         /// <summary>
         /// Creates a new SemanticSegmentationLabeler. Be sure to assign <see cref="labelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
         /// </summary>
@@ -250,6 +253,25 @@ namespace UnityEngine.Perception.GroundTruth
                 EnableVisualization(enabled);
             });
 
+            defaultSegmentTransparency = 0.8f;
+            defaultBackgroundTransparency = 0.0f;
+
+            var slider = GameObject.Instantiate(Resources.Load<GameObject>("GenericSlider"));
+            slider.transform.SetParent(panel.transform);
+            slider.GetComponentInChildren<Text>().text = "Object Alpha";
+            slider.GetComponentInChildren<Slider>().value = defaultSegmentTransparency;
+            slider.GetComponentInChildren<Slider>().onValueChanged.AddListener(val => {
+                if (segImage != null) segImage.material.SetFloat("_SegmentTransparency", val);
+            });
+
+            slider = GameObject.Instantiate(Resources.Load<GameObject>("GenericSlider"));
+            slider.transform.SetParent(panel.transform);
+            slider.GetComponentInChildren<Text>().text = "Background Alpha";
+            slider.GetComponentInChildren<Slider>().value = defaultBackgroundTransparency;
+            slider.GetComponentInChildren<Slider>().onValueChanged.AddListener(val => {
+                if (segImage != null) segImage.material.SetFloat("_BackTransparency", val);
+            });
+
             segVisual = GameObject.Instantiate(Resources.Load<GameObject>("SegmentTexture"));
             segVisual.transform.SetParent(panel.transform.parent, false);
             
@@ -258,6 +280,8 @@ namespace UnityEngine.Perception.GroundTruth
             segVisual.transform.SetAsFirstSibling();
 
             segImage = segVisual.GetComponent<Image>();
+            segImage.material.SetFloat("_SegmentTransparency", defaultSegmentTransparency);
+            segImage.material.SetFloat("_BackTransparency", defaultBackgroundTransparency);
 
             RectTransform rt = segVisual.transform as RectTransform;
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, camWidth);

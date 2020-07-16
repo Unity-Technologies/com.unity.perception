@@ -49,9 +49,7 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             m_ScenarioContainer = m_Root.Query<VisualElement>("configuration-container");
 
             foreach (var parameter in m_Config.parameters)
-            {
                 AddNewParameterToContainer(parameter);
-            }
 
             var parameterTypeMenu = m_Root.Query<ToolbarMenu>("parameter-type-menu").First();
             foreach (var parameterType in s_ParameterTypes)
@@ -62,9 +60,11 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
                     a => DropdownMenuAction.Status.Normal);
             }
 
-            var scenarioField = m_ScenarioContainer.Query<PropertyField>("scenario-field").First();
-            scenarioField.RegisterCallback<ChangeEvent<Scenario>>(
-                evt => evt.newValue.parameterConfiguration = m_Config);
+            var loadAdrConfigButton = m_Root.Query<Button>("load-adr-config").First();
+            loadAdrConfigButton.clicked += () => m_Config.Deserialize();
+
+            var serializeAdrConfigButton = m_Root.Query<Button>("write-adr-config").First();
+            serializeAdrConfigButton.clicked += () => m_Config.Serialize();
 
             return m_Root;
         }

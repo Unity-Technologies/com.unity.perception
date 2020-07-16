@@ -7,7 +7,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
     public class CategoricalParameter<T> : Parameter
     {
         public bool uniform;
-        public uint baseRandomSeed;
+        [Min(0)] public uint seed;
         public T[] options;
         public float[] probabilities;
         public override Sampler[] Samplers => new Sampler[0];
@@ -26,24 +26,22 @@ namespace UnityEngine.Perception.Randomization.Parameters
                 throw new ParameterValidationException("Total probability must be greater than 0");
 
             // Normalize probabilities
-            float probabilitySum = 0f;
             for (var i = 0; i < probabilities.Length; i++)
-            {
-                probabilitySum += probabilities[i] / totalProbability;
-                probabilities[i] = probabilitySum;
-            }
+                probabilities[i] = probabilities[i] / totalProbability;
         }
 
         public T Sample(int iteration)
         {
-            var rng = RandomUtility.RandomFromIndex((uint)iteration, baseRandomSeed);
+            var rng = RandomUtility.RandomFromIndex((uint)iteration, seed);
             var randomValue = rng.NextFloat();
             if (uniform)
                 return options[(int)(randomValue * options.Length)];
 
+            var sum = 0f;
             for (var i = 0; i < options.Length; i++)
             {
-                if (randomValue <= probabilities[i])
+                sum += probabilities[i];
+                if (randomValue <= sum)
                     return options[i];
             }
             throw new ParameterException($"No option present for sampled random value {randomValue}");

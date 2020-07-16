@@ -1,4 +1,5 @@
 ﻿using System;
+using Newtonsoft.Json.Linq;
 using UnityEngine.Perception.Randomization.Configuration;
 
 namespace UnityEngine.Perception.Randomization.Curriculum
@@ -12,5 +13,12 @@ namespace UnityEngine.Perception.Randomization.Curriculum
         public abstract bool FinishedIteration { get; }
 
         public abstract void Iterate();
+
+        public virtual JObject Serialize()
+        {
+            return null;
+        }
+
+        public virtual void Deserialize(JObject token) { }
     }
 }

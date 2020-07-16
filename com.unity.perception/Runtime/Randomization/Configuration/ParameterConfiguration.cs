@@ -1,16 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Curriculum;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Serialization;
 
 namespace UnityEngine.Perception.Randomization.Configuration
 {
     public class ParameterConfiguration : MonoBehaviour
     {
-        public string configurationFileName;
+        public bool loadAdrConfigOnStart;
+        public string configurationFileName = "parameter-config";
         public Scenario scenario;
         public CurriculumBase curriculum;
 
@@ -19,6 +23,17 @@ namespace UnityEngine.Perception.Randomization.Configuration
 
         string ConfigurationFilePath =>
             Application.dataPath + "/StreamingAssets/" + configurationFileName + ".json";
+
+        public Parameter GetParameter(string parameterName)
+        {
+            foreach (var parameter in parameters)
+            {
+                if (parameter.parameterName == parameterName)
+                    return parameter;
+            }
+            throw new ParameterConfigurationException(
+                $"Parameter with name {parameterName} not found");
+        }
 
         public T GetParameter<T>(string parameterName) where T : Parameter
         {
@@ -33,7 +48,8 @@ namespace UnityEngine.Perception.Randomization.Configuration
 
         public void Awake()
         {
-            // Deserialize();
+            if (loadAdrConfigOnStart)
+                Deserialize();
             if (curriculum == null)
                 throw new ParameterConfigurationException("Curriculum is null");
             if (scenario == null)
@@ -76,23 +92,27 @@ namespace UnityEngine.Perception.Randomization.Configuration
 #endif
         }
 
-        // string Serialize()
-        // {
-        //     var converters = new List<JsonConverter> { new ParameterConfigurationJsonConverter(this) };
-        //     var settings = new JsonSerializerSettings
-        //     {
-        //         ContractResolver = new ParameterConfigurationContractResolver(),
-        //         Converters = converters
-        //     };
-        //     return JsonConvert.SerializeObject(this, Formatting.Indented, settings);
-        // }
-        //
-        // void Deserialize()
-        // {
-        //     var jsonText = System.IO.File.ReadAllText(ConfigurationFilePath);
-        //     JsonConvert.DeserializeObject<ParameterConfiguration>(
-        //         jsonText, new ParameterConfigurationJsonConverter(this));
-        //     Debug.Log(Serialize());
-        // }
+        public void Serialize()
+        {
+            var settings = new JsonSerializerSettings
+            {
+                Converters = new List<JsonConverter> { new ParameterConfigurationJsonConverter(this) }
+            };
+            var jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, settings);
+            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
+            using (var writer = new StreamWriter(ConfigurationFilePath, false))
+            {
+                writer.Write(jsonString);
+            }
+        }
+
+        public void Deserialize()
+        {
+            if (!File.Exists(ConfigurationFilePath))
+                throw new ParameterConfigurationException($"Parameter JSON configuration file does not exist at path {ConfigurationFilePath}");
+            var jsonText = File.ReadAllText(ConfigurationFilePath);
+            JsonConvert.DeserializeObject<ParameterConfiguration>(
+                jsonText, new ParameterConfigurationJsonConverter(this));
+        }
     }
 }

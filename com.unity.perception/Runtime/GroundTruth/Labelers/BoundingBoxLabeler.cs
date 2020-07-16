@@ -4,6 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine.Serialization;
+using Unity.Simulation;
+using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -42,6 +44,9 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_BoundingBoxAnnotationDefinition;
         BoundingBoxValue[] m_BoundingBoxValues;
 
+        private Dictionary<string, RectTransform> visualizationPanelCache = null;
+        private GameObject visualizationHolder = null;
+
         /// <summary>
         /// Creates a new BoundingBox2DLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
         /// </summary>
@@ -70,6 +75,9 @@ namespace UnityEngine.Perception.GroundTruth
                 "Bounding box for each labeled object visible to the sensor", id: new Guid(annotationId));
 
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfosCalculated;
+
+            supportsVisualization = true;
+            EnableVisualization(supportsVisualization);
         }
 
         /// <inheritdoc/>
@@ -108,8 +116,62 @@ namespace UnityEngine.Perception.GroundTruth
                     };
                 }
 
+                if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount) 
+                    Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
+
+                if (IsVisualizationEnabled()) 
+                    Visualize();
+                
                 asyncAnnotation.ReportValues(m_BoundingBoxValues);
             }
+        }
+
+        /// <inheritdoc/>
+        protected override void SetupVisualizationPanel(GameObject panel)
+        {
+            var toggle  = GameObject.Instantiate(Resources.Load<GameObject>("GenericToggle"));
+            toggle.transform.SetParent(panel.transform);
+            toggle.GetComponentInChildren<Text>().text = "Bounding Boxes";
+            toggle.GetComponent<Toggle>().onValueChanged.AddListener(enabled => {
+                EnableVisualization(enabled);
+            });
+
+            visualizationHolder = GameObject.Instantiate(Resources.Load<GameObject>("BoundsHolder"));
+            visualizationHolder.transform.SetParent(panel.transform.parent, false);
+            
+            visualizationPanelCache = new Dictionary<string, RectTransform>();
+        }
+
+        void Visualize()
+        {
+            foreach (var box in m_BoundingBoxValues)
+            {
+                var rectTrans = GetVisualizationPanel(box.label_name);
+                rectTrans.anchoredPosition = new Vector2(box.x, -box.y);
+                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, box.width);
+                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, box.height);
+            }
+        }
+
+        RectTransform GetVisualizationPanel(string label)
+        {
+            if (!visualizationPanelCache.ContainsKey(label))
+            {
+                var box = GameObject.Instantiate(Resources.Load<GameObject>("BoundingBoxPrefab"));
+                box.name = label + "_boundingbox";
+                box.GetComponentInChildren<Text>().text = label;
+                box.transform.SetParent(visualizationHolder.transform, false);
+                visualizationPanelCache[label] = box.transform as RectTransform;
+            }
+
+            return visualizationPanelCache[label];
+        }
+
+        /// <inheritdoc/>
+        override protected void OnVisualizerEnabled(bool enabled)
+        {
+            if (visualizationHolder != null) 
+                visualizationHolder.SetActive(enabled);
         }
     }
 }

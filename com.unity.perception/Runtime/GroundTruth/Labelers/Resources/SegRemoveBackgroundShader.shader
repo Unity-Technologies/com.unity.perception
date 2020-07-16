@@ -1,4 +1,4 @@
-﻿Shader "Unlit/SegRemoveBackgroundShader"
+﻿Shader "Perception/SegRemoveBackgroundShader"
 {
     Properties
     {

@@ -21,7 +21,7 @@
             <editor:PropertyField name="configuration-file-name" label="Config File Name" binding-path="configurationFileName"/>
             <editor:PropertyField name="load-config" label="Load Config On Start" binding-path="loadAdrConfigOnStart"/>
             <VisualElement style="flex-direction: row;">
-                <Button name="load-adr-config" text="Load ADR Config"/>
+                <Button name="load-adr-config" text="Load ADR Config" style="flex-grow: 1;"/>
                 <Button name="write-adr-config" text="Write ADR Config" style="flex-grow: 1;"/>
             </VisualElement>
         </VisualElement>

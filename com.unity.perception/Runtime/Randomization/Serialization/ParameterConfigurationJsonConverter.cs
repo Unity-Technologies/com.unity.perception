@@ -49,7 +49,14 @@ namespace UnityEngine.Perception.Randomization.Serialization
                     }
                 }
             }
-            configObj["curriculum"] = m_Config.curriculum.Serialize();
+
+            if (m_Config.curriculum)
+            {
+                var curriculumObj = m_Config.curriculum.Serialize();
+                if (curriculumObj != null)
+                    configObj["curriculum"] = curriculumObj;
+            }
+
             configObj.WriteTo(writer);
         }
 

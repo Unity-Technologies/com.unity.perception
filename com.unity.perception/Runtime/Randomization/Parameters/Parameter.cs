@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -12,6 +13,8 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public abstract Sampler[] Samplers { get; }
 
         public abstract Type OutputType { get; }
+
+        public virtual void Validate() {}
 
         // public bool hasTarget = true;
         // public PropertyTarget target;

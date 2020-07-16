@@ -44,6 +44,8 @@ namespace UnityEngine.Perception.Randomization.Configuration
 
         void Start()
         {
+            foreach (var parameter in parameters)
+                parameter.Validate();
             StartCoroutine(UpdateLoop());
         }
 

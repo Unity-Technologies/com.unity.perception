@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -43,6 +44,10 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<int, AsyncMetric> m_ObjectInfoAsyncMetrics;
         MetricDefinition m_RenderedObjectInfoMetricDefinition;
 
+        private HUDPanel hud = null;
+
+        Dictionary<string, string> entryToLabelMap = null;
+
         /// <summary>
         /// Creates a new RenderedObjectInfoLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
         /// </summary>
@@ -70,6 +75,9 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 ProduceRenderedObjectInfoMetric(objectInfo, frameCount);
             };
+
+            supportsVisualization = true;
+            EnableVisualization(supportsVisualization);
         }
 
         /// <inheritdoc/>
@@ -111,6 +119,15 @@ namespace UnityEngine.Perception.GroundTruth
                         instance_id = objectInfo.instanceId,
                         visible_pixels = objectInfo.pixelCount
                     };
+
+                    if (IsVisualizationEnabled() && hud != null)
+                    {
+                        if (entryToLabelMap == null) entryToLabelMap = new Dictionary<string, string>();
+
+                        if (!entryToLabelMap.ContainsKey(labelEntry.label)) entryToLabelMap[labelEntry.label] = labelEntry.label + " Pixels";
+                        
+                        hud.UpdateEntry(entryToLabelMap[labelEntry.label], objectInfo.pixelCount.ToString());
+                    }
                 }
 
                 metric.ReportValues(m_VisiblePixelsValues);
@@ -120,6 +137,32 @@ namespace UnityEngine.Perception.GroundTruth
         bool TryGetLabelEntryFromInstanceId(uint instanceId, out IdLabelEntry labelEntry)
         {
             return idLabelConfig.TryGetLabelEntryFromInstanceId(instanceId, out labelEntry);
+        }
+
+        /// <inheritdoc/>
+        protected override void SetupVisualizationPanel(GameObject panel)
+        {
+            var toggle  = GameObject.Instantiate(Resources.Load<GameObject>("GenericToggle"));
+            toggle.transform.SetParent(panel.transform);
+            toggle.GetComponentInChildren<Text>().text = "Pixel Counts";
+            toggle.GetComponent<Toggle>().onValueChanged.AddListener(enabled => {
+                EnableVisualization(enabled);
+            });
+
+            hud = GetHud();
+        }
+
+        /// <inheritdoc/>
+        override protected void OnVisualizerEnabled(bool enabled)
+        {
+            if (!enabled)
+            {
+                foreach (var e in entryToLabelMap)
+                {
+                    GetHud().RemoveEntry(e.Value);
+                }
+                entryToLabelMap.Clear();
+            } 
         }
     }
 }

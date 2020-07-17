@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Unity.Collections;
@@ -120,7 +120,10 @@ namespace UnityEngine.Perception.GroundTruth
                     Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
 
                 if (IsVisualizationEnabled()) 
+                {
                     Visualize();
+                    ReportFrameCount(frameCount);
+                }
                 
                 asyncAnnotation.ReportValues(m_BoundingBoxValues);
             }
@@ -167,11 +170,19 @@ namespace UnityEngine.Perception.GroundTruth
             return visualizationPanelCache[label];
         }
 
+        void ReportFrameCount(int frame)
+        {
+            GetHud().UpdateEntry("Frame", frame.ToString());
+        }
+
         /// <inheritdoc/>
         override protected void OnVisualizerEnabled(bool enabled)
         {
             if (visualizationHolder != null) 
                 visualizationHolder.SetActive(enabled);
+
+            if (!enabled) GetHud().RemoveEntry("Frame");
+            
         }
     }
 }

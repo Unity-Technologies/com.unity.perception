@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Unity.Collections;
 using Unity.Profiling;
+using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -36,6 +37,10 @@ namespace UnityEngine.Perception.GroundTruth
 
         Dictionary<int, AsyncMetric> m_ObjectCountAsyncMetrics;
         MetricDefinition m_ObjectCountMetricDefinition;
+
+        HUDPanel hud = null;
+
+        Dictionary<string, string> entryToLabelMap = null;
 
         /// <summary>
         /// Creates a new ObjectCountLabeler. This constructor should only be used by serialization. For creation from
@@ -80,6 +85,9 @@ namespace UnityEngine.Perception.GroundTruth
                 ObjectCountsComputed?.Invoke(frameCount, objectCounts, labelConfig.labelEntries);
                 ProduceObjectCountMetric(objectCounts, m_LabelConfig.labelEntries, frameCount);
             };
+
+            supportsVisualization = true;
+            EnableVisualization(supportsVisualization);
         }
 
         /// <inheritdoc/>
@@ -129,10 +137,45 @@ namespace UnityEngine.Perception.GroundTruth
                         label_name = entries[i].label,
                         count = counts[i]
                     };
+
+                    if (IsVisualizationEnabled() && hud != null)
+                    {
+                        if (entryToLabelMap == null) entryToLabelMap = new Dictionary<string, string>();
+
+                        if (!entryToLabelMap.ContainsKey(entries[i].label)) entryToLabelMap[entries[i].label] = entries[i].label + " Counts";
+                        
+                        hud.UpdateEntry(entryToLabelMap[entries[i].label], counts[i].ToString());
+                    }
                 }
 
                 classCountAsyncMetric.ReportValues(m_ClassCountValues);
             }
+        }
+        
+        /// <inheritdoc/>
+        protected override void SetupVisualizationPanel(GameObject panel)
+        {
+            var toggle  = GameObject.Instantiate(Resources.Load<GameObject>("GenericToggle"));
+            toggle.transform.SetParent(panel.transform);
+            toggle.GetComponentInChildren<Text>().text = "Object Counts";
+            toggle.GetComponent<Toggle>().onValueChanged.AddListener(enabled => {
+                EnableVisualization(enabled);
+            });
+
+            hud = GetHud();
+        }
+
+        /// <inheritdoc/>
+        override protected void OnVisualizerEnabled(bool enabled)
+        {
+            if (!enabled)
+            {
+                foreach (var e in entryToLabelMap)
+                {
+                    GetHud().RemoveEntry(e.Value);
+                }
+                entryToLabelMap.Clear();
+            } 
         }
     }
 }

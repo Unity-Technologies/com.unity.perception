@@ -136,7 +136,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        internal void InitPanel()
+        private GameObject GetCanvas()
         {
             var canvas = GameObject.Find("Canvas");
             
@@ -145,16 +145,39 @@ namespace UnityEngine.Perception.GroundTruth
                canvas = GameObject.Instantiate(Resources.Load<GameObject>("Canvas"));
                canvas.name = "Canvas";
             }
+
+            return canvas;
+        }
+
+        internal void InitPanel()
+        {
+            var canvas = GetCanvas();
             
             var panel = canvas.transform.Find("VisualizationPanel");
-
+            
             if (panel == null)
             {
                 panel = GameObject.Instantiate(Resources.Load<GameObject>("VisualizationPanel")).transform;
-                (panel as RectTransform).SetParent(canvas.transform);
+                panel.name = "VisualizationPanel";
+                (panel as RectTransform).SetParent(canvas.transform, false);
             }
 
             SetupVisualizationPanel(panel.gameObject);
+        }
+
+        internal HUDPanel GetHud()
+        {
+            var canvas = GetCanvas();
+
+            var hud = canvas.transform.Find("HUDPanel");
+            if (hud == null)
+            {
+                hud = GameObject.Instantiate(Resources.Load<GameObject>("HUDPanel")).transform;
+                hud.name = "HUDPanel";
+                (hud as RectTransform).SetParent(canvas.transform, false);
+            }
+
+            return hud.GetComponent<HUDPanel>();
         }
     }
 }

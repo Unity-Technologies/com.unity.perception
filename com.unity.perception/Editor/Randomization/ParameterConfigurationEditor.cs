@@ -140,10 +140,10 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
 
             var targetField = templateClone.Query<PropertyField>("target-field").First();
             var propertyMenu = templateClone.Query<ToolbarMenu>("property-select-menu").First();
-            targetField.RegisterCallback<ChangeEvent<GameObject>>(
+            targetField.RegisterCallback<ChangeEvent<Object>>(
                 evt =>
                 {
-                    propertyMenu.text = "";
+                    parameterComponent.target.gameObject = (GameObject)evt.newValue;
                     FillPropertySelectMenu(parameterComponent, propertyMenu);
                 });
             FillPropertySelectMenu(parameterComponent, propertyMenu);
@@ -251,7 +251,6 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
                 if (component == null)
                     continue;
                 var componentType = component.GetType();
-
                 var fieldInfos = componentType.GetFields();
                 foreach (var fieldInfo in fieldInfos)
                 {
@@ -285,7 +284,10 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
         {
             propertyMenu.menu.MenuItems().Clear();
             if (parameterComponent.target.gameObject == null)
+            {
+                propertyMenu.text = "Select a property";
                 return;
+            }
 
             var options = GatherPropertyOptions(parameterComponent.target.gameObject, parameterComponent.OutputType);
             foreach (var option in options)
@@ -294,14 +296,15 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
                     option.propertyName,
                     a =>
                     {
-                        parameterComponent.target = option;
+                        parameterComponent.target.propertyName = option.propertyName;
+                        parameterComponent.target.fieldOrProperty = option.fieldOrProperty;
                         propertyMenu.text = option.propertyName;
                     },
                     a => DropdownMenuAction.Status.Normal);
             }
 
-            if (parameterComponent.target.gameObject != null)
-                propertyMenu.text = parameterComponent.target.propertyName;
+            if (parameterComponent.target.propertyName != "")
+                propertyMenu.text = "Select a property";
         }
 
         void CreatePropertyFields(VisualElement fieldsContainer, SerializedObject so)

@@ -7,7 +7,6 @@ using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Configuration;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
-using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Samplers.Editor
@@ -247,7 +246,7 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
 
         void MoveProperty(VisualElement template, int direction)
         {
-            if (FilterString == "")
+            if (FilterString != "")
                 return;
             var paramIndex = m_ParameterContainer.IndexOf(template);
             if (direction == -1 && paramIndex > 0)

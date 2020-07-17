@@ -59,7 +59,10 @@
 }
 
 .parameter-type-label-box {
+    min-width: 300px;
     flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
     flex-grow: 0;
     -unity-text-align: middle-center;
     border-width: 0;
@@ -70,6 +73,8 @@
 
 .parameter-type-label {
     color: cornflowerblue;
+    min-width: 100px;
+    -unity-text-align: middle-right;
 }
 
 .parameter-type-label-box .unity-base-text-field__input {
@@ -109,11 +114,11 @@
     padding: 3px 0;
 }
 
-.move-button-up {
+.move-up-button {
     background-image: resource("Packages/com.unity.shadergraph/Editor/Resources/GraphView/Nodes/NodeChevronUp.png");
 }
 
-.move-button-down {
+.move-down-button {
     background-image: resource("Packages/com.unity.shadergraph/Editor/Resources/GraphView/Nodes/NodeChevronDown.png");
 }
 
@@ -136,4 +141,27 @@
 .adr-float-field {
     flex-grow: 1;
     width: 0;
+}
+
+.filter-icon {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/Filter.png");
+}
+
+.foldout-open {
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutOpen.png");
+}
+
+.foldout-closed {
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutClosed.png");
+}
+
+.collapse-parameter-toggle {
+    flex-shrink: 0;
+    margin-right: 2px;
+    width: 12px;
+    height: 12px;
 }

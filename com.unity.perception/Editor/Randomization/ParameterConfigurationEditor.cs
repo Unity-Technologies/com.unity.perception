@@ -21,12 +21,28 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
         ParameterConfiguration m_Config;
         VisualElement m_Root;
         VisualElement m_ParameterContainer;
-        VisualElement m_ScenarioContainer;
         VisualTreeAsset m_ParameterTemplate;
         VisualTreeAsset m_SamplerTemplate;
         VisualTreeAsset m_AdrFloatTemplate;
 
         const string k_TemplatesFolder = "Packages/com.unity.perception/Editor/Randomization/Uxml";
+
+        string m_FilterString = "";
+        string FilterString
+        {
+            get => m_FilterString;
+            set
+            {
+                m_FilterString = value;
+                var lowerFilter = m_FilterString.ToLower();
+                foreach (var child in m_ParameterContainer.Children())
+                {
+                    var paramIndex = m_ParameterContainer.IndexOf(child);
+                    var param = m_Config.parameters[paramIndex];
+                    ToggleTargetContainer(child, param.parameterName.ToLower().Contains(lowerFilter));
+                }
+            }
+        }
 
         static ParameterConfigurationEditor()
         {
@@ -46,7 +62,6 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
                 $"{k_TemplatesFolder}/AdrFloat.uxml");
 
             m_ParameterContainer = m_Root.Query<VisualElement>("parameter-container").First();
-            m_ScenarioContainer = m_Root.Query<VisualElement>("configuration-container");
 
             foreach (var parameter in m_Config.parameters)
                 AddNewParameterToContainer(parameter);
@@ -65,6 +80,12 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
 
             var serializeAdrConfigButton = m_Root.Query<Button>("write-adr-config").First();
             serializeAdrConfigButton.clicked += () => m_Config.Serialize();
+
+            var filter = m_Root.Query<TextField>("filter-parameters").First();
+            filter.RegisterValueChangedCallback((e) => { FilterString = e.newValue; });
+
+            var collapseParam = m_Root.Query<VisualElement>("collapse-all").First();
+            collapseParam.RegisterCallback<MouseUpEvent>(evt => CollapseAllParameters(collapseParam));
 
             return m_Root;
         }
@@ -147,6 +168,10 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             //         a => DropdownMenuAction.Status.Normal);
             // }
 
+
+            var collapseParam = templateClone.Query<VisualElement>("collapse-parameter").First();
+            collapseParam.RegisterCallback<MouseUpEvent>(evt => ToggleParameterCollapse(samplersContainer, collapseParam));
+
             m_ParameterContainer.Add(templateClone);
         }
 
@@ -155,6 +180,54 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             targetContainer.style.display = toggle
                 ? new StyleEnum<DisplayStyle>(DisplayStyle.Flex)
                 : new StyleEnum<DisplayStyle>(DisplayStyle.None);
+        }
+
+        static void ToggleParameterCollapse(VisualElement propertiesContainer, VisualElement collapse)
+        {
+            if (collapse.ClassListContains("foldout-open"))
+            {
+                collapse.AddToClassList("foldout-closed");
+                collapse.RemoveFromClassList("foldout-open");
+                ToggleTargetContainer(propertiesContainer, false);
+            }
+            else
+            {
+                collapse.AddToClassList("foldout-open");
+                collapse.RemoveFromClassList("foldout-closed");
+                ToggleTargetContainer(propertiesContainer, true);
+            }
+        }
+
+        void CollapseAllParameters(VisualElement collapse)
+        {
+            var collapsing = collapse.ClassListContains("foldout-open");
+            if (collapsing)
+            {
+                collapse.AddToClassList("foldout-closed");
+                collapse.RemoveFromClassList("foldout-open");
+            }
+            else
+            {
+                collapse.AddToClassList("foldout-open");
+                collapse.RemoveFromClassList("foldout-closed");
+            }
+            foreach (var parameterTemplate in m_ParameterContainer.Children())
+            {
+                var parameterCollapse = parameterTemplate.Query<VisualElement>("collapse-parameter").First();
+                var propertiesContainer = parameterTemplate.Query<VisualElement>("samplers-container").First();
+                if (collapsing && parameterCollapse.ClassListContains("foldout-open"))
+                {
+                    parameterCollapse.AddToClassList("foldout-closed");
+                    parameterCollapse.RemoveFromClassList("foldout-open");
+                    ToggleTargetContainer(propertiesContainer, false);
+                }
+                else if (!collapsing && parameterCollapse.ClassListContains("foldout-closed"))
+                {
+                    parameterCollapse.AddToClassList("foldout-open");
+                    parameterCollapse.RemoveFromClassList("foldout-closed");
+                    ToggleTargetContainer(propertiesContainer, true);
+                }
+            }
         }
 
         void SwapParameters(int first, int second)
@@ -174,6 +247,8 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
 
         void MoveProperty(VisualElement template, int direction)
         {
+            if (FilterString == "")
+                return;
             var paramIndex = m_ParameterContainer.IndexOf(template);
             if (direction == -1 && paramIndex > 0)
             {

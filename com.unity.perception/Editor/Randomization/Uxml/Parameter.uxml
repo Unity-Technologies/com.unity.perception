@@ -1,15 +1,16 @@
 <UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
     <Box name="parameter-properties-box" class="parameter-properties-box">
         <VisualElement class="move-buttons-container">
-            <Button name="move-up-button" class="small-icon move-button-up"/>
-            <Button name="move-down-button" class="small-icon move-button-down"/>
+            <Button name="move-up-button" class="small-icon move-up-button"/>
+            <Button name="move-down-button" class="small-icon move-down-button"/>
         </VisualElement>
         <VisualElement class="parameter-properties-container">
             <VisualElement class="parameter-type-label-container">
-                <VisualElement/>
+                <VisualElement name="collapse-parameter" class="collapse-parameter-toggle foldout-open"/>
                 <Box class="parameter-type-label-box">
+
                     <Label name="parameter-type-label" text="Type:" class="parameter-type-label"/>
-                    <TextField binding-path="parameterName" name="parameter-name" text="Parameter Name" class="parameter-name-field"/>
+                    <TextField binding-path="parameterName" name="parameter-name" text="Parameter Name"/>
                 </Box>
                 <Button name="remove-parameter" class="small-icon remove-parameter-button"/>
             </VisualElement>

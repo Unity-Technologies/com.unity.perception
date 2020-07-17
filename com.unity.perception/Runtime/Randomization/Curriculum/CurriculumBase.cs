@@ -12,6 +12,8 @@ namespace UnityEngine.Perception.Randomization.Curriculum
         public abstract bool Complete { get; }
         public abstract bool FinishedIteration { get; }
 
+        public virtual void Initialize() { }
+
         public abstract void Iterate();
 
         public virtual JObject Serialize()

@@ -62,13 +62,14 @@ namespace UnityEngine.Perception.Randomization.Configuration
         {
             foreach (var parameter in parameters)
                 parameter.Validate();
+            curriculum.Initialize();
+            scenario.Initialize();
             StartCoroutine(UpdateLoop());
         }
 
         IEnumerator UpdateLoop()
         {
             yield return null;
-            scenario.Initialize();
             while (!curriculum.Complete)
             {
                 scenario.Setup();

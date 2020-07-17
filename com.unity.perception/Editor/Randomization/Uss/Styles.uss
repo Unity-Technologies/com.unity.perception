@@ -60,14 +60,13 @@
 }
 
 .parameter-type-label-box {
-    min-width: 300px;
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
     flex-grow: 0;
     -unity-text-align: middle-center;
     border-width: 0;
-    padding: 1px 13px;
+    padding: 1px;
     font-size: 13px;
     -unity-font-style: bold;
 }

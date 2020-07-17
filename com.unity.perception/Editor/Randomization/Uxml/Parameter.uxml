@@ -6,9 +6,8 @@
         </VisualElement>
         <VisualElement class="parameter-properties-container">
             <VisualElement class="parameter-type-label-container">
-                <VisualElement name="collapse-parameter" class="collapse-parameter-toggle foldout-open"/>
                 <Box class="parameter-type-label-box">
-
+                    <VisualElement name="collapse-parameter" class="collapse-parameter-toggle foldout-open"/>
                     <Label name="parameter-type-label" text="Type:" class="parameter-type-label"/>
                     <TextField binding-path="parameterName" name="parameter-name" text="Parameter Name"/>
                 </Box>

@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor.PackageManager.UI;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -6,8 +7,12 @@ namespace UnityEngine.Perception.Randomization.Parameters
     {
         public override Type OutputType => typeof(T);
 
-        public abstract T Sample(int iteration);
+        protected override object UntypedSample(int iteration)
+        {
+            return Sample(iteration);
+        }
 
+        public abstract T Sample(int iteration);
         public abstract T[] Samples(int iteration, int sampleCount);
     }
 }

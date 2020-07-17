@@ -20,11 +20,6 @@
     margin: 2px 1px;
 }
 
-.parameter-properties-container {
-    flex-grow: 1;
-    justify-content: center;
-}
-
 .parameter-type-menu {
     flex-grow: 2;
     border-width: 2px;

@@ -25,6 +25,10 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
         VisualTreeAsset m_AdrFloatTemplate;
 
         const string k_TemplatesFolder = "Packages/com.unity.perception/Editor/Randomization/Uxml";
+        const string k_PropertiesContainerName = "properties";
+        const string k_ExtraPropertiesContainerName = "extra-properties";
+        const string k_FoldoutOpenClass = "foldout-open";
+        const string k_FoldoutClosedClass = "foldout-closed";
 
         string m_FilterString = "";
         string FilterString
@@ -128,48 +132,28 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             var moveDownButton = templateClone.Query<Button>("move-down-button").First();
             moveDownButton.RegisterCallback<MouseUpEvent>(evt => MoveProperty(templateClone, 1));
 
-            // var hasTargetToggle = templateClone.Query<Toggle>("has-target-toggle").First();
-            // var targetContainer = templateClone.Query<VisualElement>("target-container").First();
-            // hasTargetToggle.RegisterCallback<ChangeEvent<bool>>(
-            //     evt => ToggleTargetContainer(targetContainer, parameterComponent.hasTarget));
-            // ToggleTargetContainer(targetContainer, parameterComponent.hasTarget);
+            var hasTargetToggle = templateClone.Query<Toggle>("has-target-toggle").First();
+            var targetContainer = templateClone.Query<VisualElement>("target-container").First();
+            hasTargetToggle.RegisterCallback<ChangeEvent<bool>>(
+                evt => ToggleTargetContainer(targetContainer, parameterComponent.hasTarget));
+            ToggleTargetContainer(targetContainer, parameterComponent.hasTarget);
 
-            // var targetField = templateClone.Query<PropertyField>("target-field").First();
-            // var propertyMenu = templateClone.Query<ToolbarMenu>("property-select-menu").First();
-            // targetField.RegisterCallback<ChangeEvent<Object>>(
-            //     evt =>
-            //     {
-            //         propertyMenu.text = "";
-            //         parameterComponent.propertyTarget = null;
-            //         AppendActionsToPropertySelectMenu(parameterComponent, propertyMenu);
-            //     });
-            // AppendActionsToPropertySelectMenu(parameterComponent, propertyMenu);
+            var targetField = templateClone.Query<PropertyField>("target-field").First();
+            var propertyMenu = templateClone.Query<ToolbarMenu>("property-select-menu").First();
+            targetField.RegisterCallback<ChangeEvent<GameObject>>(
+                evt =>
+                {
+                    propertyMenu.text = "";
+                    FillPropertySelectMenu(parameterComponent, propertyMenu);
+                });
+            FillPropertySelectMenu(parameterComponent, propertyMenu);
 
-            var samplersContainer = templateClone.Query<VisualElement>("samplers-container").First();
-            CreatePropertyFields(samplersContainer, so);
-
-            // var samplerTypeDropDown = templateClone.Query<ToolbarMenu>("sampler-type-dropdown").First();
-            // var samplerFieldsContainer = templateClone.Query<VisualElement>("sampler-fields-container").First();
-            // CreateSamplerPropertyFields(samplerFieldsContainer, parameterComponent.sampler);
-            // samplerTypeDropDown.text = parameterComponent.sampler.GetType().Name;
-            //
-            // var samplerTypes = GetDerivedTypeOptions(parameterComponent.SamplerType());
-            // foreach (var samplerType in samplerTypes)
-            // {
-            //     samplerTypeDropDown.menu.AppendAction(
-            //         samplerType.Name,
-            //         a =>
-            //         {
-            //             samplerTypeDropDown.text = samplerType.Name;
-            //             SetNewSampler(parameterComponent, samplerType);
-            //             CreateSamplerPropertyFields(samplerFieldsContainer, parameterComponent.sampler);
-            //         },
-            //         a => DropdownMenuAction.Status.Normal);
-            // }
-
+            var extraPropertiesContainer = templateClone.Query<VisualElement>(k_ExtraPropertiesContainerName).First();
+            CreatePropertyFields(extraPropertiesContainer, so);
 
             var collapseParam = templateClone.Query<VisualElement>("collapse-parameter").First();
-            collapseParam.RegisterCallback<MouseUpEvent>(evt => ToggleParameterCollapse(samplersContainer, collapseParam));
+            var propertiesContainer = templateClone.Query<VisualElement>(k_PropertiesContainerName).First();
+            collapseParam.RegisterCallback<MouseUpEvent>(evt => ToggleParameterCollapse(propertiesContainer, collapseParam));
 
             m_ParameterContainer.Add(templateClone);
         }
@@ -183,47 +167,47 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
 
         static void ToggleParameterCollapse(VisualElement propertiesContainer, VisualElement collapse)
         {
-            if (collapse.ClassListContains("foldout-open"))
+            if (collapse.ClassListContains(k_FoldoutOpenClass))
             {
-                collapse.AddToClassList("foldout-closed");
-                collapse.RemoveFromClassList("foldout-open");
+                collapse.AddToClassList(k_FoldoutClosedClass);
+                collapse.RemoveFromClassList(k_FoldoutOpenClass);
                 ToggleTargetContainer(propertiesContainer, false);
             }
             else
             {
-                collapse.AddToClassList("foldout-open");
-                collapse.RemoveFromClassList("foldout-closed");
+                collapse.AddToClassList(k_FoldoutOpenClass);
+                collapse.RemoveFromClassList(k_FoldoutClosedClass);
                 ToggleTargetContainer(propertiesContainer, true);
             }
         }
 
         void CollapseAllParameters(VisualElement collapse)
         {
-            var collapsing = collapse.ClassListContains("foldout-open");
+            var collapsing = collapse.ClassListContains(k_FoldoutOpenClass);
             if (collapsing)
             {
-                collapse.AddToClassList("foldout-closed");
-                collapse.RemoveFromClassList("foldout-open");
+                collapse.AddToClassList(k_FoldoutClosedClass);
+                collapse.RemoveFromClassList(k_FoldoutOpenClass);
             }
             else
             {
-                collapse.AddToClassList("foldout-open");
-                collapse.RemoveFromClassList("foldout-closed");
+                collapse.AddToClassList(k_FoldoutOpenClass);
+                collapse.RemoveFromClassList(k_FoldoutClosedClass);
             }
             foreach (var parameterTemplate in m_ParameterContainer.Children())
             {
                 var parameterCollapse = parameterTemplate.Query<VisualElement>("collapse-parameter").First();
-                var propertiesContainer = parameterTemplate.Query<VisualElement>("samplers-container").First();
-                if (collapsing && parameterCollapse.ClassListContains("foldout-open"))
+                var propertiesContainer = parameterTemplate.Query<VisualElement>(k_PropertiesContainerName).First();
+                if (collapsing && parameterCollapse.ClassListContains(k_FoldoutOpenClass))
                 {
-                    parameterCollapse.AddToClassList("foldout-closed");
-                    parameterCollapse.RemoveFromClassList("foldout-open");
+                    parameterCollapse.AddToClassList(k_FoldoutClosedClass);
+                    parameterCollapse.RemoveFromClassList(k_FoldoutOpenClass);
                     ToggleTargetContainer(propertiesContainer, false);
                 }
-                else if (!collapsing && parameterCollapse.ClassListContains("foldout-closed"))
+                else if (!collapsing && parameterCollapse.ClassListContains(k_FoldoutClosedClass))
                 {
-                    parameterCollapse.AddToClassList("foldout-open");
-                    parameterCollapse.RemoveFromClassList("foldout-closed");
+                    parameterCollapse.AddToClassList(k_FoldoutOpenClass);
+                    parameterCollapse.RemoveFromClassList(k_FoldoutClosedClass);
                     ToggleTargetContainer(propertiesContainer, true);
                 }
             }
@@ -259,81 +243,66 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             }
         }
 
-        // static List<PropertyTarget> GatherPropertyOptions(GameObject obj, Type propertyType)
-        // {
-        //     var options = new List<PropertyTarget>();
-        //     foreach (var component in obj.GetComponents<Component>())
-        //     {
-        //         if (component == null)
-        //             continue;
-        //
-        //         var componentType = component.GetType();
-        //
-        //         var fieldInfos = componentType.GetFields();
-        //         foreach (var fieldInfo in fieldInfos)
-        //         {
-        //             if (fieldInfo.FieldType == propertyType)
-        //                 options.Add(new PropertyTarget()
-        //                 {
-        //                     gameObject = obj,
-        //                     component = component,
-        //                     propertyName = fieldInfo.Name,
-        //                     fieldOrProperty = FieldOrProperty.Field
-        //                 });
-        //         }
-        //
-        //         var propertyInfos = componentType.GetProperties();
-        //         foreach (var propertyInfo in propertyInfos)
-        //         {
-        //             if (propertyInfo.PropertyType == propertyType)
-        //                 options.Add(new PropertyTarget()
-        //                 {
-        //                     gameObject = obj,
-        //                     component = component,
-        //                     propertyName = propertyInfo.Name,
-        //                     fieldOrProperty = FieldOrProperty.Property
-        //                 });
-        //         }
-        //     }
-        //
-        //     return options;
-        // }
+        static List<PropertyTarget> GatherPropertyOptions(GameObject obj, Type propertyType)
+        {
+            var options = new List<PropertyTarget>();
+            foreach (var component in obj.GetComponents<Component>())
+            {
+                if (component == null)
+                    continue;
+                var componentType = component.GetType();
 
-        // static void AppendActionsToPropertySelectMenu(Parameter parameterComponent, ToolbarMenu propertyMenu)
-        // {
-        //     propertyMenu.menu.MenuItems().Clear();
-        //     if (parameterComponent.target == null)
-        //         return;
-        //
-        //     var options = GatherPropertyOptions(parameterComponent.target, parameterComponent.SampleType());
-        //     foreach (var option in options)
-        //     {
-        //         propertyMenu.menu.AppendAction(
-        //             option.propertyName,
-        //             a =>
-        //             {
-        //                 parameterComponent.propertyTarget = option;
-        //                 propertyMenu.text = option.propertyName;
-        //             },
-        //             a => DropdownMenuAction.Status.Normal);
-        //     }
-        //
-        //     if (parameterComponent.propertyTarget != null)
-        //     {
-        //         propertyMenu.text = parameterComponent.propertyTarget.propertyName;
-        //     }
-        // }
+                var fieldInfos = componentType.GetFields();
+                foreach (var fieldInfo in fieldInfos)
+                {
+                    if (fieldInfo.FieldType == propertyType)
+                        options.Add(new PropertyTarget()
+                        {
+                            gameObject = obj,
+                            component = component,
+                            propertyName = fieldInfo.Name,
+                            fieldOrProperty = FieldOrProperty.Field
+                        });
+                }
 
-        // void SetNewSampler(Parameter parameterComponent, Type samplerType)
-        // {
-        //     if (parameterComponent.sampler != null)
-        //         DestroyImmediate(parameterComponent.sampler);
-        //
-        //     var newSampler = (SamplerBase)m_Config.gameObject.AddComponent(samplerType);
-        //     newSampler.parameter = parameterComponent;
-        //     newSampler.hideFlags = HideFlags.HideInInspector;
-        //     parameterComponent.sampler = newSampler;
-        // }
+                var propertyInfos = componentType.GetProperties();
+                foreach (var propertyInfo in propertyInfos)
+                {
+                    if (propertyInfo.PropertyType == propertyType)
+                        options.Add(new PropertyTarget()
+                        {
+                            gameObject = obj,
+                            component = component,
+                            propertyName = propertyInfo.Name,
+                            fieldOrProperty = FieldOrProperty.Property
+                        });
+                }
+            }
+            return options;
+        }
+
+        static void FillPropertySelectMenu(Parameter parameterComponent, ToolbarMenu propertyMenu)
+        {
+            propertyMenu.menu.MenuItems().Clear();
+            if (parameterComponent.target.gameObject == null)
+                return;
+
+            var options = GatherPropertyOptions(parameterComponent.target.gameObject, parameterComponent.OutputType);
+            foreach (var option in options)
+            {
+                propertyMenu.menu.AppendAction(
+                    option.propertyName,
+                    a =>
+                    {
+                        parameterComponent.target = option;
+                        propertyMenu.text = option.propertyName;
+                    },
+                    a => DropdownMenuAction.Status.Normal);
+            }
+
+            if (parameterComponent.target.gameObject != null)
+                propertyMenu.text = parameterComponent.target.propertyName;
+        }
 
         void CreatePropertyFields(VisualElement fieldsContainer, SerializedObject so)
         {
@@ -460,22 +429,21 @@ namespace UnityEngine.Perception.Randomization.Samplers.Editor
             var samplerTypes = new List<Type>();
             foreach (var assembly in assemblies)
             {
-                try
+                // try
+                // {
+                foreach (var type in assembly.GetTypes())
                 {
-                    foreach (var type in assembly.GetTypes())
-                    {
-                        var isNotAbstract = (type.Attributes & TypeAttributes.Abstract) == 0;
-                        if (typeof(Parameter).IsAssignableFrom(type) && isNotAbstract && GetParameterMetaData(type) != null)
-                            parameterTypes.Add(type);
-                        else if (typeof(Sampler).IsAssignableFrom(type) && isNotAbstract && GetSamplerMetaData(type) != null)
-                            samplerTypes.Add(type);
-                    }
+                    var isNotAbstract = (type.Attributes & TypeAttributes.Abstract) == 0;
+                    if (typeof(Parameter).IsAssignableFrom(type) && isNotAbstract && GetParameterMetaData(type) != null)
+                        parameterTypes.Add(type);
+                    else if (typeof(Sampler).IsAssignableFrom(type) && isNotAbstract && GetSamplerMetaData(type) != null)
+                        samplerTypes.Add(type);
                 }
-                catch (ReflectionTypeLoadException)
-                {
-                    Debug.LogWarning("Exception Happened! ");
-                    // TODO: figure out why we get this exception
-                }
+                // }
+                // catch (ReflectionTypeLoadException)
+                // {
+                //     // TODO: figure out why we get this exception
+                // }
             }
             s_ParameterTypes = parameterTypes.ToArray();
             s_SamplerTypes = samplerTypes.ToArray();

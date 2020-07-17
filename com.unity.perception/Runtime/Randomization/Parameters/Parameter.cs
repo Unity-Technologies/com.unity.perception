@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Samplers;
-using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -9,22 +8,32 @@ namespace UnityEngine.Perception.Randomization.Parameters
     public abstract class Parameter : MonoBehaviour
     {
         public string parameterName = "Parameter Name";
+        [HideInInspector] public bool hasTarget;
+        [HideInInspector] public PropertyTarget target;
 
         public abstract Sampler[] Samplers { get; }
-
         public abstract Type OutputType { get; }
-
+        protected abstract object UntypedSample(int iteration);
         public virtual void Validate() {}
 
-        // public bool hasTarget = true;
-        // public PropertyTarget target;
-
-        // public void Apply()
-        // {
-        //     if (!hasTarget)
-        //         return;
-        //     space.Apply(target, samplerBase.Sample());
-        // }
+        public void Apply(int iteration)
+        {
+            if (!hasTarget)
+                return;
+            var value = UntypedSample(iteration);
+            var componentType = target.component.GetType();
+            switch (target.fieldOrProperty)
+            {
+                case FieldOrProperty.Field:
+                    var fieldInfo = componentType.GetField(target.propertyName);
+                    fieldInfo.SetValue(target.component, value);
+                    break;
+                case FieldOrProperty.Property:
+                    var propertyInfo = componentType.GetProperty(target.propertyName);
+                    propertyInfo.SetValue(target.component, value);
+                    break;
+            }
+        }
     }
 
     [Serializable]
@@ -32,7 +41,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
     {
         public GameObject gameObject;
         public Component component;
-        public string propertyName;
+        public string propertyName = "";
         public FieldOrProperty fieldOrProperty;
     }
 

@@ -11,7 +11,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public abstract bool Running { get; }
 
         public virtual void Initialize() { }
-        public virtual void Setup() { }
+
+        public virtual void Setup()
+        {
+            var iteration = parameterConfiguration.curriculum.CurrentIteration;
+            foreach (var parameter in parameterConfiguration.parameters)
+                parameter.Apply(iteration);
+        }
         public virtual void Teardown() { }
     }
 }

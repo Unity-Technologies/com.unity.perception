@@ -4,7 +4,7 @@
             <Button name="move-up-button" class="small-icon move-up-button"/>
             <Button name="move-down-button" class="small-icon move-down-button"/>
         </VisualElement>
-        <VisualElement class="parameter-properties-container">
+        <VisualElement style="flex-grow: 1; justify-content: center;">
             <VisualElement class="parameter-type-label-container">
                 <Box class="parameter-type-label-box">
                     <VisualElement name="collapse-parameter" class="collapse-parameter-toggle foldout-open"/>
@@ -14,19 +14,22 @@
                 <Button name="remove-parameter" class="small-icon remove-parameter-button"/>
             </VisualElement>
 
-<!--            <VisualElement class="unity-base-field">-->
-<!--                <Label text="Apply To Target" class="unity-base-field__label"/>-->
-<!--                <Toggle binding-path="hasTarget" name="has-target-toggle"/>-->
-<!--            </VisualElement>-->
-<!--            <VisualElement name="target-container" class="unity-foldout__content">-->
-<!--                <editor:PropertyField binding-path="target" name="target-field" label="Target Object"/>-->
-<!--                <VisualElement class="unity-base-field">-->
-<!--                    <Label text="Property" class="unity-base-field__label"/>-->
-<!--                    <editor:ToolbarMenu text="Select A Property" name="property-select-menu" class="property-select-menu"/>-->
-<!--                </VisualElement>-->
-<!--            </VisualElement>-->
-
-            <VisualElement name="samplers-container" style="margin-bottom: 2px;"/>
+            <VisualElement name="properties" style="margin-bottom: 2px;">
+                <Box>
+                    <VisualElement class="unity-base-field">
+                        <Label text="Target GameObject" class="unity-base-field__label"/>
+                        <Toggle binding-path="hasTarget" name="has-target-toggle"/>
+                    </VisualElement>
+                    <VisualElement name="target-container" class="unity-foldout__content">
+                        <editor:PropertyField binding-path="target.gameObject" name="target-field" label="Target Object"/>
+                        <VisualElement class="unity-base-field">
+                            <Label text="Property" class="unity-base-field__label"/>
+                            <editor:ToolbarMenu text="Select A Property" name="property-select-menu" class="property-select-menu"/>
+                        </VisualElement>
+                    </VisualElement>
+                </Box>
+                <Box name="extra-properties" style="padding-left: 4px; border-top-width: 0px;"/>
+            </VisualElement>
         </VisualElement>
     </Box>
 </UXML>

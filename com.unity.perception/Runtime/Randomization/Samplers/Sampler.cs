@@ -9,6 +9,11 @@ namespace UnityEngine.Perception.Randomization.Samplers
     {
         public abstract uint GetRandomSeed(int iteration);
 
+        public Unity.Mathematics.Random GetRandom(int iteration)
+        {
+            return new Unity.Mathematics.Random(GetRandomSeed(iteration));
+        }
+
         public abstract float Sample(int iteration);
 
         public abstract float Sample(ref Unity.Mathematics.Random rng);

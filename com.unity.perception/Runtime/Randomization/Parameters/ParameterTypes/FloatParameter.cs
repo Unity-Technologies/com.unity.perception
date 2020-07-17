@@ -6,17 +6,24 @@ namespace UnityEngine.Perception.Randomization.Parameters
 {
     [AddComponentMenu("")]
     [ParameterMetaData("Float")]
-    public class FloatParameter : Parameter
+    public class FloatParameter : TypedParameter<float>
     {
         public Sampler value;
 
-        public override Type OutputType => typeof(float);
-
         public override Sampler[] Samplers => new []{ value };
 
-        public float Sample(int iteration)
+        public override float Sample(int iteration)
         {
             return value.Sample(iteration);
+        }
+
+        public override float[] Samples(int iteration, int sampleCount)
+        {
+            var samples = new float[sampleCount];
+            var rng = value.GetRandom(iteration);
+            for (var i = 0; i < sampleCount; i++)
+                samples[i] = value.Sample(ref rng);
+            return samples;
         }
     }
 }

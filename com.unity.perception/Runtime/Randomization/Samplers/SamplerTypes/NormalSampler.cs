@@ -1,5 +1,5 @@
 ﻿using System;
-using Unity.Mathematics;
+using UnityEngine.Perception.Randomization.Utilities;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -9,16 +9,10 @@ namespace UnityEngine.Perception.Randomization.Samplers
         public float mean;
         public float stdDev;
 
-        // TODO: Implement truncated normal distribution sampling logic
         public override float Sample(ref Unity.Mathematics.Random rng)
         {
-            // // https://stackoverflow.com/questions/218060/random-gaussian-variables
-            // var u1 = 1.0f - rng.NextFloat();
-            // var u2 = 1.0f - rng.NextFloat();
-            // var randStdNormal = math.sqrt(-2.0f * math.log(u1)) * math.sin(2.0f * math.PI * u2);
-            // return mean + stdDev * randStdNormal;
-
-            return math.lerp(adrFloat.minimum, adrFloat.maximum, rng.NextFloat());
+            return RandomUtility.TruncatedNormalSample(
+                rng.NextFloat(), adrFloat.minimum, adrFloat.maximum, mean, stdDev);
         }
     }
 }

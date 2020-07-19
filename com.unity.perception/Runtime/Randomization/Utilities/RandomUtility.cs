@@ -84,6 +84,8 @@ namespace UnityEngine.Perception.Randomization.Utilities
                 return min;
             if (u == 1f)
                 return max;
+            if (stdDev == 0)
+                return math.clamp(mean, min, max);
             var a = NormalCdf((min - mean) / stdDev);
             var b = NormalCdf((max - mean) / stdDev);
             var stdTruncNorm = NormalCdfInverse(a + u * (b - a));

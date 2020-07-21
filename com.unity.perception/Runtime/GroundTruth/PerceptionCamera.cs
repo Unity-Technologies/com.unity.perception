@@ -63,8 +63,11 @@ namespace UnityEngine.Perception.GroundTruth
 
         bool m_CapturedLastFrame;
         Ego m_EgoMarker;
+
+#pragma warning disable 414
         //only used to confirm that GroundTruthRendererFeature is present in URP
         bool m_GroundTruthRendererFeatureRun;
+#pragma warning restore 414
 
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
@@ -171,7 +174,7 @@ namespace UnityEngine.Perception.GroundTruth
                 using (s_WriteFrame.Auto())
                 {
                     var dataColorBuffer = (byte[])r.data.colorBuffer;
-                    
+
                     byte[] encodedData;
                     using (s_EncodeAndSave.Auto())
                     {

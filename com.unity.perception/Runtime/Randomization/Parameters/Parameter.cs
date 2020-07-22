@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
@@ -11,6 +12,8 @@ namespace UnityEngine.Perception.Randomization.Parameters
         [HideInInspector] public bool hasTarget;
         [HideInInspector] public PropertyTarget target;
 
+        public ParameterMetaData MetaData =>
+            (ParameterMetaData)Attribute.GetCustomAttribute(GetType(), typeof(ParameterMetaData));
         public abstract Sampler[] Samplers { get; }
         public abstract Type OutputType { get; }
         protected abstract object UntypedSample(int iteration);

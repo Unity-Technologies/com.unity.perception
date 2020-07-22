@@ -7,6 +7,9 @@ namespace UnityEngine.Perception.Randomization.Samplers
     [Serializable]
     public abstract class Sampler : MonoBehaviour
     {
+        public SamplerMetaData MetaData =>
+            (SamplerMetaData)Attribute.GetCustomAttribute(GetType(), typeof(SamplerMetaData));
+
         public abstract uint GetRandomSeed(int iteration);
 
         public Unity.Mathematics.Random GetRandom(int iteration)

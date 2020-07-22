@@ -7,7 +7,7 @@
         <VisualElement style="flex-grow: 1; justify-content: center;">
             <VisualElement class="parameter-type-label-container">
                 <Box class="parameter-type-label-box">
-                    <VisualElement name="collapse-parameter" class="collapse-parameter-toggle foldout-open"/>
+                    <VisualElement name="collapse" class="collapse-parameter-toggle foldout-open"/>
                     <Label name="parameter-type-label" text="Type:" class="parameter-type-label"/>
                     <TextField binding-path="parameterName" name="parameter-name" text="Parameter Name"/>
                 </Box>

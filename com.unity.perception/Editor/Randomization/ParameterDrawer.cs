@@ -17,6 +17,24 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            CacheParameterOptions();
+            GetParameterOptionIndex(property);
+
+            EditorGUI.BeginProperty(position, label, property);
+            var originalOption = m_SelectedOptionIndex;
+            m_SelectedOptionIndex = EditorGUI.Popup(position, fieldInfo.Name, m_SelectedOptionIndex, m_Options);
+            if (originalOption != m_SelectedOptionIndex)
+            {
+                property.objectReferenceValue = m_SelectedOptionIndex == 0
+                    ? null
+                    : m_Parameters[m_SelectedOptionIndex - 1];
+                property.serializedObject.ApplyModifiedProperties();
+            }
+            EditorGUI.EndProperty();
+        }
+
+        void CacheParameterOptions()
+        {
             if (!m_Cached)
             {
                 var parameterType = fieldInfo.FieldType;
@@ -44,32 +62,24 @@ namespace UnityEngine.Perception.Randomization.Editor
                     var metadata = ParameterMetaData.GetMetaData(parameter.GetType());
                     m_Options[i] = $"{parameter.parameterName} ({metadata.typeDisplayName})";
                 }
-
-                var selectedParameter = property.objectReferenceValue;
-                if (selectedParameter != null)
-                {
-                    for (var i = 0; i < m_Parameters.Count; i++)
-                        if (m_Parameters[i].GetInstanceID() == selectedParameter.GetInstanceID())
-                        {
-                            m_SelectedOptionIndex = i + 1;
-                            break;
-                        }
-                }
-                else
-                    m_SelectedOptionIndex = 0;
             }
             m_Cached = true;
+        }
 
-            EditorGUI.BeginProperty(position, label, property);
-            var originalOption = m_SelectedOptionIndex;
-            m_SelectedOptionIndex = EditorGUI.Popup(position, fieldInfo.Name, m_SelectedOptionIndex, m_Options);
-            if (originalOption != m_SelectedOptionIndex)
+        void GetParameterOptionIndex(SerializedProperty property)
+        {
+            var selectedParameter = property.objectReferenceValue;
+            if (selectedParameter != null)
             {
-                property.objectReferenceValue = m_SelectedOptionIndex == 0
-                    ? null
-                    : m_Parameters[m_SelectedOptionIndex - 1];
+                for (var i = 0; i < m_Parameters.Count; i++)
+                    if (m_Parameters[i].GetInstanceID() == selectedParameter.GetInstanceID())
+                    {
+                        m_SelectedOptionIndex = i + 1;
+                        break;
+                    }
             }
-            EditorGUI.EndProperty();
+            else
+                m_SelectedOptionIndex = 0;
         }
     }
 }

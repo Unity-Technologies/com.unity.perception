@@ -6,7 +6,7 @@
         <VisualElement style="flex-direction: row; align-items: center; margin-bottom: 2px; margin-top: 2px;">
             <VisualElement name="collapse-all" class="collapse-parameter-toggle foldout-open"/>
             <TextField name="filter-parameters" style="flex-grow: 1; flex-shrink: 1;"/>
-            <VisualElement class="filter-icon"/>
+            <VisualElement class="search-icon"/>
         </VisualElement>
         <ScrollView show-vertical-scroller="true" name="parameter-viewport" class="dark-viewport parameter-container-scroll">
             <VisualElement name="parameter-container" class="parameter-container">

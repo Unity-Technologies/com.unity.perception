@@ -129,12 +129,12 @@
     margin-right: 3px;
 }
 
-.filter-icon {
+.search-icon {
     width: 16px;
     height: 16px;
     margin-top: 2px;
     flex-shrink: 0;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/Filter.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/Search.png");
 }
 
 .foldout-open {

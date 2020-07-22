@@ -34,6 +34,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                             m_Parameters.Add(parameter);
                     }
                 }
+                m_Parameters.Sort((p1, p2) => p1.parameterName.CompareTo(p2.parameterName));
 
                 m_Options = new string[m_Parameters.Count + 1];
                 m_Options[0] = "None";

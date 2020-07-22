@@ -12,7 +12,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         public override float Sample(ref Unity.Mathematics.Random rng)
         {
             return RandomUtility.TruncatedNormalSample(
-                rng.NextFloat(), adrFloat.minimum, adrFloat.maximum, mean, stdDev);
+                rng.NextFloat(), range.minimum, range.maximum, mean, stdDev);
         }
     }
 }

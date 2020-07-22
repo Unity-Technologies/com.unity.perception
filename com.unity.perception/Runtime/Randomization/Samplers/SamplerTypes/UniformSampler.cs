@@ -7,7 +7,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
     {
         public override float Sample(ref Unity.Mathematics.Random rng)
         {
-            return math.lerp(adrFloat.minimum, adrFloat.maximum, rng.NextFloat());
+            return math.lerp(range.minimum, range.maximum, rng.NextFloat());
         }
     }
 }

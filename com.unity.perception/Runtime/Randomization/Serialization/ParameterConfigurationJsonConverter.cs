@@ -42,10 +42,10 @@ namespace UnityEngine.Perception.Randomization.Serialization
                     {
                         var adrFloatObj = new JObject();
                         parametersObj[parameter.parameterName + "." + field.Name] = adrFloatObj;
-                        var adrFloat = sampler.adrFloat;
-                        adrFloatObj["minimum"] = adrFloat.minimum;
-                        adrFloatObj["maximum"] = adrFloat.maximum;
-                        adrFloatObj["defaultValue"] = adrFloat.defaultValue;
+                        var range = sampler.range;
+                        adrFloatObj["minimum"] = range.minimum;
+                        adrFloatObj["maximum"] = range.maximum;
+                        adrFloatObj["defaultValue"] = range.defaultValue;
                     }
                 }
             }
@@ -94,9 +94,9 @@ namespace UnityEngine.Perception.Randomization.Serialization
                     var fieldValue = field.GetValue(parameter);
                     if (field.FieldType == typeof(Sampler) && fieldValue is RandomSampler sampler)
                     {
-                        sampler.adrFloat.minimum = value["minimum"].Value<float>();
-                        sampler.adrFloat.maximum = value["maximum"].Value<float>();
-                        sampler.adrFloat.defaultValue = value["defaultValue"].Value<float>();
+                        sampler.range.minimum = value["minimum"].Value<float>();
+                        sampler.range.maximum = value["maximum"].Value<float>();
+                        sampler.range.defaultValue = value["defaultValue"].Value<float>();
                         foundField = true;
                         break;
                     }

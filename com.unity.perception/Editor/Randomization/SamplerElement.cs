@@ -28,13 +28,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_Parameter = (Parameter)m_ParameterSo.targetObject;
 
             if (m_Sampler == null)
-            {
-                m_Sampler = m_Parameter.gameObject.AddComponent<UniformSampler>();
-                ((UniformSampler)m_Sampler).adrFloat.baseRandomSeed = (uint)Random.Range(1, int.MaxValue);
-                m_Sampler.hideFlags = HideFlags.HideInInspector;
-                m_Property.objectReferenceValue = m_Sampler;
-                m_ParameterSo.ApplyModifiedProperties();
-            }
+                CreateSampler(typeof(UniformSampler));
 
             m_SerializedObject = new SerializedObject(m_Sampler);
 
@@ -44,7 +38,6 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_Properties = this.Q<VisualElement>("fields-container");
             m_SamplerTypeDropdown = this.Q<ToolbarMenu>("sampler-type-dropdown");
             m_SamplerTypeDropdown.text = m_Sampler.MetaData.displayName;
-
             foreach (var samplerType in StaticData.samplerTypes)
             {
                 var displayName = SamplerMetaData.GetMetaData(samplerType).displayName;
@@ -59,24 +52,23 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         void ReplaceSampler(Type samplerType)
         {
-            var newSampler = m_Parameter.gameObject.AddComponent(samplerType);
-            if (samplerType.IsSubclassOf(typeof(RandomSampler)))
-                ((RandomSampler)newSampler).adrFloat.baseRandomSeed = (uint)Random.Range(1, int.MaxValue);
-
-            newSampler.hideFlags = HideFlags.HideInInspector;
-            m_Property.objectReferenceValue = newSampler;
-            m_ParameterSo.Dispose();
+            m_SerializedObject.Dispose();
             Object.DestroyImmediate(m_Sampler);
-            m_ParameterSo.ApplyModifiedProperties();
-
+            CreateSampler(samplerType);
             m_SamplerTypeDropdown.text = m_Sampler.MetaData.displayName;
-            m_ParameterSo = new SerializedObject(newSampler);
+            m_SerializedObject = new SerializedObject(m_Sampler);
             CreatePropertyFields();
         }
 
-        static string UppercaseFirstLetter(string s)
+        void CreateSampler(Type samplerType)
         {
-            return string.IsNullOrEmpty(s) ? string.Empty : char.ToUpper(s[0]) + s.Substring(1);
+            m_Sampler = (Sampler)m_Parameter.gameObject.AddComponent(samplerType);
+            m_Sampler.hideFlags = HideFlags.HideInInspector;
+            if (samplerType.IsSubclassOf(typeof(RandomSampler)))
+                ((RandomSampler)m_Sampler).seed = (uint)Random.Range(1, int.MaxValue);
+
+            m_Property.objectReferenceValue = m_Sampler;
+            m_ParameterSo.ApplyModifiedProperties();
         }
 
         void CreatePropertyFields()
@@ -89,10 +81,26 @@ namespace UnityEngine.Perception.Randomization.Editor
                 {
                     if (iterator.propertyPath == "m_Script")
                         continue;
+                    if (iterator.propertyPath == "seed")
+                    {
+                        var seedField = new IntegerField("Seed");
+                        seedField.BindProperty(iterator.Copy());
+                        seedField.RegisterValueChangedCallback((e) =>
+                        {
+                            if (e.newValue <= 0)
+                            {
+                                seedField.value = 0;
+                                seedField.binding.Update();
+                                e.StopImmediatePropagation();
+                            }
+                        });
+                        m_Properties.Add(seedField);
+                        continue;
+                    }
                     switch (iterator.type)
                     {
-                        case "AdrFloat":
-                            m_Properties.Add(new AdrFloatElement(iterator.Copy()));
+                        case "FloatRange":
+                            m_Properties.Add(new FloatRangeElement(iterator.Copy()));
                             break;
                         default:
                         {
@@ -104,6 +112,11 @@ namespace UnityEngine.Perception.Randomization.Editor
                     }
                 } while (iterator.NextVisible(false));
             }
+        }
+
+        static string UppercaseFirstLetter(string s)
+        {
+            return string.IsNullOrEmpty(s) ? string.Empty : char.ToUpper(s[0]) + s.Substring(1);
         }
     }
 }

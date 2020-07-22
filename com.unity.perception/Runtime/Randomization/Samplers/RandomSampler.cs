@@ -4,11 +4,12 @@ namespace UnityEngine.Perception.Randomization.Samplers
 {
     public abstract class RandomSampler : Sampler
     {
-        public AdrFloat adrFloat = new AdrFloat();
+        public FloatRange range = new FloatRange();
+        public uint seed = RandomUtility.defaultBaseSeed;
 
         public override uint GetRandomSeed(int iteration)
         {
-            return RandomUtility.SeedFromIndex((uint)iteration, adrFloat.baseRandomSeed);
+            return RandomUtility.SeedFromIndex((uint)iteration, seed);
         }
 
         public override float Sample(int iteration)

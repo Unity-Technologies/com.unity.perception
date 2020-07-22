@@ -129,15 +129,6 @@
     margin-right: 3px;
 }
 
-.adr-float-template .unity-base-field__label {
-    min-width: 50px;
-}
-
-.adr-float-field {
-    flex-grow: 1;
-    width: 0;
-}
-
 .filter-icon {
     width: 16px;
     height: 16px;

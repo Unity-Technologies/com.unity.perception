@@ -32,9 +32,9 @@ namespace UnityEngine.Perception.Randomization.Editor
                 }
                 else
                 {
-                    m_CollapseIcon.AddToClassList(k_FoldoutClosedClass);
-                    m_CollapseIcon.RemoveFromClassList(k_FoldoutOpenClass);
-                    ToggleTargetContainer(m_Properties, false);
+                    m_CollapseIcon.AddToClassList(k_FoldoutOpenClass);
+                    m_CollapseIcon.RemoveFromClassList(k_FoldoutClosedClass);
+                    ToggleTargetContainer(m_Properties, true);
                 }
             }
         }

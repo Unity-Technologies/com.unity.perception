@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.Perception.Randomization.Curriculum;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.Perception.Randomization.Serialization;
@@ -13,10 +12,22 @@ namespace UnityEngine.Perception.Randomization.Configuration
 {
     public class ParameterConfiguration : MonoBehaviour
     {
+        static ParameterConfiguration s_Configuration;
+
+        public static ParameterConfiguration Configuration
+        {
+            get => s_Configuration;
+            private set
+            {
+                if (s_Configuration != null)
+                    throw new ParameterConfigurationException("There cannot be more than one active ParameterConfiguration");
+                s_Configuration = value;
+            }
+        }
+
         public bool loadAdrConfigOnStart;
         public string configurationFileName = "parameter-config";
         public Scenario scenario;
-        public CurriculumBase curriculum;
 
         [SerializeReference]
         public List<Parameter> parameters = new List<Parameter>();
@@ -46,23 +57,25 @@ namespace UnityEngine.Perception.Randomization.Configuration
                 $"Parameter with name {parameterName} and type {typeof(T).Name} not found");
         }
 
-        public void Awake()
+        public void OnEnable()
         {
+            Configuration = this;
             if (loadAdrConfigOnStart)
                 Deserialize();
-            if (curriculum == null)
-                throw new ParameterConfigurationException("Curriculum is null");
             if (scenario == null)
                 throw new ParameterConfigurationException("Scenario is null");
             scenario.parameterConfiguration = this;
-            curriculum.parameterConfiguration = this;
+        }
+
+        public void OnDisable()
+        {
+            s_Configuration = null;
         }
 
         void Start()
         {
             foreach (var parameter in parameters)
                 parameter.Validate();
-            curriculum.Initialize();
             scenario.Initialize();
             StartCoroutine(UpdateLoop());
         }
@@ -70,15 +83,17 @@ namespace UnityEngine.Perception.Randomization.Configuration
         IEnumerator UpdateLoop()
         {
             yield return null;
-            while (!curriculum.Complete)
+            while (!scenario.Complete)
             {
+                foreach (var parameter in parameters)
+                    parameter.Apply(scenario.CurrentIteration);
                 scenario.Setup();
 
-                while (scenario.Running || !curriculum.FinishedIteration)
+                while (scenario.Running)
                     yield return null;
 
                 scenario.Teardown();
-                curriculum.Iterate();
+                scenario.Iterate();
             }
             StopExecution();
         }

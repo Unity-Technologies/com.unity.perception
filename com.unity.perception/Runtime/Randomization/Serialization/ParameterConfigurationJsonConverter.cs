@@ -50,11 +50,11 @@ namespace UnityEngine.Perception.Randomization.Serialization
                 }
             }
 
-            if (m_Config.curriculum)
+            if (m_Config.scenario)
             {
-                var curriculumObj = m_Config.curriculum.Serialize();
-                if (curriculumObj != null)
-                    configObj["curriculum"] = curriculumObj;
+                var scenarioObj = m_Config.scenario.Serialize();
+                if (scenarioObj != null)
+                    configObj["scenario"] = scenarioObj;
             }
 
             configObj.WriteTo(writer);
@@ -65,9 +65,9 @@ namespace UnityEngine.Perception.Randomization.Serialization
         {
             var jo = JObject.Load(reader);
             ReadParameters(jo["parameters"]);
-            var curriculumToken = jo["curriculum"];
-            if (curriculumToken is JObject curriculumObj)
-                m_Config.curriculum.Deserialize(curriculumObj);
+            var scenarioToken = jo["scenario"];
+            if (scenarioToken is JObject scenarioObj)
+                m_Config.scenario.Deserialize(scenarioObj);
             return m_Config;
         }
 

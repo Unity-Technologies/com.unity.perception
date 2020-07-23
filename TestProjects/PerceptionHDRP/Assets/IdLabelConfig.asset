@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: IdLabelConfig
   m_EditorClassIdentifier: Unity.Perception.Runtime:UnityEngine.Perception.GroundTruth:IdLabelConfig
   m_LabelEntries:
-  - label: Box
+  - label: Crate
     id: 1
   - label: Cube
     id: 2
-  - label: Crate
+  - label: Box
     id: 3
   autoAssignIds: 1
   startingLabelId: 1

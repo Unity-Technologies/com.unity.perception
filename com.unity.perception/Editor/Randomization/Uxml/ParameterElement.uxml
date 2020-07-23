@@ -16,9 +16,9 @@
 
             <VisualElement name="properties" style="margin-bottom: 2px;">
                 <Box>
-                    <VisualElement class="unity-base-field">
+                    <VisualElement class="unity-base-field" style="padding-bottom: 1px">
                         <Label text="Target GameObject" class="unity-base-field__label"/>
-                        <Toggle binding-path="hasTarget" name="has-target-toggle"/>
+                        <Toggle binding-path="hasTarget" name="has-target-toggle" style="margin-bottom: 1px;"/>
                     </VisualElement>
                     <VisualElement name="target-container" class="unity-foldout__content">
                         <editor:PropertyField binding-path="target.gameObject" name="target-field" label="Target Object"/>

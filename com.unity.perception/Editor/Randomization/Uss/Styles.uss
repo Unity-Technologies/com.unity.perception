@@ -38,13 +38,13 @@
     flex-grow: 1.5;
     border-radius: 3px;
     border-width: 1px;
-    padding-bottom: 1px;
-    margin-bottom: 1px;
-    margin-right: 1px;
+    margin-top: 2px;
+    margin-right: 3px;
 }
 
 .sampler-name {
     color: lightgreen;
+    -unity-font-style: bold;
 }
 
 .parameter-type-label-container {

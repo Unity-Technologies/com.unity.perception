@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using UnityEngine.Perception.GroundTruth;
 
-namespace GroundTruth
+namespace GroundTruthTests
 {
     public class DatasetCaptureEditorTests
     {

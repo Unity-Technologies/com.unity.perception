@@ -1,10 +1,9 @@
 ﻿namespace UnityEngine.Perception.Randomization.Samplers
 {
+    [AddComponentMenu("")]
     [SamplerMetaData("Placeholder Range")]
-    public class PlaceholderRangeSampler : Sampler
+    public class PlaceholderRangeSampler : OptimizableSampler
     {
-        public FloatRange range;
-
         public override uint GetRandomSeed(int iteration)
         {
             throw new SamplerException("Cannot return seed from PlaceholderRangeSampler");

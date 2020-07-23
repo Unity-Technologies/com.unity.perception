@@ -2,6 +2,7 @@
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
+    [AddComponentMenu("")]
     [SamplerMetaData("Constant")]
     public class ConstantSampler : Sampler
     {

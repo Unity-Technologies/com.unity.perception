@@ -5,6 +5,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     /// <summary>
     /// An example scenario that runs for exactly one frame
     /// </summary>
+    [AddComponentMenu("Randomization/Scenarios/One Frame Scenario")]
     public class OneFrameScenario : Scenario
     {
         bool m_RanForOneFrame;

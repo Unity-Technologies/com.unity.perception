@@ -3,6 +3,7 @@ using UnityEngine.Perception.Randomization.Utilities;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
+    [AddComponentMenu("")]
     [SamplerMetaData("Normal")]
     public class NormalSampler : RandomSampler
     {

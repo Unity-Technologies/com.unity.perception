@@ -1,4 +1,5 @@
 ﻿using System;
+using ICSharpCode.NRefactory.Ast;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Parameters;
@@ -79,7 +80,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             {
                 do
                 {
-                    if (iterator.propertyPath == "m_Script")
+                    if (iterator.propertyPath == "m_Script" || iterator.propertyPath == "optimize")
                         continue;
                     if (iterator.propertyPath == "seed")
                     {

@@ -2,6 +2,7 @@
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
+    [AddComponentMenu("")]
     [SamplerMetaData("Uniform")]
     public class UniformSampler : RandomSampler
     {

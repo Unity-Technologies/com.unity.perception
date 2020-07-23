@@ -1,10 +1,10 @@
-﻿using UnityEngine.Perception.Randomization.Utilities;
+﻿using System;
+using UnityEngine.Perception.Randomization.Utilities;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
-    public abstract class RandomSampler : Sampler
+    public abstract class RandomSampler : OptimizableSampler
     {
-        public FloatRange range = new FloatRange();
         public uint seed = RandomUtility.defaultBaseSeed;
 
         public override uint GetRandomSeed(int iteration)

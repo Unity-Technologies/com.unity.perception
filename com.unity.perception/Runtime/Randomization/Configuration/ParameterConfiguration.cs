@@ -10,6 +10,7 @@ using UnityEngine.Perception.Randomization.Serialization;
 
 namespace UnityEngine.Perception.Randomization.Configuration
 {
+    [AddComponentMenu("Randomization/ParameterConfiguration")]
     public class ParameterConfiguration : MonoBehaviour
     {
         static ParameterConfiguration s_Configuration;

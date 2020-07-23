@@ -43,7 +43,7 @@
 }
 
 .sampler-name {
-    color: lightgreen;
+    /*color: lightgreen;*/
     -unity-font-style: bold;
 }
 

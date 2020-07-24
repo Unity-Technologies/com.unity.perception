@@ -64,6 +64,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
+        protected override bool supportsVisualization => true;
+
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (idLabelConfig == null)
@@ -76,8 +79,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfosCalculated;
 
-            supportsVisualization = true;
-            EnableVisualization(supportsVisualization);
+            visualizationEnabled = supportsVisualization;
         }
 
         /// <inheritdoc/>
@@ -119,10 +121,9 @@ namespace UnityEngine.Perception.GroundTruth
                 if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount) 
                     Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
 
-                if (IsVisualizationEnabled()) 
+                if (visualizationEnabled) 
                 {
                     Visualize();
-                    ReportFrameCount(frameCount);
                 }
                 
                 asyncAnnotation.ReportValues(m_BoundingBoxValues);
@@ -130,18 +131,15 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void SetupVisualizationPanel(GameObject panel)
+        protected override void PopulateVisualizationPanel(ControlPanel panel)
         {
-            var toggle  = GameObject.Instantiate(Resources.Load<GameObject>("GenericToggle"));
-            toggle.transform.SetParent(panel.transform);
-            toggle.GetComponentInChildren<Text>().text = "Bounding Boxes";
-            toggle.GetComponent<Toggle>().onValueChanged.AddListener(enabled => {
-                EnableVisualization(enabled);
+            panel.AddToggleControl("BoundingBoxes", enabled => {
+                visualizationEnabled = enabled;
             });
 
-            visualizationHolder = GameObject.Instantiate(Resources.Load<GameObject>("BoundsHolder"));
-            visualizationHolder.transform.SetParent(panel.transform.parent, false);
-            
+            visualizationHolder = new GameObject("BoundsHolder");
+            canvas.AddComponent(visualizationHolder);
+
             visualizationPanelCache = new Dictionary<string, RectTransform>();
         }
 
@@ -149,7 +147,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             foreach (var box in m_BoundingBoxValues)
             {
-                var rectTrans = GetVisualizationPanel(box.label_name);
+                var rectTrans = GetVisualizationPanel(box.label_name + "_" + box.instance_id);
                 rectTrans.anchoredPosition = new Vector2(box.x, -box.y);
                 rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, box.width);
                 rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, box.height);
@@ -170,19 +168,11 @@ namespace UnityEngine.Perception.GroundTruth
             return visualizationPanelCache[label];
         }
 
-        void ReportFrameCount(int frame)
-        {
-            GetHud().UpdateEntry("Frame", frame.ToString());
-        }
-
         /// <inheritdoc/>
-        override protected void OnVisualizerEnabled(bool enabled)
+        override protected void OnVisualizerActiveStateChanged(bool enabled)
         {
             if (visualizationHolder != null) 
                 visualizationHolder.SetActive(enabled);
-
-            if (!enabled) GetHud().RemoveEntry("Frame");
-            
         }
     }
 }

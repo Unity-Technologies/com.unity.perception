@@ -10,14 +10,8 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class KeyValuePanel : MonoBehaviour
     {
-        Text key = null;
-        Text value = null;
-
-        void Awake()
-        {
-            key = this.transform.Find("Key").GetComponent<Text>();
-            value = this.transform.Find("Value").GetComponent<Text>();
-        }
+        public Text key = null;
+        public Text value = null;
 
         /// <summary>
         /// Sets the key of this key value pair

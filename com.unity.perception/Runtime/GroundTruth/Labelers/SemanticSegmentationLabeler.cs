@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -68,6 +68,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// the camera resolution.
         /// </summary>
         public RenderTexture targetTexture => m_TargetTextureOverride;
+        
         [Tooltip("(Optional) The RenderTexture on which semantic segmentation images will be drawn. Will be reformatted on startup.")]
         [SerializeField]
         RenderTexture m_TargetTextureOverride;
@@ -124,6 +125,9 @@ namespace UnityEngine.Perception.GroundTruth
         private Image segImage = null;
 
         /// <inheritdoc/>
+        protected override bool supportsVisualization => true;
+
+        /// <inheritdoc/>
         protected override void Setup()
         {
             var myCamera = perceptionCamera.GetComponent<Camera>();
@@ -178,8 +182,7 @@ namespace UnityEngine.Perception.GroundTruth
             m_SemanticSegmentationTextureReader = new RenderTextureReader<Color32>(targetTexture, myCamera,
                 (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
         
-            supportsVisualization = true;
-            EnableVisualization(supportsVisualization);
+            visualizationEnabled = supportsVisualization;
         }
 
         void OnSemanticSegmentationImageRead(int frameCount, NativeArray<Color32> data)
@@ -194,7 +197,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             var asyncRequest = Manager.Instance.CreateRequest<AsyncRequest<AsyncSemanticSegmentationWrite>>();
             
-            if (IsVisualizationEnabled())
+            if (visualizationEnabled)
                 VisualizeSegmentationTexture(data, targetTexture);
 
             imageReadback?.Invoke(new ImageReadbackEventArgs
@@ -244,40 +247,22 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void SetupVisualizationPanel(GameObject panel)
+        protected override void PopulateVisualizationPanel(ControlPanel panel)
         {
-            var toggle  = GameObject.Instantiate(Resources.Load<GameObject>("GenericToggle"));
-            toggle.transform.SetParent(panel.transform);
-            toggle.GetComponentInChildren<Text>().text = "Segmentation Information";
-            toggle.GetComponent<Toggle>().onValueChanged.AddListener(enabled => {
-                EnableVisualization(enabled);
-            });
+            panel.AddToggleControl("Segmentation Information", enabled => { visualizationEnabled = enabled; });
 
             defaultSegmentTransparency = 0.8f;
             defaultBackgroundTransparency = 0.0f;
 
-            var slider = GameObject.Instantiate(Resources.Load<GameObject>("GenericSlider"));
-            slider.transform.SetParent(panel.transform);
-            slider.GetComponentInChildren<Text>().text = "Object Alpha";
-            slider.GetComponentInChildren<Slider>().value = defaultSegmentTransparency;
-            slider.GetComponentInChildren<Slider>().onValueChanged.AddListener(val => {
+            panel.AddSliderControl("Object Alpha", defaultSegmentTransparency, val => {
                 if (segImage != null) segImage.material.SetFloat("_SegmentTransparency", val);
             });
 
-            slider = GameObject.Instantiate(Resources.Load<GameObject>("GenericSlider"));
-            slider.transform.SetParent(panel.transform);
-            slider.GetComponentInChildren<Text>().text = "Background Alpha";
-            slider.GetComponentInChildren<Slider>().value = defaultBackgroundTransparency;
-            slider.GetComponentInChildren<Slider>().onValueChanged.AddListener(val => {
+            panel.AddSliderControl("Background Alpha", defaultBackgroundTransparency, val => {
                 if (segImage != null) segImage.material.SetFloat("_BackTransparency", val);
             });
 
             segVisual = GameObject.Instantiate(Resources.Load<GameObject>("SegmentTexture"));
-            segVisual.transform.SetParent(panel.transform.parent, false);
-            
-            // It is important that segment visualizer be the lowest layer part of the UI when rendered (so other annotations
-            // will be drawn on top of it)
-            segVisual.transform.SetAsFirstSibling();
 
             segImage = segVisual.GetComponent<Image>();
             segImage.material.SetFloat("_SegmentTransparency", defaultSegmentTransparency);
@@ -286,6 +271,8 @@ namespace UnityEngine.Perception.GroundTruth
             RectTransform rt = segVisual.transform as RectTransform;
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, camWidth);
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
+
+            canvas.AddComponent(segVisual, setAsLowestElement: true);
         }
 
         void VisualizeSegmentationTexture(NativeArray<Color32> data, RenderTexture texture)
@@ -298,7 +285,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        override protected void OnVisualizerEnabled(bool enabled)
+        override protected void OnVisualizerActiveStateChanged(bool enabled)
         {
             if (segVisual != null) 
                 segVisual.SetActive(enabled);

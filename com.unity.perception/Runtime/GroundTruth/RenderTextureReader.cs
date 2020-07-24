@@ -34,8 +34,6 @@ namespace UnityEngine.Perception.GroundTruth
             this.m_CameraRenderingToSource = cameraRenderingToSource;
             m_NextFrameToCapture = Time.frameCount;
 
-            m_CpuTexture = new Texture2D(m_Source.width, m_Source.height, m_Source.graphicsFormat, TextureCreationFlags.None);
-
             RenderPipelineManager.endFrameRendering += OnEndFrameRendering;
         }
 
@@ -56,6 +54,10 @@ namespace UnityEngine.Perception.GroundTruth
             if (!GraphicsUtilities.SupportsAsyncReadback())
             {
                 RenderTexture.active = m_Source;
+                
+                if (m_CpuTexture == null)
+                    m_CpuTexture = new Texture2D(m_Source.width, m_Source.height, m_Source.graphicsFormat, TextureCreationFlags.None);
+                
                 m_CpuTexture.ReadPixels(new Rect(
                     Vector2.zero,
                     new Vector2(m_Source.width, m_Source.height)),

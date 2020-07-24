@@ -38,8 +38,6 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<int, AsyncMetric> m_ObjectCountAsyncMetrics;
         MetricDefinition m_ObjectCountMetricDefinition;
 
-        HUDPanel hud = null;
-
         Dictionary<string, string> entryToLabelMap = null;
 
         /// <summary>
@@ -72,6 +70,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
+        protected override bool supportsVisualization => true;
+
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (labelConfig == null)
@@ -86,8 +87,7 @@ namespace UnityEngine.Perception.GroundTruth
                 ProduceObjectCountMetric(objectCounts, m_LabelConfig.labelEntries, frameCount);
             };
 
-            supportsVisualization = true;
-            EnableVisualization(supportsVisualization);
+            visualizationEnabled = supportsVisualization;
         }
 
         /// <inheritdoc/>
@@ -138,13 +138,13 @@ namespace UnityEngine.Perception.GroundTruth
                         count = counts[i]
                     };
 
-                    if (IsVisualizationEnabled() && hud != null)
+                    if (visualizationEnabled)
                     {
                         if (entryToLabelMap == null) entryToLabelMap = new Dictionary<string, string>();
 
                         if (!entryToLabelMap.ContainsKey(entries[i].label)) entryToLabelMap[entries[i].label] = entries[i].label + " Counts";
                         
-                        hud.UpdateEntry(entryToLabelMap[entries[i].label], counts[i].ToString());
+                        hudPanel.UpdateEntry(entryToLabelMap[entries[i].label], counts[i].ToString());
                     }
                 }
 
@@ -153,26 +153,19 @@ namespace UnityEngine.Perception.GroundTruth
         }
         
         /// <inheritdoc/>
-        protected override void SetupVisualizationPanel(GameObject panel)
+        protected override void PopulateVisualizationPanel(ControlPanel panel)
         {
-            var toggle  = GameObject.Instantiate(Resources.Load<GameObject>("GenericToggle"));
-            toggle.transform.SetParent(panel.transform);
-            toggle.GetComponentInChildren<Text>().text = "Object Counts";
-            toggle.GetComponent<Toggle>().onValueChanged.AddListener(enabled => {
-                EnableVisualization(enabled);
-            });
-
-            hud = GetHud();
+            panel.AddToggleControl("Object Counts", enabled => { visualizationEnabled = enabled; });
         }
 
         /// <inheritdoc/>
-        override protected void OnVisualizerEnabled(bool enabled)
+        override protected void OnVisualizerActiveStateChanged(bool enabled)
         {
             if (!enabled)
             {
                 foreach (var e in entryToLabelMap)
                 {
-                    GetHud().RemoveEntry(e.Value);
+                    hudPanel.RemoveEntry(e.Value);
                 }
                 entryToLabelMap.Clear();
             } 

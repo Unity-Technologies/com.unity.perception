@@ -44,8 +44,6 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<int, AsyncMetric> m_ObjectInfoAsyncMetrics;
         MetricDefinition m_RenderedObjectInfoMetricDefinition;
 
-        private HUDPanel hud = null;
-
         Dictionary<string, string> entryToLabelMap = null;
 
         /// <summary>
@@ -64,6 +62,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
+        protected override bool supportsVisualization => true;
+
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (idLabelConfig == null)
@@ -76,8 +77,7 @@ namespace UnityEngine.Perception.GroundTruth
                 ProduceRenderedObjectInfoMetric(objectInfo, frameCount);
             };
 
-            supportsVisualization = true;
-            EnableVisualization(supportsVisualization);
+            visualizationEnabled = supportsVisualization;
         }
 
         /// <inheritdoc/>
@@ -120,13 +120,15 @@ namespace UnityEngine.Perception.GroundTruth
                         visible_pixels = objectInfo.pixelCount
                     };
 
-                    if (IsVisualizationEnabled() && hud != null)
+                    if (visualizationEnabled)
                     {
                         if (entryToLabelMap == null) entryToLabelMap = new Dictionary<string, string>();
 
-                        if (!entryToLabelMap.ContainsKey(labelEntry.label)) entryToLabelMap[labelEntry.label] = labelEntry.label + " Pixels";
+                        var label = labelEntry.label + "_" + objectInfo.instanceId;
+
+                        if (!entryToLabelMap.ContainsKey(label)) entryToLabelMap[label] = label + " Pixels";
                         
-                        hud.UpdateEntry(entryToLabelMap[labelEntry.label], objectInfo.pixelCount.ToString());
+                        hudPanel.UpdateEntry(entryToLabelMap[label], objectInfo.pixelCount.ToString());
                     }
                 }
 
@@ -140,26 +142,19 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void SetupVisualizationPanel(GameObject panel)
+        protected override void PopulateVisualizationPanel(ControlPanel panel)
         {
-            var toggle  = GameObject.Instantiate(Resources.Load<GameObject>("GenericToggle"));
-            toggle.transform.SetParent(panel.transform);
-            toggle.GetComponentInChildren<Text>().text = "Pixel Counts";
-            toggle.GetComponent<Toggle>().onValueChanged.AddListener(enabled => {
-                EnableVisualization(enabled);
-            });
-
-            hud = GetHud();
+            panel.AddToggleControl("Pixel Counts", enabled => { visualizationEnabled = enabled; });
         }
 
         /// <inheritdoc/>
-        override protected void OnVisualizerEnabled(bool enabled)
+        override protected void OnVisualizerActiveStateChanged(bool enabled)
         {
             if (!enabled)
             {
                 foreach (var e in entryToLabelMap)
                 {
-                    GetHud().RemoveEntry(e.Value);
+                    hudPanel.RemoveEntry(e.Value);
                 }
                 entryToLabelMap.Clear();
             } 

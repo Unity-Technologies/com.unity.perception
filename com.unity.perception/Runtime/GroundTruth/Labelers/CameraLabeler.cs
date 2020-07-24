@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using Unity.Simulation;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -22,17 +24,56 @@ namespace UnityEngine.Perception.GroundTruth
         /// Labelers should set this in their setup to define if they support realtime
         /// visualization of their data. 
         /// </summary>
-        protected bool supportsVisualization = false;
-        /// <summary>
-        /// Flag holding if the realtime visualizer for the labeler in enabled. This
-        /// value is ignored if <see cref="supportsVisualization"/> is false.
-        /// </summary>
-        private bool visualizationEnabled = false;
+        protected abstract bool supportsVisualization
+        {
+            get;
+        }
+
         /// <summary>
         /// Static counter shared by all lableler classes. If any visualizers are
         /// active then perception camera cannot operate in asynchronous mode. 
         /// </summary>
         private static int activeVisualizers = 0;
+
+        private static VisualizationCanvas m_Canvas = null;
+        
+        /// <summary>
+        /// Retrieve a handle to the visualization canvas <see cref="VisualizationCanvas". This is the specific canvas that all visualization
+        /// labelers should be added to. The canvas has helper functions to create many common visualization components.
+        /// </summary>
+        public VisualizationCanvas canvas
+        {
+            get
+            {
+                if (m_Canvas == null)
+                {
+                    m_Canvas = GameObject.Instantiate(Resources.Load<GameObject>("VisualizationUI")).GetComponent<VisualizationCanvas>();
+                };
+                return m_Canvas;
+            }
+        }
+
+        /// <summary>
+        /// The control panel that is attached to the visualization canvas. The common location to add interactive controls.
+        /// </summary>
+        public ControlPanel controlPanel
+        {
+            get
+            {
+                return canvas.controlPanel;
+            }
+        }
+
+        /// <summary>
+        /// The heads up display (HUD) panel. Generally used to add stats to the display.
+        /// </summary>
+        public HUDPanel hudPanel
+        {
+            get
+            {
+                return canvas.hudPanel;
+            }
+        }
 
         /// <summary>
         /// The <see cref="PerceptionCamera"/> that contains this labeler.
@@ -54,11 +95,11 @@ namespace UnityEngine.Perception.GroundTruth
         /// Called immediately after <see cref="setup"/>. Implement this to initialize labeler's visualization
         /// capability if one exists <see cref="supportVisualization"/>.
         /// </summary>
-        protected virtual void SetupVisualizationPanel(GameObject panel) { }
+        protected virtual void PopulateVisualizationPanel(ControlPanel panel) { }
         /// <summary>
         /// Called when the labeler's visualization capability is turned on or off.
         /// </summary>
-        protected virtual void OnVisualizerEnabled(bool enabled) {}
+        protected virtual void OnVisualizerActiveStateChanged(bool enabled) {}
         /// <summary>
         /// Called during the Update each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
@@ -74,47 +115,48 @@ namespace UnityEngine.Perception.GroundTruth
         protected virtual void Cleanup() {}
 
         internal void InternalSetup() => Setup();
-        internal void InternalSetupVisualizationPanel(GameObject panel) => SetupVisualizationPanel(panel);
-        internal void InternalVisualizerEnabled(bool enabled) => OnVisualizerEnabled(enabled);
+        internal void InternalPopulateVisualizationPanel(GameObject panel) => PopulateVisualizationPanel(controlPanel);
+        internal void InternalVisualizerActiveStateChanged(bool enabled) => OnVisualizerActiveStateChanged(enabled);
         internal void InternalOnUpdate() => OnUpdate();
         internal void InternalOnBeginRendering() => OnBeginRendering();
         internal void InternalCleanup() => Cleanup();
 
+        private bool m_VisualizationEnabled = true;
+        
         /// <summary>
         /// Turns on/off the labeler's realtime visualization capability. If a labeler
         /// does not support realtime visualization (<see cref="supportsVisualization"/>)
         /// this will not function.
         /// </summary>
-        protected void EnableVisualization(bool enabled)
+        protected bool visualizationEnabled
         {
-            if (!supportsVisualization) return;
-
-            if (enabled != visualizationEnabled)
+            get
             {
-                visualizationEnabled = enabled;
-                
-                if (enabled)
-                    activeVisualizers++;
-                else
-                    activeVisualizers--;
+                return supportsVisualization && m_VisualizationEnabled;
+            }
+            set
+            {
+                if (!supportsVisualization) return;
 
-                if (activeVisualizers > 0)
-                    CaptureOptions.useAsyncReadbackIfSupported = false;
-                else
-                    CaptureOptions.useAsyncReadbackIfSupported = true;
+                if (value != m_VisualizationEnabled)
+                {
+                    m_VisualizationEnabled = value;
+                    
+                    if (m_VisualizationEnabled)
+                        activeVisualizers++;
+                    else
+                        activeVisualizers--;
 
-                OnVisualizerEnabled(enabled);
+                    if (activeVisualizers > 0)
+                        CaptureOptions.useAsyncReadbackIfSupported = false;
+                    else
+                        CaptureOptions.useAsyncReadbackIfSupported = true;
+
+                    OnVisualizerActiveStateChanged(m_VisualizationEnabled);
+                }
             }
         }
-
-        /// <summary>
-        /// Is the visualization capability of the labeler currently active.
-        /// </summary>
-        protected bool IsVisualizationEnabled()
-        {
-            return supportsVisualization && visualizationEnabled;
-        }
-
+        
         internal void Init(PerceptionCamera newPerceptionCamera)
         {
             try
@@ -126,7 +168,7 @@ namespace UnityEngine.Perception.GroundTruth
 
                 if (supportsVisualization)
                 {
-                    InitPanel();
+                    InitVisualizationUI();
                 }
             }
             catch (Exception)
@@ -136,48 +178,9 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        private GameObject GetCanvas()
+        private void InitVisualizationUI()
         {
-            var canvas = GameObject.Find("Canvas");
-            
-            if (canvas == null)
-            {
-               canvas = GameObject.Instantiate(Resources.Load<GameObject>("Canvas"));
-               canvas.name = "Canvas";
-            }
-
-            return canvas;
-        }
-
-        internal void InitPanel()
-        {
-            var canvas = GetCanvas();
-            
-            var panel = canvas.transform.Find("VisualizationPanel");
-            
-            if (panel == null)
-            {
-                panel = GameObject.Instantiate(Resources.Load<GameObject>("VisualizationPanel")).transform;
-                panel.name = "VisualizationPanel";
-                (panel as RectTransform).SetParent(canvas.transform, false);
-            }
-
-            SetupVisualizationPanel(panel.gameObject);
-        }
-
-        internal HUDPanel GetHud()
-        {
-            var canvas = GetCanvas();
-
-            var hud = canvas.transform.Find("HUDPanel");
-            if (hud == null)
-            {
-                hud = GameObject.Instantiate(Resources.Load<GameObject>("HUDPanel")).transform;
-                hud.name = "HUDPanel";
-                (hud as RectTransform).SetParent(canvas.transform, false);
-            }
-
-            return hud.GetComponent<HUDPanel>();
+            PopulateVisualizationPanel(controlPanel);
         }
     }
 }

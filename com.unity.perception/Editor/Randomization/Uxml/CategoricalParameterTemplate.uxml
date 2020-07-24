@@ -1,0 +1,5 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <Toggle label="Uniform" name="uniform"/>
+    <editor:IntegerField name="size" label="Options"/>
+    <VisualElement name="options-container" style="padding-left: 30px"/>
+</UXML>

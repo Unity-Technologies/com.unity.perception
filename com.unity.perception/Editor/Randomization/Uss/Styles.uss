@@ -151,3 +151,17 @@
     width: 12px;
     height: 12px;
 }
+
+.categorical-option .unity-label {
+    width: 0;
+}
+
+.uniform-probability .option-probability-field {
+    display: none;
+}
+
+.remove-option-button {
+    width: 12px;
+    height: 14px;
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/X.png");
+}

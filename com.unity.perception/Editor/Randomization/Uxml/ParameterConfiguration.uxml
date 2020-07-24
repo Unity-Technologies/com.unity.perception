@@ -8,7 +8,7 @@
             <VisualElement class="search-icon" style="margin-left: 10px; margin-right: 2px;"/>
             <TextField name="filter-parameters" style="flex-grow: 1; flex-shrink: 1;"/>
         </VisualElement>
-        <ScrollView show-vertical-scroller="true" name="parameter-viewport" class="dark-viewport parameter-container-scroll">
+        <ScrollView show-vertical-scroller="true" name="parameter-scroll-view" class="dark-viewport parameter-container-scroll">
             <VisualElement name="parameter-container" class="parameter-container">
             </VisualElement>
         </ScrollView>

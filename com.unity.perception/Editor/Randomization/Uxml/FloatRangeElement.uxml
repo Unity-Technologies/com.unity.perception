@@ -1,5 +1,5 @@
 ﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <VisualElement name="goober">
+    <VisualElement>
         <VisualElement style="flex-direction: row; margin: 1px, 1px, 1px, 3px;">
             <Label text="Range" class="unity-base-field__label" style="min-width: 147;"/>
             <VisualElement style="flex-grow: 1; flex-direction: row;">

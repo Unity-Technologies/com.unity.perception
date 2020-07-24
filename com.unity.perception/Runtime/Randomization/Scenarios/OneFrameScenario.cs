@@ -22,12 +22,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         public override JObject Serialize()
         {
-            var jo = new JObject
+            return new JObject
             {
                 ["startingIteration"] = startingIteration,
                 ["totalIterations"] = totalIterations
             };
-            return jo;
         }
 
         public override void Deserialize(JObject token)

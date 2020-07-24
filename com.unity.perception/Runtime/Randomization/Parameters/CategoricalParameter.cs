@@ -9,8 +9,8 @@ namespace UnityEngine.Perception.Randomization.Parameters
     {
         public bool uniform;
         [Min(0)] public uint seed;
-        public List<T> options;
-        public List<float> probabilities;
+        public List<T> options = new List<T>();
+        public List<float> probabilities = new List<float>();
 
         public List<float> Probabilities => probabilities;
 

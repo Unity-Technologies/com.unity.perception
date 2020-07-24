@@ -279,15 +279,13 @@ namespace UnityEngine.Perception.Randomization.Editor
             var scrollView = listView.Q<ScrollView>();
             listView.RegisterCallback<WheelEvent>(evt =>
             {
-                if (!scrollView.showVertical)
+                if (Mathf.Approximately(scrollView.verticalScroller.highValue, 0f))
                     return;
                 if (Mathf.Approximately(scrollView.scrollOffset.y, 0f) && evt.delta.y < 0f)
                     evt.StopImmediatePropagation();
                 else if (Mathf.Approximately(scrollView.scrollOffset.y, scrollView.verticalScroller.highValue) && evt.delta.y > 0f)
                     evt.StopImmediatePropagation();
             });
-
-
 
             optionsContainer.Add(listView);
             m_ExtraProperties.Add(categoricalParameterTemplate);

@@ -14,6 +14,8 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
         public List<float> Probabilities => probabilities;
 
+        float[] m_NormalizedProbabilities;
+
         public override Sampler[] Samplers => new Sampler[0];
         public override Type OutputType => typeof(T);
 
@@ -45,7 +47,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
         public override void Validate()
         {
-            if (!uniform && probabilities.Count != options.Count)
+            if (uniform)
+                return;
+
+            if (probabilities.Count != options.Count)
                 throw new ParameterValidationException("Number of options must be equal to the number of probabilities");
 
             var totalProbability = 0f;
@@ -56,24 +61,21 @@ namespace UnityEngine.Perception.Randomization.Parameters
                 throw new ParameterValidationException("Total probability must be greater than 0");
 
             // Normalize probabilities
+            var sum = 0f;
+            m_NormalizedProbabilities = new float[probabilities.Count];
             for (var i = 0; i < probabilities.Count; i++)
-                probabilities[i] = probabilities[i] / totalProbability;
+            {
+                sum += probabilities[i] / totalProbability;
+                m_NormalizedProbabilities[i] = sum;
+            }
         }
 
         T Sample(ref Unity.Mathematics.Random rng)
         {
             var randomValue = rng.NextFloat();
-            if (uniform)
-                return options[(int)(randomValue * options.Count)];
-
-            var sum = 0f;
-            for (var i = 0; i < options.Count; i++)
-            {
-                sum += probabilities[i];
-                if (randomValue <= sum)
-                    return options[i];
-            }
-            throw new ParameterException($"No option present for sampled random value {randomValue}");
+            return uniform
+                ? options[(int)(randomValue * options.Count)]
+                : options[BinarySearch(randomValue)];
         }
 
         public override T Sample(int iteration)
@@ -89,6 +91,26 @@ namespace UnityEngine.Perception.Randomization.Parameters
             for (var i = 0; i < numSamples; i++)
                 samples[i] = Sample(ref rng);
             return samples;
+        }
+
+        int BinarySearch(float key) {
+            var minNum = 0;
+            var maxNum = m_NormalizedProbabilities.Length - 1;
+
+            while (minNum <= maxNum) {
+                var mid = (minNum + maxNum) / 2;
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (key == m_NormalizedProbabilities[mid]) {
+                    return ++mid;
+                }
+                if (key < m_NormalizedProbabilities[mid]) {
+                    maxNum = mid - 1;
+                }
+                else {
+                    minNum = mid + 1;
+                }
+            }
+            return minNum;
         }
     }
 }

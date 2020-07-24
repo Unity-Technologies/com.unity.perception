@@ -152,8 +152,15 @@
     height: 12px;
 }
 
-.categorical-option .unity-label {
+.option-property-field {
     width: 0;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+.option-probability-field {
+    width: 0;
+    flex-grow: 1;
 }
 
 .uniform-probability .option-probability-field {

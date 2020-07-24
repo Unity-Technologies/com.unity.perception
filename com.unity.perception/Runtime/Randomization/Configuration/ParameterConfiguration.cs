@@ -13,25 +13,36 @@ namespace UnityEngine.Perception.Randomization.Configuration
     [AddComponentMenu("Randomization/ParameterConfiguration")]
     public class ParameterConfiguration : MonoBehaviour
     {
-        static ParameterConfiguration s_Configuration;
+        static ParameterConfiguration s_ActiveConfig;
 
-        public static ParameterConfiguration Configuration
+        public static ParameterConfiguration ActiveConfig
         {
-            get => s_Configuration;
+            get => s_ActiveConfig;
             private set
             {
-                if (s_Configuration != null)
+                if (s_ActiveConfig != null)
                     throw new ParameterConfigurationException("There cannot be more than one active ParameterConfiguration");
-                s_Configuration = value;
+                s_ActiveConfig = value;
             }
         }
 
         public bool loadAdrConfigOnStart;
         public string configurationFileName = "parameter-config";
-        public Scenario scenario;
+        Scenario m_Scenario;
+        [SerializeReference] public List<Parameter> parameters = new List<Parameter>();
 
-        [SerializeReference]
-        public List<Parameter> parameters = new List<Parameter>();
+        public Scenario scenario
+        {
+            get
+            {
+                if (m_Scenario != null)
+                {
+                    m_Scenario = GetComponent<Scenario>();
+                    return m_Scenario;
+                }
+                return m_Scenario;
+            }
+        }
 
         string ConfigurationFilePath =>
             Application.dataPath + "/StreamingAssets/" + configurationFileName + ".json";
@@ -60,42 +71,47 @@ namespace UnityEngine.Perception.Randomization.Configuration
 
         public void OnEnable()
         {
-            Configuration = this;
+            ActiveConfig = this;
             if (loadAdrConfigOnStart)
                 Deserialize();
-            if (scenario == null)
-                throw new ParameterConfigurationException("Scenario is null");
-            scenario.parameterConfiguration = this;
+
+            m_Scenario = GetComponent<Scenario>();
+            if (m_Scenario == null)
+                throw new ParameterConfigurationException("Missing Scenario component");
         }
 
         public void OnDisable()
         {
-            s_Configuration = null;
+            s_ActiveConfig = null;
         }
 
         void Start()
         {
             foreach (var parameter in parameters)
                 parameter.Validate();
-            scenario.Initialize();
+            m_Scenario.Initialize();
             StartCoroutine(UpdateLoop());
         }
 
         IEnumerator UpdateLoop()
         {
             yield return null;
-            while (!scenario.Complete)
+            while (!m_Scenario.isScenarioComplete)
             {
                 foreach (var parameter in parameters)
-                    parameter.Apply(scenario.CurrentIteration);
-                scenario.Setup();
+                    parameter.Apply(m_Scenario.currentIteration);
+                m_Scenario.Setup();
 
-                while (scenario.Running)
+                while (!m_Scenario.isIterationComplete)
+                {
+                    m_Scenario.NextFrame();
                     yield return null;
+                }
 
-                scenario.Teardown();
-                scenario.Iterate();
+                m_Scenario.Teardown();
+                m_Scenario.Iterate();
             }
+            m_Scenario.OnComplete();
             StopExecution();
         }
 

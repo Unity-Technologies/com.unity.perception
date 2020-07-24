@@ -3,43 +3,21 @@ using Newtonsoft.Json.Linq;
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
     /// <summary>
-    /// An example scenario that runs for exactly one frame
+    /// An example scenario where each scenario iteration runs for exactly one frame
     /// </summary>
     [AddComponentMenu("Randomization/Scenarios/One Frame Scenario")]
     public class OneFrameScenario : Scenario
     {
-        bool m_RanForOneFrame;
-        int m_CurrentIteration;
-
         public int startingIteration;
         public int totalIterations;
 
-        public override bool Running
-        {
-            get
-            {
-                if (m_RanForOneFrame)
-                    return false;
-                m_RanForOneFrame = true;
-                return true;
-            }
-        }
+        public override bool isIterationComplete => iterationFrameCount >= 1;
 
-        public override bool Complete => m_CurrentIteration == totalIterations;
-        public override int CurrentIteration => m_CurrentIteration;
-        public override void Iterate()
-        {
-            m_CurrentIteration++;
-        }
+        public override bool isScenarioComplete => currentIteration == totalIterations;
 
         public override void Initialize()
         {
-            m_CurrentIteration = startingIteration;
-        }
-
-        public override void Teardown()
-        {
-            m_RanForOneFrame = false;
+            currentIteration = startingIteration;
         }
 
         public override JObject Serialize()

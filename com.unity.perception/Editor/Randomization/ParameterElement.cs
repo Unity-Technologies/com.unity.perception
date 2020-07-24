@@ -213,67 +213,21 @@ namespace UnityEngine.Perception.Randomization.Editor
             var probabilitiesProperty = m_SerializedObject.FindProperty("probabilities");
             var probabilities = categoricalParameter.Probabilities;
 
-            var optionsContainer = categoricalParameterTemplate.Q<VisualElement>("options-container");
-
-            var uniformToggle = categoricalParameterTemplate.Q<Toggle>("uniform");
-            uniformToggle.BindProperty(m_SerializedObject.FindProperty("uniform"));
-            void ToggleProbabilityFields(bool toggle)
-            {
-                if (toggle)
-                    optionsContainer.AddToClassList("uniform-probability");
-                else
-                    optionsContainer.RemoveFromClassList("uniform-probability");
-            }
-            uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt =>
-            {
-                ToggleProbabilityFields(evt.newValue);
-            });
-            ToggleProbabilityFields(uniformToggle.value);
-
-            VisualElement MakeItem() => new CategoricalOptionElement();
-
-            var listView = new ListView()
-            {
-                itemsSource = probabilities,
-                itemHeight = 20,
-                makeItem = MakeItem,
-                selectionType = SelectionType.None
-            };
-            listView.style.height = new StyleLength(80);
+            var listView = categoricalParameterTemplate.Q<ListView>("options");
+            listView.itemsSource = probabilities;
+            listView.itemHeight = 22;
+            listView.selectionType = SelectionType.None;
             listView.style.flexGrow = 1.0f;
+            listView.style.height = new StyleLength(listView.itemHeight * 4);
 
-            var sizeField = categoricalParameterTemplate.Q<IntegerField>("size");
-            sizeField.value = categoricalParameter.OptionsCount();
-            sizeField.isDelayed = true;
-            sizeField.RegisterCallback<ChangeEvent<int>>(evt =>
-            {
-                var value = evt.newValue;
-                if (evt.newValue < 0)
-                {
-                    evt.StopImmediatePropagation();
-                    value = 0;
-                }
-                categoricalParameter.Resize(value);
-                m_SerializedObject.Update();
-                listView.Refresh();
-            });
+            VisualElement MakeItem() => new CategoricalOptionElement(optionsProperty, probabilitiesProperty, listView);
+            listView.makeItem = MakeItem;
 
             void BindItem(VisualElement e, int i)
             {
-                var option = optionsProperty.GetArrayElementAtIndex(i);
-                var probability = probabilitiesProperty.GetArrayElementAtIndex(i);
                 var optionElement = (CategoricalOptionElement)e;
-                optionElement.BindProperties(i, option, probability);
-                var removeButton = optionElement.Q<Button>("remove");
-                removeButton.clicked += () =>
-                {
-                    categoricalParameter.RemoveAt(i);
-                    m_SerializedObject.Update();
-                    listView.Refresh();
-                    sizeField.value = categoricalParameter.OptionsCount();
-                };
+                optionElement.BindProperties(i);
             }
-
             listView.bindItem = BindItem;
 
             var scrollView = listView.Q<ScrollView>();
@@ -281,13 +235,36 @@ namespace UnityEngine.Perception.Randomization.Editor
             {
                 if (Mathf.Approximately(scrollView.verticalScroller.highValue, 0f))
                     return;
-                if (Mathf.Approximately(scrollView.scrollOffset.y, 0f) && evt.delta.y < 0f)
-                    evt.StopImmediatePropagation();
-                else if (Mathf.Approximately(scrollView.scrollOffset.y, scrollView.verticalScroller.highValue) && evt.delta.y > 0f)
+                if ((scrollView.scrollOffset.y <= 0f && evt.delta.y < 0f) ||
+                    scrollView.scrollOffset.y >= scrollView.verticalScroller.highValue && evt.delta.y > 0f)
                     evt.StopImmediatePropagation();
             });
 
-            optionsContainer.Add(listView);
+            var addOptionButton = categoricalParameterTemplate.Q<Button>("add-option");
+            addOptionButton.clicked += () =>
+            {
+                optionsProperty.arraySize++;
+                probabilitiesProperty.arraySize++;
+                m_SerializedObject.ApplyModifiedProperties();
+                listView.Refresh();
+                listView.ScrollToItem(probabilitiesProperty.arraySize);
+            };
+
+            var uniformToggle = categoricalParameterTemplate.Q<Toggle>("uniform");
+            uniformToggle.BindProperty(m_SerializedObject.FindProperty("uniform"));
+            void ToggleProbabilityFields(bool toggle)
+            {
+                if (toggle)
+                    listView.AddToClassList("uniform-probability");
+                else
+                    listView.RemoveFromClassList("uniform-probability");
+            }
+            uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt =>
+            {
+                ToggleProbabilityFields(evt.newValue);
+            });
+            ToggleProbabilityFields(uniformToggle.value);
+
             m_ExtraProperties.Add(categoricalParameterTemplate);
         }
     }

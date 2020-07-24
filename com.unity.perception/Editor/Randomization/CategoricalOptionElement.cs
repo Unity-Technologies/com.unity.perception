@@ -7,23 +7,42 @@ namespace UnityEngine.Perception.Randomization.Editor
 {
     public class CategoricalOptionElement : VisualElement
     {
-        public CategoricalOptionElement()
+        int m_Index;
+        SerializedProperty m_OptionsProperty;
+        SerializedProperty m_ProbabilitiesProperty;
+
+        public CategoricalOptionElement(SerializedProperty optionsProperty, SerializedProperty probabilitiesProperty, ListView view)
         {
+            m_OptionsProperty = optionsProperty;
+            m_ProbabilitiesProperty = probabilitiesProperty;
+
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/CategoricalOptionElement.uxml");
             template.CloneTree(this);
+
+            var removeButton = this.Q<Button>("remove");
+            removeButton.clicked += () =>
+            {
+                optionsProperty.DeleteArrayElementAtIndex(m_Index);
+                probabilitiesProperty.DeleteArrayElementAtIndex(m_Index);
+                optionsProperty.serializedObject.ApplyModifiedProperties();
+                view.Refresh();
+            };
         }
 
-        public void BindProperties(int index, SerializedProperty optionProperty, SerializedProperty probabilityProperty)
+        public void BindProperties(int i)
         {
+            m_Index = i;
             var indexLabel = this.Q<Label>("index-label");
-            indexLabel.text = $"[{index}]";
+            indexLabel.text = $"[{m_Index}]";
 
+            var optionProperty = m_OptionsProperty.GetArrayElementAtIndex(i);
             var option = this.Q<PropertyField>("option");
             option.BindProperty(optionProperty);
             var label = option.Q<Label>();
             label.parent.Remove(label);
 
+            var probabilityProperty = m_ProbabilitiesProperty.GetArrayElementAtIndex(i);
             var probability = this.Q<FloatField>("probability");
             probability.BindProperty(probabilityProperty);
             probability.label = string.Empty;

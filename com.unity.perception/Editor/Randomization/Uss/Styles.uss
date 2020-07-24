@@ -152,6 +152,21 @@
     height: 12px;
 }
 
+.categorical-option {
+    flex-direction: row;
+    background-color: #3F3F3F;
+    margin: 1px;
+    border-radius: 4px;
+}
+
+.options-list-view {
+    background-color: #191919;
+    border-radius: 4px;
+    margin-left: 30px;
+    margin-right: 2px;
+    padding: 3px;
+}
+
 .option-property-field {
     width: 0;
     flex-grow: 1;
@@ -163,7 +178,7 @@
     flex-grow: 1;
 }
 
-.uniform-probability .option-probability-field {
+.uniform-probability .hide-when-uniform {
     display: none;
 }
 

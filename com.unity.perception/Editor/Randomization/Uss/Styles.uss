@@ -162,9 +162,9 @@
 .options-list-view {
     background-color: #191919;
     border-radius: 4px;
-    margin-left: 30px;
     margin-right: 2px;
     padding: 3px;
+    border-bottom-right-radius: 0;
 }
 
 .option-property-field {
@@ -175,11 +175,30 @@
 
 .option-probability-field {
     width: 0;
-    flex-grow: 1;
+    min-width: 40px;
+    flex-grow: 0.15;
 }
 
 .uniform-probability .hide-when-uniform {
     display: none;
+}
+
+.add-option-button {
+    align-self: flex-end;
+    border-width: 0;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+    background-color: #191919;
+    margin-top: 0;
+    margin-right: 2px;
+}
+
+.add-option-button:hover {
+    background-color: #2A2A2A;
+}
+
+.add-option-button:active {
+    color: cornflowerblue;
 }
 
 .remove-option-button {

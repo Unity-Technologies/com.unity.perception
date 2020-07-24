@@ -1,8 +1,7 @@
 ﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
     <Toggle label="Uniform" name="uniform"/>
-    <Label text="Options"/>
     <VisualElement class="options-list-view">
         <ListView name="options"/>
     </VisualElement>
-    <Button name="add-option" text="Add New Option" style="margin-left: 102px;"/>
+    <Button name="add-option" text="+ Add New Option" class="add-option-button"/>
 </UXML>

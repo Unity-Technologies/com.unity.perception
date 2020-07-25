@@ -100,8 +100,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
 
         void Start()
         {
-            foreach (var parameter in parameters)
-                parameter.Validate();
+            ValidateParameters();
             m_Scenario.Initialize();
             StartCoroutine(UpdateLoop());
         }
@@ -126,6 +125,22 @@ namespace UnityEngine.Perception.Randomization.Configuration
             }
             m_Scenario.OnComplete();
             StopExecution();
+        }
+
+        void ValidateParameters()
+        {
+            var names = new Dictionary<string, int>();
+            for (var i = 0; i < parameters.Count; i++)
+            {
+                var parameter = parameters[i];
+                if (names.ContainsKey(parameter.parameterName))
+                    throw new ParameterConfigurationException(
+                        $"The parameters at indices {names[parameter.parameterName]} and {i} " +
+                        $"cannot share the name \"{parameter.parameterName}\"");
+                names[parameter.parameterName] = i;
+            }
+            foreach (var parameter in parameters)
+                parameter.Validate();
         }
 
         static void StopExecution()

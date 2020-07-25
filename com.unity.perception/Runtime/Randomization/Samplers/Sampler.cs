@@ -4,44 +4,31 @@ using UnityEngine;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
+    /// <summary>
+    /// Derived classes of the Sampler base class generate random values from probability distributions.
+    /// </summary>
     [Serializable]
     public abstract class Sampler : MonoBehaviour
     {
+        /// <summary>
+        /// Returns meta information regarding this type of sampler
+        /// </summary>
         public SamplerMetaData MetaData =>
             (SamplerMetaData)Attribute.GetCustomAttribute(GetType(), typeof(SamplerMetaData));
 
-        public abstract uint GetRandomSeed(int iteration);
-
-        public Unity.Mathematics.Random GetRandom(int iteration)
-        {
-            return new Unity.Mathematics.Random(GetRandomSeed(iteration));
-        }
-
+        /// <summary>
+        /// Generate one sample for the given scenario iteration
+        /// </summary>
         public abstract float Sample(int iteration);
 
-        public abstract float Sample(ref Unity.Mathematics.Random rng);
+        /// <summary>
+        /// Generate multiple samples in a native array for the given scenario iteration
+        /// </summary>
+        public abstract NativeArray<float> Samples(int iteration, int totalSamples, Allocator allocator);
 
-        public NativeArray<float> NativeSamples(
-            int totalSamples,
-            int iteration,
-            Allocator allocator)
-        {
-            var random = new Unity.Mathematics.Random(GetRandomSeed(iteration));
-            var samples = new NativeArray<float>(totalSamples, allocator, NativeArrayOptions.UninitializedMemory);
-            for (var i = 0; i < totalSamples; i++)
-                samples[i] = Sample(ref random);
-            return samples;
-        }
-
-        public float[] Samples(
-            int totalSamples,
-            int iteration)
-        {
-            var random = new Unity.Mathematics.Random(GetRandomSeed(iteration));
-            var samples = new float[totalSamples];
-            for (var i = 0; i < totalSamples; i++)
-                samples[i] = Sample(ref random);
-            return samples;
-        }
+        /// <summary>
+        /// Generate multiple samples for the given scenario iteration
+        /// </summary>
+        public abstract float[] Samples(int iteration, int totalSamples);
     }
 }

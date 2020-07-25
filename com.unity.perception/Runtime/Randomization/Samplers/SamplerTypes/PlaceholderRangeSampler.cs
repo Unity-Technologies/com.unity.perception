@@ -1,20 +1,27 @@
-﻿namespace UnityEngine.Perception.Randomization.Samplers
+﻿using Unity.Collections;
+
+namespace UnityEngine.Perception.Randomization.Samplers
 {
+    /// <summary>
+    /// This sampler is useful for configuring sample ranges for non-perception related scripts,
+    /// particularly when these scripts have a public interface for manipulating a sample range
+    /// but perform the actual sampling logic internally.
+    /// </summary>
     [AddComponentMenu("")]
     [SamplerMetaData("Placeholder Range")]
-    public class PlaceholderRangeSampler : OptimizableSampler
+    public class PlaceholderRangeSampler : RangedSampler
     {
-        public override uint GetRandomSeed(int iteration)
-        {
-            throw new SamplerException("Cannot return seed from PlaceholderRangeSampler");
-        }
-
         public override float Sample(int iteration)
         {
             throw new SamplerException("Cannot sample PlaceholderRangeSampler");
         }
 
-        public override float Sample(ref Unity.Mathematics.Random rng)
+        public override NativeArray<float> Samples(int iteration, int totalSamples, Allocator allocator)
+        {
+            throw new SamplerException("Cannot sample PlaceholderRangeSampler");
+        }
+
+        public override float[] Samples(int iteration, int totalSamples)
         {
             throw new SamplerException("Cannot sample PlaceholderRangeSampler");
         }

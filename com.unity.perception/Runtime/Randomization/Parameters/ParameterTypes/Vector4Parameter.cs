@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.Collections;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -6,7 +7,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
 {
     [AddComponentMenu("")]
     [ParameterMetaData("Vector4")]
-    public class Vector4Parameter : TypedParameter<Vector4>
+    public class Vector4Parameter : StructParameter<Vector4>
     {
         public Sampler x;
         public Sampler y;
@@ -24,20 +25,28 @@ namespace UnityEngine.Perception.Randomization.Parameters
                 w.Sample(iteration));
         }
 
-        public override Vector4[] Samples(int iteration, int sampleCount)
+        public override Vector4[] Samples(int iteration, int totalSamples)
         {
-            var samples = new Vector4[sampleCount];
-            var xRng = x.GetRandom(iteration);
-            var yRng = y.GetRandom(iteration);
-            var zRng = z.GetRandom(iteration);
-            var wRng = w.GetRandom(iteration);
-            for (var i = 0; i < sampleCount; i++)
+            var samples = new Vector4[totalSamples];
+            var xRng = x.Samples(iteration, totalSamples);
+            var yRng = y.Samples(iteration, totalSamples);
+            var zRng = z.Samples(iteration, totalSamples);
+            var wRng = w.Samples(iteration, totalSamples);
+            for (var i = 0; i < totalSamples; i++)
+                samples[i] = new Vector4(xRng[i], yRng[i], zRng[i], wRng[i]);
+            return samples;
+        }
+
+        public override NativeArray<Vector4> Samples(int iteration, int totalSamples, Allocator allocator)
+        {
+            var samples = new NativeArray<Vector4>(totalSamples, allocator, NativeArrayOptions.UninitializedMemory);
+            using (var xRng = x.Samples(iteration, totalSamples, allocator))
+            using (var yRng = y.Samples(iteration, totalSamples, allocator))
+            using (var zRng = z.Samples(iteration, totalSamples, allocator))
+            using (var wRng = w.Samples(iteration, totalSamples, allocator))
             {
-                samples[i] = new Vector4(
-                    x.Sample(ref xRng),
-                    y.Sample(ref yRng),
-                    z.Sample(ref zRng),
-                    w.Sample(ref wRng));
+                for (var i = 0; i < totalSamples; i++)
+                    samples[i] = new Vector4(xRng[i], yRng[i], zRng[i], wRng[i]);
             }
             return samples;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.Collections;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -6,7 +7,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
 {
     [AddComponentMenu("")]
     [ParameterMetaData("ColorHSVA")]
-    public class ColorHsvaParameter : TypedParameter<Color>
+    public class ColorHsvaParameter : StructParameter<Color>
     {
         public Sampler hue;
         public Sampler saturation;
@@ -25,21 +26,36 @@ namespace UnityEngine.Perception.Randomization.Parameters
             return color;
         }
 
-        public override Color[] Samples(int iteration, int sampleCount)
+        public override Color[] Samples(int iteration, int totalSamples)
         {
-            var samples = new Color[sampleCount];
-            var hueRng = hue.GetRandom(iteration);
-            var satRng = saturation.GetRandom(iteration);
-            var valRng = value.GetRandom(iteration);
-            var alphaRng = value.GetRandom(iteration);
-            for (var i = 0; i < sampleCount; i++)
+            var samples = new Color[totalSamples];
+            var hueRng = hue.Samples(iteration, totalSamples);
+            var satRng = saturation.Samples(iteration, totalSamples);
+            var valRng = value.Samples(iteration, totalSamples);
+            var alphaRng = value.Samples(iteration, totalSamples);
+            for (var i = 0; i < totalSamples; i++)
             {
-                var color = Color.HSVToRGB(
-                    hue.Sample(ref hueRng),
-                    saturation.Sample(ref satRng),
-                    value.Sample(ref valRng));
-                color.a = alpha.Sample(ref alphaRng);
+                var color = Color.HSVToRGB(hueRng[i], satRng[i], valRng[i]);
+                color.a = alphaRng[i];
                 samples[i] = color;
+            }
+            return samples;
+        }
+
+        public override NativeArray<Color> Samples(int iteration, int totalSamples, Allocator allocator)
+        {
+            var samples = new NativeArray<Color>(totalSamples, allocator, NativeArrayOptions.UninitializedMemory);
+            using (var hueRng = hue.Samples(iteration, totalSamples, allocator))
+            using (var satRng = saturation.Samples(iteration, totalSamples, allocator))
+            using (var valRng = value.Samples(iteration, totalSamples, allocator))
+            using (var alphaRng = value.Samples(iteration, totalSamples, allocator))
+            {
+                for (var i = 0; i < totalSamples; i++)
+                {
+                    var color = Color.HSVToRGB(hueRng[i], satRng[i], valRng[i]);
+                    color.a = alphaRng[i];
+                    samples[i] = color;
+                }
             }
             return samples;
         }

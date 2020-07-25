@@ -6,12 +6,27 @@ namespace UnityEngine.Perception.Randomization.Parameters
     {
         public override Type OutputType => typeof(T);
 
-        protected override object UntypedSample(int iteration)
-        {
-            return Sample(iteration);
-        }
-
         public abstract T Sample(int iteration);
-        public abstract T[] Samples(int iteration, int sampleCount);
+
+        public abstract T[] Samples(int iteration, int totalSamples);
+
+        public override void Apply(int iteration)
+        {
+            if (!hasTarget)
+                return;
+            var value = Sample(iteration);
+            var componentType = target.component.GetType();
+            switch (target.fieldOrProperty)
+            {
+                case FieldOrProperty.Field:
+                    var fieldInfo = componentType.GetField(target.propertyName);
+                    fieldInfo.SetValue(target.component, value);
+                    break;
+                case FieldOrProperty.Property:
+                    var propertyInfo = componentType.GetProperty(target.propertyName);
+                    propertyInfo.SetValue(target.component, value);
+                    break;
+            }
+        }
     }
 }

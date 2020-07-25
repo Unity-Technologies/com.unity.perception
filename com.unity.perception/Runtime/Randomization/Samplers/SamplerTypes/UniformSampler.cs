@@ -2,6 +2,9 @@
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
+    /// <summary>
+    /// Returns uniformly distributed random values within a designated range.
+    /// </summary>
     [AddComponentMenu("")]
     [SamplerMetaData("Uniform")]
     public class UniformSampler : RandomSampler

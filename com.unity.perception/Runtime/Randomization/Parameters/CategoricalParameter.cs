@@ -5,6 +5,9 @@ using UnityEngine.Perception.Randomization.Utilities;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
+    /// <summary>
+    /// Generates samples by choosing one option from a weighted list of choices.
+    /// </summary>
     public abstract class CategoricalParameter<T> : TypedParameter<T>, ICategoricalParameter
     {
         public bool uniform;
@@ -60,7 +63,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
             if (Mathf.Approximately(totalProbability, 0f))
                 throw new ParameterValidationException("Total probability must be greater than 0");
 
-            // Normalize probabilities
             var sum = 0f;
             m_NormalizedProbabilities = new float[probabilities.Count];
             for (var i = 0; i < probabilities.Count; i++)
@@ -84,11 +86,11 @@ namespace UnityEngine.Perception.Randomization.Parameters
             return Sample(ref rng);
         }
 
-        public override T[] Samples(int iteration, int numSamples)
+        public override T[] Samples(int iteration, int totalSamples)
         {
-            var samples = new T[numSamples];
+            var samples = new T[totalSamples];
             var rng = RandomUtility.RandomFromIndex((uint)iteration, seed);
-            for (var i = 0; i < numSamples; i++)
+            for (var i = 0; i < totalSamples; i++)
                 samples[i] = Sample(ref rng);
             return samples;
         }

@@ -1,6 +1,9 @@
 ﻿namespace UnityEngine.Perception.Randomization.Samplers
 {
-    public abstract class OptimizableSampler : Sampler
+    /// <summary>
+    /// Ranged samplers bound their generated values within a designated float range.
+    /// </summary>
+    public abstract class RangedSampler : Sampler
     {
         public FloatRange range = new FloatRange
         {

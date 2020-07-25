@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.Collections;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -6,7 +7,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
 {
     [AddComponentMenu("")]
     [ParameterMetaData("Float")]
-    public class FloatParameter : TypedParameter<float>
+    public class FloatParameter : StructParameter<float>
     {
         public Sampler value;
 
@@ -17,13 +18,14 @@ namespace UnityEngine.Perception.Randomization.Parameters
             return value.Sample(iteration);
         }
 
-        public override float[] Samples(int iteration, int sampleCount)
+        public override float[] Samples(int iteration, int totalSamples)
         {
-            var samples = new float[sampleCount];
-            var rng = value.GetRandom(iteration);
-            for (var i = 0; i < sampleCount; i++)
-                samples[i] = value.Sample(ref rng);
-            return samples;
+            return value.Samples(iteration, totalSamples);
+        }
+
+        public override NativeArray<float> Samples(int iteration, int totalSamples, Allocator allocator)
+        {
+            return value.Samples(iteration, totalSamples, allocator);
         }
     }
 }

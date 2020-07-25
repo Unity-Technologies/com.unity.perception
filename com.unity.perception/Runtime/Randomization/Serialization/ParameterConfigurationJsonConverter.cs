@@ -10,10 +10,11 @@ namespace UnityEngine.Perception.Randomization.Serialization
     class InvalidParameterJsonException : Exception
     {
         public InvalidParameterJsonException(string message) : base(message) { }
-        public InvalidParameterJsonException(string message, Exception innerException) : base(message, innerException) { }
+        public InvalidParameterJsonException(string message, Exception innerException)
+            : base(message, innerException) { }
     }
 
-    public class ParameterConfigurationJsonConverter : JsonConverter
+    class ParameterConfigurationJsonConverter : JsonConverter
     {
         ParameterConfiguration m_Config;
 
@@ -92,7 +93,7 @@ namespace UnityEngine.Perception.Randomization.Serialization
                     if (field.Name != samplerFieldName)
                         continue;
                     var fieldValue = field.GetValue(parameter);
-                    if (field.FieldType == typeof(Sampler) && fieldValue is OptimizableSampler sampler)
+                    if (field.FieldType == typeof(Sampler) && fieldValue is RangedSampler sampler)
                     {
                         sampler.range.minimum = value["minimum"].Value<float>();
                         sampler.range.maximum = value["maximum"].Value<float>();

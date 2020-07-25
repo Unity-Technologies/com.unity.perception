@@ -10,11 +10,17 @@ using UnityEngine.Perception.Randomization.Serialization;
 
 namespace UnityEngine.Perception.Randomization.Configuration
 {
+    /// <summary>
+    /// Used to create parameter interfaces for randomizing simulations
+    /// </summary>
     [AddComponentMenu("Randomization/ParameterConfiguration")]
     public class ParameterConfiguration : MonoBehaviour
     {
         static ParameterConfiguration s_ActiveConfig;
 
+        /// <summary>
+        /// Returns the active parameter configuration in the scene
+        /// </summary>
         public static ParameterConfiguration ActiveConfig
         {
             get => s_ActiveConfig;
@@ -26,16 +32,23 @@ namespace UnityEngine.Perception.Randomization.Configuration
             }
         }
 
+        [SerializeReference]
+        public List<Parameter> parameters = new List<Parameter>();
         public bool loadAdrConfigOnStart;
         public string configurationFileName = "parameter-config";
         Scenario m_Scenario;
-        [SerializeReference] public List<Parameter> parameters = new List<Parameter>();
 
+        public string configurationFilePath =>
+            Application.dataPath + "/StreamingAssets/" + configurationFileName + ".json";
+
+        /// <summary>
+        /// Returns the scenario component attached to this configuration
+        /// </summary>
         public Scenario scenario
         {
             get
             {
-                if (m_Scenario != null)
+                if (m_Scenario == null)
                 {
                     m_Scenario = GetComponent<Scenario>();
                     return m_Scenario;
@@ -44,9 +57,9 @@ namespace UnityEngine.Perception.Randomization.Configuration
             }
         }
 
-        string ConfigurationFilePath =>
-            Application.dataPath + "/StreamingAssets/" + configurationFileName + ".json";
-
+        /// <summary>
+        /// Find a parameter in this configuration by name
+        /// </summary>
         public Parameter GetParameter(string parameterName)
         {
             foreach (var parameter in parameters)
@@ -69,7 +82,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
                 $"Parameter with name {parameterName} and type {typeof(T).Name} not found");
         }
 
-        public void OnEnable()
+        void OnEnable()
         {
             ActiveConfig = this;
             if (loadAdrConfigOnStart)
@@ -80,7 +93,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
                 throw new ParameterConfigurationException("Missing Scenario component");
         }
 
-        public void OnDisable()
+        void OnDisable()
         {
             s_ActiveConfig = null;
         }
@@ -117,7 +130,6 @@ namespace UnityEngine.Perception.Randomization.Configuration
 
         static void StopExecution()
         {
-            Debug.Log("Stopping Execution");
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -125,7 +137,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
 #endif
         }
 
-        public void Serialize()
+        internal void Serialize()
         {
             var settings = new JsonSerializerSettings
             {
@@ -133,17 +145,17 @@ namespace UnityEngine.Perception.Randomization.Configuration
             };
             var jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, settings);
             Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
-            using (var writer = new StreamWriter(ConfigurationFilePath, false))
+            using (var writer = new StreamWriter(configurationFilePath, false))
             {
                 writer.Write(jsonString);
             }
         }
 
-        public void Deserialize()
+        internal void Deserialize()
         {
-            if (!File.Exists(ConfigurationFilePath))
-                throw new ParameterConfigurationException($"Parameter JSON configuration file does not exist at path {ConfigurationFilePath}");
-            var jsonText = File.ReadAllText(ConfigurationFilePath);
+            if (!File.Exists(configurationFilePath))
+                throw new ParameterConfigurationException($"Parameter JSON configuration file does not exist at path {configurationFilePath}");
+            var jsonText = File.ReadAllText(configurationFilePath);
             JsonConvert.DeserializeObject<ParameterConfiguration>(
                 jsonText, new ParameterConfigurationJsonConverter(this));
         }

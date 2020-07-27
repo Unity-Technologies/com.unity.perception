@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -24,6 +24,8 @@ namespace UnityEngine.Perception.GroundTruth
             // TODO - is this slow? If so, figure out a faster way to do this...
             img.enabled = entries.Any();
         }
+
+        // TODO object pooling
 
         /// <summary>
         /// Updates (or creates) an entry with the passed in key value pair
@@ -52,6 +54,14 @@ namespace UnityEngine.Perception.GroundTruth
                 pair.transform.SetParent(null);
                 Destroy(pair.gameObject);
             }
+        }
+
+        /// <summary>
+        /// Removes all of the list of keys from the HUD
+        /// </summary>
+        public void RemoveEntries(List<string> keys)
+        {
+            foreach (var k in keys) RemoveEntry(k);
         }
     }
 }

@@ -44,7 +44,7 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<int, AsyncMetric> m_ObjectInfoAsyncMetrics;
         MetricDefinition m_RenderedObjectInfoMetricDefinition;
 
-        Dictionary<string, string> entryToLabelMap = null;
+        List<string> vizEntries = null;
 
         /// <summary>
         /// Creates a new RenderedObjectInfoLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
@@ -107,6 +107,14 @@ namespace UnityEngine.Perception.GroundTruth
                 if (m_VisiblePixelsValues == null || m_VisiblePixelsValues.Length != renderedObjectInfos.Length)
                     m_VisiblePixelsValues = new RenderedObjectInfoValue[renderedObjectInfos.Length];
 
+                bool visualize = visualizationEnabled && perceptionCamera.visualizationEnabled;
+                if (visualize)
+                {
+                    if (vizEntries == null) vizEntries = new List<string>();
+                    hudPanel.RemoveEntries(vizEntries);
+                    vizEntries.Clear();
+                }
+
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
@@ -120,21 +128,20 @@ namespace UnityEngine.Perception.GroundTruth
                         visible_pixels = objectInfo.pixelCount
                     };
 
-                    if (visualizationEnabled && perceptionCamera.visualizationEnabled)
+                    if (visualize)
                     {
-                        if (entryToLabelMap == null) entryToLabelMap = new Dictionary<string, string>();
-
                         var label = labelEntry.label + "_" + objectInfo.instanceId;
 
-                        if (!entryToLabelMap.ContainsKey(label)) entryToLabelMap[label] = label + " Pixels";
-                        
-                        hudPanel.UpdateEntry(entryToLabelMap[label], objectInfo.pixelCount.ToString());
+                        hudPanel.UpdateEntry(label, objectInfo.pixelCount.ToString());
+                        vizEntries.Add(label);
                     }
                 }
 
                 metric.ReportValues(m_VisiblePixelsValues);
             }
         }
+
+        
 
         bool TryGetLabelEntryFromInstanceId(uint instanceId, out IdLabelEntry labelEntry)
         {
@@ -152,11 +159,8 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (!enabled)
             {
-                foreach (var e in entryToLabelMap)
-                {
-                    hudPanel.RemoveEntry(e.Value);
-                }
-                entryToLabelMap.Clear();
+                hudPanel.RemoveEntries(vizEntries);
+                vizEntries.Clear();
             } 
         }
     }

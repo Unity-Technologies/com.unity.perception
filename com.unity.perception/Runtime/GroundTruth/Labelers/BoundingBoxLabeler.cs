@@ -44,7 +44,6 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_BoundingBoxAnnotationDefinition;
         BoundingBoxValue[] m_BoundingBoxValues;
 
-        private Dictionary<string, RectTransform> visualizationPanelCache = null;
         private GameObject visualizationHolder = null;
 
         /// <summary>
@@ -137,35 +136,47 @@ namespace UnityEngine.Perception.GroundTruth
                 visualizationEnabled = enabled;
             });
 
-            visualizationHolder = new GameObject("BoundsHolder");
-            canvas.AddComponent(visualizationHolder);
+            objectPool = new List<GameObject>();
 
-            visualizationPanelCache = new Dictionary<string, RectTransform>();
+            visualizationHolder = new GameObject("BoundsHolder" + Time.frameCount);
+            canvas.AddComponent(visualizationHolder);
         }
+
+        void ClearObjectPool(int count)
+        {
+            for (int i = count; i < objectPool.Count; i++)
+            {
+                objectPool[i].SetActive(false);
+            }
+        }
+
+        List<GameObject> objectPool = null;
 
         void Visualize()
         {
-            foreach (var box in m_BoundingBoxValues)
-            {
-                var rectTrans = GetVisualizationPanel(box.label_name + "_" + box.instance_id);
-                rectTrans.anchoredPosition = new Vector2(box.x, -box.y);
-                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, box.width);
-                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, box.height);
-            }
-        }
+            ClearObjectPool(m_BoundingBoxValues.Length);
 
-        RectTransform GetVisualizationPanel(string label)
-        {
-            if (!visualizationPanelCache.ContainsKey(label))
+            for (int i = 0; i < m_BoundingBoxValues.Length; i++)
             {
-                var box = GameObject.Instantiate(Resources.Load<GameObject>("BoundingBoxPrefab"));
-                box.name = label + "_boundingbox";
-                box.GetComponentInChildren<Text>().text = label;
-                box.transform.SetParent(visualizationHolder.transform, false);
-                visualizationPanelCache[label] = box.transform as RectTransform;
-            }
+                var boxVal = m_BoundingBoxValues[i];
 
-            return visualizationPanelCache[label];
+                if (i >= objectPool.Count)
+                {
+                    objectPool.Add(GameObject.Instantiate(Resources.Load<GameObject>("BoundingBoxPrefab")));
+                    (objectPool[i].transform as RectTransform).parent = visualizationHolder.transform;
+                }
+
+                if (!objectPool[i].activeSelf) objectPool[i].SetActive(true);
+
+                string label = boxVal.label_name + "_" + boxVal.instance_id;
+                objectPool[i].GetComponentInChildren<Text>().text = label;
+
+                var rectTrans = objectPool[i].transform as RectTransform;
+                
+                rectTrans.anchoredPosition = new Vector2(boxVal.x, -boxVal.y);
+                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, boxVal.width);
+                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, boxVal.height);
+            }
         }
 
         /// <inheritdoc/>

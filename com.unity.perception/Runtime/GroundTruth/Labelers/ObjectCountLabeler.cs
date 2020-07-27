@@ -38,7 +38,7 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<int, AsyncMetric> m_ObjectCountAsyncMetrics;
         MetricDefinition m_ObjectCountMetricDefinition;
 
-        Dictionary<string, string> entryToLabelMap = null;
+        List<string> vizEntries = null;
 
         /// <summary>
         /// Creates a new ObjectCountLabeler. This constructor should only be used by serialization. For creation from
@@ -129,6 +129,14 @@ namespace UnityEngine.Perception.GroundTruth
                 if (m_ClassCountValues == null || m_ClassCountValues.Length != entries.Count)
                     m_ClassCountValues = new ClassCountValue[entries.Count];
 
+                bool visualize = visualizationEnabled && perceptionCamera.visualizationEnabled;
+                if (visualize)
+                {
+                    if (vizEntries == null) vizEntries = new List<string>();
+                    hudPanel.RemoveEntries(vizEntries);
+                    vizEntries.Clear();
+                }
+
                 for (var i = 0; i < entries.Count; i++)
                 {
                     m_ClassCountValues[i] = new ClassCountValue()
@@ -138,13 +146,12 @@ namespace UnityEngine.Perception.GroundTruth
                         count = counts[i]
                     };
 
-                    if (visualizationEnabled && perceptionCamera.visualizationEnabled)
+                    if (visualize)
                     {
-                        if (entryToLabelMap == null) entryToLabelMap = new Dictionary<string, string>();
+                        var label = entries[i].label + " Counts";
 
-                        if (!entryToLabelMap.ContainsKey(entries[i].label)) entryToLabelMap[entries[i].label] = entries[i].label + " Counts";
-                        
-                        hudPanel.UpdateEntry(entryToLabelMap[entries[i].label], counts[i].ToString());
+                        hudPanel.UpdateEntry(label, counts[i].ToString());
+                        vizEntries.Add(label);
                     }
                 }
 
@@ -163,11 +170,8 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (!enabled)
             {
-                foreach (var e in entryToLabelMap)
-                {
-                    hudPanel.RemoveEntry(e.Value);
-                }
-                entryToLabelMap.Clear();
+                hudPanel.RemoveEntries(vizEntries);
+                vizEntries.Clear();
             } 
         }
     }

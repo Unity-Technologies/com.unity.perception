@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 #endif
@@ -66,6 +67,8 @@ namespace UnityEngine.Perception.GroundTruth
         //only used to confirm that GroundTruthRendererFeature is present in URP
         bool m_GroundTruthRendererFeatureRun;
 
+        private static Camera visualizationCamera;
+
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
         /// </summary>
@@ -109,6 +112,51 @@ namespace UnityEngine.Perception.GroundTruth
             DatasetCapture.SimulationEnding += OnSimulationEnding;
         }
 
+        void Start()
+        {
+            SetupVisualizationCamera();
+        }
+
+        void SetupVisualizationCamera()
+        {
+            if (visualizationCamera != null)
+                Debug.LogWarning("Currently only support one visualization camera at a time. User should switch main camera in project hierarchy to visualize a different camera");
+
+            var cam = GetComponent<Camera>();
+            cam.enabled = false;
+
+            // set up to render to a render texture instead of the screen
+            var visualizationRenderTexture = new RenderTexture(new RenderTextureDescriptor(cam.pixelWidth, cam.pixelHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 8));
+            visualizationRenderTexture.name = cam.name + "_visualization_texture";
+            cam.targetTexture = visualizationRenderTexture;
+
+            // set up to not render the UI layer
+            int layerMask = 1 << LayerMask.NameToLayer("UI");
+            cam.cullingMask = ~layerMask;
+
+            var camera2 = new GameObject(cam.name + "_VisualizationCamera");
+            visualizationCamera = camera2.AddComponent<Camera>();
+            visualizationCamera.cullingMask = layerMask;
+
+            var canvasObj = new GameObject(cam.name + "_VisualizationImageUI");
+            var canvas = canvasObj.AddComponent<Canvas>();
+            canvasObj.AddComponent<CanvasScaler>();
+            canvasObj.AddComponent<GraphicRaycaster>();
+
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+            var imgObj = new GameObject(cam.name + "_Image");
+            var img = imgObj.AddComponent<RawImage>();
+            img.texture = visualizationRenderTexture;
+
+            var rect = imgObj.transform as RectTransform;
+            rect.SetParent(canvasObj.transform, false);
+            rect.anchorMin = new Vector2(0, 0);
+            rect.anchorMax = new Vector2(1, 1);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.offsetMax = Vector2.zero;
+            rect.offsetMin = Vector2.zero;
+        }
 
         void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)
         {
@@ -130,9 +178,6 @@ namespace UnityEngine.Perception.GroundTruth
             if (!SensorHandle.IsValid)
                 return;
 
-            var cam = GetComponent<Camera>();
-            cam.enabled = SensorHandle.ShouldCaptureThisFrame;
-
             foreach (var labeler in m_Labelers)
             {
                 if (!labeler.enabled)
@@ -143,6 +188,12 @@ namespace UnityEngine.Perception.GroundTruth
 
                 labeler.InternalOnUpdate();
             }
+        }
+
+        void LateUpdate()
+        {
+            var cam = GetComponent<Camera>();
+            if (SensorHandle.ShouldCaptureThisFrame) cam.Render();
         }
 
         void OnValidate()

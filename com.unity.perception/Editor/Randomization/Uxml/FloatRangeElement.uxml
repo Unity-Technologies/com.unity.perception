@@ -3,10 +3,10 @@
         <VisualElement style="flex-direction: row; margin: 1px, 1px, 1px, 3px;">
             <Label text="Range" class="unity-base-field__label" style="min-width: 147;"/>
             <VisualElement style="flex-grow: 1; flex-direction: row;">
-                <editor:FloatField tooltip="Minimum" binding-path="range.minimum" style="flex-grow: 1; width: 0; margin-bottom: 0;"/>
-                <editor:FloatField tooltip="Maximum" binding-path="range.maximum" style="flex-grow: 1; width: 0; margin-right: 2px; margin-bottom: 0;"/>
+                <editor:FloatField tooltip="Minimum" name="minimum" style="flex-grow: 1; width: 0; margin-bottom: 0;"/>
+                <editor:FloatField tooltip="Maximum" name="maximum" style="flex-grow: 1; width: 0; margin-right: 2px; margin-bottom: 0;"/>
             </VisualElement>
         </VisualElement>
-        <editor:FloatField label="Default Value" binding-path="range.defaultValue"/>
+        <editor:FloatField label="Default Value" name="defaultValue"/>
     </VisualElement>
 </UXML>

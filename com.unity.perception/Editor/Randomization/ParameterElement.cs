@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.OleDb;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Editor
@@ -173,11 +173,11 @@ namespace UnityEngine.Perception.Randomization.Editor
         {
             m_ExtraProperties.Clear();
 
-            if (m_Parameter is ICategoricalParameter)
-            {
-                CreateCategoricalParameterFields();
-                return;
-            }
+            // if (m_Parameter is ICategoricalParameter)
+            // {
+            //     CreateCategoricalParameterFields();
+            //     return;
+            // }
 
             var iterator = m_SerializedObject.GetIterator();
             if (iterator.NextVisible(true))
@@ -186,18 +186,14 @@ namespace UnityEngine.Perception.Randomization.Editor
                 {
                     if (iterator.propertyPath == "m_Script" || iterator.propertyPath == "parameterName")
                         continue;
-                    switch (iterator.type)
+                    if (iterator.managedReferenceFieldTypename == StaticData.SamplerSerializedFieldType)
+                        m_ExtraProperties.Add(new SamplerElement(iterator.Copy()));
+                    else
                     {
-                        case "PPtr<$Sampler>":
-                            m_ExtraProperties.Add(new SamplerElement(iterator.Copy()));
-                            break;
-                        default:
-                        {
-                            var propertyField = new PropertyField(iterator.Copy());
-                            propertyField.Bind(m_SerializedObject);
-                            m_ExtraProperties.Add(propertyField);
-                            break;
-                        }
+                        var propertyField = new PropertyField(iterator.Copy());
+                        propertyField.Bind(m_SerializedObject);
+                        m_ExtraProperties.Add(propertyField);
+                        break;
                     }
                 } while (iterator.NextVisible(false));
             }

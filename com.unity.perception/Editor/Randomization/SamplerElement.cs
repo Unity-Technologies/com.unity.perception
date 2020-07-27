@@ -1,5 +1,4 @@
 ﻿using System;
-using ICSharpCode.NRefactory.Ast;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Parameters;
@@ -13,7 +12,6 @@ namespace UnityEngine.Perception.Randomization.Editor
         Parameter m_Parameter;
         Sampler m_Sampler;
         SerializedProperty m_Property;
-        SerializedObject m_SerializedObject;
         SerializedObject m_ParameterSo;
         VisualElement m_Properties;
         ToolbarMenu m_SamplerTypeDropdown;
@@ -24,14 +22,12 @@ namespace UnityEngine.Perception.Randomization.Editor
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{StaticData.uxmlDir}/SamplerElement.uxml");
             template.CloneTree(this);
 
-            m_Sampler = (Sampler)m_Property.objectReferenceValue;
             m_ParameterSo = property.serializedObject;
             m_Parameter = (Parameter)m_ParameterSo.targetObject;
+            m_Sampler = GetSamplerFromSerializedObject();
 
             if (m_Sampler == null)
                 CreateSampler(typeof(UniformSampler));
-
-            m_SerializedObject = new SerializedObject(m_Sampler);
 
             var samplerName = this.Q<Label>("sampler-name");
             samplerName.text = UppercaseFirstLetter(m_Property.propertyPath);
@@ -47,45 +43,43 @@ namespace UnityEngine.Perception.Randomization.Editor
                     a => { ReplaceSampler(samplerType); },
                     a => DropdownMenuAction.Status.Normal);
             }
-
             CreatePropertyFields();
         }
 
         void ReplaceSampler(Type samplerType)
         {
-            m_SerializedObject.Dispose();
-            Object.DestroyImmediate(m_Sampler);
             CreateSampler(samplerType);
             m_SamplerTypeDropdown.text = m_Sampler.MetaData.displayName;
-            m_SerializedObject = new SerializedObject(m_Sampler);
             CreatePropertyFields();
         }
 
         void CreateSampler(Type samplerType)
         {
-            m_Sampler = (Sampler)m_Parameter.gameObject.AddComponent(samplerType);
-            m_Sampler.hideFlags = HideFlags.HideInInspector;
+            m_Sampler = (Sampler)Activator.CreateInstance(samplerType);
             if (samplerType.IsSubclassOf(typeof(RandomSampler)))
                 ((RandomSampler)m_Sampler).seed = (uint)Random.Range(1, int.MaxValue);
 
-            m_Property.objectReferenceValue = m_Sampler;
+            m_Property.managedReferenceValue = m_Sampler;
             m_ParameterSo.ApplyModifiedProperties();
         }
 
         void CreatePropertyFields()
         {
             m_Properties.Clear();
-            var iterator = m_SerializedObject.GetIterator();
-            if (iterator.NextVisible(true))
+            var currentProperty = m_Property.Copy();
+            var nextSiblingProperty = m_Property.Copy();
+            nextSiblingProperty.Next(false);
+
+            if (currentProperty.Next(true))
             {
                 do
                 {
-                    if (iterator.propertyPath == "m_Script" || iterator.propertyPath == "optimize")
-                        continue;
-                    if (iterator.propertyPath == "seed")
+                    if (SerializedProperty.EqualContents(currentProperty, nextSiblingProperty))
+                        break;
+                    if (currentProperty.name == "seed")
                     {
                         var seedField = new IntegerField("Seed");
-                        seedField.BindProperty(iterator.Copy());
+                        seedField.BindProperty(currentProperty.Copy());
                         seedField.RegisterValueChangedCallback((e) =>
                         {
                             if (e.newValue <= 0)
@@ -98,26 +92,34 @@ namespace UnityEngine.Perception.Randomization.Editor
                         m_Properties.Add(seedField);
                         continue;
                     }
-                    switch (iterator.type)
+                    switch (currentProperty.type)
                     {
                         case "FloatRange":
-                            m_Properties.Add(new FloatRangeElement(iterator.Copy()));
+                            m_Properties.Add(new FloatRangeElement(currentProperty.Copy()));
                             break;
                         default:
                         {
-                            var propertyField = new PropertyField(iterator.Copy());
-                            propertyField.Bind(m_SerializedObject);
+                            var propertyField = new PropertyField(currentProperty.Copy());
+                            propertyField.Bind(m_Property.serializedObject);
                             m_Properties.Add(propertyField);
                             break;
                         }
                     }
-                } while (iterator.NextVisible(false));
+                }
+                while (currentProperty.Next(false));
             }
         }
 
         static string UppercaseFirstLetter(string s)
         {
             return string.IsNullOrEmpty(s) ? string.Empty : char.ToUpper(s[0]) + s.Substring(1);
+        }
+
+        Sampler GetSamplerFromSerializedObject()
+        {
+            var propertyPath = m_Property.propertyPath;
+            var parameterType = m_Parameter.GetType();
+            return (Sampler)parameterType.GetField(propertyPath).GetValue(m_Parameter);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// Derived classes of the Sampler base class generate random values from probability distributions.
     /// </summary>
     [Serializable]
-    public abstract class Sampler : MonoBehaviour
+    public abstract class Sampler
     {
         /// <summary>
         /// Returns meta information regarding this type of sampler

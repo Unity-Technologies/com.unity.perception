@@ -8,7 +8,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [ParameterMetaData("Bool")]
     public class BooleanParameter : StructParameter<bool>
     {
-        public Sampler value;
+        [SerializeReference] public Sampler value;
 
         public override Sampler[] Samplers => new[] { value };
 

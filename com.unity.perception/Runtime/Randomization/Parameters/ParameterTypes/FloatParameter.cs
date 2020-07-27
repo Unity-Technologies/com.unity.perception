@@ -9,7 +9,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [ParameterMetaData("Float")]
     public class FloatParameter : StructParameter<float>
     {
-        public Sampler value;
+        [SerializeReference] public Sampler value;
 
         public override Sampler[] Samplers => new []{ value };
 

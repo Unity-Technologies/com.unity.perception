@@ -9,8 +9,8 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [ParameterMetaData("Vector2")]
     public class Vector2Parameter : StructParameter<Vector2>
     {
-        public Sampler x;
-        public Sampler y;
+        [SerializeReference] public Sampler x;
+        [SerializeReference] public Sampler y;
 
         public override Sampler[] Samplers => new []{ x, y };
 

@@ -9,10 +9,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [ParameterMetaData("ColorHSVA")]
     public class ColorHsvaParameter : StructParameter<Color>
     {
-        public Sampler hue;
-        public Sampler saturation;
-        public Sampler value;
-        public Sampler alpha;
+        [SerializeReference] public Sampler hue;
+        [SerializeReference] public Sampler saturation;
+        [SerializeReference] public Sampler value;
+        [SerializeReference] public Sampler alpha;
 
         public override Sampler[] Samplers => new []{ hue, saturation, value, alpha };
 

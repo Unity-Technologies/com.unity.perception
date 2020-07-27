@@ -104,8 +104,6 @@ namespace UnityEngine.Perception.Randomization.Editor
             var param = m_Config.parameters[paramIndex];
             m_Config.parameters.RemoveAt(paramIndex);
 
-            foreach (var sampler in param.Samplers)
-                DestroyImmediate(sampler);
             DestroyImmediate(param);
         }
 

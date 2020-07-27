@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UnityEditor;
 using UnityEngine.Perception.Randomization.Configuration;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -41,21 +43,24 @@ namespace UnityEngine.Perception.Randomization.Serialization
                     var fieldValue = field.GetValue(parameter);
                     if (field.FieldType == typeof(Sampler) && fieldValue is RandomSampler sampler)
                     {
-                        var adrFloatObj = new JObject();
-                        parametersObj[parameter.parameterName + "." + field.Name] = adrFloatObj;
+                        var floatRangeObj = new JObject();
+                        parametersObj[parameter.parameterName + "." + field.Name] = floatRangeObj;
                         var range = sampler.range;
-                        adrFloatObj["minimum"] = range.minimum;
-                        adrFloatObj["maximum"] = range.maximum;
-                        adrFloatObj["defaultValue"] = range.defaultValue;
+                        floatRangeObj["minimum"] = range.minimum;
+                        floatRangeObj["maximum"] = range.maximum;
+                        floatRangeObj["defaultValue"] = range.defaultValue;
                     }
                 }
             }
 
             if (m_Config.scenario)
             {
-                var scenarioObj = m_Config.scenario.Serialize();
+                var scenarioObj = m_Config.scenario;
                 if (scenarioObj != null)
-                    configObj["scenario"] = scenarioObj;
+                {
+                    var jsonString = scenarioObj.Serialize();
+                    configObj["scenario"] = JObject.Parse(jsonString);
+                }
             }
 
             configObj.WriteTo(writer);
@@ -68,7 +73,7 @@ namespace UnityEngine.Perception.Randomization.Serialization
             ReadParameters(jo["parameters"]);
             var scenarioToken = jo["scenario"];
             if (scenarioToken is JObject scenarioObj)
-                m_Config.scenario.Deserialize(scenarioObj);
+                m_Config.scenario.Deserialize(scenarioObj.ToString());
             return m_Config;
         }
 

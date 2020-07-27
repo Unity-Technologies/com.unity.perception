@@ -19,15 +19,15 @@
             <VisualElement style="flex-grow: 1"/>
         </VisualElement>
 
-        <Label text="Runtime" style="margin-top: 20px; font-size: 20px; -unity-text-align: middle-center;"/>
+        <Label text="Configuration" style="margin-top: 20px; font-size: 20px; -unity-text-align: middle-center;"/>
         <VisualElement name="configuration-container" class="dark-viewport">
             <editor:PropertyField name="curriculum-field" text="Curriculum" binding-path="curriculum"/>
             <editor:PropertyField name="scenario-field" text="Scenario" binding-path="scenario"/>
             <editor:PropertyField name="configuration-file-name" label="Config File Name" binding-path="configurationFileName"/>
-            <editor:PropertyField name="load-config" label="Load Config On Start" binding-path="loadAdrConfigOnStart" style="padding-left: 4px;"/>
+            <editor:PropertyField name="deserialize-on-start" label="Deserialize On Start" binding-path="deserializeOnStart" style="padding-left: 4px;"/>
             <VisualElement style="flex-direction: row;">
-                <Button name="load-adr-config" text="Load ADR Config" style="flex-grow: 1;"/>
-                <Button name="write-adr-config" text="Write ADR Config" style="flex-grow: 1;"/>
+                <Button name="deserialize-config" text="Deserialize Config" style="flex-grow: 1;"/>
+                <Button name="serialize-config" text="Serialize Config" style="flex-grow: 1;"/>
             </VisualElement>
         </VisualElement>
     </VisualElement>

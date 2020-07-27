@@ -34,9 +34,9 @@ namespace UnityEngine.Perception.Randomization.Configuration
 
         [SerializeReference]
         public List<Parameter> parameters = new List<Parameter>();
-        public bool loadAdrConfigOnStart;
+        public bool deserializeOnStart;
         public string configurationFileName = "parameter-config";
-        Scenario m_Scenario;
+        ScenarioBase m_Scenario;
 
         public string configurationFilePath =>
             Application.dataPath + "/StreamingAssets/" + configurationFileName + ".json";
@@ -44,13 +44,13 @@ namespace UnityEngine.Perception.Randomization.Configuration
         /// <summary>
         /// Returns the scenario component attached to this configuration
         /// </summary>
-        public Scenario scenario
+        public ScenarioBase scenario
         {
             get
             {
                 if (m_Scenario == null)
                 {
-                    m_Scenario = GetComponent<Scenario>();
+                    m_Scenario = GetComponent<ScenarioBase>();
                     return m_Scenario;
                 }
                 return m_Scenario;
@@ -85,10 +85,10 @@ namespace UnityEngine.Perception.Randomization.Configuration
         void OnEnable()
         {
             ActiveConfig = this;
-            if (loadAdrConfigOnStart)
+            if (deserializeOnStart)
                 Deserialize();
 
-            m_Scenario = GetComponent<Scenario>();
+            m_Scenario = GetComponent<ScenarioBase>();
             if (m_Scenario == null)
                 throw new ParameterConfigurationException("Missing Scenario component");
         }

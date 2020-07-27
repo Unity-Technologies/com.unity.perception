@@ -56,10 +56,10 @@ namespace UnityEngine.Perception.Randomization.Editor
                     a => DropdownMenuAction.Status.Normal);
             }
 
-            var loadAdrConfigButton = m_Root.Query<Button>("load-adr-config").First();
+            var loadAdrConfigButton = m_Root.Query<Button>("deserialize-config").First();
             loadAdrConfigButton.clicked += () => m_Config.Deserialize();
 
-            var serializeAdrConfigButton = m_Root.Query<Button>("write-adr-config").First();
+            var serializeAdrConfigButton = m_Root.Query<Button>("serialize-config").First();
             serializeAdrConfigButton.clicked += () => m_Config.Serialize();
 
             var filter = m_Root.Query<TextField>("filter-parameters").First();

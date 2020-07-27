@@ -138,7 +138,7 @@ namespace UnityEngine.Perception.GroundTruth
                         count = counts[i]
                     };
 
-                    if (visualizationEnabled)
+                    if (visualizationEnabled && perceptionCamera.visualizationEnabled)
                     {
                         if (entryToLabelMap == null) entryToLabelMap = new Dictionary<string, string>();
 

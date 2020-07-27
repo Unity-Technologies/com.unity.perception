@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -70,6 +70,20 @@ namespace UnityEngine.Perception.GroundTruth
         private static Camera visualizationCamera;
 
         /// <summary>
+        /// Should the labeling visualization routines run for this camera. This will only
+        /// be set to false if there is more than one camera in the scene, and this is
+        /// not considered the active camera.
+        /// </summary>
+        bool m_VisualizationEnabled = true;
+        public bool visualizationEnabled 
+        { 
+            get
+            {
+                return m_VisualizationEnabled;
+            }
+        }
+
+        /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
         /// </summary>
         public SensorHandle SensorHandle { get; private set; }
@@ -114,16 +128,20 @@ namespace UnityEngine.Perception.GroundTruth
 
         void Start()
         {
-            SetupVisualizationCamera();
-        }
-
-        void SetupVisualizationCamera()
-        {
-            if (visualizationCamera != null)
-                Debug.LogWarning("Currently only support one visualization camera at a time. User should switch main camera in project hierarchy to visualize a different camera");
-
             var cam = GetComponent<Camera>();
             cam.enabled = false;
+
+            SetupVisualizationCamera(cam);
+        }
+
+        bool SetupVisualizationCamera(Camera cam)
+        {
+            if (visualizationCamera != null)
+            {
+                Debug.LogWarning("Currently only support one visualization camera at a time. User should switch main camera in project hierarchy to visualize a different camera");
+                m_VisualizationEnabled = false;
+                return false;
+            }
 
             // set up to render to a render texture instead of the screen
             var visualizationRenderTexture = new RenderTexture(new RenderTextureDescriptor(cam.pixelWidth, cam.pixelHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 8));
@@ -156,6 +174,8 @@ namespace UnityEngine.Perception.GroundTruth
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.offsetMax = Vector2.zero;
             rect.offsetMin = Vector2.zero;
+
+            return true;
         }
 
         void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)

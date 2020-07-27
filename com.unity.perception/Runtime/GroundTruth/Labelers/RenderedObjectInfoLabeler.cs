@@ -120,7 +120,7 @@ namespace UnityEngine.Perception.GroundTruth
                         visible_pixels = objectInfo.pixelCount
                     };
 
-                    if (visualizationEnabled)
+                    if (visualizationEnabled && perceptionCamera.visualizationEnabled)
                     {
                         if (entryToLabelMap == null) entryToLabelMap = new Dictionary<string, string>();
 

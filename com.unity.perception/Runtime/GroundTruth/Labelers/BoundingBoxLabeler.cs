@@ -121,7 +121,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount) 
                     Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
 
-                if (visualizationEnabled) 
+                if (perceptionCamera.visualizationEnabled && visualizationEnabled)
                 {
                     Visualize();
                 }

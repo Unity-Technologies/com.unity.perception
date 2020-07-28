@@ -31,14 +31,14 @@ Follow [this link]() to learn more about implementing your own custom probabilit
 
 ## Scenarios
 
- Scenario have three responsibilities:
+ Scenarios have three responsibilities:
  1. Controlling the execution flow of your simulation 
  2. Customizing the application of random parameters in your project
  3. Defining constants that can be configured externally from a built Unity player 
 
-The fundamental principle of DR is to simulate a particular environment under a variety of randomized conditions. To this end, scenarios have a concept of iterations. Each iteration of a scenario is intended to encapsulate one complete run of the simulated environment under a unique set of randomized conditions. Scenarios determine how to setup a new run, what conditions determine the end of a run, how to clean up a run, and finally how many runs to perform. All of these behaviors can be customed for a new scenario by deriving the perception package's scenario class.
+The fundamental principle of DR is to simulate environments under a variety of randomized conditions. To this end, scenarios have a concept of iterations. Each iteration of a scenario is intended to encapsulate one complete run of the simulated environment under a uniquely sampled randomized conditions. Scenarios determine how to setup a new run, what conditions determine the end of a run, how to clean up a run, and finally how many runs to perform. All of these behaviors can be customed for a new scenario by deriving the perception package's scenario class.
 
-It was mentioned before in the parameter section of this doc that from that you can configure parameters to affect the simulation directly from the parameter configuration. This is true, but limited to certain applications. For more complex parameter applications, a user can reference existing parameters in their scenario to implement more complex randomizations at specific points of the simulation. For example, from the scenario, a user can reference a Spawn Count integer parameter to control how many objects are created during the setup step of a scenario.
+It was mentioned before in the parameter section of this doc that from that you can configure parameters to affect the simulation directly from the parameter configuration. While useful, this feature is constained to a limited set of applications. For more complex parameter applications, a user can reference existing parameters in their scenario to implement more intricate randomizations at specific points of the simulation. For example, from the scenario, a user can reference a `SpawnCount` integer parameter to control how many objects are created during the setup step of a scenario.
 
 Finally, scenarios define constants from which to expose global simulation behaviors like a starting iteration value or a total iteration count. Users can configure their simulation to serialize these scenario constants to JSON, modify them in an external program, and finally reimported at runtime to customize their simulation runtime even after the project has been built.
 

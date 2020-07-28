@@ -31,7 +31,7 @@ Follow [this link]() to learn more about implementing your own custom probabilit
 
 ## Scenarios
 
- A scenario has three responsibilities:
+ Scenario have three responsibilities:
  1. Controlling the execution flow of your simulation 
  2. Customizing the application of random parameters in your project
  3. Defining constants that can be configured externally from a built Unity player 

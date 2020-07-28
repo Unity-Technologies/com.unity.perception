@@ -13,6 +13,7 @@ namespace UnityEngine.Perception.GroundTruth
     {
         public ControlPanel controlPanel;
         public HUDPanel hudPanel;
+        public GameObject dynaicContentHolder;
 
         // Start is called before the first frame update
         void Start()
@@ -55,7 +56,7 @@ namespace UnityEngine.Perception.GroundTruth
                 trans.offsetMin = new Vector2(0, 0);
             }
 
-            trans.SetParent(this.transform, false);
+            trans.SetParent(dynaicContentHolder.transform, false);
 
             if (setAsLowestElement) component.transform.SetAsFirstSibling();
 

@@ -12,17 +12,21 @@ namespace UnityEngine.Perception.GroundTruth
     public class HUDPanel : MonoBehaviour
     {
         Dictionary<string, KeyValuePanel> entries = new Dictionary<string, KeyValuePanel>();
-        Image img = null;
-
-        void Awake() 
-        {
-            img = GetComponentInChildren<Image>();
-        }
+        public GameObject contentPanel = null;
+        public ScrollRect scrollRect = null;
+        public Image img = null;
 
         void Update()
         {
-            // TODO - is this slow? If so, figure out a faster way to do this...
-            img.enabled = entries.Any();
+            if (entries.Any() != scrollRect.enabled)
+            {
+                scrollRect.enabled = !scrollRect.enabled;
+                img.enabled = scrollRect.enabled;
+                foreach (var i in GetComponentsInChildren<Image>())
+                {
+                    i.enabled = scrollRect.enabled;
+                }
+            }
         }
 
         // TODO object pooling
@@ -36,7 +40,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 entries[key] = GameObject.Instantiate(Resources.Load<GameObject>("KeyValuePanel")).GetComponent<KeyValuePanel>();
                 entries[key].SetKey(key);
-                entries[key].transform.SetParent(this.transform, false);
+                entries[key].transform.SetParent(contentPanel.transform, true);
             }
             entries[key].SetValue(value);
         }

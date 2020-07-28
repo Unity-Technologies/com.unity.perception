@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UnityEditor;
 using UnityEngine.Perception.Randomization.Configuration;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -48,7 +46,6 @@ namespace UnityEngine.Perception.Randomization.Serialization
                         var range = sampler.range;
                         floatRangeObj["minimum"] = range.minimum;
                         floatRangeObj["maximum"] = range.maximum;
-                        floatRangeObj["defaultValue"] = range.defaultValue;
                     }
                 }
             }
@@ -102,7 +99,6 @@ namespace UnityEngine.Perception.Randomization.Serialization
                     {
                         sampler.range.minimum = value["minimum"].Value<float>();
                         sampler.range.maximum = value["maximum"].Value<float>();
-                        sampler.range.defaultValue = value["defaultValue"].Value<float>();
                         foundField = true;
                         break;
                     }

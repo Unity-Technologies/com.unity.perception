@@ -7,6 +7,5 @@ namespace UnityEngine.Perception.Randomization.Samplers
     {
         public float minimum;
         public float maximum;
-        public float defaultValue;
     }
 }

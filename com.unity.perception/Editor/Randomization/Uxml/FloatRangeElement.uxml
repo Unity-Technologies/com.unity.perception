@@ -7,6 +7,5 @@
                 <editor:FloatField tooltip="Maximum" name="maximum" style="flex-grow: 1; width: 0; margin-right: 2px; margin-bottom: 0;"/>
             </VisualElement>
         </VisualElement>
-        <editor:FloatField label="Default Value" name="defaultValue"/>
     </VisualElement>
 </UXML>

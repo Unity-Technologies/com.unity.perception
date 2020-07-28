@@ -18,9 +18,6 @@ namespace UnityEngine.Perception.Randomization.Editor
             var maximumField = this.Q<FloatField>("maximum");
             maximumField.bindingPath = property.propertyPath + ".maximum";
 
-            var defaultValueField = this.Q<FloatField>("defaultValue");
-            defaultValueField.bindingPath = property.propertyPath + ".defaultValue";
-
             this.Bind(property.serializedObject);
         }
     }

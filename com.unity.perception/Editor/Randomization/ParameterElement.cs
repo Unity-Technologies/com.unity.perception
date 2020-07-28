@@ -173,11 +173,11 @@ namespace UnityEngine.Perception.Randomization.Editor
         {
             m_ExtraProperties.Clear();
 
-            // if (m_Parameter is ICategoricalParameter)
-            // {
-            //     CreateCategoricalParameterFields();
-            //     return;
-            // }
+            if (m_Parameter is ICategoricalParameter)
+            {
+                CreateCategoricalParameterFields();
+                return;
+            }
 
             var iterator = m_SerializedObject.GetIterator();
             if (iterator.NextVisible(true))

@@ -131,6 +131,16 @@ In this step, we will configure 6 parameters to randomize the scene: `CubePositi
         }
     }
     ```
+    So what is this CubeScenario script accomplishing?
+    1. The `Constants` subclass in this scenario script determines what scenario parameters can be JSON serialized. Only these parameters can be changed externally from a built player. In this example, we expose the number of total iterations the scenario will complete.
+    2. The overrided properties `isIterationComplete` and `isScenarioComplete` are checked before every frame of the simulation to control the scenario's execution flow. In this case, the scenario will execute for only one frame for each iteration and continue executing until reaching the total iteration limit set by the `totalIterations` field in the constants class.
+    3. In Unity, manipulating the color of a material is a shader specific task that cannot be accomplished directly from a color parameter's target GameObject setting. Instead we:
+        1. Expose references to the cube and background color parameters in this scenario's inspector
+        2. Lookup the ID of the `_BaseColor` shader property
+        3. Override the initialize method to cache references to the materials attached to the cube and background GameObjects when the simulation starts
+        4. Override the setup method to apply randomly sampled color values to the shaders of the cached materials at the beginning of each scenario iteration
+    
+    
 4. Back in the Unity editor, navigate to the inspector of the `Config` GameObject and use `Add Component -> CubeScenario` to add the new CubeScenario component to your parameter configuration.
 5. Open the constants dropdown and confirm how many iterations the scenario should run (the default is 1000)
 6. Use the `backgroundColorParameter` and `cubeColorParameter` dropdowns to inform the script of which parameters in the configuration to use for the BackgroundColor and CubeColor respectively.
@@ -140,7 +150,15 @@ In this step, we will configure 6 parameters to randomize the scene: `CubePositi
 
 
 ## Step 5: Configure Perception Camera
-TODO
+Read through the [general perception getting started guide]() before completing the following steps:
+1. (For URP projects) Add GroundTruthRendererFeature
+2. Add a `PerceptionCamera` component to the MainCamera
+3. Label the cube
+    1. Add a `Labeling` component to the cube GameObject
+    2. Create a `LabelingConfiguration` asset
+    3. Add the cube label to the new configuration
+    4. Select the new configuration asset from the perception camera
+4. Enter play mode to confirm that labeled data is being generated
 
 
 ## Step 6: Build Simulation Runtime

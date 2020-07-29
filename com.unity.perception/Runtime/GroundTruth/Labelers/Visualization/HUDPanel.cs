@@ -7,11 +7,15 @@ using UnityEngine.UI;
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
-    /// Heads up display panel used to publish a key value pair on the screen.
+    /// Heads up display panel used to publish a key value pair on the screen. Items added to this need
+    /// to have their values updated every frame, or else, they will be determined to be stale and removed
+    /// from the view and re-used for a new entry.
     /// </summary>
     public class HUDPanel : MonoBehaviour
     {
-        Dictionary<string, KeyValuePanel> entries = new Dictionary<string, KeyValuePanel>();
+        Dictionary<string, (bool, KeyValuePanel)> entries = new Dictionary<string, (bool, KeyValuePanel)>();
+        Stack<KeyValuePanel> orphans = new Stack<KeyValuePanel>();
+
         public GameObject contentPanel = null;
         public ScrollRect scrollRect = null;
         public Image img = null;
@@ -27,22 +31,57 @@ namespace UnityEngine.Perception.GroundTruth
                     i.enabled = scrollRect.enabled;
                 }
             }
-        }
 
-        // TODO object pooling
+            // Go through everyone that has not been updated and remove them and
+            // if they have been updated mark them dirty for next round
+            var keys = new List<string>(entries.Keys);
+            foreach (var key in keys)
+            {
+                var entry = entries[key];
+
+                if (!entry.Item1)
+                {
+                    entry.Item2.gameObject.SetActive(false);
+                    orphans.Push(entry.Item2);
+                }
+                else
+                {
+                    entry.Item1 = false;
+                    entries[key] = entry;
+                }
+            }
+        }
 
         /// <summary>
         /// Updates (or creates) an entry with the passed in key value pair
         /// </summary>
         public void UpdateEntry(string key, string value)
         {
-            if (!entries.ContainsKey(key)) 
+            (bool, KeyValuePanel) val;
+
+            if (!entries.ContainsKey(key))
             {
-                entries[key] = GameObject.Instantiate(Resources.Load<GameObject>("KeyValuePanel")).GetComponent<KeyValuePanel>();
-                entries[key].SetKey(key);
-                entries[key].transform.SetParent(contentPanel.transform, true);
+                if (orphans.Any())
+                {
+                    val = (true, orphans.Pop());
+                    val.Item2.gameObject.SetActive(true);
+                }
+                else
+                {
+                    val = (true, GameObject.Instantiate(Resources.Load<GameObject>("KeyValuePanel")).GetComponent<KeyValuePanel>());
+                    val.Item2.transform.SetParent(contentPanel.transform, true);
+                }
+
+                val.Item2.SetKey(key);
             }
-            entries[key].SetValue(value);
+            else
+            {
+                val = entries[key];
+                val.Item1 = true;
+            }
+
+            val.Item2.SetValue(value);
+            entries[key] = val;
         }
 
         /// <summary>
@@ -52,18 +91,25 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (entries.ContainsKey(key))
             {
-                var pair = entries[key];
+                var entry = entries[key];
+                entry.Item2.gameObject.SetActive(false);
                 entries.Remove(key);
-
-                pair.transform.SetParent(null);
-                Destroy(pair.gameObject);
+                orphans.Push(entry.Item2);
             }
         }
 
         /// <summary>
-        /// Removes all of the list of keys from the HUD
+        /// Removes all of the passed in entries from the HUD
         /// </summary>
         public void RemoveEntries(List<string> keys)
+        {
+            foreach (var k in keys) RemoveEntry(k);
+        }
+
+        /// <summary>
+        /// Removes all of the passed in entries from the HUD
+        /// </summary>
+        public void RemoveEntries(string[] keys)
         {
             foreach (var k in keys) RemoveEntry(k);
         }

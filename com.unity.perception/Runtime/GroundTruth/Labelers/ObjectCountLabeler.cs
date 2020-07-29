@@ -130,11 +130,9 @@ namespace UnityEngine.Perception.GroundTruth
                     m_ClassCountValues = new ClassCountValue[entries.Count];
 
                 bool visualize = visualizationEnabled && perceptionCamera.visualizationEnabled;
-                if (visualize)
+                if (visualize && vizEntries == null)
                 {
-                    if (vizEntries == null) vizEntries = new List<string>();
-                    hudPanel.RemoveEntries(vizEntries);
-                    vizEntries.Clear();
+                    vizEntries = new List<string>();
                 }
 
                 for (var i = 0; i < entries.Count; i++)

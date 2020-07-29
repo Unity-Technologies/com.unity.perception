@@ -108,11 +108,9 @@ namespace UnityEngine.Perception.GroundTruth
                     m_VisiblePixelsValues = new RenderedObjectInfoValue[renderedObjectInfos.Length];
 
                 bool visualize = visualizationEnabled && perceptionCamera.visualizationEnabled;
-                if (visualize)
+                if (visualize && vizEntries == null)
                 {
-                    if (vizEntries == null) vizEntries = new List<string>();
-                    hudPanel.RemoveEntries(vizEntries);
-                    vizEntries.Clear();
+                    vizEntries = new List<string>();
                 }
 
                 for (var i = 0; i < renderedObjectInfos.Length; i++)

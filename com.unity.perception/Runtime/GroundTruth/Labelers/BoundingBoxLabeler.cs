@@ -163,7 +163,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (i >= objectPool.Count)
                 {
                     objectPool.Add(GameObject.Instantiate(Resources.Load<GameObject>("BoundingBoxPrefab")));
-                    (objectPool[i].transform as RectTransform).parent = visualizationHolder.transform;
+                    (objectPool[i].transform as RectTransform).SetParent(visualizationHolder.transform);
                 }
 
                 if (!objectPool[i].activeSelf) objectPool[i].SetActive(true);

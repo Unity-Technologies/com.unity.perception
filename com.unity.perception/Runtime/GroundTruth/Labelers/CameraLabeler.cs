@@ -22,7 +22,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Labelers should set this in their setup to define if they support realtime
-        /// visualization of their data. 
+        /// visualization of their data.
         /// </summary>
         protected abstract bool supportsVisualization
         {
@@ -31,49 +31,25 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Static counter shared by all lableler classes. If any visualizers are
-        /// active then perception camera cannot operate in asynchronous mode. 
+        /// active then perception camera cannot operate in asynchronous mode.
         /// </summary>
         private static int activeVisualizers = 0;
 
-        private static VisualizationCanvas m_Canvas = null;
-        
         /// <summary>
-        /// Retrieve a handle to the visualization canvas <see cref="VisualizationCanvas". This is the specific canvas that all visualization
+        /// Retrieve a handle to the visualization canvas <see cref="VisualizationCanvas"/>. This is the specific canvas that all visualization
         /// labelers should be added to. The canvas has helper functions to create many common visualization components.
         /// </summary>
-        public VisualizationCanvas canvas
-        {
-            get
-            {
-                if (m_Canvas == null)
-                {
-                    m_Canvas = GameObject.Instantiate(Resources.Load<GameObject>("VisualizationUI")).GetComponent<VisualizationCanvas>();
-                };
-                return m_Canvas;
-            }
-        }
+        public VisualizationCanvas visualizationCanvas { get; private set; }
 
         /// <summary>
         /// The control panel that is attached to the visualization canvas. The common location to add interactive controls.
         /// </summary>
-        public ControlPanel controlPanel
-        {
-            get
-            {
-                return canvas.controlPanel;
-            }
-        }
+        public ControlPanel controlPanel => visualizationCanvas != null ? visualizationCanvas.controlPanel : null;
 
         /// <summary>
         /// The heads up display (HUD) panel. Generally used to add stats to the display.
         /// </summary>
-        public HUDPanel hudPanel
-        {
-            get
-            {
-                return canvas.hudPanel;
-            }
-        }
+        public HUDPanel hudPanel => visualizationCanvas != null ? visualizationCanvas.hudPanel : null;
 
         /// <summary>
         /// The <see cref="PerceptionCamera"/> that contains this labeler.
@@ -99,7 +75,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Called when the labeler's visualization capability is turned on or off.
         /// </summary>
-        protected virtual void OnVisualizerActiveStateChanged(bool enabled) {}
+        protected virtual void OnVisualizerEnabledChanged(bool enabled) {}
         /// <summary>
         /// Called during the Update each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
@@ -116,16 +92,16 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal void InternalSetup() => Setup();
         internal void InternalPopulateVisualizationPanel(GameObject panel) => PopulateVisualizationPanel(controlPanel);
-        internal void InternalVisualizerActiveStateChanged(bool enabled) => OnVisualizerActiveStateChanged(enabled);
+        internal void InternalVisualizerActiveStateChanged(bool enabled) => OnVisualizerEnabledChanged(enabled);
         internal void InternalOnUpdate() => OnUpdate();
         internal void InternalOnBeginRendering() => OnBeginRendering();
         internal void InternalCleanup() => Cleanup();
 
-        private bool m_VisualizationEnabled = true;
-        
+        private bool m_VisualizationEnabled = false;
+
         /// <summary>
-        /// Turns on/off the labeler's realtime visualization capability. If a labeler
-        /// does not support realtime visualization (<see cref="supportsVisualization"/>)
+        /// Turns on/off the labeler's realtime visualization capability. If a labeler does not support realtime
+        /// visualization (<see cref="supportsVisualization"/>) or visualization is not enabled on the PerceptionCamera
         /// this will not function.
         /// </summary>
         protected bool visualizationEnabled
@@ -137,11 +113,12 @@ namespace UnityEngine.Perception.GroundTruth
             set
             {
                 if (!supportsVisualization) return;
+                if (visualizationCanvas == null) return;
 
                 if (value != m_VisualizationEnabled)
                 {
                     m_VisualizationEnabled = value;
-                    
+
                     if (m_VisualizationEnabled)
                         activeVisualizers++;
                     else
@@ -152,22 +129,24 @@ namespace UnityEngine.Perception.GroundTruth
                     else
                         CaptureOptions.useAsyncReadbackIfSupported = true;
 
-                    OnVisualizerActiveStateChanged(m_VisualizationEnabled);
+                    OnVisualizerEnabledChanged(m_VisualizationEnabled);
                 }
             }
         }
-        
-        internal void Init(PerceptionCamera newPerceptionCamera)
+
+        internal void Init(PerceptionCamera newPerceptionCamera, VisualizationCanvas visualizationCanvas)
         {
             try
             {
                 this.perceptionCamera = newPerceptionCamera;
                 sensorHandle = newPerceptionCamera.SensorHandle;
+                this.visualizationCanvas = visualizationCanvas;
                 Setup();
                 isInitialized = true;
 
-                if (supportsVisualization)
+                if (supportsVisualization && visualizationCanvas != null)
                 {
+                    m_VisualizationEnabled = true;
                     InitVisualizationUI();
                 }
             }

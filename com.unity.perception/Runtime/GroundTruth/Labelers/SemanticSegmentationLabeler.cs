@@ -68,7 +68,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// the camera resolution.
         /// </summary>
         public RenderTexture targetTexture => m_TargetTextureOverride;
-        
+
         [Tooltip("(Optional) The RenderTexture on which semantic segmentation images will be drawn. Will be reformatted on startup.")]
         [SerializeField]
         RenderTexture m_TargetTextureOverride;
@@ -181,7 +181,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_SemanticSegmentationTextureReader = new RenderTextureReader<Color32>(targetTexture, myCamera,
                 (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
-        
+
             visualizationEnabled = supportsVisualization;
         }
 
@@ -196,7 +196,7 @@ namespace UnityEngine.Perception.GroundTruth
             annotation.ReportFile(datasetRelativePath);
 
             var asyncRequest = Manager.Instance.CreateRequest<AsyncRequest<AsyncSemanticSegmentationWrite>>();
-            
+
             if (visualizationEnabled && perceptionCamera.visualizationEnabled)
                 VisualizeSegmentationTexture(data, targetTexture);
 
@@ -272,7 +272,7 @@ namespace UnityEngine.Perception.GroundTruth
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, camWidth);
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
 
-            canvas.AddComponent(segVisual, setAsLowestElement: true);
+            visualizationCanvas.AddComponent(segVisual, setAsLowestElement: true);
         }
 
         void VisualizeSegmentationTexture(NativeArray<Color32> data, RenderTexture texture)
@@ -280,14 +280,14 @@ namespace UnityEngine.Perception.GroundTruth
             var cpuTexture = new Texture2D(texture.width, texture.height, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
             cpuTexture.LoadRawTextureData(data);
             cpuTexture.Apply();
-            
+
             segImage.material.SetTexture("_BaseMap", cpuTexture);
         }
 
         /// <inheritdoc/>
-        override protected void OnVisualizerActiveStateChanged(bool enabled)
+        override protected void OnVisualizerEnabledChanged(bool enabled)
         {
-            if (segVisual != null) 
+            if (segVisual != null)
                 segVisual.SetActive(enabled);
         }
     }

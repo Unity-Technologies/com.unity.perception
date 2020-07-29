@@ -166,7 +166,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        override protected void OnVisualizerActiveStateChanged(bool enabled)
+        override protected void OnVisualizerEnabledChanged(bool enabled)
         {
             if (!enabled)
             {

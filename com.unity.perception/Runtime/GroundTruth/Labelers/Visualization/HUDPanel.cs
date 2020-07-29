@@ -36,11 +36,11 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public void UpdateEntry(string key, string value)
         {
-            if (!entries.ContainsKey(key)) 
+            if (!entries.ContainsKey(key))
             {
                 entries[key] = GameObject.Instantiate(Resources.Load<GameObject>("KeyValuePanel")).GetComponent<KeyValuePanel>();
                 entries[key].SetKey(key);
-                entries[key].transform.SetParent(contentPanel.transform, true);
+                entries[key].transform.SetParent(contentPanel.transform, false);
             }
             entries[key].SetValue(value);
         }

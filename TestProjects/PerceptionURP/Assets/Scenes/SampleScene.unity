@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 0
+  m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -440,7 +440,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 1e-45, z: 1.8643e-41, w: 5.9e-44}
+  m_BoundingSphereOverride: {x: 4.7e-43, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -639,7 +639,7 @@ MonoBehaviour:
       type: {class: SemanticSegmentationLabeler, ns: UnityEngine.Perception.GroundTruth,
         asm: Unity.Perception.Runtime}
       data:
-        enabled: 1
+        enabled: 0
         annotationId: 12F94D8D-5425-4DEB-9B21-5E53AD957D66
         labelConfig: {fileID: 11400000, guid: c140c5aa05dd09e4fadaa26de31b1f39, type: 2}
         m_TargetTextureOverride: {fileID: 0}
@@ -669,9 +669,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53f4c974fdf704444959724a41de0cfe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cam: {fileID: 963194229}
-  renderTexture: {fileID: 0}
-  secondCamera: {fileID: 0}
 --- !u!1 &1640252278
 GameObject:
   m_ObjectHideFlags: 0

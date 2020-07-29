@@ -117,14 +117,14 @@ namespace UnityEngine.Perception.GroundTruth
                     };
                 }
 
-                if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount) 
+                if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount)
                     Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
 
                 if (perceptionCamera.visualizationEnabled && visualizationEnabled)
                 {
                     Visualize();
                 }
-                
+
                 asyncAnnotation.ReportValues(m_BoundingBoxValues);
             }
         }
@@ -139,7 +139,7 @@ namespace UnityEngine.Perception.GroundTruth
             objectPool = new List<GameObject>();
 
             visualizationHolder = new GameObject("BoundsHolder" + Time.frameCount);
-            canvas.AddComponent(visualizationHolder);
+            visualizationCanvas.AddComponent(visualizationHolder);
         }
 
         void ClearObjectPool(int count)
@@ -162,8 +162,11 @@ namespace UnityEngine.Perception.GroundTruth
 
                 if (i >= objectPool.Count)
                 {
-                    objectPool.Add(GameObject.Instantiate(Resources.Load<GameObject>("BoundingBoxPrefab")));
-                    (objectPool[i].transform as RectTransform).parent = visualizationHolder.transform;
+                    var boundingBoxObject = GameObject.Instantiate(Resources.Load<GameObject>("BoundingBoxPrefab"));
+                    objectPool.Add(boundingBoxObject);
+                    var rectTransform = (RectTransform)boundingBoxObject.transform;
+                    rectTransform.localScale = Vector3.one;
+                    rectTransform.parent = visualizationHolder.transform;
                 }
 
                 if (!objectPool[i].activeSelf) objectPool[i].SetActive(true);
@@ -172,7 +175,9 @@ namespace UnityEngine.Perception.GroundTruth
                 objectPool[i].GetComponentInChildren<Text>().text = label;
 
                 var rectTrans = objectPool[i].transform as RectTransform;
-                
+
+                rectTrans.localScale = Vector3.one;
+                rectTrans.localPosition = Vector3.zero;
                 rectTrans.anchoredPosition = new Vector2(boxVal.x, -boxVal.y);
                 rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, boxVal.width);
                 rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, boxVal.height);
@@ -180,9 +185,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        override protected void OnVisualizerActiveStateChanged(bool enabled)
+        override protected void OnVisualizerEnabledChanged(bool enabled)
         {
-            if (visualizationHolder != null) 
+            if (visualizationHolder != null)
                 visualizationHolder.SetActive(enabled);
         }
     }

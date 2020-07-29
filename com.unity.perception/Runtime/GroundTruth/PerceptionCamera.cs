@@ -68,7 +68,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// be set to false if there is more than one camera in the scene, and this is
         /// not considered the active camera.
         /// </summary>
-        bool m_VisualizationBlocked = false;
+        bool m_VisualizationAllowed = false;
 
         [SerializeField]
         bool m_VisualizationEnabled = true;
@@ -76,11 +76,11 @@ namespace UnityEngine.Perception.GroundTruth
         {
             get
             {
-                return !m_VisualizationBlocked && m_VisualizationEnabled;
+                return m_VisualizationAllowed && m_VisualizationEnabled;
             }
             set
             {
-                if (m_VisualizationBlocked)
+                if (m_VisualizationAllowed)
                     return;
 
                 m_VisualizationEnabled = value;
@@ -103,6 +103,8 @@ namespace UnityEngine.Perception.GroundTruth
             passes.Add(pass);
         }
 #endif
+
+        VisualizationCanvas visualizationCanvas => m_VisualizationAllowed ? s_VisualizationCanvas.GetComponent<VisualizationCanvas>() : null;
 
         /// <summary>
         /// Add a data object which will be added to the dataset with each capture. Overrides existing sensor data associated with the given key.
@@ -155,11 +157,11 @@ namespace UnityEngine.Perception.GroundTruth
             if (s_VisualizedPerceptionCamera != null)
             {
                 Debug.LogWarning($"Currently only one PerceptionCamera may be visualized at a time. Disabling visualization on {gameObject.name}.");
-                m_VisualizationBlocked = true;
                 m_VisualizationEnabled = false;
                 return false;
             }
 
+            m_VisualizationAllowed = true;
             s_VisualizedPerceptionCamera = this;
 
             // set up to render to a render texture instead of the screen
@@ -170,13 +172,13 @@ namespace UnityEngine.Perception.GroundTruth
             s_VisualizationCamera = new GameObject(cam.name + "_VisualizationCamera");
             var visualizationCameraComponent = s_VisualizationCamera.AddComponent<Camera>();
             int layerMask = 1 << LayerMask.NameToLayer("UI");
+            visualizationCameraComponent.orthographic = true;
             visualizationCameraComponent.cullingMask = layerMask;
 
-            s_VisualizationCanvas = new GameObject(cam.name + "_VisualizationCanvas");
-            var canvas = s_VisualizationCanvas.AddComponent<Canvas>();
-            s_VisualizationCanvas.AddComponent<CanvasScaler>();
-            s_VisualizationCanvas.AddComponent<GraphicRaycaster>();
+            s_VisualizationCanvas = GameObject.Instantiate(Resources.Load<GameObject>("VisualizationUI"));
+            s_VisualizationCanvas.name = cam.name + "_VisualizationCanvas";
 
+            var canvas = s_VisualizationCanvas.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceCamera;
             canvas.worldCamera = visualizationCameraComponent;
 
@@ -186,6 +188,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             var rect = imgObj.transform as RectTransform;
             rect.SetParent(s_VisualizationCanvas.transform, false);
+            //ensure the rgb image is rendered in the back
+            rect.SetAsFirstSibling();
             rect.anchorMin = new Vector2(0, 0);
             rect.anchorMax = new Vector2(1, 1);
             rect.pivot = new Vector2(0.5f, 0.5f);
@@ -221,7 +225,9 @@ namespace UnityEngine.Perception.GroundTruth
                     continue;
 
                 if (!labeler.isInitialized)
-                    labeler.Init(this);
+                {
+                    labeler.Init(this, visualizationCanvas);
+                }
 
                 labeler.InternalOnUpdate();
             }
@@ -319,7 +325,7 @@ namespace UnityEngine.Perception.GroundTruth
                     continue;
 
                 if (!labeler.isInitialized)
-                    labeler.Init(this);
+                    labeler.Init(this, visualizationCanvas);
 
                 labeler.InternalOnBeginRendering();
             }

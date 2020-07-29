@@ -58,7 +58,7 @@ In this step, we will configure 6 parameters to randomize the scene: `CubePositi
     * X : Uniform [0.5, 2]
     * Y : Uniform [0.5, 2]
     * Z : Uniform [0.5, 2]
-4. To ensure that we sample an equal scale value for the X, Y, and Z samplers, use the X sampler's random seed for all three samplers in the the scale parameter
+4. To ensure that the X, Y, and Z samplers all sample equal scale values, copy the X sampler's random seed to all three samplers
     
 #### Parameter 4: Cube Color
 1. Create a new ColorHSVA parameter named "CubeColor"
@@ -135,10 +135,20 @@ In this step, we will configure 6 parameters to randomize the scene: `CubePositi
 6. Use the `backgroundColorParameter` and `cubeColorParameter` dropdowns to inform the script of which parameters in the configuration to use for the BackgroundColor and CubeColor respectively.
 7. Select the `Background` and `Cube` GameObjects from their respective GameObject field selectors
 8. Confirm that the scenario and parameter configuration are composed properly by clicking the play button in the editor. In the Game window, a cube of different sizes, rotations, scales, and colors should be appearing against a color changing background.
+9. To serialize the constants used in the scenario to JSON for external modification after this project has been built into a runtime, click the `Serialize Config` button on the parameter configuration
 
 
 ## Step 5: Build Simulation Runtime
+1. Create a new sub-folder under "Assets" in the Project Hierarchy named "BuildConfigurations"
+2. Right click on the BuildConfigurations folder and use `Create -> Build -> Empty Build Configuration` to create a new build configuration asset
+3. Rename the build configuration asset "Tutorial"
+4. Copy the settings from the example build configuration screenshot below: [TODO]
+5. Click the "Build" button in the upper righthand corner of the build configuration inspector to create an executable of the tutorial scene.
 
 
 ## Step 6: Modify Scenario Constants
-
+1. Navigate to the folder created during the build from the previous step of this tutorial (example: C:\projects\RandomizationV3\Builds\Tutorial)
+2. Open the "_Data" folder (example: Tutorial_Data) and then open the "StreamingAssets" folder
+3. Inside should be the JSON scenario constants serialized from the parameter configuration in Step 4
+4. Edit this JSON file to update the scenario constants used in the built runtime
+5. Confirm the JSON changes by running Tutorial.exe

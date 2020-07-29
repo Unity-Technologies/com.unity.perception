@@ -46,6 +46,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         private GameObject visualizationHolder = null;
 
+        private Vector2 originalScreenSize = Vector2.zero;
+
         /// <summary>
         /// Creates a new BoundingBox2DLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
         /// </summary>
@@ -79,6 +81,10 @@ namespace UnityEngine.Perception.GroundTruth
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfosCalculated;
 
             visualizationEnabled = supportsVisualization;
+
+            // Record the original screen size. The screen size can change during play, and the visual bounding
+            // boxes need to be scaled appropriately
+            originalScreenSize = new Vector2(Screen.width, Screen.height);
         }
 
         /// <inheritdoc/>
@@ -156,6 +162,11 @@ namespace UnityEngine.Perception.GroundTruth
         {
             ClearObjectPool(m_BoundingBoxValues.Length);
 
+            // The player screen can be dynamically resized during play, need to
+            // scale the bounding boxes appropriately from the original screen size
+            float screenRatioWidth = Screen.width / originalScreenSize.x;
+            float screenRatioHeight = Screen.height / originalScreenSize.y;
+
             for (int i = 0; i < m_BoundingBoxValues.Length; i++)
             {
                 var boxVal = m_BoundingBoxValues[i];
@@ -175,9 +186,9 @@ namespace UnityEngine.Perception.GroundTruth
 
                 var rectTrans = objectPool[i].transform as RectTransform;
 
-                rectTrans.anchoredPosition = new Vector2(boxVal.x, -boxVal.y);
-                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, boxVal.width);
-                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, boxVal.height);
+                rectTrans.anchoredPosition = new Vector2(boxVal.x * screenRatioWidth, -boxVal.y * screenRatioHeight);
+                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, boxVal.width * screenRatioWidth);
+                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, boxVal.height * screenRatioHeight);
             }
         }
 

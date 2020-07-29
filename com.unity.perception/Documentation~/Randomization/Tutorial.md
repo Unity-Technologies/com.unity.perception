@@ -4,8 +4,9 @@ This goal of this tutorial is to walk users through an example randomized percep
 1. Creating a parameter configuration
 2. Customizing parameters and samplers
 4. Configuring a scenario to run the simulation
-5. Building a simulation runtime
-6. Modifying scenario constants
+5. Configure the perception camera
+6. Building a simulation runtime
+7. Modifying scenario constants
 
 By the end of this guide, the user should have a new project that generates the perception data necessary to theoretically train a model to recognize a cube from a solid colored background.
 
@@ -138,7 +139,11 @@ In this step, we will configure 6 parameters to randomize the scene: `CubePositi
 9. To serialize the constants used in the scenario to JSON for external modification after this project has been built into a runtime, click the `Serialize Config` button on the parameter configuration
 
 
-## Step 5: Build Simulation Runtime
+## Step 5: Configure Perception Camera
+TODO
+
+
+## Step 6: Build Simulation Runtime
 1. Create a new sub-folder under "Assets" in the Project Hierarchy named "BuildConfigurations"
 2. Right click on the BuildConfigurations folder and use `Create -> Build -> Empty Build Configuration` to create a new build configuration asset
 3. Rename the build configuration asset "Tutorial"
@@ -146,7 +151,7 @@ In this step, we will configure 6 parameters to randomize the scene: `CubePositi
 5. Click the "Build" button in the upper righthand corner of the build configuration inspector to create an executable of the tutorial scene.
 
 
-## Step 6: Modify Scenario Constants
+## Step 7: Modify Scenario Constants
 1. Navigate to the folder created during the build from the previous step of this tutorial (example: C:\projects\RandomizationV3\Builds\Tutorial)
 2. Open the "_Data" folder (example: Tutorial_Data) and then open the "StreamingAssets" folder
 3. Inside should be the JSON scenario constants serialized from the parameter configuration in Step 4

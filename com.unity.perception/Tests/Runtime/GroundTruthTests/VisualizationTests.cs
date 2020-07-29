@@ -18,7 +18,7 @@ namespace GroundTruthTests
             object1.SetActive(false);
             var camera = object1.AddComponent<Camera>();
             var perceptionCamera1 = object1.AddComponent<PerceptionCamera>();
-            perceptionCamera1.visualizationEnabled = true;
+            perceptionCamera1.showVisualizations = true;
             object1.SetActive(true);
             AddTestObjectForCleanup(object1);
 
@@ -34,7 +34,7 @@ namespace GroundTruthTests
             object1.SetActive(false);
             object1.AddComponent<Camera>();
             var perceptionCamera1 = object1.AddComponent<PerceptionCamera>();
-            perceptionCamera1.visualizationEnabled = true;
+            perceptionCamera1.showVisualizations = true;
             AddTestObjectForCleanup(object1);
 
             var object2 = new GameObject();
@@ -42,7 +42,7 @@ namespace GroundTruthTests
             object2.name = nameof(TwoCamerasVisualizing_CausesWarningAndDisablesVisualization) + "2";
             object2.AddComponent<Camera>();
             var perceptionCamera2 = object2.AddComponent<PerceptionCamera>();
-            perceptionCamera2.visualizationEnabled = true;
+            perceptionCamera2.showVisualizations = true;
             AddTestObjectForCleanup(object2);
 
             object1.SetActive(true);
@@ -57,7 +57,7 @@ namespace GroundTruthTests
             object1.SetActive(false);
             object1.AddComponent<Camera>();
             var perceptionCamera1 = object1.AddComponent<PerceptionCamera>();
-            perceptionCamera1.visualizationEnabled = true;
+            perceptionCamera1.showVisualizations = true;
             object1.SetActive(true);
             AddTestObjectForCleanup(object1);
 
@@ -75,7 +75,7 @@ namespace GroundTruthTests
             object1.SetActive(false);
             object1.AddComponent<Camera>();
             var perceptionCamera1 = object1.AddComponent<PerceptionCamera>();
-            perceptionCamera1.visualizationEnabled = true;
+            perceptionCamera1.showVisualizations = true;
             object1.SetActive(true);
             AddTestObjectForCleanup(object1);
             Object.DestroyImmediate(object1);
@@ -85,7 +85,7 @@ namespace GroundTruthTests
             object2.SetActive(false);
             var camera2 = object2.AddComponent<Camera>();
             var perceptionCamera2 = object2.AddComponent<PerceptionCamera>();
-            perceptionCamera2.visualizationEnabled = true;
+            perceptionCamera2.showVisualizations = true;
             object2.SetActive(true);
             AddTestObjectForCleanup(object2);
 

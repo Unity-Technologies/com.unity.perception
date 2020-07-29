@@ -81,7 +81,9 @@ namespace UnityEditor.Perception.GroundTruth
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)));
+            serializedObject.ApplyModifiedProperties();
 
             //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(PerceptionCamera.labelers)));
             m_LabelersList.DoLayoutList();

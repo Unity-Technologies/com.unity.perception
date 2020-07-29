@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
@@ -63,29 +64,8 @@ namespace UnityEngine.Perception.GroundTruth
         static GameObject s_VisualizationCamera;
         static GameObject s_VisualizationCanvas;
 
-        /// <summary>
-        /// Should the labeling visualization routines run for this camera. This will only
-        /// be set to false if there is more than one camera in the scene, and this is
-        /// not considered the active camera.
-        /// </summary>
-        bool m_VisualizationAllowed = false;
-
         [SerializeField]
-        bool m_VisualizationEnabled = true;
-        public bool visualizationEnabled
-        {
-            get
-            {
-                return m_VisualizationAllowed && m_VisualizationEnabled;
-            }
-            set
-            {
-                if (m_VisualizationAllowed)
-                    return;
-
-                m_VisualizationEnabled = value;
-            }
-        }
+        public bool showVisualizations = true;
 
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
@@ -104,7 +84,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 #endif
 
-        VisualizationCanvas visualizationCanvas => m_VisualizationAllowed ? s_VisualizationCanvas.GetComponent<VisualizationCanvas>() : null;
+        VisualizationCanvas visualizationCanvas => isVisualizedPerceptionCamera ? s_VisualizationCanvas.GetComponent<VisualizationCanvas>() : null;
+
+        bool isVisualizedPerceptionCamera => s_VisualizedPerceptionCamera == this;
 
         /// <summary>
         /// Add a data object which will be added to the dataset with each capture. Overrides existing sensor data associated with the given key.
@@ -152,16 +134,19 @@ namespace UnityEngine.Perception.GroundTruth
             cam.enabled = false;
         }
 
-        bool SetupVisualizationCamera(Camera cam)
+        void SetupVisualizationCamera(Camera cam)
         {
-            if (s_VisualizedPerceptionCamera != null)
+            var visualizationAllowed = s_VisualizedPerceptionCamera == null;
+
+            if (!visualizationAllowed && showVisualizations)
             {
                 Debug.LogWarning($"Currently only one PerceptionCamera may be visualized at a time. Disabling visualization on {gameObject.name}.");
-                m_VisualizationEnabled = false;
-                return false;
+                showVisualizations = false;
+                return;
             }
+            if (!showVisualizations)
+                return;
 
-            m_VisualizationAllowed = true;
             s_VisualizedPerceptionCamera = this;
 
             // set up to render to a render texture instead of the screen
@@ -195,8 +180,6 @@ namespace UnityEngine.Perception.GroundTruth
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.offsetMax = Vector2.zero;
             rect.offsetMin = Vector2.zero;
-
-            return true;
         }
 
         void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)
@@ -231,12 +214,27 @@ namespace UnityEngine.Perception.GroundTruth
 
                 labeler.InternalOnUpdate();
             }
+
+            //disable async readback when visualizations are enabled to ensure data is read and visualized in the same frame
+            if (showVisualizations)
+                CaptureOptions.useAsyncReadbackIfSupported = false;
+
+            if (isVisualizedPerceptionCamera)
+            {
+                s_VisualizationCanvas.SetActive(showVisualizations);
+            }
         }
 
         void LateUpdate()
         {
             var cam = GetComponent<Camera>();
-            if (SensorHandle.ShouldCaptureThisFrame) cam.Render();
+            if (showVisualizations)
+            {
+                cam.enabled = false;
+                if (SensorHandle.ShouldCaptureThisFrame) cam.Render();
+            }
+            else
+                cam.enabled = SensorHandle.ShouldCaptureThisFrame;
         }
 
         void OnValidate()

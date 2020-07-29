@@ -107,7 +107,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (m_VisiblePixelsValues == null || m_VisiblePixelsValues.Length != renderedObjectInfos.Length)
                     m_VisiblePixelsValues = new RenderedObjectInfoValue[renderedObjectInfos.Length];
 
-                bool visualize = visualizationEnabled && perceptionCamera.visualizationEnabled;
+                bool visualize = visualizationEnabled;
                 if (visualize && vizEntries == null)
                 {
                     vizEntries = new List<string>();
@@ -139,7 +139,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        
+
 
         bool TryGetLabelEntryFromInstanceId(uint instanceId, out IdLabelEntry labelEntry)
         {
@@ -159,7 +159,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 hudPanel.RemoveEntries(vizEntries);
                 vizEntries.Clear();
-            } 
+            }
         }
     }
 }

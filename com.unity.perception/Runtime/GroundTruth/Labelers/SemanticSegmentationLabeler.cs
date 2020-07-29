@@ -197,7 +197,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             var asyncRequest = Manager.Instance.CreateRequest<AsyncRequest<AsyncSemanticSegmentationWrite>>();
 
-            if (visualizationEnabled && perceptionCamera.visualizationEnabled)
+            if (visualizationEnabled)
                 VisualizeSegmentationTexture(data, targetTexture);
 
             imageReadback?.Invoke(new ImageReadbackEventArgs

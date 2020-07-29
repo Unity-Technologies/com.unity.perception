@@ -92,12 +92,17 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal void InternalSetup() => Setup();
         internal void InternalPopulateVisualizationPanel(GameObject panel) => PopulateVisualizationPanel(controlPanel);
-        internal void InternalVisualizerActiveStateChanged(bool enabled) => OnVisualizerEnabledChanged(enabled);
+
+        internal bool InternalVisualizationEnabled
+        {
+            get => visualizationEnabled;
+            set => visualizationEnabled = value;
+        }
         internal void InternalOnUpdate() => OnUpdate();
         internal void InternalOnBeginRendering() => OnBeginRendering();
         internal void InternalCleanup() => Cleanup();
 
-        private bool m_VisualizationEnabled = false;
+        private bool m_ShowVisualizations = false;
 
         /// <summary>
         /// Turns on/off the labeler's realtime visualization capability. If a labeler does not support realtime
@@ -108,28 +113,18 @@ namespace UnityEngine.Perception.GroundTruth
         {
             get
             {
-                return supportsVisualization && m_VisualizationEnabled;
+                return supportsVisualization && m_ShowVisualizations;
             }
             set
             {
                 if (!supportsVisualization) return;
                 if (visualizationCanvas == null) return;
 
-                if (value != m_VisualizationEnabled)
+                if (value != m_ShowVisualizations)
                 {
-                    m_VisualizationEnabled = value;
+                    m_ShowVisualizations = value;
 
-                    if (m_VisualizationEnabled)
-                        activeVisualizers++;
-                    else
-                        activeVisualizers--;
-
-                    if (activeVisualizers > 0)
-                        CaptureOptions.useAsyncReadbackIfSupported = false;
-                    else
-                        CaptureOptions.useAsyncReadbackIfSupported = true;
-
-                    OnVisualizerEnabledChanged(m_VisualizationEnabled);
+                    OnVisualizerEnabledChanged(m_ShowVisualizations);
                 }
             }
         }
@@ -146,7 +141,7 @@ namespace UnityEngine.Perception.GroundTruth
 
                 if (supportsVisualization && visualizationCanvas != null)
                 {
-                    m_VisualizationEnabled = true;
+                    m_ShowVisualizations = true;
                     InitVisualizationUI();
                 }
             }

@@ -129,7 +129,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (m_ClassCountValues == null || m_ClassCountValues.Length != entries.Count)
                     m_ClassCountValues = new ClassCountValue[entries.Count];
 
-                bool visualize = visualizationEnabled && perceptionCamera.visualizationEnabled;
+                bool visualize = visualizationEnabled;
                 if (visualize && vizEntries == null)
                 {
                     vizEntries = new List<string>();
@@ -156,7 +156,7 @@ namespace UnityEngine.Perception.GroundTruth
                 classCountAsyncMetric.ReportValues(m_ClassCountValues);
             }
         }
-        
+
         /// <inheritdoc/>
         protected override void PopulateVisualizationPanel(ControlPanel panel)
         {
@@ -170,7 +170,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 hudPanel.RemoveEntries(vizEntries);
                 vizEntries.Clear();
-            } 
+            }
         }
     }
 }

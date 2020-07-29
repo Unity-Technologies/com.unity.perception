@@ -120,7 +120,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount)
                     Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
 
-                if (perceptionCamera.visualizationEnabled && visualizationEnabled)
+                if (visualizationEnabled)
                 {
                     Visualize();
                 }
@@ -165,8 +165,7 @@ namespace UnityEngine.Perception.GroundTruth
                     var boundingBoxObject = GameObject.Instantiate(Resources.Load<GameObject>("BoundingBoxPrefab"));
                     objectPool.Add(boundingBoxObject);
                     var rectTransform = (RectTransform)boundingBoxObject.transform;
-                    rectTransform.localScale = Vector3.one;
-                    rectTransform.SetParent(visualizationHolder.transform);
+                    rectTransform.SetParent(visualizationHolder.transform, false);
                 }
 
                 if (!objectPool[i].activeSelf) objectPool[i].SetActive(true);
@@ -176,8 +175,6 @@ namespace UnityEngine.Perception.GroundTruth
 
                 var rectTrans = objectPool[i].transform as RectTransform;
 
-                rectTrans.localScale = Vector3.one;
-                rectTrans.localPosition = Vector3.zero;
                 rectTrans.anchoredPosition = new Vector2(boxVal.x, -boxVal.y);
                 rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, boxVal.width);
                 rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, boxVal.height);

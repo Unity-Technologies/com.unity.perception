@@ -166,7 +166,7 @@ namespace UnityEngine.Perception.GroundTruth
                     objectPool.Add(boundingBoxObject);
                     var rectTransform = (RectTransform)boundingBoxObject.transform;
                     rectTransform.localScale = Vector3.one;
-                    rectTransform.parent = visualizationHolder.transform;
+                    rectTransform.SetParent(visualizationHolder.transform);
                 }
 
                 if (!objectPool[i].activeSelf) objectPool[i].SetActive(true);

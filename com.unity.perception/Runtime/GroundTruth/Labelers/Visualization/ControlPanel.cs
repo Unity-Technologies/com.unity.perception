@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -13,15 +14,25 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class ControlPanel : MonoBehaviour
     {
-        Dictionary<string, GameObject> controlMap = new Dictionary<string, GameObject>();
+        HashSet<GameObject> m_Controls = new HashSet<GameObject>();
 
         /// <summary>
-        /// Adds a new UI control to the control panel. If the panel already contains an elment with the
-        /// passed in name, the UI element will not be added and the method will return false. Also, all
-        /// UI elements must have a LayoutElement component and if they do not, this method will reject
-        /// the new element, and return false.
+        ///  Retrieves a list of the current controls in the control panel.
         /// </summary>
-        public bool AddNewControl(string name, GameObject uiControl)
+        public List<GameObject> controls
+        {
+            get
+            {
+                return m_Controls.ToList<GameObject>();
+            }
+        }
+
+        /// <summary>
+        /// Adds a new UI control to the control panel. If the control cannot be added and the method will
+        /// return false. Also, all UI elements must have a LayoutElement component and if they do not, 
+        /// this method will reject the new element, and return false.
+        /// </summary>
+        public bool AddNewControl(GameObject uiControl)
         {
             if (uiControl.GetComponent<RectTransform>() == null)
             {
@@ -35,36 +46,29 @@ namespace UnityEngine.Perception.GroundTruth
                 return false;
             }
 
-            if (controlMap.ContainsKey(name))
+            if (m_Controls.Add(uiControl))
             {
-                Debug.LogWarning("A control with the name: " + name + " has already been registered with the control panel.");
-                return false;
+                uiControl.transform.SetParent(this.transform, false);
+                return true;
             }
 
-            controlMap[name] = uiControl;
-            uiControl.transform.SetParent(this.transform, false);
-
-            return true;
+            return false;
         }
 
         /// <summary>
-        /// Removes the component with the passed in name from the control panel. Returns
+        /// Removes the passed in component from the control panel. Returns
         /// false if the element does not exist. Returns true on a successful removal.
+        /// The caller is responsible for destroying the control.
         /// </summary>
-        public bool RemoveControl(string name)
+        public bool RemoveControl(GameObject uiControl)
         {
-            if (!controlMap.ContainsKey(name))
+            if (m_Controls.Remove(uiControl))
             {
-                Debug.LogWarning(name + " does not exist in control panel, cannot remove.");
-                return false;
+                uiControl.transform.SetParent(null);
+
+                return true;
             }
-
-            var control = controlMap[name];
-            controlMap.Remove(name);
-            control.transform.SetParent(null);
-            GameObject.Destroy(control.gameObject);
-
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -74,12 +78,6 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public GameObject AddToggleControl(string name, UnityAction<bool> listener)
         {
-            if (controlMap.ContainsKey(name))
-            {
-                Debug.LogWarning("A control with the name: " + name + " has already been registered with the control panel.");
-                return null;
-            }
-
             if (listener == null)
             {
                 Debug.LogWarning("Adding toggle to control panel without a listener, nothing will respond to user's clicks");
@@ -90,7 +88,7 @@ namespace UnityEngine.Perception.GroundTruth
             toggle.GetComponentInChildren<Text>().text = name;
             toggle.GetComponent<Toggle>().onValueChanged.AddListener(listener);
 
-            controlMap[name] = toggle;
+            m_Controls.Add(toggle);
 
             return toggle;
         }
@@ -102,12 +100,6 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public GameObject AddSliderControl(string name, float defaultValue, UnityAction<float> listener)
         {
-            if (controlMap.ContainsKey(name))
-            {
-                Debug.LogWarning("A control with the name: " + name + " has already been registered with the control panel.");
-                return null;
-            }
-
             if (listener == null)
             {
                 Debug.LogWarning("Adding slider to control panel without a listener, nothing will respond to user's interactions");
@@ -120,7 +112,7 @@ namespace UnityEngine.Perception.GroundTruth
             slider.value = defaultValue;
             slider.onValueChanged.AddListener(listener);
 
-            controlMap[name] = gameObject;
+            m_Controls.Add(gameObject);
 
             return gameObject;
         }

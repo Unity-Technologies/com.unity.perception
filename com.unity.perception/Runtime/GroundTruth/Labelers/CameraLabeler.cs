@@ -30,12 +30,6 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <summary>
-        /// Static counter shared by all lableler classes. If any visualizers are
-        /// active then perception camera cannot operate in asynchronous mode.
-        /// </summary>
-        private static int activeVisualizers = 0;
-
-        /// <summary>
         /// Retrieve a handle to the visualization canvas <see cref="VisualizationCanvas"/>. This is the specific canvas that all visualization
         /// labelers should be added to. The canvas has helper functions to create many common visualization components.
         /// </summary>

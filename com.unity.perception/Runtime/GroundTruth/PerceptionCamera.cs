@@ -67,6 +67,8 @@ namespace UnityEngine.Perception.GroundTruth
         [SerializeField]
         public bool showVisualizations = true;
 
+        bool m_ShowingVisualizations;
+
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
         /// </summary>
@@ -84,9 +86,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 #endif
 
-        VisualizationCanvas visualizationCanvas => isVisualizedPerceptionCamera ? s_VisualizationCanvas.GetComponent<VisualizationCanvas>() : null;
-
-        bool isVisualizedPerceptionCamera => s_VisualizedPerceptionCamera == this;
+        VisualizationCanvas visualizationCanvas => m_ShowingVisualizations ? s_VisualizationCanvas.GetComponent<VisualizationCanvas>() : null;
 
         /// <summary>
         /// Add a data object which will be added to the dataset with each capture. Overrides existing sensor data associated with the given key.
@@ -147,6 +147,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!showVisualizations)
                 return;
 
+            m_ShowingVisualizations = true;
             s_VisualizedPerceptionCamera = this;
 
             // set up to render to a render texture instead of the screen
@@ -213,15 +214,6 @@ namespace UnityEngine.Perception.GroundTruth
                 }
 
                 labeler.InternalOnUpdate();
-            }
-
-            //disable async readback when visualizations are enabled to ensure data is read and visualized in the same frame
-            if (showVisualizations)
-                CaptureOptions.useAsyncReadbackIfSupported = false;
-
-            if (isVisualizedPerceptionCamera)
-            {
-                s_VisualizationCanvas.SetActive(showVisualizations);
             }
         }
 

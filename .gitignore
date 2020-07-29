@@ -34,4 +34,5 @@ upm-ci~/*
 **/.bin
 CodeCoverage
 /.download
-/TestProjects/PerceptionURP/Build
+**/Build/**
+**/Builds/**

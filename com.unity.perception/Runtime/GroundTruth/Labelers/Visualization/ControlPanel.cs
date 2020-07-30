@@ -19,13 +19,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         ///  Retrieves a list of the current controls in the control panel.
         /// </summary>
-        public List<GameObject> controls
-        {
-            get
-            {
-                return m_Controls.ToList<GameObject>();
-            }
-        }
+        public IEnumerable<GameObject> controls => m_Controls;
 
         /// <summary>
         /// Adds a new UI control to the control panel. If the control cannot be added and the method will

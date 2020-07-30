@@ -117,7 +117,10 @@ namespace UnityEngine.Perception.GroundTruth
 
             SetupInstanceSegmentation();
             var cam = GetComponent<Camera>();
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             SetupVisualizationCamera(cam);
+#endif
 
             DatasetCapture.SimulationEnding += OnSimulationEnding;
         }
@@ -203,6 +206,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!SensorHandle.IsValid)
                 return;
 
+            bool anyVisualizing = false;
             foreach (var labeler in m_Labelers)
             {
                 if (!labeler.enabled)
@@ -214,7 +218,11 @@ namespace UnityEngine.Perception.GroundTruth
                 }
 
                 labeler.InternalOnUpdate();
+                anyVisualizing |= labeler.InternalVisualizationEnabled;
             }
+
+            if (m_ShowingVisualizations)
+                CaptureOptions.useAsyncReadbackIfSupported = !anyVisualizing;
         }
 
         void LateUpdate()

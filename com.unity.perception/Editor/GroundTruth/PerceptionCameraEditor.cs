@@ -78,16 +78,18 @@ namespace UnityEditor.Perception.GroundTruth
 
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)));
-            serializedObject.ApplyModifiedProperties();
+            using(new EditorGUI.DisabledScope(EditorApplication.isPlaying))
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)));
+                serializedObject.ApplyModifiedProperties();
 
-            //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(PerceptionCamera.labelers)));
-            m_LabelersList.DoLayoutList();
-
+                //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(PerceptionCamera.labelers)));
+                m_LabelersList.DoLayoutList();
+            }
             if (EditorSettings.asyncShaderCompilation)
             {
                 EditorGUILayout.HelpBox("Asynchronous shader compilation may result in invalid data in beginning frames. This can be disabled in Project Settings -> Edtior -> Asynchronous Shader Compilation", MessageType.Warning);

@@ -42,7 +42,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_Root = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/ParameterConfiguration.uxml").CloneTree();
 
-            m_ParameterContainer = m_Root.Query<VisualElement>("parameter-container").First();
+            m_ParameterContainer = m_Root.Query<VisualElement>("parameters-container").First();
 
             foreach (var parameter in m_Config.parameters)
                 m_ParameterContainer.Add(new ParameterElement(parameter, this));
@@ -65,27 +65,19 @@ namespace UnityEngine.Perception.Randomization.Editor
             var filter = m_Root.Query<TextField>("filter-parameters").First();
             filter.RegisterValueChangedCallback((e) => { FilterString = e.newValue; });
 
-            var collapseParam = m_Root.Query<VisualElement>("collapse-all").First();
-            collapseParam.RegisterCallback<MouseUpEvent>(evt => CollapseAllParameters(collapseParam));
+            var collapseAllButton = m_Root.Query<Button>("collapse-all").First();
+            collapseAllButton.clicked += () => CollapseParameters(true);
+
+            var expandAllButton = m_Root.Query<Button>("expand-all").First();
+            expandAllButton.clicked += () => CollapseParameters(false);
 
             return m_Root;
         }
 
-        void CollapseAllParameters(VisualElement collapse)
+        void CollapseParameters(bool collapsed)
         {
-            var collapsing = collapse.ClassListContains(k_FoldoutOpenClass);
-            if (collapsing)
-            {
-                collapse.AddToClassList(k_FoldoutClosedClass);
-                collapse.RemoveFromClassList(k_FoldoutOpenClass);
-            }
-            else
-            {
-                collapse.AddToClassList(k_FoldoutOpenClass);
-                collapse.RemoveFromClassList(k_FoldoutClosedClass);
-            }
             foreach (var child in m_ParameterContainer.Children())
-                ((ParameterElement)child).Collapsed = collapsing;
+                ((ParameterElement)child).Collapsed = collapsed;
         }
 
         void AddParameter(Type parameterType)

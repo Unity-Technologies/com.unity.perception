@@ -10,15 +10,13 @@ namespace UnityEngine.Perception.Randomization.Editor
 {
     public class ParameterElement : VisualElement
     {
-        const string k_FoldoutClosedClass = "foldout-closed";
-        const string k_FoldoutOpenClass = "foldout-open";
-
         bool m_Collapsed, m_Filtered;
         Parameter m_Parameter;
         VisualElement m_Properties;
-        VisualElement m_CollapseIcon;
         VisualElement m_ExtraProperties;
         SerializedObject m_SerializedObject;
+
+        const string k_CollapsedParameterClass = "collapsed-parameter";
 
         public bool Collapsed
         {
@@ -27,17 +25,9 @@ namespace UnityEngine.Perception.Randomization.Editor
             {
                 m_Collapsed = value;
                 if (m_Collapsed)
-                {
-                    m_CollapseIcon.AddToClassList(k_FoldoutClosedClass);
-                    m_CollapseIcon.RemoveFromClassList(k_FoldoutOpenClass);
-                    ToggleTargetContainer(m_Properties, false);
-                }
+                    AddToClassList(k_CollapsedParameterClass);
                 else
-                {
-                    m_CollapseIcon.AddToClassList(k_FoldoutOpenClass);
-                    m_CollapseIcon.RemoveFromClassList(k_FoldoutClosedClass);
-                    ToggleTargetContainer(m_Properties, true);
-                }
+                    RemoveFromClassList(k_CollapsedParameterClass);
             }
         }
 
@@ -90,9 +80,8 @@ namespace UnityEngine.Perception.Randomization.Editor
                 });
             FillPropertySelectMenu(parameter, propertyMenu);
 
-            m_CollapseIcon = this.Q<VisualElement>("collapse");
-            m_Properties = this.Q<VisualElement>("properties");
-            m_CollapseIcon.RegisterCallback<MouseUpEvent>(evt => Collapsed = !Collapsed);
+            var collapseToggle = this.Q<VisualElement>("collapse");
+            collapseToggle.RegisterCallback<MouseUpEvent>(evt => Collapsed = !Collapsed);
 
             m_ExtraProperties = this.Q<VisualElement>("extra-properties");
             CreatePropertyFields();

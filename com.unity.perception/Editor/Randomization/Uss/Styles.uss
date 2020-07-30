@@ -4,16 +4,7 @@
     padding: 2px;
 }
 
-.parameter-container-scroll {
-    min-height: 100px;
-    max-height: 600px;
-}
-
 .parameter-container {
-    flex-shrink: 0;
-}
-
-.parameter-properties-box {
     border-width: 2px;
     border-radius: 5px;
     flex-direction: row;
@@ -21,16 +12,14 @@
 }
 
 .parameter-type-menu {
-    flex-grow: 2;
-    border-width: 2px;
-    border-radius: 5px;
+    margin: 1 3;
+    border-width: 1px;
+    border-radius: 3px;
     background-color: #585858;
 }
 
 #parameter-type-menu .unity-toolbar-menu__text {
-    -unity-text-align: middle-center;
     font-size: 13px;
-    -unity-font-style: bold;
     padding: 3px;
 }
 
@@ -99,14 +88,14 @@
 
 .move-buttons-container {
     margin-right: 6px;
-    width: 28px;
+    width: auto;
     border-color: black;
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;
     background-color: #2A2A2A;
     justify-content: space-between;
     align-items: center;
-    padding: 3px 0;
+    padding: 3px 2px;
 }
 
 .move-up-button {
@@ -137,19 +126,24 @@
     background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/Search.png");
 }
 
-.foldout-open {
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutOpen.png");
-}
-
-.foldout-closed {
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutClosed.png");
-}
-
 .collapse-parameter-toggle {
     flex-shrink: 0;
     margin-right: 2px;
     width: 12px;
     height: 12px;
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutOpen.png");
+}
+
+.collapsed-parameter .collapse-parameter-toggle {
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutClosed.png");
+}
+
+.collapsed-parameter .parameter-properties-container {
+    display: none;
+}
+
+.collapsed-parameter .move-buttons-container {
+    flex-direction: row;
 }
 
 .categorical-option {

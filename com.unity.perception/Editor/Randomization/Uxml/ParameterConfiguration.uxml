@@ -4,18 +4,18 @@
 
         <Label text="Parameters" style="font-size: 20px; -unity-text-align: middle-center;"/>
         <VisualElement style="flex-direction: row; align-items: center; margin-bottom: 2px; margin-top: 2px;">
-            <VisualElement name="collapse-all" class="collapse-parameter-toggle foldout-open"/>
             <VisualElement class="search-icon" style="margin-left: 10px; margin-right: 2px;"/>
             <TextField name="filter-parameters" style="flex-grow: 1; flex-shrink: 1;"/>
         </VisualElement>
-        <ScrollView show-vertical-scroller="true" name="parameter-scroll-view" class="dark-viewport parameter-container-scroll">
-            <VisualElement name="parameter-container" class="parameter-container">
-            </VisualElement>
+        <ScrollView show-vertical-scroller="true" name="parameter-scroll-view" class="dark-viewport" style="min-height: 100px; max-height: 600px;">
+            <VisualElement name="parameters-container" style="flex-shrink: 0;"/>
         </ScrollView>
 
         <VisualElement style="flex-direction: row; justify-content: space-between;">
             <VisualElement style="flex-grow: 1"/>
             <editor:ToolbarMenu text="Add New Parameter" name="parameter-type-menu" class="parameter-type-menu"/>
+            <Button name="collapse-all" text="Collapse All" style="font-size: 13px; padding: 4px;"/>
+            <Button name="expand-all" text="Expand All" style="font-size: 13px; padding: 4px;"/>
             <VisualElement style="flex-grow: 1"/>
         </VisualElement>
 

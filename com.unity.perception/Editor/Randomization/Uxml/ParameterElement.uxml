@@ -1,5 +1,5 @@
 <UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <Box name="parameter-properties-box" class="parameter-properties-box">
+    <Box name="parameter-container" class="parameter-container">
         <VisualElement class="move-buttons-container">
             <Button name="move-up-button" class="small-icon move-up-button"/>
             <Button name="move-down-button" class="small-icon move-down-button"/>
@@ -14,7 +14,7 @@
                 <Button name="remove-parameter" class="small-icon remove-parameter-button"/>
             </VisualElement>
 
-            <VisualElement name="properties" style="margin-bottom: 2px;">
+            <VisualElement name="properties" class="parameter-properties-container" style="margin-bottom: 2px;">
                 <Box>
                     <VisualElement class="unity-base-field" style="padding-bottom: 1px">
                         <Label text="Target GameObject" class="unity-base-field__label"/>

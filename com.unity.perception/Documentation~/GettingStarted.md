@@ -13,7 +13,7 @@ This step can be skipped for HDRP projects.
 1. Select your project's `ScriptableRenderer` asset and open the inspector window. In most projects it is located at `Assets/Settings/ForwardRenderer.asset`.
 2. Click `Add Renderer Feature` and select `Ground Truth Renderer Feature`
 
-<img src="images/ScriptableRendererStep.PNG" align="middle"/>
+<img src="images/ScriptableRendererStep.png" align="middle"/>
 
 ## Step 3: Create a new scene and camera
 
@@ -24,7 +24,7 @@ This step can be skipped for HDRP projects.
    1. In the inspector panel of the main camera select Add Component
    2. Add a **Perception Camera** component
 
-<img src="images/MainCameraConfig.PNG" align="middle"/>
+<img src="images/PerceptionCameraFinished.png" align="middle"/>
 
 ## Step 4: Create labeled objects
 
@@ -35,24 +35,23 @@ This step can be skipped for HDRP projects.
 
 <img src="images/CompletedScene.PNG" align="middle"/>
 
-1. On each cube, from the inspector panel add a **Labeling** component
-   1. Click the **+**
-   2. In the text field add the name of the object i.e Crate. This will be the label used in the semantic segmentation images
-      <img src="images/LabeledObject.PNG" align="middle"/>
-2. In the Project panel right click -> Perception -> Labeling Configuration
-3. Select the new **Labeling Configuration**
-   1. Click the **+**
-   2. In the label text field add the same text that the Label script contains on the objects created in the scene (i.e Cube, Box, Crate)
-   3. Add a numerical value to the value field
+5. On each cube, from the inspector panel add a **Labeling** component 
+	1. Click the **+**
+	2. In the text field add the name of the object i.e Crate. This will be the label used in the semantic segmentation images 
 
-      Make sure the labels all have different values, for this example use increments of 10,000 to ensure they show up as very distinct colors in the segmentation images
+<img src="images/LabeledObject.PNG" align="middle"/>
 
-<img src="images/LabelingConfigurationFinished.PNG" align="middle"/>
+6. In the Project panel right click -> Perception -> Labeling Configuration
+7. Select the new **ID Label Config**
+	1. Click the **+**
+	2. In the label text field add the same text that the Label script contains on the objects created in the scene (i.e Cube, Box, Crate)
+		
+<img src="images/IDLabelingConfigurationFinished.PNG" align="middle"/>
 
-1. Select the Main Camera in the Hierarchy panel
-2. In the Perception Camera attach the Labeling Configuration created in previous step
+8. Select the Main Camera in the Hierarchy panel 
+9. In the Perception Camera attach the ID Label Config created in previous step for each ID Label config 
 
-<img src="images/MainCameraConfig.PNG" align="middle"/>
+<img src="images/MainCameraLabelConfig.PNG" align="middle"/>
 
 ## Step 5: Run simulation and generate dataset
 

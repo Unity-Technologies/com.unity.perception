@@ -26,7 +26,7 @@ using UnityEngine.Perception.GroundTruth;
 [RequireComponent(typeof(PerceptionCamera))]
 public class CustomAnnotationAndMetricReporter : MonoBehaviour
 {
-    public GameObject light;
+    public GameObject targetLight;
     public GameObject target;
 
     MetricDefinition lightMetricDefinition;
@@ -49,7 +49,7 @@ public class CustomAnnotationAndMetricReporter : MonoBehaviour
     public void Update()
     {
         //Report the light's position by manually creating the json array string.
-        var lightPos = light.transform.position;
+        var lightPos = targetLight.transform.position;
         DatasetCapture.ReportMetric(lightMetricDefinition,
             $@"[{{ ""x"": {lightPos.x}, ""y"": {lightPos.y}, ""z"": {lightPos.z} }}]");
         //compute the location of the object in the camera's local space

@@ -57,13 +57,19 @@ namespace UnityEngine.Perception.GroundTruth
 
         bool m_CapturedLastFrame;
         Ego m_EgoMarker;
+
+#pragma warning disable 414
         //only used to confirm that GroundTruthRendererFeature is present in URP
         bool m_GroundTruthRendererFeatureRun;
+#pragma warning restore 414
 
         static PerceptionCamera s_VisualizedPerceptionCamera;
         static GameObject s_VisualizationCamera;
         static GameObject s_VisualizationCanvas;
 
+        /// <summary>
+        /// Turns on/off the realtime visualization capability.
+        /// </summary>
         [SerializeField]
         public bool showVisualizations = true;
 

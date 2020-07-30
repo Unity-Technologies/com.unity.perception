@@ -5,15 +5,11 @@ using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Rendering;
 #if HDRP_PRESENT
-using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Experimental.Rendering;
 #endif
 using UnityEngine.TestTools;
-using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
 namespace GroundTruthTests
@@ -179,7 +175,6 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator SemanticSegmentationPass_WithTextureOverride_RendersToOverride()
         {
-            int timesSegmentationImageReceived = 0;
             var expectedPixelValue = new Color32(0, 0, 255, 255);
             var targetTextureOverride = new RenderTexture(2, 2, 1, RenderTextureFormat.R8);
 

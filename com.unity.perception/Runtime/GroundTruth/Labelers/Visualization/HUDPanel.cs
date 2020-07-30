@@ -16,8 +16,17 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<string, (bool, KeyValuePanel)> entries = new Dictionary<string, (bool, KeyValuePanel)>();
         Stack<KeyValuePanel> orphans = new Stack<KeyValuePanel>();
 
+        /// <summary>
+        /// The panel that will hold all of the key value panel elements, this reference is needed to be able to hide the panel
+        /// </summary>
         public GameObject contentPanel = null;
+        /// <summary>
+        /// The scroll rect of the HUD panel, this reference is needed to be able to hide the panel
+        /// </summary>
         public ScrollRect scrollRect = null;
+        /// <summary>
+        /// The background image of the HUD panel, this reference is needed to be able to hide the panel
+        /// </summary>
         public Image img = null;
 
         void Update()
@@ -55,6 +64,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Updates (or creates) an entry with the passed in key value pair
         /// </summary>
+        /// <param name="key">The key of the HUD entry</param>
+        /// <param name="value">The value of the entry</param>
         public void UpdateEntry(string key, string value)
         {
             (bool, KeyValuePanel) val;
@@ -87,6 +98,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Removes the key value pair from the HUD
         /// </summary>
+        /// <param name="key">The key of the entry to remove</param>
         public void RemoveEntry(string key)
         {
             if (entries.ContainsKey(key))
@@ -101,6 +113,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Removes all of the passed in entries from the HUD
         /// </summary>
+        /// <param name="keys">List of keys to remove from the panel</param>
         public void RemoveEntries(List<string> keys)
         {
             foreach (var k in keys) RemoveEntry(k);
@@ -109,6 +122,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Removes all of the passed in entries from the HUD
         /// </summary>
+        /// <param name="keys">List of keys t remove from the panel</param>
         public void RemoveEntries(string[] keys)
         {
             foreach (var k in keys) RemoveEntry(k);

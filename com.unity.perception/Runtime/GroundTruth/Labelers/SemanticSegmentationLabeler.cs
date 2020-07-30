@@ -213,7 +213,7 @@ namespace UnityEngine.Perception.GroundTruth
                 height = targetTexture.height,
                 path = localPath
             };
-            asyncRequest.Start((r) =>
+            asyncRequest.Enqueue((r) =>
             {
                 Profiler.BeginSample("Encode");
                 var pngBytes = ImageConversion.EncodeArrayToPNG(r.data.data.ToArray(), GraphicsFormat.R8G8B8A8_UNorm, (uint)r.data.width, (uint)r.data.height);
@@ -225,6 +225,7 @@ namespace UnityEngine.Perception.GroundTruth
                 r.data.data.Dispose();
                 return AsyncRequest.Result.Completed;
             });
+            asyncRequest.Execute();
         }
 
         /// <inheritdoc/>

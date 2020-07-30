@@ -9,6 +9,19 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 [Setting up your first perception scene](GettingStarted.md)
 
+## Example projects using Perception
+
+### SynthDet
+
+<img src="images/synthdet.png"/>
+
+[SynthDet](https://github.com/Unity-Technologies/SynthDet) is an end-to-end solution for training a 2d object detection model using synthetic data.
+
+### Unity Simulation Smart Camera Example
+<img src="images/smartcamera.png"/>
+
+The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how Perception could be used in a smart city or autonomous vehicle simulation. Datasets can be generated locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
+
 ## Package contents
 
 |Feature|Description

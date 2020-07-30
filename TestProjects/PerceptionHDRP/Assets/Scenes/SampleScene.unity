@@ -785,34 +785,31 @@ MonoBehaviour:
         asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        foldout: 0
         annotationId: F9F22E05-443F-4602-A422-EBE4EA9B55CB
-        labelingConfiguration: {fileID: 11400000, guid: be3971a848968144e8d07d9136a5bf49,
+        idLabelConfig: {fileID: 11400000, guid: 034ffd4e09ffb7348b2fe6634259058a,
           type: 2}
     00000001:
       type: {class: SemanticSegmentationLabeler, ns: UnityEngine.Perception.GroundTruth,
         asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        foldout: 0
         annotationId: 12F94D8D-5425-4DEB-9B21-5E53AD957D66
         labelConfig: {fileID: 11400000, guid: c140c5aa05dd09e4fadaa26de31b1f39, type: 2}
+        m_TargetTextureOverride: {fileID: 0}
     00000002:
       type: {class: ObjectCountLabeler, ns: UnityEngine.Perception.GroundTruth, asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        foldout: 0
         objectCountMetricId: 51DA3C27-369D-4929-AEA6-D01614635CE2
-        m_LabelingConfiguration: {fileID: 11400000, guid: be3971a848968144e8d07d9136a5bf49,
+        m_LabelConfig: {fileID: 11400000, guid: 034ffd4e09ffb7348b2fe6634259058a,
           type: 2}
     00000003:
       type: {class: RenderedObjectInfoLabeler, ns: UnityEngine.Perception.GroundTruth,
         asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        foldout: 0
         objectInfoMetricId: 5BA92024-B3B7-41A7-9D3F-C03A6A8DDD01
-        labelingConfiguration: {fileID: 11400000, guid: be3971a848968144e8d07d9136a5bf49,
+        idLabelConfig: {fileID: 11400000, guid: 034ffd4e09ffb7348b2fe6634259058a,
           type: 2}
 --- !u!1 &1640252278
 GameObject:

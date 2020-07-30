@@ -20,7 +20,7 @@ Fixed compilation warnings with latest com.unity.simulation.core package.
 
 ### Security
 
-## [0.2.0] - 2020-07-31
+## [0.3.0-preview.1] - 2020-07-31
 
 ### Added
 

@@ -614,7 +614,7 @@ MonoBehaviour:
       type: {class: ObjectCountLabeler, ns: UnityEngine.Perception.GroundTruth, asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        objectCountMetricId: 51DA3C27-369D-4929-AEA6-D01614635CE2
+        objectCountMetricId: 51da3c27-369d-4929-aea6-d01614635ce2
         m_LabelConfig: {fileID: 11400000, guid: cedcacfb1d9beb34fbbb231166c472fe,
           type: 2}
     00000001:
@@ -622,7 +622,7 @@ MonoBehaviour:
         asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        annotationId: F9F22E05-443F-4602-A422-EBE4EA9B55CB
+        annotationId: f9f22e05-443f-4602-a422-ebe4ea9b55cb
         idLabelConfig: {fileID: 11400000, guid: cedcacfb1d9beb34fbbb231166c472fe,
           type: 2}
     00000002:
@@ -630,7 +630,7 @@ MonoBehaviour:
         asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        objectInfoMetricId: 5BA92024-B3B7-41A7-9D3F-C03A6A8DDD01
+        objectInfoMetricId: 5ba92024-b3b7-41a7-9d3f-c03a6a8ddd01
         idLabelConfig: {fileID: 11400000, guid: cedcacfb1d9beb34fbbb231166c472fe,
           type: 2}
     00000003:
@@ -638,7 +638,7 @@ MonoBehaviour:
         asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        annotationId: 12F94D8D-5425-4DEB-9B21-5E53AD957D66
+        annotationId: 12f94d8d-5425-4deb-9b21-5e53ad957d66
         labelConfig: {fileID: 11400000, guid: c140c5aa05dd09e4fadaa26de31b1f39, type: 2}
         m_TargetTextureOverride: {fileID: 0}
 --- !u!114 &963194231

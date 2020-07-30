@@ -15,7 +15,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The ID to use for object count annotations in the resulting dataset
         /// </summary>
-        public string objectCountMetricId = "51DA3C27-369D-4929-AEA6-D01614635CE2";
+        public string objectCountMetricId = "51da3c27-369d-4929-aea6-d01614635ce2";
 
         /// <summary>
         /// The <see cref="IdLabelConfig"/> which associates objects with labels.

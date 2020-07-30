@@ -32,7 +32,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// The id to associate with semantic segmentation annotations in the dataset.
         /// </summary>
         [Tooltip("The id to associate with semantic segmentation annotations in the dataset.")]
-        public string annotationId = "12F94D8D-5425-4DEB-9B21-5E53AD957D66";
+        public string annotationId = "12f94d8d-5425-4deb-9b21-5e53ad957d66";
         /// <summary>
         /// The SemanticSegmentationLabelConfig which maps labels to pixel values.
         /// </summary>
@@ -174,8 +174,8 @@ namespace UnityEngine.Perception.GroundTruth
             if (!m_AsyncAnnotations.TryGetValue(frameCount, out var annotation))
                 return;
 
-            var datasetRelativePath = Path.Combine(k_SemanticSegmentationDirectory, k_SegmentationFilePrefix) + frameCount + ".png";
-            var localPath = Path.Combine(Manager.Instance.GetDirectoryFor(k_SemanticSegmentationDirectory), k_SegmentationFilePrefix) + frameCount + ".png";
+            var datasetRelativePath = $"{k_SemanticSegmentationDirectory}/{k_SegmentationFilePrefix}{frameCount}.png";
+            var localPath = $"{Manager.Instance.GetDirectoryFor(k_SemanticSegmentationDirectory)}/{k_SegmentationFilePrefix}{frameCount}.png";
 
             annotation.ReportFile(datasetRelativePath);
 

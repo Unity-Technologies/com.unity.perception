@@ -31,7 +31,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The GUID id to associate with the annotations produced by this labeler.
         /// </summary>
-        public string annotationId = "F9F22E05-443F-4602-A422-EBE4EA9B55CB";
+        public string annotationId = "f9f22e05-443f-4602-a422-ebe4ea9b55cb";
         /// <summary>
         /// The <see cref="IdLabelConfig"/> which associates objects with labels.
         /// </summary>

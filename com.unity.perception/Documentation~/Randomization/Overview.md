@@ -15,14 +15,14 @@ Parameters in the perception package are used to map common types of simulation 
 
 Parameters are configured and organized within a scene from a parameter configuration inspector UI from the Unity Editor. Users can create new parameters, search for an existing parameter, and even assign a parameter to control a property on a target GameObject. Additionally, parameter sub-properties can be modified in playmode within the Unity Editor to explore how different configurations impact the randomizations applied to the simulation at runtime.
 
-Parameters often consist of multiple sub components that should be randomized independently. To this end, samplers are also configured from within their parent parameters in the parameter configuration UI to modify how parameters behave at runtime.
+Parameters often consist of multiple sub components that can be randomized independently. To this end, samplers are also configured from within their parent parameters in the parameter configuration UI to modify how parameters behave at runtime.
 
 To read more about how to create your own custom parameter types, [navigate over to our parameters doc]().
 
 
 ## Samplers
 
-Samplers are classes that generate random float values from bounded probability distributions. Samplers are considered bounded since each random sampler generates float values within a range defined by a minumum and maximum value. The values generated from samplers are used to randomize the sub components of parameters.
+Samplers are classes that deterministically generate random float values from bounded probability distributions. Samplers are considered bounded since each random sampler generates float values within a range defined by a minumum and maximum value. The values generated from samplers are used to randomize the sub components of parameters.
 
 For example, a color parameter has four independently randomizable components: hue, saturation, value, and alpha. Each of the four samplers attached to a color parameter can employ a unique probability distribution to customize how new colors are sampled within a simulation. Out of the box, the perception package supports uniform and normal distribution sampling. So in our color example, a user may choose a normal distribution for their hue, a uniform distribution for saturation, and a constant value sampler for the value and alpha color components.
 

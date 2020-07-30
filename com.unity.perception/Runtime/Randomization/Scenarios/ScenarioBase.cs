@@ -23,7 +23,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <summary>
         /// The current iteration index of the scenario
         /// </summary>
-        public virtual int currentIteration { get; protected set; }
+        public int currentIteration { get; protected set; }
 
         internal void NextFrame()
         {

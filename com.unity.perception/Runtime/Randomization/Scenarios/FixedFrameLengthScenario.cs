@@ -6,18 +6,19 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     /// An example scenario where each scenario iteration runs for exactly one frame
     /// </summary>
     [AddComponentMenu("Randomization/Scenarios/One Frame Scenario")]
-    public class OneFrameScenario: Scenario<OneFrameScenario.Constants>
+    public class FixedFrameLengthScenario: Scenario<FixedFrameLengthScenario.Constants>
     {
         [Serializable]
-        public struct Constants
+        public class Constants
         {
+            public int iterationFrameLength = 1;
             public int startingIteration;
-            public int totalIterations;
+            public int totalIterations = 1000;
         }
 
-        public override bool isIterationComplete => iterationFrameCount >= 1;
+        public override bool isIterationComplete => iterationFrameCount >= constants.iterationFrameLength;
 
-        public override bool isScenarioComplete => currentIteration == constants.totalIterations;
+        public override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 
         public override void Initialize()
         {

@@ -1,6 +1,4 @@
 ﻿using System;
-using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine.Perception.Randomization.Utilities;
 
 namespace UnityEngine.Perception.Randomization.Samplers
@@ -15,25 +13,25 @@ namespace UnityEngine.Perception.Randomization.Samplers
 
         public abstract float Sample(ref Unity.Mathematics.Random rng);
 
-        public Unity.Mathematics.Random GetRandom(int iteration)
-        {
-            return new Unity.Mathematics.Random(GetRandomSeed(iteration));
-        }
-
-        public uint GetRandomSeed(int iteration)
+        protected uint GetRandomSeed(int iteration)
         {
             return RandomUtility.SeedFromIndex((uint)iteration, seed);
         }
 
+        Unity.Mathematics.Random GetRandom(int iteration)
+        {
+            return new Unity.Mathematics.Random(GetRandomSeed(iteration));
+        }
+
         public override float Sample(int iteration)
         {
-            var random = new Unity.Mathematics.Random(GetRandomSeed(iteration));
+            var random = GetRandom(iteration);
             return Sample(ref random);
         }
 
         public override float[] Samples(int iteration, int totalSamples)
         {
-            var random = new Unity.Mathematics.Random(GetRandomSeed(iteration));
+            var random = GetRandom(iteration);
             var samples = new float[totalSamples];
             for (var i = 0; i < totalSamples; i++)
                 samples[i] = Sample(ref random);

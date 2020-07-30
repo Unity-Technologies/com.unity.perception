@@ -55,9 +55,13 @@ namespace UnityEngine.Perception.Randomization.Utilities
         /// </summary>
         static float RationalApproximation(float t)
         {
-            float[] c = {2.515517f, 0.802853f, 0.010328f};
-            float[] d = {1.432788f, 0.189269f, 0.001308f};
-            return t - ((c[2]*t + c[1])*t + c[0]) / (((d[2]*t + d[1])*t + d[0])*t + 1.0f);
+            const float c0 = 2.515517f;
+            const float c1 = 0.802853f;
+            const float c2 = 0.010328f;
+            const float d0 = 1.432788f;
+            const float d1 = 0.189269f;
+            const float d2 = 0.001308f;
+            return t - ((c2*t + c1)*t + c0) / (((d2*t + d1)*t + d0)*t + 1.0f);
         }
 
         /// <summary>

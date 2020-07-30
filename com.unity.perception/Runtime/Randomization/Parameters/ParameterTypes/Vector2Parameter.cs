@@ -1,5 +1,7 @@
 ﻿using System;
+using Unity.Burst;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -31,16 +33,33 @@ namespace UnityEngine.Perception.Randomization.Parameters
             return samples;
         }
 
-        public override NativeArray<Vector2> Samples(int iteration, int totalSamples, Allocator allocator)
+        public override NativeArray<Vector2> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
         {
-            var samples = new NativeArray<Vector2>(totalSamples, allocator, NativeArrayOptions.UninitializedMemory);
-            using (var xRng = x.Samples(iteration, totalSamples, allocator))
-            using (var yRng = y.Samples(iteration, totalSamples, allocator))
+            var samples = new NativeArray<Vector2>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var xRng = x.Samples(iteration, totalSamples, out var xHandle);
+            var yRng = y.Samples(iteration, totalSamples, out var yHandle);
+            var combinedJobHandles = JobHandle.CombineDependencies(xHandle, yHandle);
+            jobHandle = new SamplesJob
             {
-                for (var i = 0; i < totalSamples; i++)
+                xRng = xRng,
+                yRng = yRng,
+                samples = samples
+            }.Schedule(combinedJobHandles);
+            return samples;
+        }
+
+        [BurstCompile]
+        struct SamplesJob : IJob
+        {
+            [DeallocateOnJobCompletion] public NativeArray<float> xRng;
+            [DeallocateOnJobCompletion] public NativeArray<float> yRng;
+            public NativeArray<Vector2> samples;
+
+            public void Execute()
+            {
+                for (var i = 0; i < samples.Length; i++)
                     samples[i] = new Vector2(xRng[i], yRng[i]);
             }
-            return samples;
         }
     }
 }

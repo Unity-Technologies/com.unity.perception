@@ -99,7 +99,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         // Start is called before the first frame update
-        void Awake()
+        void OnEnable()
         {
             m_EgoMarker = this.GetComponentInParent<Ego>();
             var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;

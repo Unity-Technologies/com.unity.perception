@@ -1,4 +1,5 @@
 ﻿using Unity.Collections;
+using Unity.Jobs;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -7,7 +8,6 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// particularly when these scripts have a public interface for manipulating a sample range
     /// but perform the actual sampling logic internally.
     /// </summary>
-    [AddComponentMenu("")]
     [SamplerMetaData("Placeholder Range")]
     public class PlaceholderRangeSampler : RangedSampler
     {
@@ -16,12 +16,13 @@ namespace UnityEngine.Perception.Randomization.Samplers
             throw new SamplerException("Cannot sample PlaceholderRangeSampler");
         }
 
-        public override NativeArray<float> Samples(int iteration, int totalSamples, Allocator allocator)
+        public override float[] Samples(int iteration, int totalSamples)
         {
             throw new SamplerException("Cannot sample PlaceholderRangeSampler");
         }
 
-        public override float[] Samples(int iteration, int totalSamples)
+        public override NativeArray<float> Samples(
+            int iteration, int totalSamples, out JobHandle jobHandle)
         {
             throw new SamplerException("Cannot sample PlaceholderRangeSampler");
         }

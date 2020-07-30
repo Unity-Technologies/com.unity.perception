@@ -1,5 +1,6 @@
 ﻿using System;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -23,9 +24,9 @@ namespace UnityEngine.Perception.Randomization.Parameters
             return value.Samples(iteration, totalSamples);
         }
 
-        public override NativeArray<float> Samples(int iteration, int totalSamples, Allocator allocator)
+        public override NativeArray<float> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
         {
-            return value.Samples(iteration, totalSamples, allocator);
+            return value.Samples(iteration, totalSamples, out jobHandle);
         }
     }
 }

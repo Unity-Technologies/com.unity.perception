@@ -1,7 +1,9 @@
 ﻿using System;
+using Unity.Burst;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
-using UnityEngine.Perception.Randomization.Samplers;
+using Sampler = UnityEngine.Perception.Randomization.Samplers.Sampler;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -15,6 +17,13 @@ namespace UnityEngine.Perception.Randomization.Parameters
         [SerializeReference] public Sampler alpha;
 
         public override Sampler[] Samplers => new []{ hue, saturation, value, alpha };
+
+        static Color CreateColorHsva(float h, float s, float v, float a)
+        {
+            var color = Color.HSVToRGB(h, s, v);
+            color.a = a;
+            return color;
+        }
 
         public override Color Sample(int iteration)
         {
@@ -34,30 +43,54 @@ namespace UnityEngine.Perception.Randomization.Parameters
             var valRng = value.Samples(iteration, totalSamples);
             var alphaRng = value.Samples(iteration, totalSamples);
             for (var i = 0; i < totalSamples; i++)
-            {
-                var color = Color.HSVToRGB(hueRng[i], satRng[i], valRng[i]);
-                color.a = alphaRng[i];
-                samples[i] = color;
-            }
+                samples[i] = CreateColorHsva(hueRng[i], satRng[i], valRng[i], alphaRng[i]);
             return samples;
         }
 
-        public override NativeArray<Color> Samples(int iteration, int totalSamples, Allocator allocator)
+        public override NativeArray<Color> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
         {
-            var samples = new NativeArray<Color>(totalSamples, allocator, NativeArrayOptions.UninitializedMemory);
-            using (var hueRng = hue.Samples(iteration, totalSamples, allocator))
-            using (var satRng = saturation.Samples(iteration, totalSamples, allocator))
-            using (var valRng = value.Samples(iteration, totalSamples, allocator))
-            using (var alphaRng = value.Samples(iteration, totalSamples, allocator))
+            var samples = new NativeArray<Color>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var hueRng = hue.Samples(iteration, totalSamples, out var hueHandle);
+            var satRng = saturation.Samples(iteration, totalSamples, out var satHandle);
+            var valRng = value.Samples(iteration, totalSamples, out var valHandle);
+            var alphaRng = value.Samples(iteration, totalSamples, out var alphaHandle);
+
+            var handles = new NativeArray<JobHandle>(4, Allocator.TempJob)
             {
-                for (var i = 0; i < totalSamples; i++)
-                {
-                    var color = Color.HSVToRGB(hueRng[i], satRng[i], valRng[i]);
-                    color.a = alphaRng[i];
-                    samples[i] = color;
-                }
-            }
+                [0] = hueHandle,
+                [1] = satHandle,
+                [2] = valHandle,
+                [3] = alphaHandle
+            };
+            var combinedJobHandles = JobHandle.CombineDependencies(handles);
+
+            jobHandle = new SamplesJob
+            {
+                hueRng = hueRng,
+                satRng = satRng,
+                valRng = valRng,
+                alphaRng = alphaRng,
+                samples = samples
+            }.Schedule(combinedJobHandles);
+            handles.Dispose(jobHandle);
+
             return samples;
+        }
+
+        [BurstCompile]
+        struct SamplesJob : IJob
+        {
+            [DeallocateOnJobCompletion] public NativeArray<float> hueRng;
+            [DeallocateOnJobCompletion] public NativeArray<float> satRng;
+            [DeallocateOnJobCompletion] public NativeArray<float> valRng;
+            [DeallocateOnJobCompletion] public NativeArray<float> alphaRng;
+            public NativeArray<Color> samples;
+
+            public void Execute()
+            {
+                for (var i = 0; i < samples.Length; i++)
+                    samples[i] = CreateColorHsva(hueRng[i], satRng[i], valRng[i], alphaRng[i]);
+            }
         }
     }
 }

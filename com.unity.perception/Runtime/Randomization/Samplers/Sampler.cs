@@ -1,5 +1,6 @@
 using System;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 
 namespace UnityEngine.Perception.Randomization.Samplers
@@ -22,13 +23,13 @@ namespace UnityEngine.Perception.Randomization.Samplers
         public abstract float Sample(int iteration);
 
         /// <summary>
-        /// Generate multiple samples in a native array for the given scenario iteration
-        /// </summary>
-        public abstract NativeArray<float> Samples(int iteration, int totalSamples, Allocator allocator);
-
-        /// <summary>
         /// Generate multiple samples for the given scenario iteration
         /// </summary>
         public abstract float[] Samples(int iteration, int totalSamples);
+
+        /// <summary>
+        /// Generate multiple samples in a native array for the given scenario iteration
+        /// </summary>
+        public abstract NativeArray<float> Samples(int iteration, int totalSamples, out JobHandle jobHandle);
     }
 }

@@ -174,4 +174,4 @@ Read through the [general perception getting started guide]() before completing 
 2. Open the "_Data" folder (example: Tutorial_Data) and then open the "StreamingAssets" folder
 3. Inside should be the JSON scenario constants serialized from the parameter configuration in Step 4
 4. Edit this JSON file to update the scenario constants used in the built runtime
-5. Confirm the JSON changes by running Tutorial.exe
+5. Confirm the JSON changes by executing the simulation runtime

@@ -1,5 +1,6 @@
 ﻿using System;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine.Perception.Randomization.Utilities;
 
 namespace UnityEngine.Perception.Randomization.Samplers
@@ -34,15 +35,6 @@ namespace UnityEngine.Perception.Randomization.Samplers
         {
             var random = new Unity.Mathematics.Random(GetRandomSeed(iteration));
             var samples = new float[totalSamples];
-            for (var i = 0; i < totalSamples; i++)
-                samples[i] = Sample(ref random);
-            return samples;
-        }
-
-        public override NativeArray<float> Samples(int iteration, int totalSamples, Allocator allocator)
-        {
-            var random = new Unity.Mathematics.Random(GetRandomSeed(iteration));
-            var samples = new NativeArray<float>(totalSamples, allocator, NativeArrayOptions.UninitializedMemory);
             for (var i = 0; i < totalSamples; i++)
                 samples[i] = Sample(ref random);
             return samples;

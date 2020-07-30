@@ -63,9 +63,9 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Updates (or creates) an entry with the passed in key value pair
+        /// </summary>
         /// <param name="key">The key of the HUD entry</param>
         /// <param name="value">The value of the entry</param>
-        /// </summary>
         public void UpdateEntry(string key, string value)
         {
             (bool, KeyValuePanel) val;
@@ -97,8 +97,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Removes the key value pair from the HUD
-        /// <param name="key">The key of the entry to remove</param>
         /// </summary>
+        /// <param name="key">The key of the entry to remove</param>
         public void RemoveEntry(string key)
         {
             if (entries.ContainsKey(key))
@@ -112,8 +112,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Removes all of the passed in entries from the HUD
-        /// <param name="keys">List of keys to remove from the panel</param>
         /// </summary>
+        /// <param name="keys">List of keys to remove from the panel</param>
         public void RemoveEntries(List<string> keys)
         {
             foreach (var k in keys) RemoveEntry(k);
@@ -121,8 +121,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Removes all of the passed in entries from the HUD
-        /// <param name="keys">List of keys t remove from the panel</param>
         /// </summary>
+        /// <param name="keys">List of keys t remove from the panel</param>
         public void RemoveEntries(string[] keys)
         {
             foreach (var k in keys) RemoveEntry(k);

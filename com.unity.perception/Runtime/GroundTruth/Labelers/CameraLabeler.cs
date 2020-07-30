@@ -64,13 +64,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Called immediately after <see cref="setup"/>. Implement this to initialize labeler's visualization
         /// capability if one exists <see cref="supportVisualization"/>.
-        /// <param name="panel">The target control panel for the labeler's visualization component</param>
         /// </summary>
+        /// <param name="panel">The target control panel for the labeler's visualization component</param>
         protected virtual void PopulateVisualizationPanel(ControlPanel panel) { }
         /// <summary>
         /// Called when the labeler's visualization capability is turned on or off.
-        /// <param name="enabled">The current enabled state of the visualizer</param>
         /// </summary>
+        /// <param name="enabled">The current enabled state of the visualizer</param>
         protected virtual void OnVisualizerEnabledChanged(bool enabled) {}
         /// <summary>
         /// Called during the Update each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.

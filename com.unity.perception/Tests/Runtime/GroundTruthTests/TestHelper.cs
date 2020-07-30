@@ -28,5 +28,9 @@ namespace GroundTruthTests
         }
 
 #endif
+        public static string NormalizeJson(string json)
+        {
+            return json.Replace("\r\n", "\n");
+        }
     }
 }

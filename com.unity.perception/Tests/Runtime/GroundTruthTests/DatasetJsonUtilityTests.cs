@@ -26,7 +26,7 @@ namespace GroundTruthTests
         public void Vector3ToJToken_ReturnsArrayFormat(float x, float y, float z, string jsonExpected)
         {
             var jsonActual = DatasetJsonUtility.ToJToken(new Vector3(x, y, z));
-            Assert.AreEqual(jsonExpected, jsonActual.ToString());
+            Assert.AreEqual(TestHelper.NormalizeJson(jsonExpected), TestHelper.NormalizeJson(jsonActual.ToString()));
         }
 
         [Test]
@@ -51,7 +51,7 @@ namespace GroundTruthTests
         public void QuaternionToJToken_ReturnsArrayFormat(float x, float y, float z, float w, string jsonExpected)
         {
             var jsonActual = DatasetJsonUtility.ToJToken(new Quaternion(x, y, z, w)).ToString();
-            Assert.AreEqual(jsonExpected, jsonActual);
+            Assert.AreEqual(TestHelper.NormalizeJson(jsonExpected), TestHelper.NormalizeJson(jsonActual));
         }
 
         [Test]
@@ -75,7 +75,7 @@ namespace GroundTruthTests
         public void Float3x3ToJToken_ReturnsArrayFormat(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22, string jsonExpected)
         {
             var jsonActual = DatasetJsonUtility.ToJToken(new float3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22)).ToString();
-            Assert.AreEqual(jsonExpected, jsonActual);
+            Assert.AreEqual(TestHelper.NormalizeJson(jsonExpected), TestHelper.NormalizeJson(jsonActual));
         }
 
         [TestCase(1, "1")]
@@ -86,7 +86,7 @@ namespace GroundTruthTests
         public void Primitive_ReturnsValue(object o, string jsonExpected)
         {
             var jsonActual = DatasetJsonUtility.ToJToken(o).ToString();
-            Assert.AreEqual(jsonExpected, jsonActual);
+            Assert.AreEqual(TestHelper.NormalizeJson(jsonExpected), TestHelper.NormalizeJson(jsonActual));
         }
     }
 }

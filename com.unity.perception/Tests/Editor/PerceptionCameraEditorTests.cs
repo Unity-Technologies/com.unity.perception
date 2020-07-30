@@ -48,7 +48,7 @@ namespace EditorTests
             var capturesJson = File.ReadAllText(capturesPath);
             for (int iFrameCount = expectedFirstFrame; iFrameCount <= expectedLastFrame; iFrameCount++)
             {
-                var imagePath = Path.Combine(PerceptionCamera.RgbDirectory, $"rgb_{iFrameCount}").Replace(@"\", @"\\");
+                var imagePath = $"{PerceptionCamera.RgbDirectory}/rgb_{iFrameCount}";
                 StringAssert.Contains(imagePath, capturesJson);
             }
 

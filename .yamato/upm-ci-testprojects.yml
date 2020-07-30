@@ -14,7 +14,7 @@
   commands:
     - git submodule update --init --recursive
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
     - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}
     - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64
@@ -65,8 +65,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
     flavor: b1.large
   commands:
     - git submodule update --init --recursive
-    - sudo -H pip install --upgrade pip
-    - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
     - sudo unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}

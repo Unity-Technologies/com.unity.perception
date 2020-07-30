@@ -16,8 +16,17 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<string, (bool, KeyValuePanel)> entries = new Dictionary<string, (bool, KeyValuePanel)>();
         Stack<KeyValuePanel> orphans = new Stack<KeyValuePanel>();
 
+        /// <summary>
+        /// The panel that will hold all of the key value panel elements, this reference is needed to be able to hide the panel
+        /// </summary>
         public GameObject contentPanel = null;
+        /// <summary>
+        /// The scroll rect of the HUD panel, this reference is needed to be able to hide the panel
+        /// </summary>
         public ScrollRect scrollRect = null;
+        /// <summary>
+        /// The background image of the HUD panel, this reference is needed to be able to hide the panel
+        /// </summary>
         public Image img = null;
 
         void Update()
@@ -54,6 +63,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Updates (or creates) an entry with the passed in key value pair
+        /// <param name="key">The key of the HUD entry</param>
+        /// <param name="value">The value of the entry</param>
         /// </summary>
         public void UpdateEntry(string key, string value)
         {
@@ -86,6 +97,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Removes the key value pair from the HUD
+        /// <param name="key">The key of the entry to remove</param>
         /// </summary>
         public void RemoveEntry(string key)
         {
@@ -100,6 +112,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Removes all of the passed in entries from the HUD
+        /// <param name="keys">List of keys to remove from the panel</param>
         /// </summary>
         public void RemoveEntries(List<string> keys)
         {
@@ -108,6 +121,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Removes all of the passed in entries from the HUD
+        /// <param name="keys">List of keys t remove from the panel</param>
         /// </summary>
         public void RemoveEntries(string[] keys)
         {

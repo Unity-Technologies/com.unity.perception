@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
-    ///
+    /// Key value pair panel UI object
     /// </summary>
     public class KeyValuePanel : MonoBehaviour
     {
@@ -15,6 +15,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Sets the key of this key value pair
+        /// <param name="k">The key of the key/value pair</param>
         /// </summary>
         public void SetKey(string k)
         {
@@ -24,6 +25,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Sets the value of this key value pair
+        /// <param name="v">The value of the key/value pair</param>
         /// </summary>
         public void SetValue(string v)
         {

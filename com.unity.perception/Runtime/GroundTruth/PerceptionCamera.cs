@@ -64,6 +64,9 @@ namespace UnityEngine.Perception.GroundTruth
         static GameObject s_VisualizationCamera;
         static GameObject s_VisualizationCanvas;
 
+        /// <summary>
+        /// Turns on/off the realtime visualization capability.
+        /// </summary>
         [SerializeField]
         public bool showVisualizations = true;
 

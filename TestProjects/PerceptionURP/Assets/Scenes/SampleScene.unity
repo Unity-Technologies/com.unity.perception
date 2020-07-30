@@ -609,7 +609,7 @@ MonoBehaviour:
   - id: 1
   - id: 2
   - id: 3
-  m_VisualizationEnabled: 1
+  showVisualizations: 1
   references:
     version: 1
     00000000:
@@ -639,7 +639,7 @@ MonoBehaviour:
       type: {class: SemanticSegmentationLabeler, ns: UnityEngine.Perception.GroundTruth,
         asm: Unity.Perception.Runtime}
       data:
-        enabled: 0
+        enabled: 1
         annotationId: 12F94D8D-5425-4DEB-9B21-5E53AD957D66
         labelConfig: {fileID: 11400000, guid: c140c5aa05dd09e4fadaa26de31b1f39, type: 2}
         m_TargetTextureOverride: {fileID: 0}

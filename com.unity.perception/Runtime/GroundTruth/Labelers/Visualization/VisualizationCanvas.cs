@@ -11,8 +11,17 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class VisualizationCanvas : MonoBehaviour
     {
+        /// <summary>
+        /// The control panel contains the UI control elements used to interact with the labelers.
+        /// </summary>
         public ControlPanel controlPanel;
+        /// <summary>
+        /// The HUD panel displays realtime key/value pair data on a UI panel.
+        /// </summary>
         public HUDPanel hudPanel;
+        /// <summary>
+        /// Game object which acts as the scene container for all of the dynamic labeler visuals
+        /// </summary>
         public GameObject dynaicContentHolder;
 
         // Start is called before the first frame update
@@ -30,6 +39,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// Adds a new UI components to the visualization canvas. Pass in fullscreen if the component should take up
         /// the entire screen. Pass in setAsLowestElement if the component should be rendered behind all other components.
         /// This method will return false if the element could not be added, true if everything works properly.
+        /// <param name="component">UI component that should be added to this UI canvas</param>
+        /// <param name="fullScreen">Should this component's rect transform be set to fill the entire dimensions of the parent, defaults to true</param>
+        /// <param name="setAsLowestElement">Should this UI component be rendered as the lowest UI component in the scene, defaults to false</param>
+        /// <returns>True if the component was added properly, false if an error occurred.</returns>
         /// </summary>
         public bool AddComponent(GameObject component, bool fullScreen = true, bool setAsLowestElement = false)
         {

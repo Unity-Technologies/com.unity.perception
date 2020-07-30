@@ -22,32 +22,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public override Sampler[] Samplers => new Sampler[0];
         public override Type OutputType => typeof(T);
 
-        public int OptionsCount() => Math.Min(options.Count, probabilities.Count);
-
-        public void RemoveAt(int index)
-        {
-            options.RemoveAt(index);
-            probabilities.RemoveAt(index);
-        }
-
-        public void Resize(int size)
-        {
-            if (options.Count < size)
-            {
-                for (var i = options.Count; i < size; i++)
-                    options.Add(default);
-                for (var i = probabilities.Count; i < size; i++)
-                    probabilities.Add(default);
-            }
-            else if (options.Count > size)
-            {
-                for (var i = options.Count - 1; i >= size; i--)
-                    options.RemoveAt(i);
-                for (var i = probabilities.Count - 1; i >= size; i--)
-                    probabilities.RemoveAt(i);
-            }
-        }
-
         public override void Validate()
         {
             if (uniform)
@@ -55,6 +29,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
             if (probabilities.Count != options.Count)
                 throw new ParameterValidationException("Number of options must be equal to the number of probabilities");
+
+            for (var i = 0; i < probabilities.Count; i++)
+                if (probabilities[i] < 0f)
+                    throw new ParameterValidationException($"Found negative probability at index {i}");
 
             var totalProbability = 0f;
             foreach (var probability in probabilities)

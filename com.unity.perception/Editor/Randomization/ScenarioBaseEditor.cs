@@ -39,6 +39,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_InspectorPropertiesContainer.Clear();
 
             var iterator = m_SerializedObject.GetIterator();
+            var foundProperties = false;
             if (iterator.NextVisible(true))
             {
                 do
@@ -53,18 +54,22 @@ namespace UnityEngine.Perception.Randomization.Editor
                     }
                     else
                     {
+                        foundProperties = true;
                         var propertyField = new PropertyField(iterator.Copy());
                         propertyField.Bind(m_SerializedObject);
                         m_InspectorPropertiesContainer.Add(propertyField);
                     }
                 } while (iterator.NextVisible(false));
             }
+
+            if (!foundProperties)
+                m_InspectorPropertiesContainer.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
         }
 
         void CheckIfConstantsExist()
         {
             m_ConstantsContainer = m_Root.Q<VisualElement>("constants-container");
-            if (m_ConstantsProperty == null || m_ConstantsProperty.CountInProperty() == 1)
+            if (m_ConstantsProperty == null)
                 m_ConstantsContainer.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
         }
     }

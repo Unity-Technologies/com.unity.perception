@@ -2,10 +2,10 @@
     <VisualElement>
         <Style src="../Uss/Styles.uss"/>
 
-        <VisualElement name="inspector-properties"/>
+        <VisualElement name="inspector-properties" style="margin-bottom: 20px;"/>
 
         <VisualElement name="constants-container">
-            <Label text="Constants" style="margin-top: 20px; font-size: 20px; -unity-text-align: middle-center;"/>
+            <Label text="Constants" style="font-size: 20px; -unity-text-align: middle-center;"/>
             <VisualElement name="configuration-container" class="dark-viewport">
                 <editor:PropertyField binding-path="constants"/>
                 <editor:PropertyField name="configuration-file-name" label="Constants File Name" binding-path="serializedConstantsFileName"/>

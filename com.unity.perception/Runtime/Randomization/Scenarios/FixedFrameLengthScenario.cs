@@ -5,7 +5,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     /// <summary>
     /// An example scenario where each scenario iteration runs for exactly one frame
     /// </summary>
-    [AddComponentMenu("Randomization/Scenarios/One Frame Scenario")]
+    [AddComponentMenu("Randomization/Scenarios/Fixed Frame Length Scenario")]
     public class FixedFrameLengthScenario: Scenario<FixedFrameLengthScenario.Constants>
     {
         [Serializable]

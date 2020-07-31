@@ -29,7 +29,7 @@ namespace RandomizationTests
         {
             var parameter = m_TestObject.AddComponent<StringParameter>();
             parameter.options = new List<string> { "option1", "option2" };
-            parameter.probabilities = new List<float> { -0.1f, 1f };
+            parameter.probabilities = new List<float> { 1f, -1f };
             Assert.Throws<ParameterValidationException>(() => parameter.Validate());
             yield return null;
         }
@@ -38,8 +38,18 @@ namespace RandomizationTests
         public IEnumerator DifferentOptionAndProbabilityCounts()
         {
             var parameter = m_TestObject.AddComponent<StringParameter>();
+            parameter.options = new List<string> { "option1" };
+            parameter.probabilities = new List<float> { 1f, 1f };
+            Assert.Throws<ParameterValidationException>(() => parameter.Validate());
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ZeroSumProbability()
+        {
+            var parameter = m_TestObject.AddComponent<StringParameter>();
             parameter.options = new List<string> { "option1", "option2" };
-            parameter.probabilities = new List<float> { -0.1f, 1f };
+            parameter.probabilities = new List<float> { 0f, 0f };
             Assert.Throws<ParameterValidationException>(() => parameter.Validate());
             yield return null;
         }

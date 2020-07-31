@@ -11,10 +11,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [ParameterMetaData("Vector4")]
     public class Vector4Parameter : StructParameter<Vector4>
     {
-        [SerializeReference] public Sampler x;
-        [SerializeReference] public Sampler y;
-        [SerializeReference] public Sampler z;
-        [SerializeReference] public Sampler w;
+        [SerializeReference] public Sampler x = new UniformSampler();
+        [SerializeReference] public Sampler y = new UniformSampler();
+        [SerializeReference] public Sampler z = new UniformSampler();
+        [SerializeReference] public Sampler w = new UniformSampler();
 
         public override Sampler[] Samplers => new []{ x, y, z, w };
 

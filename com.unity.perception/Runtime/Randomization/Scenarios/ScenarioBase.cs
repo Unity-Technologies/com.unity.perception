@@ -8,7 +8,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     public abstract class ScenarioBase : MonoBehaviour
     {
         static ScenarioBase s_ActiveScenario;
-        [HideInInspector] public bool deserializeOnStart = true;
+        public bool quitOnComplete = true;
+        [HideInInspector] public bool deserializeOnStart;
         [HideInInspector] public string serializedConstantsFileName = "constants";
 
         /// <summary>
@@ -58,6 +59,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         internal void Iterate()
         {
+            Debug.Log("iterating");
             currentIteration++;
             iterationFrameCount = 0;
         }
@@ -125,7 +127,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         IEnumerator UpdateLoop()
         {
-            yield return null;
             while (!isScenarioComplete)
             {
                 foreach (var config in ParameterConfiguration.configurations)
@@ -142,15 +143,16 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 Iterate();
             }
             OnComplete();
-            StopExecution();
+            QuitApplication();
         }
 
-        static void StopExecution()
+        void QuitApplication()
         {
+            if (quitOnComplete)
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
+                UnityEditor.EditorApplication.isPlaying = false;
 #else
-            Application.Quit();
+                Application.Quit();
 #endif
         }
         #endregion

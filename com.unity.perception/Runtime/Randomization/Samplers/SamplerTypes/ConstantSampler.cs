@@ -12,6 +12,13 @@ namespace UnityEngine.Perception.Randomization.Samplers
     {
         public float value;
 
+        public ConstantSampler() { }
+
+        public ConstantSampler(float value)
+        {
+            this.value = value;
+        }
+
         public override float Sample(int iteration)
         {
             return value;

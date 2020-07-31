@@ -75,5 +75,14 @@ namespace RandomizationTests
             Assert.Throws<SamplerException>(() => phSampler.Samples(k_ScenarioIteration, k_TestSampleCount, out var handle));
             yield return null;
         }
+
+        [UnityTest]
+        public IEnumerator CatchInvalidSamplerRangeTest()
+        {
+            var placeholderRange = new PlaceholderRangeSampler();
+            placeholderRange.range = new FloatRange(1, -1);
+            Assert.Throws<SamplerException>(() => { placeholderRange.Validate(); });
+            yield return null;
+        }
     }
 }

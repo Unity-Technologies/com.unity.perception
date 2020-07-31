@@ -70,7 +70,10 @@ namespace UnityEngine.Perception.Randomization.Editor
         {
             m_ConstantsContainer = m_Root.Q<VisualElement>("constants-container");
             if (m_ConstantsProperty == null)
+            {
+                m_InspectorPropertiesContainer.style.marginBottom = 0;
                 m_ConstantsContainer.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
+            }
         }
     }
 }

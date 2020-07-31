@@ -11,12 +11,12 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         [Serializable]
         public class Constants
         {
-            public int iterationFrameLength = 1;
+            public int iterationFrameCount = 1;
             public int startingIteration;
             public int totalIterations = 1000;
         }
 
-        public override bool isIterationComplete => iterationFrameCount >= constants.iterationFrameLength;
+        public override bool isIterationComplete => iterationFrameCount >= constants.iterationFrameCount;
 
         public override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 

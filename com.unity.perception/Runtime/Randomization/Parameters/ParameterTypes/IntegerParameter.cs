@@ -10,7 +10,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [ParameterMetaData("Int")]
     public class IntegerParameter : StructParameter<int>
     {
-        [SerializeReference] public Sampler value;
+        [SerializeReference] public Sampler value = new UniformSampler();
         public override Sampler[] Samplers => new[] { value };
 
         public override int Sample(int iteration) => (int)value.Sample(iteration);

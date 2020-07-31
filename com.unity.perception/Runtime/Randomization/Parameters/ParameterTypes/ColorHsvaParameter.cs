@@ -3,6 +3,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
+using UnityEngine.Perception.Randomization.Samplers;
 using Sampler = UnityEngine.Perception.Randomization.Samplers.Sampler;
 
 namespace UnityEngine.Perception.Randomization.Parameters
@@ -11,10 +12,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [ParameterMetaData("ColorHSVA")]
     public class ColorHsvaParameter : StructParameter<Color>
     {
-        [SerializeReference] public Sampler hue;
-        [SerializeReference] public Sampler saturation;
-        [SerializeReference] public Sampler value;
-        [SerializeReference] public Sampler alpha;
+        [SerializeReference] public Sampler hue = new UniformSampler();
+        [SerializeReference] public Sampler saturation = new UniformSampler();
+        [SerializeReference] public Sampler value = new UniformSampler();
+        [SerializeReference] public Sampler alpha = new ConstantSampler(1);
 
         public override Sampler[] Samplers => new []{ hue, saturation, value, alpha };
 

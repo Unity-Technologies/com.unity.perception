@@ -57,15 +57,16 @@ namespace UnityEngine.Perception.Randomization.Editor
         {
             var newSampler = (Sampler)Activator.CreateInstance(samplerType);
             if (samplerType.IsSubclassOf(typeof(RandomSampler)))
-                ((RandomSampler)m_Sampler).seed = (uint)Random.Range(1, int.MaxValue);
+                ((RandomSampler)newSampler).seed = (uint)Random.Range(1, int.MaxValue);
 
-            if (m_Sampler != null &&
-                m_Sampler is RangedSampler oldRangedSampler &&
-                newSampler is RangedSampler newRangedSampler)
-                newRangedSampler.range = oldRangedSampler.range;
+            if (m_Sampler is RangedSampler && newSampler is RangedSampler newRangedSampler)
+            {
+                newRangedSampler.range.minimum = m_Property.FindPropertyRelative("range.minimum").floatValue;
+                newRangedSampler.range.maximum = m_Property.FindPropertyRelative("range.maximum").floatValue;
+            }
 
             m_Sampler = newSampler;
-            m_ParameterSo.Update();
+            m_Property.managedReferenceValue = newSampler;
             m_ParameterSo.ApplyModifiedProperties();
         }
 
@@ -84,18 +85,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                         break;
                     if (currentProperty.name == "seed")
                     {
-                        var seedField = new IntegerField("Seed");
-                        seedField.BindProperty(currentProperty.Copy());
-                        seedField.RegisterValueChangedCallback((e) =>
-                        {
-                            if (e.newValue <= 0)
-                            {
-                                seedField.value = 0;
-                                seedField.binding.Update();
-                                e.StopImmediatePropagation();
-                            }
-                        });
-                        m_Properties.Add(seedField);
+                        m_Properties.Add(new RandomSeedField(currentProperty.Copy()));
                     }
                     else if (currentProperty.type == "FloatRange")
                     {

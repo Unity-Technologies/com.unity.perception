@@ -277,7 +277,7 @@ namespace GroundTruthTests
             AssertJsonFileEquals(annotationDefinitionsJsonExpected, annotationDefinitionsPath);
 
             FileAssert.Exists(capturesPath);
-            StringAssert.Contains(annotationsJsonExpected, EscapeGuids(File.ReadAllText(capturesPath)));
+            StringAssert.Contains(TestHelper.NormalizeJson(annotationsJsonExpected), EscapeGuids(File.ReadAllText(capturesPath)));
         }
 
         [Test]
@@ -324,7 +324,7 @@ namespace GroundTruthTests
             var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
 
             FileAssert.Exists(capturesPath);
-            StringAssert.Contains(expectedAnnotation, EscapeGuids(File.ReadAllText(capturesPath)));
+            StringAssert.Contains(TestHelper.NormalizeJson(expectedAnnotation), EscapeGuids(File.ReadAllText(capturesPath)));
         }
 
         [Test]

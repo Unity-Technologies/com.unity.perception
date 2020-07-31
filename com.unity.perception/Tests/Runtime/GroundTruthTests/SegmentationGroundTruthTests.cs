@@ -157,7 +157,7 @@ namespace GroundTruthTests
 
             var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), showVisualizations);
 
-            TestHelper.LoadAndStartRenderDocCapture(out var gameView);
+            //TestHelper.LoadAndStartRenderDocCapture(out var gameView);
             yield return null;
             var segLabeler = (SemanticSegmentationLabeler)cameraObject.GetComponent<PerceptionCamera>().labelers[0];
             var request = AsyncGPUReadback.Request(segLabeler.targetTexture, callback: r =>
@@ -166,7 +166,7 @@ namespace GroundTruthTests
             });
             AsyncGPUReadback.WaitAllRequests();
 
-            RenderDoc.EndCaptureRenderDoc(gameView);
+            //RenderDoc.EndCaptureRenderDoc(gameView);
 
             //request.WaitForCompletion();
             Assert.IsTrue(request.done);

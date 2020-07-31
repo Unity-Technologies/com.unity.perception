@@ -9,7 +9,7 @@ namespace UnityEngine.Perception.Randomization.Editor
 {
     public class ParameterElement : VisualElement
     {
-        bool m_Collapsed, m_Filtered;
+        bool m_Filtered;
         Parameter m_Parameter;
         VisualElement m_Properties;
         VisualElement m_ExtraProperties;
@@ -22,11 +22,10 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         public bool Collapsed
         {
-            get => m_Collapsed;
+            get => ClassListContains(k_CollapsedParameterClass);
             set
             {
-                m_Collapsed = value;
-                if (m_Collapsed)
+                if (value)
                     AddToClassList(k_CollapsedParameterClass);
                 else
                     RemoveFromClassList(k_CollapsedParameterClass);

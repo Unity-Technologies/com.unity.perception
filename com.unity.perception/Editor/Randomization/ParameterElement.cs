@@ -174,14 +174,14 @@ namespace UnityEngine.Perception.Randomization.Editor
                 {
                     if (iterator.propertyPath == "m_Script" || iterator.propertyPath == "parameterName")
                         continue;
-                    if (iterator.managedReferenceFieldTypename == StaticData.SamplerSerializedFieldType)
+                    if (iterator.type.Contains("managedReference") &&
+                        iterator.managedReferenceFieldTypename == StaticData.SamplerSerializedFieldType)
                         m_ExtraProperties.Add(new SamplerElement(iterator.Copy()));
                     else
                     {
                         var propertyField = new PropertyField(iterator.Copy());
                         propertyField.Bind(m_SerializedObject);
                         m_ExtraProperties.Add(propertyField);
-                        break;
                     }
                 } while (iterator.NextVisible(false));
             }

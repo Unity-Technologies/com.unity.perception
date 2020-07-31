@@ -214,3 +214,7 @@
     position: absolute;
 }
 
+.float-range .unity-base-field__label {
+    min-width: auto;
+    margin-right: 4px;
+}

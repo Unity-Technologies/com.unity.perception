@@ -65,8 +65,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 newRangedSampler.range = oldRangedSampler.range;
 
             m_Sampler = newSampler;
-
-            m_Property.managedReferenceValue = m_Sampler;
+            m_ParameterSo.Update();
             m_ParameterSo.ApplyModifiedProperties();
         }
 
@@ -97,20 +96,16 @@ namespace UnityEngine.Perception.Randomization.Editor
                             }
                         });
                         m_Properties.Add(seedField);
-                        continue;
                     }
-                    switch (currentProperty.type)
+                    else if (currentProperty.type == "FloatRange")
                     {
-                        case "FloatRange":
-                            m_Properties.Add(new FloatRangeElement(currentProperty.Copy()));
-                            break;
-                        default:
-                        {
-                            var propertyField = new PropertyField(currentProperty.Copy());
-                            propertyField.Bind(m_Property.serializedObject);
-                            m_Properties.Add(propertyField);
-                            break;
-                        }
+                        m_Properties.Add(new FloatRangeElement(currentProperty.Copy()));
+                    }
+                    else
+                    {
+                        var propertyField = new PropertyField(currentProperty.Copy());
+                        propertyField.Bind(m_Property.serializedObject);
+                        m_Properties.Add(propertyField);
                     }
                 }
                 while (currentProperty.Next(false));

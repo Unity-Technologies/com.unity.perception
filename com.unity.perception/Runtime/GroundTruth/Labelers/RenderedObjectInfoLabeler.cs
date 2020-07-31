@@ -31,7 +31,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The ID to use for visible pixels metrics in the resulting dataset
         /// </summary>
-        public string objectInfoMetricId = "5BA92024-B3B7-41A7-9D3F-C03A6A8DDD01";
+        public string objectInfoMetricId = "5ba92024-b3b7-41a7-9d3f-c03a6a8ddd01";
 
         /// <summary>
         /// The <see cref="IdLabelConfig"/> which associates objects with labels.

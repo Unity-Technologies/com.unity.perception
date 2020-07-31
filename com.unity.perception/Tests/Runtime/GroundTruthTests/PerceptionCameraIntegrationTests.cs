@@ -70,7 +70,7 @@ namespace GroundTruthTests
 
             var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
-            var imagePath = Path.Combine("SemanticSegmentation", expectedImageFilename).Replace(@"\", @"\\");
+            var imagePath = $"SemanticSegmentation/{expectedImageFilename}";
             StringAssert.Contains(imagePath, capturesJson);
         }
 

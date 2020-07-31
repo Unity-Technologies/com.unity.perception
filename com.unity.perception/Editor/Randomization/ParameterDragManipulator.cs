@@ -13,7 +13,7 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         protected override void RegisterCallbacksOnTarget()
         {
-            QueryDragAreaElement();
+            m_DragHandle = target.Q<VisualElement>("drag-handle");
             m_ParameterElement = (ParameterElement)target;
             m_DragHandle.RegisterCallback<MouseDownEvent>(OnMouseDown);
             m_DragHandle.RegisterCallback<MouseMoveEvent>(OnMouseMove);
@@ -27,11 +27,6 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_DragHandle.UnregisterCallback<MouseUpEvent>(OnMouseUp);
         }
 
-        void QueryDragAreaElement()
-        {
-            m_DragHandle = target.Q<VisualElement>("drag-handle");
-        }
-
         void OnMouseDown(MouseDownEvent evt)
         {
             if (m_Active)
@@ -39,6 +34,9 @@ namespace UnityEngine.Perception.Randomization.Editor
                 evt.StopImmediatePropagation();
                 return;
             }
+
+            if (m_ParameterElement.ConfigEditor.FilterString != string.Empty)
+                return;
 
             m_ParameterContainer = target.parent;
             m_DragBar = new ParameterDragBar();

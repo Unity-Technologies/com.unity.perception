@@ -20,7 +20,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         const string k_FoldoutClosedClass = "foldout-closed";
 
         string m_FilterString = "";
-        string FilterString
+        public string FilterString
         {
             get => m_FilterString;
             set

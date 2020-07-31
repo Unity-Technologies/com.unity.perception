@@ -55,9 +55,16 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         void CreateSampler(Type samplerType)
         {
-            m_Sampler = (Sampler)Activator.CreateInstance(samplerType);
+            var newSampler = (Sampler)Activator.CreateInstance(samplerType);
             if (samplerType.IsSubclassOf(typeof(RandomSampler)))
                 ((RandomSampler)m_Sampler).seed = (uint)Random.Range(1, int.MaxValue);
+
+            if (m_Sampler != null &&
+                m_Sampler is RangedSampler oldRangedSampler &&
+                newSampler is RangedSampler newRangedSampler)
+                newRangedSampler.range = oldRangedSampler.range;
+
+            m_Sampler = newSampler;
 
             m_Property.managedReferenceValue = m_Sampler;
             m_ParameterSo.ApplyModifiedProperties();

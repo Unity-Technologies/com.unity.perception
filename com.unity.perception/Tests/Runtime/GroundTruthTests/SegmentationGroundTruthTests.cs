@@ -44,7 +44,7 @@ namespace GroundTruthTests
     [UnityPlatform(exclude = new[] {RuntimePlatform.LinuxEditor, RuntimePlatform.LinuxPlayer})]
     public class SegmentationPassTests : GroundTruthTestBase
     {
-        static readonly Color32 k_SemanticPixelValue = Color.blue;
+        static readonly Color32 k_SemanticPixelValue = new Color32(10, 20, 30, Byte.MaxValue);
 
         public enum SegmentationKind
         {
@@ -236,7 +236,7 @@ namespace GroundTruthTests
                 catch (Exception)
                 {
                     //uncomment to get RenderDoc captures while this check is failing
-                    //RenderDoc.EndCaptureRenderDoc(gameView);
+                    //UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(gameView);
                     throw;
                 }
             }

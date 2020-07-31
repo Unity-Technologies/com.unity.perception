@@ -33,7 +33,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// The id to associate with semantic segmentation annotations in the dataset.
         /// </summary>
         [Tooltip("The id to associate with semantic segmentation annotations in the dataset.")]
-        public string annotationId = "12F94D8D-5425-4DEB-9B21-5E53AD957D66";
+        public string annotationId = "12f94d8d-5425-4deb-9b21-5e53ad957d66";
         /// <summary>
         /// The SemanticSegmentationLabelConfig which maps labels to pixel values.
         /// </summary>
@@ -142,11 +142,18 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
 
-            var renderTextureDescriptor = new RenderTextureDescriptor(camWidth, camHeight, GraphicsFormat.R8G8B8A8_UNorm, 8);
             if (targetTexture != null)
+            {
+                if (targetTexture.sRGB)
+                {
+                    Debug.LogError("targetTexture supplied to SemanticSegmentationLabeler must be in Linear mode. Disabling labeler.");
+                    this.enabled = false;
+                }
+                var renderTextureDescriptor = new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8);
                 targetTexture.descriptor = renderTextureDescriptor;
+            }
             else
-                m_TargetTextureOverride = new RenderTexture(renderTextureDescriptor);
+                m_TargetTextureOverride = new RenderTexture(width, height, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 
             targetTexture.Create();
             targetTexture.name = "Labeling";
@@ -190,8 +197,8 @@ namespace UnityEngine.Perception.GroundTruth
             if (!m_AsyncAnnotations.TryGetValue(frameCount, out var annotation))
                 return;
 
-            var datasetRelativePath = Path.Combine(k_SemanticSegmentationDirectory, k_SegmentationFilePrefix) + frameCount + ".png";
-            var localPath = Path.Combine(Manager.Instance.GetDirectoryFor(k_SemanticSegmentationDirectory), k_SegmentationFilePrefix) + frameCount + ".png";
+            var datasetRelativePath = $"{k_SemanticSegmentationDirectory}/{k_SegmentationFilePrefix}{frameCount}.png";
+            var localPath = $"{Manager.Instance.GetDirectoryFor(k_SemanticSegmentationDirectory)}/{k_SegmentationFilePrefix}{frameCount}.png";
 
             annotation.ReportFile(datasetRelativePath);
 

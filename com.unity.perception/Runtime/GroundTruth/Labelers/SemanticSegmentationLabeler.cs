@@ -122,7 +122,7 @@ namespace UnityEngine.Perception.GroundTruth
         int camHeight = 0;
 
         private GameObject segVisual = null;
-        private Image segImage = null;
+        private RawImage segImage = null;
 
         /// <inheritdoc/>
         protected override bool supportsVisualization => true;
@@ -265,7 +265,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             segVisual = GameObject.Instantiate(Resources.Load<GameObject>("SegmentTexture"));
 
-            segImage = segVisual.GetComponent<Image>();
+            segImage = segVisual.GetComponent<RawImage>();
             segImage.material.SetFloat("_SegmentTransparency", defaultSegmentTransparency);
             segImage.material.SetFloat("_BackTransparency", defaultBackgroundTransparency);
 
@@ -281,8 +281,7 @@ namespace UnityEngine.Perception.GroundTruth
             var cpuTexture = new Texture2D(texture.width, texture.height, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
             cpuTexture.LoadRawTextureData(data);
             cpuTexture.Apply();
-
-            segImage.material.SetTexture("_BaseMap", cpuTexture);
+            segImage.texture = cpuTexture;
         }
 
         /// <inheritdoc/>

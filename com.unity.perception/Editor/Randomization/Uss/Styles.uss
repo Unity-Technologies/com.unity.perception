@@ -12,7 +12,7 @@
 }
 
 .parameter-type-menu {
-    margin: 1 3;
+    margin: 1px 3px;
     border-width: 1px;
     border-radius: 3px;
     background-color: #585858;
@@ -57,8 +57,8 @@
 
 .parameter-type-label {
     color: cornflowerblue;
-    min-width: 100px;
-    -unity-text-align: middle-right;
+    /*min-width: 120px;*/
+    -unity-text-align: middle-left;
 }
 
 .parameter-type-label-box .unity-base-text-field__input {
@@ -84,33 +84,34 @@
 
 .remove-parameter-button {
     background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/X.png");
+    width: 16px;
+    height: 16px;
 }
 
 .move-buttons-container {
-    margin-right: 6px;
     width: auto;
+    margin-right: 6px;
     border-color: black;
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;
     background-color: #2A2A2A;
-    justify-content: space-between;
-    align-items: center;
     padding: 3px 2px;
+    justify-content: center;
 }
 
-.move-up-button {
-    background-image: resource("Packages/com.unity.shadergraph/Editor/Resources/GraphView/Nodes/NodeChevronUp.png");
-}
-
-.move-down-button {
-    background-image: resource("Packages/com.unity.shadergraph/Editor/Resources/GraphView/Nodes/NodeChevronDown.png");
-}
-
-.small-icon {
-    border-width: 0;
+.drag-handle {
     width: 16px;
+    height: 70%;
+    min-height: 20px;
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/DragHandle.png");
+}
+
+.move-button {
+    border-width: 0;
+    width: 42px;
     height: 16px;
     padding: 9px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .unity-imgui-container {
@@ -144,6 +145,10 @@
 
 .collapsed-parameter .move-buttons-container {
     flex-direction: row;
+}
+
+.collapsed-parameter .move-button {
+    width: 16px;
 }
 
 .categorical-option {
@@ -200,3 +205,12 @@
     height: 14px;
     background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/X.png");
 }
+
+.parameter-drag-bar {
+    width: 100px;
+    /*flex-grow: 1;*/
+    height: 10px;
+    background-color: rgba(100,149,237,0.4);
+    position: absolute;
+}
+

@@ -99,34 +99,22 @@ namespace UnityEngine.Perception.Randomization.Editor
             DestroyImmediate(param);
         }
 
-        public void MoveParameter(VisualElement template, int direction)
+        public void ReorderParameter(int currentIndex, int nextIndex)
         {
-            if (FilterString != "")
+            if (currentIndex == nextIndex)
                 return;
-            var paramIndex = m_ParameterContainer.IndexOf(template);
-            if (direction == -1 && paramIndex > 0)
-            {
-                SwapParameters(paramIndex - 1, paramIndex);
-            }
-            else if (direction == 1 && paramIndex < m_Config.parameters.Count - 1)
-            {
-                SwapParameters(paramIndex, paramIndex + 1);
-            }
-        }
 
-        void SwapParameters(int first, int second)
-        {
-            var firstElement = m_ParameterContainer[first];
-            var secondElement = m_ParameterContainer[second];
-            m_ParameterContainer.RemoveAt(second);
-            m_ParameterContainer.RemoveAt(first);
-            m_ParameterContainer.Insert(first, secondElement);
-            m_ParameterContainer.Insert(second, firstElement);
+            if (nextIndex > currentIndex)
+                nextIndex--;
 
-            var firstParameter = m_Config.parameters[first];
-            var secondParameter = m_Config.parameters[second];
-            m_Config.parameters[first] = secondParameter;
-            m_Config.parameters[second] = firstParameter;
+            var parameterElement = m_ParameterContainer[currentIndex];
+            var parameter = m_Config.parameters[currentIndex];
+
+            parameterElement.RemoveFromHierarchy();
+            m_Config.parameters.RemoveAt(currentIndex);
+
+            m_ParameterContainer.Insert(nextIndex, parameterElement);
+            m_Config.parameters.Insert(nextIndex, parameter);
         }
     }
 }

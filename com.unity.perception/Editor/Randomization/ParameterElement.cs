@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Editor
@@ -17,6 +16,9 @@ namespace UnityEngine.Perception.Randomization.Editor
         SerializedObject m_SerializedObject;
 
         const string k_CollapsedParameterClass = "collapsed-parameter";
+
+        public int ParameterIndex => parent.IndexOf(this);
+        public ParameterConfigurationEditor ConfigEditor { get; private set; }
 
         public bool Collapsed
         {
@@ -45,6 +47,7 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         public ParameterElement(Parameter parameter, ParameterConfigurationEditor paramConfigEditor)
         {
+            ConfigEditor = paramConfigEditor;
             m_Parameter = parameter;
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/ParameterElement.uxml");
@@ -53,16 +56,13 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_SerializedObject = new SerializedObject(parameter);
             this.Bind(m_SerializedObject);
 
+            this.AddManipulator(new ParameterDragManipulator());
+
             var removeButton = this.Q<Button>("remove-parameter");
             removeButton.RegisterCallback<MouseUpEvent>(evt => paramConfigEditor.RemoveParameter(this));
 
             var parameterTypeLabel = this.Query<Label>("parameter-type-label").First();
             parameterTypeLabel.text = parameter.MetaData.typeDisplayName;
-
-            var moveUpButton = this.Q<Button>("move-up-button");
-            moveUpButton.RegisterCallback<MouseUpEvent>(evt => paramConfigEditor.MoveParameter(this, -1));
-            var moveDownButton = this.Q<Button>("move-down-button");
-            moveDownButton.RegisterCallback<MouseUpEvent>(evt => paramConfigEditor.MoveParameter(this, 1));
 
             var hasTargetToggle = this.Q<Toggle>("has-target-toggle");
             var targetContainer = this.Q<VisualElement>("target-container");

@@ -1,8 +1,7 @@
 <UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
     <Box name="parameter-container" class="parameter-container">
-        <VisualElement class="move-buttons-container">
-            <Button name="move-up-button" class="small-icon move-up-button"/>
-            <Button name="move-down-button" class="small-icon move-down-button"/>
+        <VisualElement name="drag-handle" class="move-buttons-container">
+            <VisualElement class="drag-handle"/>
         </VisualElement>
         <VisualElement style="flex-grow: 1; justify-content: center;">
             <VisualElement class="parameter-type-label-container">
@@ -11,7 +10,7 @@
                     <Label name="parameter-type-label" text="Type:" class="parameter-type-label"/>
                     <TextField binding-path="parameterName" name="parameter-name" text="Parameter Name"/>
                 </Box>
-                <Button name="remove-parameter" class="small-icon remove-parameter-button"/>
+                <Button name="remove-parameter" class="remove-parameter-button"/>
             </VisualElement>
 
             <VisualElement name="properties" class="parameter-properties-container" style="margin-bottom: 2px;">

@@ -7,7 +7,7 @@
             <VisualElement class="search-icon" style="margin-left: 10px; margin-right: 2px;"/>
             <TextField name="filter-parameters" style="flex-grow: 1; flex-shrink: 1;"/>
         </VisualElement>
-        <ScrollView show-vertical-scroller="true" name="parameter-scroll-view" class="dark-viewport" style="min-height: 100px; max-height: 600px;">
+        <ScrollView name="parameter-scroll-view" class="dark-viewport" style="min-height: 100px; max-height: 600px;">
             <VisualElement name="parameters-container" style="flex-shrink: 0;"/>
         </ScrollView>
 

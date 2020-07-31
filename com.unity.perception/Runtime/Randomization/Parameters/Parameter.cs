@@ -23,7 +23,22 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
         public abstract Type OutputType { get; }
 
-        public virtual void Validate() {}
+        public virtual void Validate()
+        {
+            ValidatePropertyTarget();
+        }
+
+        void ValidatePropertyTarget()
+        {
+            if (!hasTarget)
+                return;
+            if (target.gameObject == null)
+                throw new ParameterException($"Null GameObject target on parameter \"{parameterName}\"");
+            if (target.component == null)
+                throw new ParameterException($"Null component target on parameter \"{parameterName}\"");
+            if (string.IsNullOrEmpty(target.propertyName))
+                throw new ParameterException($"Invalid property target on parameter \"{parameterName}\"");
+        }
 
         public abstract void Apply(int iteration);
     }

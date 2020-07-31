@@ -10,5 +10,11 @@
             minimum = 0f,
             maximum = 1f
         };
+
+        public override void Validate()
+        {
+            if (range.minimum > range.maximum)
+                throw new SamplerException("Invalid range");
+        }
     }
 }

@@ -172,12 +172,6 @@
     flex-shrink: 0;
 }
 
-.option-probability-field {
-    width: 0;
-    min-width: 40px;
-    flex-grow: 0.15;
-}
-
 .uniform-probability .hide-when-uniform {
     display: none;
 }
@@ -208,8 +202,7 @@
 
 .parameter-drag-bar {
     width: 100px;
-    /*flex-grow: 1;*/
-    height: 10px;
+    height: 6px;
     background-color: rgba(100,149,237,0.4);
     position: absolute;
 }

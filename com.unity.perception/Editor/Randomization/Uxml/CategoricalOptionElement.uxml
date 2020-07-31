@@ -3,7 +3,6 @@
         <Button name="remove" class="remove-option-button"/>
         <Label name="index-label" text="[0]" style="min-width: 50px;"/>
         <editor:PropertyField name="option" class="option-property-field"/>
-        <Label text="p:" class="hide-when-uniform"/>
-        <editor:FloatField name="probability" tooltip="Probability" class="option-probability-field hide-when-uniform"/>
+        <editor:FloatField label="p:" name="probability" tooltip="Probability" class="hide-when-uniform" style="min-width: 40px; flex-grow: 0.15;"/>
     </VisualElement>
 </UXML>

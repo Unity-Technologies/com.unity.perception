@@ -50,16 +50,6 @@ namespace UnityEngine.Perception.Randomization.Serialization
                 }
             }
 
-            if (m_Config.scenario)
-            {
-                var scenarioObj = m_Config.scenario;
-                if (scenarioObj != null)
-                {
-                    var jsonString = scenarioObj.Serialize();
-                    configObj["scenario"] = JObject.Parse(jsonString);
-                }
-            }
-
             configObj.WriteTo(writer);
         }
 
@@ -68,9 +58,6 @@ namespace UnityEngine.Perception.Randomization.Serialization
         {
             var jo = JObject.Load(reader);
             ReadParameters(jo["parameters"]);
-            var scenarioToken = jo["scenario"];
-            if (scenarioToken is JObject scenarioObj)
-                m_Config.scenario.Deserialize(scenarioObj.ToString());
             return m_Config;
         }
 

@@ -1,10 +1,36 @@
 using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.Perception.Randomization.Configuration;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
     public abstract class ScenarioBase : MonoBehaviour
     {
+        static ScenarioBase s_ActiveScenario;
+        [HideInInspector] public bool deserializeOnStart = true;
+        [HideInInspector] public string serializedConstantsFileName = "constants";
+
+        /// <summary>
+        /// Returns the file location of the JSON serialized constants
+        /// </summary>
+        public string serializedConstantsFilePath =>
+            Application.dataPath + "/StreamingAssets/" + serializedConstantsFileName + ".json";
+
+        /// <summary>
+        /// Returns the active parameter scenario in the scene
+        /// </summary>
+        public static ScenarioBase ActiveScenario
+        {
+            get => s_ActiveScenario;
+            private set
+            {
+                if (s_ActiveScenario != null)
+                    throw new ScenarioException("There cannot be more than one active ParameterConfiguration");
+                s_ActiveScenario = value;
+            }
+        }
+
         /// <summary>
         /// The number of frames that have elapsed over the current iteration
         /// </summary>
@@ -56,7 +82,77 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         public virtual void OnComplete() { }
 
-        public abstract string Serialize();
-        public abstract void Deserialize(string json);
+        /// <summary>
+        /// To be overriden in derived Scenario classes
+        /// </summary>
+        public abstract string OnSerialize();
+
+        /// <summary>
+        /// To be overriden in derived Scenario classes
+        /// </summary>
+        public abstract void OnDeserialize(string json);
+
+        /// <summary>
+        /// To be overriden in the Scenario class
+        /// </summary>
+        public abstract void Serialize();
+
+        /// <summary>
+        /// To be overriden in the Scenario class
+        /// </summary>
+        public abstract void Deserialize();
+
+        #region Monobehaviour Methods
+        void OnEnable()
+        {
+            ActiveScenario = this;
+            if (deserializeOnStart)
+                Deserialize();
+        }
+
+        void OnDisable()
+        {
+            s_ActiveScenario = null;
+        }
+
+        void Start()
+        {
+            foreach (var config in ParameterConfiguration.configurations)
+                config.ValidateParameters();
+            Initialize();
+            StartCoroutine(UpdateLoop());
+        }
+
+        IEnumerator UpdateLoop()
+        {
+            yield return null;
+            while (!isScenarioComplete)
+            {
+                foreach (var config in ParameterConfiguration.configurations)
+                    config.ApplyParameters(currentIteration);
+                Setup();
+
+                while (!isIterationComplete)
+                {
+                    NextFrame();
+                    yield return null;
+                }
+
+                Teardown();
+                Iterate();
+            }
+            OnComplete();
+            StopExecution();
+        }
+
+        static void StopExecution()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+        #endregion
     }
 }

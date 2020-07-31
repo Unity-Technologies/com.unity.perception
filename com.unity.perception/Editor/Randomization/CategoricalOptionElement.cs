@@ -30,6 +30,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             };
         }
 
+        // Called from categorical parameter
         public void BindProperties(int i)
         {
             m_Index = i;
@@ -44,8 +45,14 @@ namespace UnityEngine.Perception.Randomization.Editor
 
             var probabilityProperty = m_ProbabilitiesProperty.GetArrayElementAtIndex(i);
             var probability = this.Q<FloatField>("probability");
+            probability.RegisterValueChangedCallback((evt) =>
+            {
+                if (evt.newValue < 0f)
+                    probability.value = 0f;
+            });
+            probability.labelElement.style.minWidth = 0;
+            probability.labelElement.style.marginRight = 4;
             probability.BindProperty(probabilityProperty);
-            probability.label = string.Empty;
         }
     }
 }

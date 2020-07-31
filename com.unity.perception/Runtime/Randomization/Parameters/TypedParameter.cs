@@ -4,13 +4,13 @@ namespace UnityEngine.Perception.Randomization.Parameters
 {
     public abstract class TypedParameter<T> : Parameter
     {
-        public override Type OutputType => typeof(T);
+        public sealed override Type OutputType => typeof(T);
 
         public abstract T Sample(int iteration);
 
         public abstract T[] Samples(int iteration, int totalSamples);
 
-        public override void Apply(int iteration)
+        public sealed override void Apply(int iteration)
         {
             if (!hasTarget)
                 return;
@@ -27,6 +27,13 @@ namespace UnityEngine.Perception.Randomization.Parameters
                     propertyInfo.SetValue(target.component, value);
                     break;
             }
+        }
+
+        public override void Validate()
+        {
+            base.Validate();
+            foreach (var sampler in Samplers)
+                sampler.Validate();
         }
     }
 }

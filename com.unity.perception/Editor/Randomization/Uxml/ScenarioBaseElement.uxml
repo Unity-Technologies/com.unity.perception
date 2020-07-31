@@ -1,0 +1,20 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement>
+        <Style src="../Uss/Styles.uss"/>
+
+        <VisualElement name="inspector-properties"/>
+
+        <VisualElement name="constants-container">
+            <Label text="Constants" style="margin-top: 20px; font-size: 20px; -unity-text-align: middle-center;"/>
+            <VisualElement name="configuration-container" class="dark-viewport">
+                <editor:PropertyField binding-path="constants"/>
+                <editor:PropertyField name="configuration-file-name" label="Constants File Name" binding-path="serializedConstantsFileName"/>
+                <editor:PropertyField name="deserialize-on-start" label="Deserialize On Start" binding-path="deserializeOnStart" style="padding-left: 4px;"/>
+                <VisualElement style="flex-direction: row;">
+                    <Button name="serialize-constants" text="Serialize Constants" style="flex-grow: 1;"/>
+                    <Button name="deserialize-constants" text="Deserialize Constants" style="flex-grow: 1;"/>
+                </VisualElement>
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

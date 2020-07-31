@@ -15,30 +15,36 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public List<T> options = new List<T>();
         public List<float> probabilities = new List<float>();
 
-        public List<float> Probabilities => probabilities;
-
         float[] m_NormalizedProbabilities;
 
+        public List<float> Probabilities => probabilities;
         public override Sampler[] Samplers => new Sampler[0];
-        public override Type OutputType => typeof(T);
 
         public override void Validate()
         {
+            base.Validate();
+
             if (uniform)
                 return;
 
             if (probabilities.Count != options.Count)
                 throw new ParameterValidationException("Number of options must be equal to the number of probabilities");
 
-            for (var i = 0; i < probabilities.Count; i++)
-                if (probabilities[i] < 0f)
-                    throw new ParameterValidationException($"Found negative probability at index {i}");
+            NormalizeProbabilities();
+        }
 
+        void NormalizeProbabilities()
+        {
             var totalProbability = 0f;
-            foreach (var probability in probabilities)
+            for (var i = 0; i < probabilities.Count; i++)
+            {
+                var probability = probabilities[i];
+                if (probability < 0f)
+                    throw new ParameterValidationException($"Found negative probability at index {i}");
                 totalProbability += probability;
+            }
 
-            if (Mathf.Approximately(totalProbability, 0f))
+            if (totalProbability <= 0f)
                 throw new ParameterValidationException("Total probability must be greater than 0");
 
             var sum = 0f;
@@ -60,12 +66,14 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
         public override T Sample(int iteration)
         {
+            NormalizeProbabilities();
             var rng = RandomUtility.RandomFromIndex((uint)iteration, seed);
             return Sample(ref rng);
         }
 
         public override T[] Samples(int iteration, int totalSamples)
         {
+            NormalizeProbabilities();
             var samples = new T[totalSamples];
             var rng = RandomUtility.RandomFromIndex((uint)iteration, seed);
             for (var i = 0; i < totalSamples; i++)

@@ -59,7 +59,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         internal void Iterate()
         {
-            Debug.Log("iterating");
             currentIteration++;
             iterationFrameCount = 0;
         }
@@ -135,8 +134,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
                 while (!isIterationComplete)
                 {
-                    NextFrame();
                     yield return null;
+                    NextFrame();
                 }
 
                 Teardown();

@@ -62,8 +62,8 @@ namespace RandomizationTests
         public override void EquivalentManagedAndNativeSamplesTest()
         {
 
-            var managedSamples = m_Parameter.Samples(StaticData.ScenarioIteration, StaticData.TestSampleCount);
-            var nativeSamples = m_Parameter.Samples(StaticData.ScenarioIteration, StaticData.TestSampleCount, out var handle);
+            var managedSamples = m_Parameter.Samples(TestValues.ScenarioIteration, TestValues.TestSampleCount);
+            var nativeSamples = m_Parameter.Samples(TestValues.ScenarioIteration, TestValues.TestSampleCount, out var handle);
             handle.Complete();
 
             Assert.AreEqual(managedSamples.Length, nativeSamples.Length);

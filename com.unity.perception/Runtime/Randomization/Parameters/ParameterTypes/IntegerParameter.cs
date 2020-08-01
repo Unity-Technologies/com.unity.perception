@@ -13,21 +13,21 @@ namespace UnityEngine.Perception.Randomization.Parameters
         [SerializeReference] public Sampler value = new UniformSampler();
         public override Sampler[] Samplers => new[] { value };
 
-        public override int Sample(int iteration) => (int)value.Sample(iteration);
+        public override int Sample(int seedOffset) => (int)value.Sample(seedOffset);
 
-        public override int[] Samples(int iteration, int totalSamples)
+        public override int[] Samples(int seedOffset, int totalSamples)
         {
             var samples = new int[totalSamples];
-            var rngSamples = value.Samples(iteration, totalSamples);
+            var rngSamples = value.Samples(seedOffset, totalSamples);
             for (var i = 0; i < totalSamples; i++)
                 samples[i] = (int)rngSamples[i];
             return samples;
         }
 
-        public override NativeArray<int> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<int> Samples(int seedOffset, int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<int>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var rngSamples = value.Samples(iteration, totalSamples, out jobHandle);
+            var rngSamples = value.Samples(seedOffset, totalSamples, out jobHandle);
             jobHandle = new SamplesJob
             {
                 rngSamples = rngSamples,

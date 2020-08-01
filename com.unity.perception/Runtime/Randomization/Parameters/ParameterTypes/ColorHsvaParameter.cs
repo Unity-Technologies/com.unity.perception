@@ -26,35 +26,35 @@ namespace UnityEngine.Perception.Randomization.Parameters
             return color;
         }
 
-        public override Color Sample(int iteration)
+        public override Color Sample(int seedOffset)
         {
             var color = Color.HSVToRGB(
-                hue.Sample(iteration),
-                saturation.Sample(iteration),
-                value.Sample(iteration));
-            color.a = alpha.Sample(iteration);
+                hue.Sample(seedOffset),
+                saturation.Sample(seedOffset),
+                value.Sample(seedOffset));
+            color.a = alpha.Sample(seedOffset);
             return color;
         }
 
-        public override Color[] Samples(int iteration, int totalSamples)
+        public override Color[] Samples(int seedOffset, int totalSamples)
         {
             var samples = new Color[totalSamples];
-            var hueRng = hue.Samples(iteration, totalSamples);
-            var satRng = saturation.Samples(iteration, totalSamples);
-            var valRng = value.Samples(iteration, totalSamples);
-            var alphaRng = value.Samples(iteration, totalSamples);
+            var hueRng = hue.Samples(seedOffset, totalSamples);
+            var satRng = saturation.Samples(seedOffset, totalSamples);
+            var valRng = value.Samples(seedOffset, totalSamples);
+            var alphaRng = value.Samples(seedOffset, totalSamples);
             for (var i = 0; i < totalSamples; i++)
                 samples[i] = CreateColorHsva(hueRng[i], satRng[i], valRng[i], alphaRng[i]);
             return samples;
         }
 
-        public override NativeArray<Color> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<Color> Samples(int seedOffset, int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<Color>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var hueRng = hue.Samples(iteration, totalSamples, out var hueHandle);
-            var satRng = saturation.Samples(iteration, totalSamples, out var satHandle);
-            var valRng = value.Samples(iteration, totalSamples, out var valHandle);
-            var alphaRng = value.Samples(iteration, totalSamples, out var alphaHandle);
+            var hueRng = hue.Samples(seedOffset, totalSamples, out var hueHandle);
+            var satRng = saturation.Samples(seedOffset, totalSamples, out var satHandle);
+            var valRng = value.Samples(seedOffset, totalSamples, out var valHandle);
+            var alphaRng = value.Samples(seedOffset, totalSamples, out var alphaHandle);
 
             var handles = new NativeArray<JobHandle>(4, Allocator.TempJob)
             {

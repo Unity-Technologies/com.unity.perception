@@ -23,15 +23,15 @@ namespace UnityEngine.Perception.Randomization.Samplers
             return new Unity.Mathematics.Random(GetRandomSeed(iteration));
         }
 
-        public override float Sample(int iteration)
+        public override float Sample(int seedOffset)
         {
-            var random = GetRandom(iteration);
+            var random = GetRandom(seedOffset);
             return Sample(ref random);
         }
 
-        public override float[] Samples(int iteration, int totalSamples)
+        public override float[] Samples(int seedOffset, int totalSamples)
         {
-            var random = GetRandom(iteration);
+            var random = GetRandom(seedOffset);
             var samples = new float[totalSamples];
             for (var i = 0; i < totalSamples; i++)
                 samples[i] = Sample(ref random);

@@ -14,19 +14,19 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
         public override Sampler[] Samplers => new []{ value };
 
-        public override float Sample(int iteration)
+        public override float Sample(int seedOffset)
         {
-            return value.Sample(iteration);
+            return value.Sample(seedOffset);
         }
 
-        public override float[] Samples(int iteration, int totalSamples)
+        public override float[] Samples(int seedOffset, int totalSamples)
         {
-            return value.Samples(iteration, totalSamples);
+            return value.Samples(seedOffset, totalSamples);
         }
 
-        public override NativeArray<float> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<float> Samples(int seedOffset, int totalSamples, out JobHandle jobHandle)
         {
-            return value.Samples(iteration, totalSamples, out jobHandle);
+            return value.Samples(seedOffset, totalSamples, out jobHandle);
         }
     }
 }

@@ -18,31 +18,31 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
         public override Sampler[] Samplers => new []{ x, y, z };
 
-        public override Vector3 Sample(int iteration)
+        public override Vector3 Sample(int seedOffset)
         {
             return new Vector3(
-                x.Sample(iteration),
-                y.Sample(iteration),
-                z.Sample(iteration));
+                x.Sample(seedOffset),
+                y.Sample(seedOffset),
+                z.Sample(seedOffset));
         }
 
-        public override Vector3[] Samples(int iteration, int totalSamples)
+        public override Vector3[] Samples(int seedOffset, int totalSamples)
         {
             var samples = new Vector3[totalSamples];
-            var xRng = x.Samples(iteration, totalSamples);
-            var yRng = y.Samples(iteration, totalSamples);
-            var zRng = z.Samples(iteration, totalSamples);
+            var xRng = x.Samples(seedOffset, totalSamples);
+            var yRng = y.Samples(seedOffset, totalSamples);
+            var zRng = z.Samples(seedOffset, totalSamples);
             for (var i = 0; i < totalSamples; i++)
                 samples[i] = new Vector3(xRng[i], yRng[i], zRng[i]);
             return samples;
         }
 
-        public override NativeArray<Vector3> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<Vector3> Samples(int seedOffset, int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<Vector3>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var xRng = x.Samples(iteration, totalSamples, out var xHandle);
-            var yRng = y.Samples(iteration, totalSamples, out var yHandle);
-            var zRng = z.Samples(iteration, totalSamples, out var zHandle);
+            var xRng = x.Samples(seedOffset, totalSamples, out var xHandle);
+            var yRng = y.Samples(seedOffset, totalSamples, out var yHandle);
+            var zRng = z.Samples(seedOffset, totalSamples, out var zHandle);
             var combinedJobHandles = JobHandle.CombineDependencies(xHandle, yHandle, zHandle);
             jobHandle = new SamplesJob
             {

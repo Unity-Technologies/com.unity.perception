@@ -16,12 +16,12 @@ namespace UnityEngine.Perception.Randomization.Samplers
             return math.lerp(range.minimum, range.maximum, rng.NextFloat());
         }
 
-        public override NativeArray<float> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<float> Samples(int seedOffset, int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<float>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             jobHandle = new SampleJob
             {
-                seed = GetRandomSeed(iteration),
+                seed = GetRandomSeed(seedOffset),
                 range = range,
                 samples = samples
             }.Schedule();

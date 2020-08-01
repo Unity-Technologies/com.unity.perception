@@ -71,12 +71,14 @@ namespace UnityEngine.Perception.Randomization.Editor
 
             var targetField = this.Q<PropertyField>("target-field");
             var propertyMenu = this.Q<ToolbarMenu>("property-select-menu");
-            targetField.RegisterCallback<ChangeEvent<Object>>(
-                evt =>
-                {
-                    parameter.target.gameObject = (GameObject)evt.newValue;
-                    FillPropertySelectMenu(parameter, propertyMenu);
-                });
+            targetField.RegisterCallback<ChangeEvent<Object>>((evt) =>
+            {
+                m_SerializedObject.FindProperty("target.component").objectReferenceValue = null;
+                m_SerializedObject.FindProperty("target.propertyName").stringValue = string.Empty;
+                m_SerializedObject.ApplyModifiedProperties();
+                parameter.target.gameObject = (GameObject)evt.newValue;
+                FillPropertySelectMenu(parameter, propertyMenu);
+            });
             FillPropertySelectMenu(parameter, propertyMenu);
 
             var collapseToggle = this.Q<VisualElement>("collapse");
@@ -93,7 +95,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 : new StyleEnum<DisplayStyle>(DisplayStyle.None);
         }
 
-        static void FillPropertySelectMenu(Parameter parameterComponent, ToolbarMenu propertyMenu)
+        void FillPropertySelectMenu(Parameter parameterComponent, ToolbarMenu propertyMenu)
         {
             propertyMenu.menu.MenuItems().Clear();
             if (parameterComponent.target.gameObject == null)
@@ -113,7 +115,11 @@ namespace UnityEngine.Perception.Randomization.Editor
                     option.propertyName,
                     a =>
                     {
-                        parameterComponent.target = option;
+                        m_SerializedObject.FindProperty("target.gameObject").objectReferenceValue = option.gameObject;
+                        m_SerializedObject.FindProperty("target.component").objectReferenceValue = option.component;
+                        m_SerializedObject.FindProperty("target.propertyName").stringValue = option.propertyName;
+                        m_SerializedObject.FindProperty("target.fieldOrProperty").enumValueIndex = (int)option.fieldOrProperty;
+                        m_SerializedObject.ApplyModifiedProperties();
                         propertyMenu.text = option.propertyName;
                     },
                     a => DropdownMenuAction.Status.Normal);

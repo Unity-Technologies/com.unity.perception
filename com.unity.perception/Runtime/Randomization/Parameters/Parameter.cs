@@ -40,7 +40,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
                 throw new ParameterException($"Invalid property target on parameter \"{parameterName}\"");
         }
 
-        public abstract void Apply(int iteration);
+        public abstract void Apply(int seedOffset);
     }
 
     [Serializable]
@@ -50,6 +50,13 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public Component component;
         public string propertyName = "";
         public FieldOrProperty fieldOrProperty;
+        public ParameterApplicationFrequency applicationFrequency;
+    }
+
+    public enum ParameterApplicationFrequency
+    {
+        OnIterationSetup,
+        EveryFrame
     }
 
     public enum FieldOrProperty

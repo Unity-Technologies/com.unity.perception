@@ -16,24 +16,24 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
         static bool Sample(float t) => t >= 0.5f;
 
-        public override bool Sample(int iteration)
+        public override bool Sample(int seedOffset)
         {
-            return Sample(value.Sample(iteration));
+            return Sample(value.Sample(seedOffset));
         }
 
-        public override bool[] Samples(int iteration, int totalSamples)
+        public override bool[] Samples(int seedOffset, int totalSamples)
         {
             var samples = new bool[totalSamples];
-            var rngSamples = value.Samples(iteration, totalSamples);
+            var rngSamples = value.Samples(seedOffset, totalSamples);
             for (var i = 0; i < totalSamples; i++)
                 samples[i] = Sample(rngSamples[i]);
             return samples;
         }
 
-        public override NativeArray<bool> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<bool> Samples(int seedOffset, int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<bool>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var rngSamples = value.Samples(iteration, totalSamples, out jobHandle);
+            var rngSamples = value.Samples(seedOffset, totalSamples, out jobHandle);
             jobHandle = new SamplesJob
             {
                 rngSamples = rngSamples,

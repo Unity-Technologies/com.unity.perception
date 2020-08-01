@@ -11,18 +11,18 @@ namespace UnityEngine.Perception.Randomization.Samplers
     [SamplerMetaData("Placeholder Range")]
     public class PlaceholderRangeSampler : RangedSampler
     {
-        public override float Sample(int iteration)
+        public override float Sample(int seedOffset)
         {
             throw new SamplerException("Cannot sample PlaceholderRangeSampler");
         }
 
-        public override float[] Samples(int iteration, int totalSamples)
+        public override float[] Samples(int seedOffset, int totalSamples)
         {
             throw new SamplerException("Cannot sample PlaceholderRangeSampler");
         }
 
         public override NativeArray<float> Samples(
-            int iteration, int totalSamples, out JobHandle jobHandle)
+            int seedOffset, int totalSamples, out JobHandle jobHandle)
         {
             throw new SamplerException("Cannot sample PlaceholderRangeSampler");
         }

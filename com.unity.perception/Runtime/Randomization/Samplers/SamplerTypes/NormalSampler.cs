@@ -22,12 +22,12 @@ namespace UnityEngine.Perception.Randomization.Samplers
                 rng.NextFloat(), range.minimum, range.maximum, mean, stdDev);
         }
 
-        public override NativeArray<float> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<float> Samples(int seedOffset, int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<float>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             jobHandle = new SampleJob
             {
-                seed = GetRandomSeed(iteration),
+                seed = GetRandomSeed(seedOffset),
                 mean = mean,
                 stdDev = stdDev,
                 range = range,

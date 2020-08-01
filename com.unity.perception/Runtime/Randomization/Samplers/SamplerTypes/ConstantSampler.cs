@@ -19,12 +19,12 @@ namespace UnityEngine.Perception.Randomization.Samplers
             this.value = value;
         }
 
-        public override float Sample(int iteration)
+        public override float Sample(int seedOffset)
         {
             return value;
         }
 
-        public override float[] Samples(int iteration, int totalSamples)
+        public override float[] Samples(int seedOffset, int totalSamples)
         {
             var samples = new float[totalSamples];
             for (var i = 0; i < totalSamples; i++)
@@ -32,7 +32,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
             return samples;
         }
 
-        public override NativeArray<float> Samples(int iteration, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<float> Samples(int seedOffset, int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<float>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             jobHandle = new SampleJob

@@ -6,15 +6,15 @@ namespace UnityEngine.Perception.Randomization.Parameters
     {
         public sealed override Type OutputType => typeof(T);
 
-        public abstract T Sample(int iteration);
+        public abstract T Sample(int seedOffset);
 
-        public abstract T[] Samples(int iteration, int totalSamples);
+        public abstract T[] Samples(int seedOffset, int totalSamples);
 
-        public sealed override void Apply(int iteration)
+        public sealed override void Apply(int seedOffset)
         {
             if (!hasTarget)
                 return;
-            var value = Sample(iteration);
+            var value = Sample(seedOffset);
             var componentType = target.component.GetType();
             switch (target.fieldOrProperty)
             {

@@ -57,10 +57,11 @@ namespace UnityEngine.Perception.Randomization.Configuration
         /// <summary>
         /// Apply all parameters with GameObject targets
         /// </summary>
-        public void ApplyParameters(int iteration)
+        public void ApplyParameters(int seedOffset, ParameterApplicationFrequency frequency)
         {
             foreach (var parameter in parameters)
-                parameter.Apply(iteration);
+                if (parameter.target.applicationFrequency == frequency)
+                    parameter.Apply(seedOffset);
         }
 
         /// <summary>

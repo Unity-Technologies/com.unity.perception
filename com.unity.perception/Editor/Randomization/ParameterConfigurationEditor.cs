@@ -5,6 +5,7 @@ using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Configuration;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
+using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Editor
@@ -77,6 +78,11 @@ namespace UnityEngine.Perception.Randomization.Editor
         void AddParameter(Type parameterType)
         {
             var parameter = (Parameter)m_Config.gameObject.AddComponent(parameterType);
+            foreach (var sampler in parameter.Samplers)
+            {
+                if (sampler is RandomSampler randomSampler)
+                    randomSampler.seed = (uint)Random.Range(1, int.MaxValue);
+            }
             parameter.hideFlags = HideFlags.HideInInspector;
             m_Config.parameters.Add(parameter);
             m_ParameterContainer.Add(new ParameterElement(parameter, this));

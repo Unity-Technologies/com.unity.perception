@@ -64,18 +64,18 @@ namespace UnityEngine.Perception.Randomization.Parameters
                 : options[BinarySearch(randomValue)];
         }
 
-        public override T Sample(int iteration)
+        public override T Sample(int seedOffset)
         {
             NormalizeProbabilities();
-            var rng = RandomUtility.RandomFromIndex((uint)iteration, seed);
+            var rng = RandomUtility.RandomFromIndex((uint)seedOffset, seed);
             return Sample(ref rng);
         }
 
-        public override T[] Samples(int iteration, int totalSamples)
+        public override T[] Samples(int seedOffset, int totalSamples)
         {
             NormalizeProbabilities();
             var samples = new T[totalSamples];
-            var rng = RandomUtility.RandomFromIndex((uint)iteration, seed);
+            var rng = RandomUtility.RandomFromIndex((uint)seedOffset, seed);
             for (var i = 0; i < totalSamples; i++)
                 samples[i] = Sample(ref rng);
             return samples;

@@ -20,17 +20,17 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// <summary>
         /// Generate one sample for the given scenario iteration
         /// </summary>
-        public abstract float Sample(int iteration);
+        public abstract float Sample(int seedOffset);
 
         /// <summary>
         /// Generate multiple samples for the given scenario iteration
         /// </summary>
-        public abstract float[] Samples(int iteration, int totalSamples);
+        public abstract float[] Samples(int seedOffset, int totalSamples);
 
         /// <summary>
         /// Generate multiple samples in a native array for the given scenario iteration
         /// </summary>
-        public abstract NativeArray<float> Samples(int iteration, int totalSamples, out JobHandle jobHandle);
+        public abstract NativeArray<float> Samples(int seedOffset, int totalSamples, out JobHandle jobHandle);
 
         public virtual void Validate() { }
     }

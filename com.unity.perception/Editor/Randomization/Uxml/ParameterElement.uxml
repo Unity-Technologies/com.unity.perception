@@ -25,6 +25,7 @@
                             <Label text="Property" class="unity-base-field__label"/>
                             <editor:ToolbarMenu text="Select A Property" name="property-select-menu" class="property-select-menu"/>
                         </VisualElement>
+                        <editor:PropertyField binding-path="target.applicationFrequency"/>
                     </VisualElement>
                 </Box>
                 <Box name="extra-properties" style="padding-left: 4px; border-top-width: 0px;"/>

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Configuration;
+using UnityEngine.Perception.Randomization.Parameters;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -33,6 +34,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         /// <summary>
+        /// The number of frames that have elapsed since the scenario started
+        /// </summary>
+        public int totalFrameCount { get; private set; }
+
+        /// <summary>
         /// The number of frames that have elapsed over the current iteration
         /// </summary>
         public int iterationFrameCount { get; private set; }
@@ -52,17 +58,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         public int currentIteration { get; protected set; }
 
-        internal void NextFrame()
-        {
-            iterationFrameCount++;
-        }
-
-        internal void Iterate()
-        {
-            currentIteration++;
-            iterationFrameCount = 0;
-        }
-
         /// <summary>
         /// Called before the scenario begins iterating
         /// </summary>
@@ -71,12 +66,17 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <summary>
         /// Called when each scenario iteration starts
         /// </summary>
-        public virtual void Setup() { }
+        public virtual void OnIterationSetup() { }
+
+        /// <summary>
+        /// Called at the start of every frame
+        /// </summary>
+        public virtual void OnFrameStart() { }
 
         /// <summary>
         /// Called right before the scenario iterates
         /// </summary>
-        public virtual void Teardown() { }
+        public virtual void OnIterationTeardown() { }
 
         /// <summary>
         /// Called when the scenario has finished iterating
@@ -129,17 +129,20 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             while (!isScenarioComplete)
             {
                 foreach (var config in ParameterConfiguration.configurations)
-                    config.ApplyParameters(currentIteration);
-                Setup();
-
+                    config.ApplyParameters(currentIteration, ParameterApplicationFrequency.OnIterationSetup);
+                OnIterationSetup();
                 while (!isIterationComplete)
                 {
+                    foreach (var config in ParameterConfiguration.configurations)
+                        config.ApplyParameters(totalFrameCount, ParameterApplicationFrequency.EveryFrame);
+                    OnFrameStart();
                     yield return null;
-                    NextFrame();
+                    iterationFrameCount++;
+                    totalFrameCount++;
                 }
-
-                Teardown();
-                Iterate();
+                OnIterationTeardown();
+                currentIteration++;
+                iterationFrameCount = 0;
             }
             OnComplete();
             QuitApplication();

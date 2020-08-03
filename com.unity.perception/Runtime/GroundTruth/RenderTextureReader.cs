@@ -34,9 +34,6 @@ namespace UnityEngine.Perception.GroundTruth
             this.m_CameraRenderingToSource = cameraRenderingToSource;
             m_NextFrameToCapture = Time.frameCount;
 
-            if (!GraphicsUtilities.SupportsAsyncReadback())
-                m_CpuTexture = new Texture2D(m_Source.width, m_Source.height, m_Source.graphicsFormat, TextureCreationFlags.None);
-
             RenderPipelineManager.endFrameRendering += OnEndFrameRendering;
         }
 
@@ -57,6 +54,10 @@ namespace UnityEngine.Perception.GroundTruth
             if (!GraphicsUtilities.SupportsAsyncReadback())
             {
                 RenderTexture.active = m_Source;
+                
+                if (m_CpuTexture == null)
+                    m_CpuTexture = new Texture2D(m_Source.width, m_Source.height, m_Source.graphicsFormat, TextureCreationFlags.None);
+                
                 m_CpuTexture.ReadPixels(new Rect(
                     Vector2.zero,
                     new Vector2(m_Source.width, m_Source.height)),
@@ -66,13 +67,15 @@ namespace UnityEngine.Perception.GroundTruth
                 m_ImageReadCallback(Time.frameCount, data, m_Source);
                 return;
             }
-
-            var commandBuffer = CommandBufferPool.Get("RenderTextureReader");
-            var frameCount = Time.frameCount;
-            commandBuffer.RequestAsyncReadback(m_Source, r => OnGpuReadback(r, frameCount));
-            context.ExecuteCommandBuffer(commandBuffer);
-            context.Submit();
-            CommandBufferPool.Release(commandBuffer);
+            else
+            {
+                var commandBuffer = CommandBufferPool.Get("RenderTextureReader");
+                var frameCount = Time.frameCount;
+                commandBuffer.RequestAsyncReadback(m_Source, r => OnGpuReadback(r, frameCount));
+                context.ExecuteCommandBuffer(commandBuffer);
+                context.Submit();
+                CommandBufferPool.Release(commandBuffer);
+            }
         }
 
         void OnGpuReadback(AsyncGPUReadbackRequest request, int frameCount)

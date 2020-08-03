@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +10,8 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 #endif
@@ -53,14 +55,6 @@ namespace UnityEngine.Perception.GroundTruth
         List<CameraLabeler> m_Labelers = new List<CameraLabeler>();
         Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
 
-#if URP_PRESENT
-        internal List<ScriptableRenderPass> passes = new List<ScriptableRenderPass>();
-        public void AddScriptableRenderPass(ScriptableRenderPass pass)
-        {
-            passes.Add(pass);
-        }
-#endif
-
         bool m_CapturedLastFrame;
         Ego m_EgoMarker;
 
@@ -69,14 +63,36 @@ namespace UnityEngine.Perception.GroundTruth
         bool m_GroundTruthRendererFeatureRun;
 #pragma warning restore 414
 
+        static PerceptionCamera s_VisualizedPerceptionCamera;
+        static GameObject s_VisualizationCamera;
+        static GameObject s_VisualizationCanvas;
+
+        /// <summary>
+        /// Turns on/off the realtime visualization capability.
+        /// </summary>
+        [SerializeField]
+        public bool showVisualizations = true;
+
+        bool m_ShowingVisualizations;
+
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
         /// </summary>
         public SensorHandle SensorHandle { get; private set; }
 
         static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
-        static ProfilerMarker s_FlipY = new ProfilerMarker("Flip Y (PerceptionCamera)");
         static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
+
+
+#if URP_PRESENT
+        internal List<ScriptableRenderPass> passes = new List<ScriptableRenderPass>();
+        public void AddScriptableRenderPass(ScriptableRenderPass pass)
+        {
+            passes.Add(pass);
+        }
+#endif
+
+        VisualizationCanvas visualizationCanvas => m_ShowingVisualizations ? s_VisualizationCanvas.GetComponent<VisualizationCanvas>() : null;
 
         /// <summary>
         /// Add a data object which will be added to the dataset with each capture. Overrides existing sensor data associated with the given key.
@@ -106,12 +122,75 @@ namespace UnityEngine.Perception.GroundTruth
             SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime);
 
             SetupInstanceSegmentation();
+            var cam = GetComponent<Camera>();
 
-            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            SetupVisualizationCamera(cam);
+#endif
+
             DatasetCapture.SimulationEnding += OnSimulationEnding;
         }
 
+        void OnEnable()
+        {
+            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
+        }
+
+        void Start()
+        {
+            var cam = GetComponent<Camera>();
+            cam.enabled = false;
+        }
+
+        void SetupVisualizationCamera(Camera cam)
+        {
+            var visualizationAllowed = s_VisualizedPerceptionCamera == null;
+
+            if (!visualizationAllowed && showVisualizations)
+            {
+                Debug.LogWarning($"Currently only one PerceptionCamera may be visualized at a time. Disabling visualization on {gameObject.name}.");
+                showVisualizations = false;
+                return;
+            }
+            if (!showVisualizations)
+                return;
+
+            m_ShowingVisualizations = true;
+            s_VisualizedPerceptionCamera = this;
+
+            // set up to render to a render texture instead of the screen
+            var visualizationRenderTexture = new RenderTexture(new RenderTextureDescriptor(cam.pixelWidth, cam.pixelHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 8));
+            visualizationRenderTexture.name = cam.name + "_visualization_texture";
+            cam.targetTexture = visualizationRenderTexture;
+
+            s_VisualizationCamera = new GameObject(cam.name + "_VisualizationCamera");
+            var visualizationCameraComponent = s_VisualizationCamera.AddComponent<Camera>();
+            int layerMask = 1 << LayerMask.NameToLayer("UI");
+            visualizationCameraComponent.orthographic = true;
+            visualizationCameraComponent.cullingMask = layerMask;
+
+            s_VisualizationCanvas = GameObject.Instantiate(Resources.Load<GameObject>("VisualizationUI"));
+            s_VisualizationCanvas.name = cam.name + "_VisualizationCanvas";
+
+            var canvas = s_VisualizationCanvas.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = visualizationCameraComponent;
+
+            var imgObj = new GameObject(cam.name + "_Image");
+            var img = imgObj.AddComponent<RawImage>();
+            img.texture = visualizationRenderTexture;
+
+            var rect = imgObj.transform as RectTransform;
+            rect.SetParent(s_VisualizationCanvas.transform, false);
+            //ensure the rgb image is rendered in the back
+            rect.SetAsFirstSibling();
+            rect.anchorMin = new Vector2(0, 0);
+            rect.anchorMax = new Vector2(1, 1);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.offsetMax = Vector2.zero;
+            rect.offsetMin = Vector2.zero;
+        }
 
         void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)
         {
@@ -133,19 +212,35 @@ namespace UnityEngine.Perception.GroundTruth
             if (!SensorHandle.IsValid)
                 return;
 
-            var cam = GetComponent<Camera>();
-            cam.enabled = SensorHandle.ShouldCaptureThisFrame;
-
+            bool anyVisualizing = false;
             foreach (var labeler in m_Labelers)
             {
                 if (!labeler.enabled)
                     continue;
 
                 if (!labeler.isInitialized)
-                    labeler.Init(this);
+                {
+                    labeler.Init(this, visualizationCanvas);
+                }
 
                 labeler.InternalOnUpdate();
+                anyVisualizing |= labeler.InternalVisualizationEnabled;
             }
+
+            if (m_ShowingVisualizations)
+                CaptureOptions.useAsyncReadbackIfSupported = !anyVisualizing;
+        }
+
+        void LateUpdate()
+        {
+            var cam = GetComponent<Camera>();
+            if (showVisualizations)
+            {
+                cam.enabled = false;
+                if (SensorHandle.ShouldCaptureThisFrame) cam.Render();
+            }
+            else
+                cam.enabled = SensorHandle.ShouldCaptureThisFrame;
         }
 
         void OnValidate()
@@ -200,7 +295,7 @@ namespace UnityEngine.Perception.GroundTruth
             return camera.targetTexture != null || hdAdditionalCameraData.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || camera.cameraType == CameraType.Game;
 #elif URP_PRESENT
             return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal) &&
-                (camera.targetTexture != null || camera.cameraType == CameraType.Game);
+                (camera.targetTexture == null && camera.cameraType == CameraType.Game);
 #else
             return false;
 #endif
@@ -234,7 +329,7 @@ namespace UnityEngine.Perception.GroundTruth
                     continue;
 
                 if (!labeler.isInitialized)
-                    labeler.Init(this);
+                    labeler.Init(this, visualizationCanvas);
 
                 labeler.InternalOnBeginRendering();
             }
@@ -242,15 +337,33 @@ namespace UnityEngine.Perception.GroundTruth
 
         void OnDisable()
         {
-            DatasetCapture.SimulationEnding -= OnSimulationEnding;
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
+        }
+
+        void OnDestroy()
+        {
+            DatasetCapture.SimulationEnding -= OnSimulationEnding;
 
             OnSimulationEnding();
+            CleanupVisualization();
 
             if (SensorHandle.IsValid)
                 SensorHandle.Dispose();
 
             SensorHandle = default;
+        }
+
+        void CleanupVisualization()
+        {
+            if (s_VisualizedPerceptionCamera == this)
+            {
+                Destroy(s_VisualizationCamera);
+                Destroy(s_VisualizationCanvas);
+                s_VisualizedPerceptionCamera = null;
+                s_VisualizationCamera = null;
+                s_VisualizationCanvas = null;
+            }
         }
 
         /// <summary>

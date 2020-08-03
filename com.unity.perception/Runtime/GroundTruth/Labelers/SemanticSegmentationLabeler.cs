@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -8,6 +8,7 @@ using Unity.Collections;
 using Unity.Simulation;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.UI;
 
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
@@ -67,6 +68,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// the camera resolution.
         /// </summary>
         public RenderTexture targetTexture => m_TargetTextureOverride;
+
         [Tooltip("(Optional) The RenderTexture on which semantic segmentation images will be drawn. Will be reformatted on startup.")]
         [SerializeField]
         RenderTexture m_TargetTextureOverride;
@@ -79,6 +81,9 @@ namespace UnityEngine.Perception.GroundTruth
 #endif
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
+
+        private float defaultSegmentTransparency = 0.8f;
+        private float defaultBackgroundTransparency = 0.0f;
 
         /// <summary>
         /// Creates a new SemanticSegmentationLabeler. Be sure to assign <see cref="labelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
@@ -113,12 +118,21 @@ namespace UnityEngine.Perception.GroundTruth
             public string path;
         }
 
+        int camWidth = 0;
+        int camHeight = 0;
+
+        private GameObject segVisual = null;
+        private RawImage segImage = null;
+
+        /// <inheritdoc/>
+        protected override bool supportsVisualization => true;
+
         /// <inheritdoc/>
         protected override void Setup()
         {
             var myCamera = perceptionCamera.GetComponent<Camera>();
-            var width = myCamera.pixelWidth;
-            var height = myCamera.pixelHeight;
+            camWidth = myCamera.pixelWidth;
+            camHeight = myCamera.pixelHeight;
 
             if (labelConfig == null)
             {
@@ -135,11 +149,11 @@ namespace UnityEngine.Perception.GroundTruth
                     Debug.LogError("targetTexture supplied to SemanticSegmentationLabeler must be in Linear mode. Disabling labeler.");
                     this.enabled = false;
                 }
-                var renderTextureDescriptor = new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8);
+                var renderTextureDescriptor = new RenderTextureDescriptor(camWidth, camHeight, GraphicsFormat.R8G8B8A8_UNorm, 8);
                 targetTexture.descriptor = renderTextureDescriptor;
             }
             else
-                m_TargetTextureOverride = new RenderTexture(width, height, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                m_TargetTextureOverride = new RenderTexture(camWidth, camHeight, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 
             targetTexture.Create();
             targetTexture.name = "Labeling";
@@ -174,6 +188,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_SemanticSegmentationTextureReader = new RenderTextureReader<Color32>(targetTexture, myCamera,
                 (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
+
+            visualizationEnabled = supportsVisualization;
         }
 
         void OnSemanticSegmentationImageRead(int frameCount, NativeArray<Color32> data)
@@ -187,6 +203,10 @@ namespace UnityEngine.Perception.GroundTruth
             annotation.ReportFile(datasetRelativePath);
 
             var asyncRequest = Manager.Instance.CreateRequest<AsyncRequest<AsyncSemanticSegmentationWrite>>();
+
+            if (visualizationEnabled)
+                VisualizeSegmentationTexture(data, targetTexture);
+
             imageReadback?.Invoke(new ImageReadbackEventArgs
             {
                 data = data,
@@ -232,6 +252,50 @@ namespace UnityEngine.Perception.GroundTruth
                 m_TargetTextureOverride.Release();
 
             m_TargetTextureOverride = null;
+        }
+
+        /// <inheritdoc/>
+        protected override void PopulateVisualizationPanel(ControlPanel panel)
+        {
+            panel.AddToggleControl("Segmentation Information", enabled => { visualizationEnabled = enabled; });
+
+            defaultSegmentTransparency = 0.8f;
+            defaultBackgroundTransparency = 0.0f;
+
+            panel.AddSliderControl("Object Alpha", defaultSegmentTransparency, val => {
+                if (segImage != null) segImage.material.SetFloat("_SegmentTransparency", val);
+            });
+
+            panel.AddSliderControl("Background Alpha", defaultBackgroundTransparency, val => {
+                if (segImage != null) segImage.material.SetFloat("_BackTransparency", val);
+            });
+
+            segVisual = GameObject.Instantiate(Resources.Load<GameObject>("SegmentTexture"));
+
+            segImage = segVisual.GetComponent<RawImage>();
+            segImage.material.SetFloat("_SegmentTransparency", defaultSegmentTransparency);
+            segImage.material.SetFloat("_BackTransparency", defaultBackgroundTransparency);
+
+            RectTransform rt = segVisual.transform as RectTransform;
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, camWidth);
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
+
+            visualizationCanvas.AddComponent(segVisual, setAsLowestElement: true);
+        }
+
+        void VisualizeSegmentationTexture(NativeArray<Color32> data, RenderTexture texture)
+        {
+            var cpuTexture = new Texture2D(texture.width, texture.height, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
+            cpuTexture.LoadRawTextureData(data);
+            cpuTexture.Apply();
+            segImage.texture = cpuTexture;
+        }
+
+        /// <inheritdoc/>
+        override protected void OnVisualizerEnabledChanged(bool enabled)
+        {
+            if (segVisual != null)
+                segVisual.SetActive(enabled);
         }
     }
 }

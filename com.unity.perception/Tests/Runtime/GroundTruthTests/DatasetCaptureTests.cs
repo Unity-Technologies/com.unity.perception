@@ -277,7 +277,7 @@ namespace GroundTruthTests
             AssertJsonFileEquals(annotationDefinitionsJsonExpected, annotationDefinitionsPath);
 
             FileAssert.Exists(capturesPath);
-            StringAssert.Contains(annotationsJsonExpected, EscapeGuids(File.ReadAllText(capturesPath)));
+            StringAssert.Contains(TestHelper.NormalizeJson(annotationsJsonExpected), EscapeGuids(File.ReadAllText(capturesPath)));
         }
 
         [Test]
@@ -324,7 +324,7 @@ namespace GroundTruthTests
             var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
 
             FileAssert.Exists(capturesPath);
-            StringAssert.Contains(expectedAnnotation, EscapeGuids(File.ReadAllText(capturesPath)));
+            StringAssert.Contains(TestHelper.NormalizeJson(expectedAnnotation), EscapeGuids(File.ReadAllText(capturesPath)));
         }
 
         [Test]
@@ -414,7 +414,7 @@ namespace GroundTruthTests
             var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
 
             FileAssert.Exists(capturesPath);
-            StringAssert.Contains(expectedAnnotation, EscapeGuids(File.ReadAllText(capturesPath)));
+            StringAssert.Contains(TestHelper.NormalizeJson(expectedAnnotation), EscapeGuids(File.ReadAllText(capturesPath)));
         }
 
         public struct TestValues
@@ -470,7 +470,7 @@ namespace GroundTruthTests
             var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
 
             FileAssert.Exists(capturesPath);
-            StringAssert.Contains(expectedAnnotation, EscapeGuids(File.ReadAllText(capturesPath)));
+            StringAssert.Contains(TestHelper.NormalizeJson(expectedAnnotation), EscapeGuids(File.ReadAllText(capturesPath)));
         }
 
         [Test]
@@ -866,12 +866,16 @@ namespace GroundTruthTests
                 jsonExpected = Regex.Replace(jsonExpected, "^\\s*", "", RegexOptions.Multiline);
             }
 
+            jsonActual = TestHelper.NormalizeJson(jsonActual);
+            jsonExpected = TestHelper.NormalizeJson(jsonExpected);
+
             Assert.AreEqual(jsonExpected, jsonActual, $"Expected:\n{jsonExpected}\nActual:\n{jsonActual}");
         }
 
         static string EscapeGuids(string text)
         {
             var result = Regex.Replace(text, @"""[a-z0-9]*-[a-z0-9]*-[a-z0-9]*-[a-z0-9]*-[a-z0-9]*""", "<guid>");
+            result = TestHelper.NormalizeJson(result);
             return result;
         }
     }

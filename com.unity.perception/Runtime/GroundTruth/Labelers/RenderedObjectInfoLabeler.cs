@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -43,6 +44,8 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<int, AsyncMetric> m_ObjectInfoAsyncMetrics;
         MetricDefinition m_RenderedObjectInfoMetricDefinition;
 
+        List<string> vizEntries = null;
+
         /// <summary>
         /// Creates a new RenderedObjectInfoLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
         /// </summary>
@@ -59,6 +62,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
+        protected override bool supportsVisualization => true;
+
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (idLabelConfig == null)
@@ -70,6 +76,8 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 ProduceRenderedObjectInfoMetric(objectInfo, frameCount);
             };
+
+            visualizationEnabled = supportsVisualization;
         }
 
         /// <inheritdoc/>
@@ -99,6 +107,12 @@ namespace UnityEngine.Perception.GroundTruth
                 if (m_VisiblePixelsValues == null || m_VisiblePixelsValues.Length != renderedObjectInfos.Length)
                     m_VisiblePixelsValues = new RenderedObjectInfoValue[renderedObjectInfos.Length];
 
+                bool visualize = visualizationEnabled;
+                if (visualize && vizEntries == null)
+                {
+                    vizEntries = new List<string>();
+                }
+
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
@@ -111,15 +125,41 @@ namespace UnityEngine.Perception.GroundTruth
                         instance_id = objectInfo.instanceId,
                         visible_pixels = objectInfo.pixelCount
                     };
+
+                    if (visualize)
+                    {
+                        var label = labelEntry.label + "_" + objectInfo.instanceId;
+
+                        hudPanel.UpdateEntry(label, objectInfo.pixelCount.ToString());
+                        vizEntries.Add(label);
+                    }
                 }
 
                 metric.ReportValues(m_VisiblePixelsValues);
             }
         }
 
+
+
         bool TryGetLabelEntryFromInstanceId(uint instanceId, out IdLabelEntry labelEntry)
         {
             return idLabelConfig.TryGetLabelEntryFromInstanceId(instanceId, out labelEntry);
+        }
+
+        /// <inheritdoc/>
+        protected override void PopulateVisualizationPanel(ControlPanel panel)
+        {
+            panel.AddToggleControl("Pixel Counts", enabled => { visualizationEnabled = enabled; });
+        }
+
+        /// <inheritdoc/>
+        override protected void OnVisualizerEnabledChanged(bool enabled)
+        {
+            if (!enabled)
+            {
+                hudPanel.RemoveEntries(vizEntries);
+                vizEntries.Clear();
+            }
         }
     }
 }

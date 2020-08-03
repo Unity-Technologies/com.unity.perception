@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine.Serialization;
+using Unity.Simulation;
+using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -42,6 +44,10 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_BoundingBoxAnnotationDefinition;
         BoundingBoxValue[] m_BoundingBoxValues;
 
+        private GameObject visualizationHolder = null;
+
+        private Vector2 originalScreenSize = Vector2.zero;
+
         /// <summary>
         /// Creates a new BoundingBox2DLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
         /// </summary>
@@ -59,6 +65,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
+        protected override bool supportsVisualization => true;
+
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (idLabelConfig == null)
@@ -70,6 +79,12 @@ namespace UnityEngine.Perception.GroundTruth
                 "Bounding box for each labeled object visible to the sensor", id: new Guid(annotationId));
 
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfosCalculated;
+
+            visualizationEnabled = supportsVisualization;
+
+            // Record the original screen size. The screen size can change during play, and the visual bounding
+            // boxes need to be scaled appropriately
+            originalScreenSize = new Vector2(Screen.width, Screen.height);
         }
 
         /// <inheritdoc/>
@@ -108,8 +123,80 @@ namespace UnityEngine.Perception.GroundTruth
                     };
                 }
 
+                if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount)
+                    Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
+
+                if (visualizationEnabled)
+                {
+                    Visualize();
+                }
+
                 asyncAnnotation.ReportValues(m_BoundingBoxValues);
             }
+        }
+
+        /// <inheritdoc/>
+        protected override void PopulateVisualizationPanel(ControlPanel panel)
+        {
+            panel.AddToggleControl("BoundingBoxes", enabled => {
+                visualizationEnabled = enabled;
+            });
+
+            objectPool = new List<GameObject>();
+
+            visualizationHolder = new GameObject("BoundsHolder" + Time.frameCount);
+            visualizationCanvas.AddComponent(visualizationHolder);
+        }
+
+        void ClearObjectPool(int count)
+        {
+            for (int i = count; i < objectPool.Count; i++)
+            {
+                objectPool[i].SetActive(false);
+            }
+        }
+
+        List<GameObject> objectPool = null;
+
+        void Visualize()
+        {
+            ClearObjectPool(m_BoundingBoxValues.Length);
+
+            // The player screen can be dynamically resized during play, need to
+            // scale the bounding boxes appropriately from the original screen size
+            float screenRatioWidth = Screen.width / originalScreenSize.x;
+            float screenRatioHeight = Screen.height / originalScreenSize.y;
+
+            for (int i = 0; i < m_BoundingBoxValues.Length; i++)
+            {
+                var boxVal = m_BoundingBoxValues[i];
+
+                if (i >= objectPool.Count)
+                {
+                    var boundingBoxObject = GameObject.Instantiate(Resources.Load<GameObject>("BoundingBoxPrefab"));
+                    objectPool.Add(boundingBoxObject);
+                    var rectTransform = (RectTransform)boundingBoxObject.transform;
+                    rectTransform.SetParent(visualizationHolder.transform, false);
+                }
+
+                if (!objectPool[i].activeSelf) objectPool[i].SetActive(true);
+
+                string label = boxVal.label_name + "_" + boxVal.instance_id;
+                objectPool[i].GetComponentInChildren<Text>().text = label;
+
+                var rectTrans = objectPool[i].transform as RectTransform;
+
+                rectTrans.anchoredPosition = new Vector2(boxVal.x * screenRatioWidth, -boxVal.y * screenRatioHeight);
+                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, boxVal.width * screenRatioWidth);
+                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, boxVal.height * screenRatioHeight);
+            }
+        }
+
+        /// <inheritdoc/>
+        override protected void OnVisualizerEnabledChanged(bool enabled)
+        {
+            if (visualizationHolder != null)
+                visualizationHolder.SetActive(enabled);
         }
     }
 }

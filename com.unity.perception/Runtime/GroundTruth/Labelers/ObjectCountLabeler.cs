@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Unity.Collections;
 using Unity.Profiling;
+using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -37,6 +38,8 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<int, AsyncMetric> m_ObjectCountAsyncMetrics;
         MetricDefinition m_ObjectCountMetricDefinition;
 
+        List<string> vizEntries = null;
+
         /// <summary>
         /// Creates a new ObjectCountLabeler. This constructor should only be used by serialization. For creation from
         /// user code, use <see cref="ObjectCountLabeler(IdLabelConfig)"/>.
@@ -67,6 +70,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
+        protected override bool supportsVisualization => true;
+
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (labelConfig == null)
@@ -80,6 +86,8 @@ namespace UnityEngine.Perception.GroundTruth
                 ObjectCountsComputed?.Invoke(frameCount, objectCounts, labelConfig.labelEntries);
                 ProduceObjectCountMetric(objectCounts, m_LabelConfig.labelEntries, frameCount);
             };
+
+            visualizationEnabled = supportsVisualization;
         }
 
         /// <inheritdoc/>
@@ -121,6 +129,12 @@ namespace UnityEngine.Perception.GroundTruth
                 if (m_ClassCountValues == null || m_ClassCountValues.Length != entries.Count)
                     m_ClassCountValues = new ClassCountValue[entries.Count];
 
+                bool visualize = visualizationEnabled;
+                if (visualize && vizEntries == null)
+                {
+                    vizEntries = new List<string>();
+                }
+
                 for (var i = 0; i < entries.Count; i++)
                 {
                     m_ClassCountValues[i] = new ClassCountValue()
@@ -129,9 +143,33 @@ namespace UnityEngine.Perception.GroundTruth
                         label_name = entries[i].label,
                         count = counts[i]
                     };
+
+                    if (visualize)
+                    {
+                        var label = entries[i].label + " Counts";
+
+                        hudPanel.UpdateEntry(label, counts[i].ToString());
+                        vizEntries.Add(label);
+                    }
                 }
 
                 classCountAsyncMetric.ReportValues(m_ClassCountValues);
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void PopulateVisualizationPanel(ControlPanel panel)
+        {
+            panel.AddToggleControl("Object Counts", enabled => { visualizationEnabled = enabled; });
+        }
+
+        /// <inheritdoc/>
+        override protected void OnVisualizerEnabledChanged(bool enabled)
+        {
+            if (!enabled)
+            {
+                hudPanel.RemoveEntries(vizEntries);
+                vizEntries.Clear();
             }
         }
     }

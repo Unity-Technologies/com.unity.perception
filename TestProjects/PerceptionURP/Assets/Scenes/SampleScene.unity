@@ -655,7 +655,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c51d9f2c5784bb4aee3fdf021966e14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  light: {fileID: 705507993}
+  targetLight: {fileID: 705507993}
   target: {fileID: 1640252278}
 --- !u!114 &963194232
 MonoBehaviour:

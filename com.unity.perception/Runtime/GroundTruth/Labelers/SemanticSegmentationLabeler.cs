@@ -149,11 +149,11 @@ namespace UnityEngine.Perception.GroundTruth
                     Debug.LogError("targetTexture supplied to SemanticSegmentationLabeler must be in Linear mode. Disabling labeler.");
                     this.enabled = false;
                 }
-                var renderTextureDescriptor = new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8);
+                var renderTextureDescriptor = new RenderTextureDescriptor(camWidth, camHeight, GraphicsFormat.R8G8B8A8_UNorm, 8);
                 targetTexture.descriptor = renderTextureDescriptor;
             }
             else
-                m_TargetTextureOverride = new RenderTexture(width, height, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                m_TargetTextureOverride = new RenderTexture(camWidth, camHeight, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 
             targetTexture.Create();
             targetTexture.name = "Labeling";

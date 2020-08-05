@@ -163,7 +163,7 @@ namespace UnityEngine.Perception.GroundTruth
             s_VisualizedPerceptionCamera = this;
 
             // set up to render to a render texture instead of the screen
-            var visualizationRenderTexture = new RenderTexture(new RenderTextureDescriptor(cam.pixelWidth, cam.pixelHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 8));
+            var visualizationRenderTexture = new RenderTexture(cam.pixelWidth, cam.pixelHeight, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             visualizationRenderTexture.name = cam.name + "_visualization_texture";
             cam.targetTexture = visualizationRenderTexture;
 
@@ -283,7 +283,7 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             };
 
-            CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
+            CaptureCamera.Capture(cam, colorFunctor, flipY: ShouldFlipY(cam));
 
             Profiler.EndSample();
         }
@@ -295,7 +295,7 @@ namespace UnityEngine.Perception.GroundTruth
             var hdAdditionalCameraData = GetComponent<HDAdditionalCameraData>();
 
             //Based on logic in HDRenderPipeline.PrepareFinalBlitParameters
-            return camera.targetTexture != null || hdAdditionalCameraData.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || camera.cameraType == CameraType.Game;
+            return hdAdditionalCameraData.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || (camera.targetTexture == null && camera.cameraType == CameraType.Game);
 #elif URP_PRESENT
             return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal) &&
                 (camera.targetTexture == null && camera.cameraType == CameraType.Game);

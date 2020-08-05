@@ -202,7 +202,7 @@
     },
     "com.unity.simulation.capture": {
       "version": "0.0.10-preview.10",
-      "depth": 1,
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.simulation.core": "0.0.10-preview.17"
@@ -211,7 +211,7 @@
     },
     "com.unity.simulation.core": {
       "version": "0.0.10-preview.17",
-      "depth": 1,
+      "depth": 0,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"

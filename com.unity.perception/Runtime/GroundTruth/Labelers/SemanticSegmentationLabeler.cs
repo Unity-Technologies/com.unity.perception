@@ -123,6 +123,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         private GameObject segVisual = null;
         private RawImage segImage = null;
+        private Texture2D m_CpuTexture = null;
 
         /// <inheritdoc/>
         protected override bool supportsVisualization => true;
@@ -252,6 +253,12 @@ namespace UnityEngine.Perception.GroundTruth
                 m_TargetTextureOverride.Release();
 
             m_TargetTextureOverride = null;
+
+            if (m_CpuTexture != null)
+            {
+                Object.Destroy(m_CpuTexture);
+                m_CpuTexture = null;
+            }
         }
 
         /// <inheritdoc/>
@@ -285,10 +292,12 @@ namespace UnityEngine.Perception.GroundTruth
 
         void VisualizeSegmentationTexture(NativeArray<Color32> data, RenderTexture texture)
         {
-            var cpuTexture = new Texture2D(texture.width, texture.height, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
-            cpuTexture.LoadRawTextureData(data);
-            cpuTexture.Apply();
-            segImage.texture = cpuTexture;
+            if (m_CpuTexture == null)
+                m_CpuTexture = new Texture2D(texture.width, texture.height, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
+
+            m_CpuTexture.LoadRawTextureData(data);
+            m_CpuTexture.Apply();
+            segImage.texture = m_CpuTexture;
         }
 
         /// <inheritdoc/>

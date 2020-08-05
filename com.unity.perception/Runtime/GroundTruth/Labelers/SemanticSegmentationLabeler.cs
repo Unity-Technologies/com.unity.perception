@@ -204,9 +204,6 @@ namespace UnityEngine.Perception.GroundTruth
 
             var asyncRequest = Manager.Instance.CreateRequest<AsyncRequest<AsyncSemanticSegmentationWrite>>();
 
-            if (visualizationEnabled)
-                VisualizeSegmentationTexture(data, targetTexture);
-
             imageReadback?.Invoke(new ImageReadbackEventArgs
             {
                 data = data,
@@ -275,20 +272,13 @@ namespace UnityEngine.Perception.GroundTruth
             segImage = segVisual.GetComponent<RawImage>();
             segImage.material.SetFloat("_SegmentTransparency", defaultSegmentTransparency);
             segImage.material.SetFloat("_BackTransparency", defaultBackgroundTransparency);
+            segImage.texture = targetTexture;
 
             RectTransform rt = segVisual.transform as RectTransform;
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, camWidth);
             rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
 
             visualizationCanvas.AddComponent(segVisual, setAsLowestElement: true);
-        }
-
-        void VisualizeSegmentationTexture(NativeArray<Color32> data, RenderTexture texture)
-        {
-            var cpuTexture = new Texture2D(texture.width, texture.height, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None);
-            cpuTexture.LoadRawTextureData(data);
-            cpuTexture.Apply();
-            segImage.texture = cpuTexture;
         }
 
         /// <inheritdoc/>

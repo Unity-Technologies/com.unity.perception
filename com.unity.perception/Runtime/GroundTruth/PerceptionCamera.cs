@@ -55,7 +55,7 @@ namespace UnityEngine.Perception.GroundTruth
         List<CameraLabeler> m_Labelers = new List<CameraLabeler>();
         Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
 
-        bool m_CapturedLastFrame;
+        int m_LastFrameCaptured = -1;
         Ego m_EgoMarker;
 
 #pragma warning disable 414
@@ -320,6 +320,11 @@ namespace UnityEngine.Perception.GroundTruth
                 return;
             if (!SensorHandle.ShouldCaptureThisFrame)
                 return;
+            //there are cases when OnBeginCameraRendering is called multiple times in the same frame. Ignore the subsequent calls.
+            if (m_LastFrameCaptured == Time.frameCount)
+                return;
+
+            m_LastFrameCaptured = Time.frameCount;
 #if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPaused)
                 return;

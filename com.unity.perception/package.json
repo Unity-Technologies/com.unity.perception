@@ -9,6 +9,6 @@
     "description": "Tools for authoring and executing autonomous vehicle simulations.", 
     "displayName": "Perception", 
     "name": "com.unity.perception", 
-    "unity": "2019.4", 
+    "unity": "2019.3", 
     "version": "0.3.0-preview.1"
 }

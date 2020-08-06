@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 2f09f279848e42cea259348b13bce4c5, type: 3}
   m_Name: IdLabelConfig
-  m_EditorClassIdentifier: Unity.Perception.Runtime:UnityEngine.Perception.GroundTruth:IdLabelConfig
+  m_EditorClassIdentifier: 
   m_LabelEntries:
   - label: Crate
     id: 1

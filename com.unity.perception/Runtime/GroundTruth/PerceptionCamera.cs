@@ -55,7 +55,7 @@ namespace UnityEngine.Perception.GroundTruth
         List<CameraLabeler> m_Labelers = new List<CameraLabeler>();
         Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
 
-        bool m_CapturedLastFrame;
+        int m_LastFrameCaptured = -1;
         Ego m_EgoMarker;
 
 #pragma warning disable 414
@@ -121,6 +121,9 @@ namespace UnityEngine.Perception.GroundTruth
             var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
             SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime);
 
+            AsyncRequest.maxJobSystemParallelism = 0; // Jobs are not chained to one another in any way, maximizing parallelism
+            AsyncRequest.maxAsyncRequestFrameAge = 4; // Ensure that readbacks happen before Allocator.TempJob allocations get stale
+
             SetupInstanceSegmentation();
             var cam = GetComponent<Camera>();
 
@@ -160,7 +163,7 @@ namespace UnityEngine.Perception.GroundTruth
             s_VisualizedPerceptionCamera = this;
 
             // set up to render to a render texture instead of the screen
-            var visualizationRenderTexture = new RenderTexture(new RenderTextureDescriptor(cam.pixelWidth, cam.pixelHeight, UnityEngine.Experimental.Rendering.GraphicsFormat.R8G8B8A8_UNorm, 8));
+            var visualizationRenderTexture = new RenderTexture(cam.pixelWidth, cam.pixelHeight, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             visualizationRenderTexture.name = cam.name + "_visualization_texture";
             cam.targetTexture = visualizationRenderTexture;
 
@@ -280,7 +283,7 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             };
 
-            CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
+            CaptureCamera.Capture(cam, colorFunctor, flipY: ShouldFlipY(cam));
 
             Profiler.EndSample();
         }
@@ -292,7 +295,7 @@ namespace UnityEngine.Perception.GroundTruth
             var hdAdditionalCameraData = GetComponent<HDAdditionalCameraData>();
 
             //Based on logic in HDRenderPipeline.PrepareFinalBlitParameters
-            return camera.targetTexture != null || hdAdditionalCameraData.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || camera.cameraType == CameraType.Game;
+            return hdAdditionalCameraData.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || (camera.targetTexture == null && camera.cameraType == CameraType.Game);
 #elif URP_PRESENT
             return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal) &&
                 (camera.targetTexture == null && camera.cameraType == CameraType.Game);
@@ -317,6 +320,11 @@ namespace UnityEngine.Perception.GroundTruth
                 return;
             if (!SensorHandle.ShouldCaptureThisFrame)
                 return;
+            //there are cases when OnBeginCameraRendering is called multiple times in the same frame. Ignore the subsequent calls.
+            if (m_LastFrameCaptured == Time.frameCount)
+                return;
+
+            m_LastFrameCaptured = Time.frameCount;
 #if UNITY_EDITOR
             if (UnityEditor.EditorApplication.isPaused)
                 return;

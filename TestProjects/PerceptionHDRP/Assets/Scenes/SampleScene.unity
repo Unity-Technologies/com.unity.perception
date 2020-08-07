@@ -778,6 +778,7 @@ MonoBehaviour:
   - id: 1
   - id: 2
   - id: 3
+  showVisualizations: 0
   references:
     version: 1
     00000000:
@@ -785,16 +786,14 @@ MonoBehaviour:
         asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        foldout: 0
         annotationId: f9f22e05-443f-4602-a422-ebe4ea9b55cb
-        idLabelConfig: {fileID: 11400000, guid: 034ffd4e09ffb7348b2fe6634259058a,
+        idLabelConfig: {fileID: 11400000, guid: 258de5b48703743468d34fc5bbdfa3aa,
           type: 2}
     00000001:
       type: {class: SemanticSegmentationLabeler, ns: UnityEngine.Perception.GroundTruth,
         asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        foldout: 0
         annotationId: 12f94d8d-5425-4deb-9b21-5e53ad957d66
         labelConfig: {fileID: 11400000, guid: c140c5aa05dd09e4fadaa26de31b1f39, type: 2}
         m_TargetTextureOverride: {fileID: 0}
@@ -802,18 +801,16 @@ MonoBehaviour:
       type: {class: ObjectCountLabeler, ns: UnityEngine.Perception.GroundTruth, asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        foldout: 0
         objectCountMetricId: 51da3c27-369d-4929-aea6-d01614635ce2
-        m_LabelConfig: {fileID: 11400000, guid: 034ffd4e09ffb7348b2fe6634259058a,
+        m_LabelConfig: {fileID: 11400000, guid: 258de5b48703743468d34fc5bbdfa3aa,
           type: 2}
     00000003:
       type: {class: RenderedObjectInfoLabeler, ns: UnityEngine.Perception.GroundTruth,
         asm: Unity.Perception.Runtime}
       data:
         enabled: 1
-        foldout: 0
         objectInfoMetricId: 5ba92024-b3b7-41a7-9d3f-c03a6a8ddd01
-        idLabelConfig: {fileID: 11400000, guid: 034ffd4e09ffb7348b2fe6634259058a,
+        idLabelConfig: {fileID: 11400000, guid: 258de5b48703743468d34fc5bbdfa3aa,
           type: 2}
 --- !u!1 &1640252278
 GameObject:

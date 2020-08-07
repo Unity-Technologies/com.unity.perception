@@ -28,6 +28,14 @@ Fixed compilation warnings with latest com.unity.simulation.core package.
 
 Fixed errors in example script when exiting play mode
 
+
+Updated to com.unity.simulation.capture version 0.0.10-preview.10 and com.unity.simulation.core version 0.0.10-preview.17
+
+### Fixed
+Fixed compilation warnings with latest com.unity.simulation.core package.
+
+Fixed errors in example script when exiting play mode
+
 ## [0.2.0-preview.2] - 2020-07-15
 
 ### Fixed

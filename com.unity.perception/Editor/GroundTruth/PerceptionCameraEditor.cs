@@ -92,8 +92,19 @@ namespace UnityEditor.Perception.GroundTruth
             }
             if (EditorSettings.asyncShaderCompilation)
             {
-                EditorGUILayout.HelpBox("Asynchronous shader compilation may result in invalid data in beginning frames. This can be disabled in Project Settings -> Edtior -> Asynchronous Shader Compilation", MessageType.Warning);
+                EditorGUILayout.HelpBox("Asynchronous shader compilation may result in invalid data in beginning frames. " +
+                    "This can be disabled in Project Settings -> Edtior -> Asynchronous Shader Compilation", MessageType.Warning);
             }
+#if HDRP_PRESENT
+            var hdRenderPipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset;
+            if (hdRenderPipelineAsset != null &&
+                hdRenderPipelineAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == 
+                UnityEngine.Rendering.HighDefinition.RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
+            {
+                EditorGUILayout.HelpBox("Deferred Only shader mode is not supported by rendering-based labelers. " +
+                    "For correct labeler output, switch Lit Shader Mode to Both or Forward Only in your HD Render Pipeline Asset", MessageType.Error);
+            }
+#endif
         }
 
         CameraLabelerDrawer GetCameraLabelerDrawer(SerializedProperty element, int listIndex)

@@ -50,21 +50,26 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
+                // Cap the max Transparency of the background so that we never
+                // reach 1.0 which causes an anomaly that the _SegmentTransparency
+                // value stops being honored.
+                if (_BackTransparency > 0.998f) _BackTransparency = 0.998f;
+
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
 
-                if (abs(col.r - _RemoveColor.r) < .01f)
+                if (abs(col.r - _RemoveColor.r) < .001f)
                 {
-                    if (abs(col.g - _RemoveColor.g) < .01f)
+                    if (abs(col.g - _RemoveColor.g) < .001f)
                     {
-                        if (abs(col.b - _RemoveColor.b) < .01f)
+                        if (abs(col.b - _RemoveColor.b) < .001f)
                         {
                             col.a = _BackTransparency;
                         }
                     }
                 }
 
-                if (abs(col.a - _BackTransparency) > .01f) col.a = _SegmentTransparency;
+                if (abs(col.a - _BackTransparency) > .001f) col.a = _SegmentTransparency;
 
                 return col;
             }

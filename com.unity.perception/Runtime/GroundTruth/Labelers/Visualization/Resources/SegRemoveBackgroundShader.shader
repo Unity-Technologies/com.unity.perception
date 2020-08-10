@@ -1,4 +1,4 @@
-﻿Shader "Perception/SegRemoveBackgroundShader"
+Shader "Perception/SegRemoveBackgroundShader"
 {
     Properties
     {
@@ -53,18 +53,10 @@
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
 
-                if (abs(col.r - _RemoveColor.r) < .01f)
-                {
-                    if (abs(col.g - _RemoveColor.g) < .01f)
-                    {
-                        if (abs(col.b - _RemoveColor.b) < .01f)
-                        {
-                            col.a = _BackTransparency;
-                        }
-                    }
-                }
-
-                if (abs(col.a - _BackTransparency) > .01f) col.a = _SegmentTransparency;
+                if (abs(col.r - _RemoveColor.r) < .001f && abs(col.g - _RemoveColor.g) < .001f && abs(col.b - _RemoveColor.b) < .001f)
+                    col.a = _BackTransparency;
+                else
+                    col.a = _SegmentTransparency;
 
                 return col;
             }

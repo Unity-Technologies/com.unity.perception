@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -471,6 +472,42 @@ namespace GroundTruthTests
 
             FileAssert.Exists(capturesPath);
             StringAssert.Contains(TestHelper.NormalizeJson(expectedAnnotation), EscapeGuids(File.ReadAllText(capturesPath)));
+        }
+
+        [UnityTest]
+        public IEnumerator AnnotationAsyncReportResult_FindsCorrectPendingCaptureAfterStartingNewSequence()
+        {
+            const string fileName = "my/file.png";
+
+            var value = new[]
+            {
+                new TestValues()
+                {
+                    a = "a string",
+                    b = 10
+                }
+            };
+
+            var ego = DatasetCapture.RegisterEgo("");
+            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+
+            // Record one capture for this frame
+            sensorHandle.ReportCapture(fileName, default);
+
+            // Wait one frame
+            yield return null;
+
+            // Reset the capture step
+            DatasetCapture.StartNewSequence();
+
+            // Record a new capture on different frame that has the same step (0) as the first capture
+            sensorHandle.ReportCapture(fileName, default);
+
+            // Confirm that the annotation correctly skips the first pending capture to write to the second
+            var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
+            Assert.DoesNotThrow(() => asyncAnnotation.ReportValues(value));
+            DatasetCapture.ResetSimulation();
         }
 
         [Test]

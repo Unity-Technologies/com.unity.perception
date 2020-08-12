@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Configuration;
 using UnityEngine.Perception.Randomization.Parameters;
 
@@ -126,8 +127,12 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         IEnumerator UpdateLoop()
         {
+            // TODO: remove this yield when the perception camera no longer skips the first frame of the simulation
+            yield return null;
+
             while (!isScenarioComplete)
             {
+                // DatasetCapture.StartNewSequence();
                 foreach (var config in ParameterConfiguration.configurations)
                     config.ApplyParameters(currentIteration, ParameterApplicationFrequency.OnIterationSetup);
                 OnIterationSetup();
@@ -144,7 +149,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 currentIteration++;
                 currentIterationFrame = 0;
             }
+
             OnComplete();
+
+            // Disable perception cameras
+            foreach (var perceptionCamera in FindObjectsOfType<PerceptionCamera>())
+                perceptionCamera.enabled = false;
+
             QuitApplication();
         }
 

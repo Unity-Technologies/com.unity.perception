@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Configuration;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Samplers;
@@ -30,16 +31,17 @@ namespace RandomizationTests
             Object.DestroyImmediate(m_TestObject);
         }
 
-        void CreateNewScenario()
+        IEnumerator CreateNewScenario()
         {
             m_Scenario = m_TestObject.AddComponent<FixedFrameLengthScenario>();
             m_Scenario.quitOnComplete = false;
+            yield return null;
         }
 
         [UnityTest]
         public IEnumerator SerializationTest()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             m_Scenario.serializedConstantsFileName = "perception_serialization_test";
 
             var constants = new FixedFrameLengthScenario.Constants
@@ -78,7 +80,7 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator MultipleFrameIterationTest()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             const int testIterationFrameCount = 5;
             m_Scenario.constants.framesPerIteration = testIterationFrameCount;
 
@@ -96,7 +98,7 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator ScenarioCompletionTest()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             const int testIterationTotal = 5;
             m_Scenario.constants.framesPerIteration = 1;
             m_Scenario.constants.totalIterations = testIterationTotal;
@@ -115,7 +117,7 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator AppliesParametersEveryFrame()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             m_Scenario.constants.framesPerIteration = 5;
             m_Scenario.constants.totalIterations = 1;
 
@@ -137,7 +139,7 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator AppliesParametersEveryIteration()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             m_Scenario.constants.framesPerIteration = 5;
             m_Scenario.constants.totalIterations = 1;
 
@@ -165,5 +167,28 @@ namespace RandomizationTests
             // ReSharper disable once Unity.InefficientPropertyAccess
             Assert.AreEqual(initialPosition, transform.position);
         }
+        //
+        // [UnityTest]
+        // public IEnumerator StartNewDatasetSequenceEveryIteration()
+        // {
+        //     yield return CreateNewScenario();
+        //     m_Scenario.constants.framesPerIteration = 2;
+        //     m_Scenario.constants.totalIterations = 2;
+        //
+        //     var perceptionCamera = m_TestObject.AddComponent<PerceptionCamera>();
+        //     perceptionCamera.startTime = 0;
+        //
+        //     // Skip first frame
+        //     yield return new WaitForEndOfFrame();
+        //     Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
+        //
+        //     // Second frame, first iteration
+        //     yield return new WaitForEndOfFrame();
+        //     Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, perceptionCamera.period);
+        //
+        //     // Third frame, second iteration, SequenceTime has been reset
+        //     yield return new WaitForEndOfFrame();
+        //     Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
+        // }
     }
 }

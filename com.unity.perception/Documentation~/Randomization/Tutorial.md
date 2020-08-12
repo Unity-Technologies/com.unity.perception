@@ -106,7 +106,7 @@ In this step, we will configure 6 parameters to randomize the scene: *CubePositi
             public int totalIterations = 1000;
         }
     
-        public override bool isIterationComplete => framesSinceIterationSetup >= 1;
+        public override bool isIterationComplete => currentIterationFrame >= 1;
         public override bool isScenarioComplete => currentIteration >= constants.totalIterations;
         
         public ColorHsvaParameter backgroundColorParameter;

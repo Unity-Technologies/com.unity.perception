@@ -167,28 +167,28 @@ namespace RandomizationTests
             // ReSharper disable once Unity.InefficientPropertyAccess
             Assert.AreEqual(initialPosition, transform.position);
         }
-        //
-        // [UnityTest]
-        // public IEnumerator StartNewDatasetSequenceEveryIteration()
-        // {
-        //     yield return CreateNewScenario();
-        //     m_Scenario.constants.framesPerIteration = 2;
-        //     m_Scenario.constants.totalIterations = 2;
-        //
-        //     var perceptionCamera = m_TestObject.AddComponent<PerceptionCamera>();
-        //     perceptionCamera.startTime = 0;
-        //
-        //     // Skip first frame
-        //     yield return new WaitForEndOfFrame();
-        //     Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
-        //
-        //     // Second frame, first iteration
-        //     yield return new WaitForEndOfFrame();
-        //     Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, perceptionCamera.period);
-        //
-        //     // Third frame, second iteration, SequenceTime has been reset
-        //     yield return new WaitForEndOfFrame();
-        //     Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
-        // }
+
+        [UnityTest]
+        public IEnumerator StartNewDatasetSequenceEveryIteration()
+        {
+            yield return CreateNewScenario();
+            m_Scenario.constants.framesPerIteration = 2;
+            m_Scenario.constants.totalIterations = 2;
+
+            var perceptionCamera = m_TestObject.AddComponent<PerceptionCamera>();
+            perceptionCamera.startTime = 0;
+
+            // Skip first frame
+            yield return new WaitForEndOfFrame();
+            Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
+
+            // Second frame, first iteration
+            yield return new WaitForEndOfFrame();
+            Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, perceptionCamera.period);
+
+            // Third frame, second iteration, SequenceTime has been reset
+            yield return new WaitForEndOfFrame();
+            Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
+        }
     }
 }

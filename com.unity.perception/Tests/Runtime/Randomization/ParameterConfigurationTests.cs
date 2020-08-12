@@ -24,8 +24,8 @@ namespace RandomizationTests
             Object.DestroyImmediate(m_TestObject);
         }
 
-        [UnityTest]
-        public IEnumerator CheckForParametersWithSameNameTest()
+        [Test]
+        public void CheckForParametersWithSameNameTest()
         {
             var config = m_TestObject.AddComponent<ParameterConfiguration>();
             var param1 = config.AddParameter<FloatParameter>();
@@ -33,16 +33,14 @@ namespace RandomizationTests
             param1.parameterName = "SameName";
             param2.parameterName = "SameName";
             Assert.Throws<ParameterConfigurationException>(() => config.ValidateParameters());
-            yield return null;
         }
 
-        [UnityTest]
-        public IEnumerator AddingNonParameterTypesTest()
+        [Test]
+        public void AddingNonParameterTypesTest()
         {
             var config = m_TestObject.AddComponent<ParameterConfiguration>();
             Assert.DoesNotThrow(() => config.AddParameter(typeof(FloatParameter)));
             Assert.Throws<ParameterConfigurationException>(() => config.AddParameter(typeof(Rigidbody)));
-            yield return null;
         }
 
         [UnityTest]

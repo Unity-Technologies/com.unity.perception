@@ -36,12 +36,11 @@ namespace RandomizationTests
             Object.DestroyImmediate(m_TestObject);
         }
 
-        [UnityTest]
-        public IEnumerator EquivalentManagedAndNativeSamples()
+        [Test]
+        public void EquivalentManagedAndNativeSamples()
         {
             foreach (var test in m_Tests)
                 test.GeneratesNativeSamples();
-            yield return null;
         }
     }
 

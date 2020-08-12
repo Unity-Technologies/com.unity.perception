@@ -37,15 +37,14 @@ namespace RandomizationTests
             Object.DestroyImmediate(m_TestObject);
         }
 
-        [UnityTest]
-        public IEnumerator NullSamplersTest()
+        [Test]
+        public void NullSamplersTest()
         {
             foreach (var parameter in m_Parameters)
             {
                 foreach (var sampler in parameter.Samplers)
                     Assert.NotNull(sampler);
             }
-            yield return null;
         }
     }
 }

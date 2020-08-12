@@ -44,44 +44,39 @@ namespace RandomizationTests
             NativeSamplesInRange(sampler);
         }
 
-        [UnityTest]
-        public IEnumerator UniformSamplesInRangeTest()
+        [Test]
+        public void UniformSamplesInRangeTest()
         {
             TestSamples(new UniformSampler(0, 1));
-            yield return null;
         }
 
-        [UnityTest]
-        public IEnumerator NormalSamplesInRangeTest()
+        [Test]
+        public void NormalSamplesInRangeTest()
         {
             TestSamples(new NormalSampler(-1, 1, 0, 1));
-            yield return null;
         }
 
-        [UnityTest]
-        public IEnumerator ConstantSamplerTest()
+        [Test]
+        public void ConstantSamplerTest()
         {
             var constantSampler = new ConstantSampler();
             var samples = SamplerUtility.GenerateSamples(constantSampler, k_TestSampleCount);
             Assert.AreEqual(samples.Length, k_TestSampleCount);
             foreach (var sample in samples)
                 Assert.AreEqual(sample, constantSampler.value);
-            yield return null;
         }
 
-        [UnityTest]
-        public IEnumerator PlaceholderRangeThrowsExceptionsWhenSamplingTest()
+        [Test]
+        public void PlaceholderRangeThrowsExceptionsWhenSamplingTest()
         {
             var phSampler = new PlaceholderRangeSampler();
             Assert.Throws<SamplerException>(() => phSampler.NextSample());
-            yield return null;
         }
 
-        [UnityTest]
-        public IEnumerator CatchInvalidSamplerRangeTest()
+        [Test]
+        public void CatchInvalidSamplerRangeTest()
         {
             Assert.Throws<SamplerException>(() => SamplerUtility.ValidateRange(new FloatRange(1, -1)));
-            yield return null;
         }
     }
 }

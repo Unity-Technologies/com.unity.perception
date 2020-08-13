@@ -15,6 +15,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         static int s_LastFrameExecuted = -1;
 
+        const string k_LensDistortionShaderName = "Perception/LensDistortion";
+
         SemanticSegmentationLabelConfig m_LabelConfig;
 
         //Serialize the shader so that the shader asset is included in player builds when the SemanticSegmentationPass is used.
@@ -23,6 +25,9 @@ namespace UnityEngine.Perception.GroundTruth
         //[SerializeField]
         Shader m_ClassLabelingShader;
         Material m_OverrideMaterial;
+
+        private Shader m_LensDistortionShader;
+        private Material m_LensDistortionMaterial;
 
         public SemanticSegmentationCrossPipelinePass(Camera targetCamera, SemanticSegmentationLabelConfig labelConfig) : base(targetCamera)
         {
@@ -33,11 +38,23 @@ namespace UnityEngine.Perception.GroundTruth
         {
             base.Setup();
             m_ClassLabelingShader = Shader.Find(k_ShaderName);
+
             var shaderVariantCollection = new ShaderVariantCollection();
-            shaderVariantCollection.Add(new ShaderVariantCollection.ShaderVariant(m_ClassLabelingShader, PassType.ScriptableRenderPipeline));
-            shaderVariantCollection.WarmUp();
+
+            if (shaderVariantCollection != null)
+                shaderVariantCollection.Add(new ShaderVariantCollection.ShaderVariant(m_ClassLabelingShader, PassType.ScriptableRenderPipeline));
 
             m_OverrideMaterial = new Material(m_ClassLabelingShader);
+
+            // Lens Distortion
+            m_LensDistortionShader = Shader.Find(k_LensDistortionShaderName);
+            if (shaderVariantCollection != null)
+                shaderVariantCollection.Add(new ShaderVariantCollection.ShaderVariant(m_LensDistortionShader, PassType.ScriptableRenderPipeline));
+
+            m_LensDistortionMaterial = new Material(m_LensDistortionShader);
+
+            if(shaderVariantCollection != null)
+                shaderVariantCollection.WarmUp();
         }
 
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)

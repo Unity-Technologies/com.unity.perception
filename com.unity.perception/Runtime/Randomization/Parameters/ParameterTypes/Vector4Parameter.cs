@@ -42,10 +42,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public override NativeArray<Vector4> Samples(int index, int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<Vector4>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var xRng = x.CopyAndIterate(index).NativeSamples(totalSamples, out var xHandle);
-            var yRng = y.CopyAndIterate(index).NativeSamples(totalSamples, out var yHandle);
-            var zRng = z.CopyAndIterate(index).NativeSamples(totalSamples, out var zHandle);
-            var wRng = w.CopyAndIterate(index).NativeSamples(totalSamples, out var wHandle);
+            var xRng = x.CopyAndIterate(index).Samples(totalSamples, out var xHandle);
+            var yRng = y.CopyAndIterate(index).Samples(totalSamples, out var yHandle);
+            var zRng = z.CopyAndIterate(index).Samples(totalSamples, out var zHandle);
+            var wRng = w.CopyAndIterate(index).Samples(totalSamples, out var wHandle);
 
             var handles = new NativeArray<JobHandle>(4, Allocator.Temp)
             {

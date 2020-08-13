@@ -1,31 +1,39 @@
 # Overview
 
-The perception package's randomization toolset enables users to incorporate domain randomization (DR) principles into Unity projects intended for synthetic training data generation.
+The perception package's randomization toolset enables domain randomization (DR) during synthetic training data generation.
 
-What is Domain Randomization?
+**What is Domain Randomization?**
 
 Domain Randomization (DR) is a technique involving the creation of a variety of simulated environments with randomized properties to train a model over a wider domain of environment conditions. The hypothesis behind DR is that models trained on randomized data sets are more likely to adapt to real-world enviroments than their non-randomized counterparts. It is expected that the larger domain of environment conditions generated through DR will encompase more characteristics of actual enviroments than non-randomization data sets.
 
-To this end, the perception package offers the following constructs to help facilitate the randomization of simulations:
-1. Parameters
-2. Samplers
-3. Scenarios
+**How can a Unity project be randomized using the Perception Randomization toolset?** 
 
+Randomizing a project involves the following steps:
+1. Create a parameter configuration
+2. Add parameters to the parameter configuration
+3. Customize parameter properties and samplers
+4. Create a scenario to control simulation execution
 
-## Parameters
-
-Parameters are used to map common types of simulation properties to random variables. For example, a Vector3 size parameter can be used to randomize the x, y, and z dimensions of an obstacle. Or a material parameter can be used to swap between different terrain surface materials.
+As the first step mentions, randomization begins with creating a new ParameterConfiguration component. From here, users can configure and organize new random parameters to control various aspects of their simulation directly from the inspector in the Unity editor.
 
 ![Example Parameters](./Images/ParameterConfiguration.png)
 
-Parameters are configured and organized within a scene using a parameter configuration. Users can create new parameters, modify parameter randomization properties, and even assign target GameObjects to manipulate simulation properties directly from the inspector. Additionally, parameter sub-properties can be modified in playmode better visualize the impact of different randomization settings.
+Next, create a few parameters and modify their properties. Parameters often customize their random variables through the parameter configuration using samplers. Samplers enable users to specify a type of probabilty distribution to use when generating random values.
+
+Finally, add a Scenario component to the scene. Scenarios are used to coordinate the application of randomizations during the execution of a simulation.
+
+Continue reading for more details concerning the three primary components driving randomizations in the perception package: parameters, samplers, and scenarios.
+
+## Parameters
+
+Parameters are used to map common types of simulation properties to random variables. For example, a Vector3 size parameter can be used to randomize the x, y, and z dimensions of an obstacle. Or a material parameter can be used to swap between different terrain surface materials. Additionally, parameter sub-properties can be modified from the parameter configuration in playmode better visualize the impact of different randomization settings.
 
 To read more about how to create custom parameter types, navigate over to the [parameters doc](Parameters.md).
 
 
 ## Samplers
 
-Samplers are classes that deterministically generate random float values from bounded probability distributions. Samplers are considered bounded since each random sampler generates float values within a range defined by a minumum and maximum value. The values generated from samplers are often used to randomize the sub components of parameters.
+Samplers deterministically generate random float values from bounded probability distributions. They are considered bounded since each random sampler generates float values within a range defined by a minumum and maximum value. The values generated from samplers are often used to randomize the sub components of parameters.
 
 ![Example Parameters](./Images/ColorParameter.png)
 
@@ -49,7 +57,7 @@ It was mentioned before in the parameter section of this doc that you can config
 
 Finally, scenarios define constants from which to expose global simulation behaviors automatically. By modifying serialized constants externally, users can customize their simulation runtime even after their project has been built.
 
-Take a look at the [scenarios doc](Scenarios.md) to learn more about creating custom scenarios.
+Visit our [randomization tutorial](Tutorial.md) to get started using the randomization tools in an example project.
 
 
 ## Getting Started

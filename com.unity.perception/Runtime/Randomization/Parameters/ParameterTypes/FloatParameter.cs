@@ -26,7 +26,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
         public override NativeArray<float> Samples(int index, int sampleCount, out JobHandle jobHandle)
         {
-            return value.CopyAndIterate(index).NativeSamples(sampleCount, out jobHandle);
+            return value.CopyAndIterate(index).Samples(sampleCount, out jobHandle);
         }
     }
 }

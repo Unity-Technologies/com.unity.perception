@@ -42,7 +42,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
             return math.lerp(range.minimum, range.maximum, m_Random.NextFloat());
         }
 
-        public NativeArray<float> NativeSamples(int sampleCount, out JobHandle jobHandle)
+        public NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle)
         {
             return SamplerUtility.GenerateSamples(this, sampleCount, out jobHandle);
         }

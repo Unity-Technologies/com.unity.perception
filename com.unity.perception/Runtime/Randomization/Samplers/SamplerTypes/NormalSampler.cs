@@ -13,7 +13,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
     public struct NormalSampler : ISampler
     {
         public float mean;
-        public float stdDev;
+        public float standardDeviation;
         [SerializeField] Unity.Mathematics.Random m_Random;
 
         [field: SerializeField]
@@ -25,11 +25,11 @@ namespace UnityEngine.Perception.Randomization.Samplers
             set => m_Random = new Unity.Mathematics.Random { state = value };
         }
 
-        public NormalSampler(float min, float max, float mean, float stdDev)
+        public NormalSampler(float min, float max, float mean, float standardDeviation)
         {
             range = new FloatRange(min, max);
             this.mean = mean;
-            this.stdDev = stdDev;
+            this.standardDeviation = standardDeviation;
             m_Random = new Unity.Mathematics.Random();
             m_Random.InitState();
         }
@@ -44,10 +44,10 @@ namespace UnityEngine.Perception.Randomization.Samplers
         public float NextSample()
         {
             return SamplerUtility.TruncatedNormalSample(
-                m_Random.NextFloat(), range.minimum, range.maximum, mean, stdDev);
+                m_Random.NextFloat(), range.minimum, range.maximum, mean, standardDeviation);
         }
 
-        public NativeArray<float> NativeSamples(int sampleCount, out JobHandle jobHandle)
+        public NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle)
         {
             return SamplerUtility.GenerateSamples(this, sampleCount, out jobHandle);
         }

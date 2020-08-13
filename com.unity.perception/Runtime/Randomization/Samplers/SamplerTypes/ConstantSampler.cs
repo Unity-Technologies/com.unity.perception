@@ -40,7 +40,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
             return value;
         }
 
-        public NativeArray<float> NativeSamples(int sampleCount, out JobHandle jobHandle)
+        public NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle)
         {
             return SamplerUtility.GenerateSamples(this, sampleCount, out jobHandle);
         }

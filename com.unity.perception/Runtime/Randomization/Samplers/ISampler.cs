@@ -29,6 +29,6 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// <summary>
         /// Schedule a job to generate multiple samples
         /// </summary>
-        NativeArray<float> NativeSamples(int sampleCount, out JobHandle jobHandle);
+        NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle);
     }
 }

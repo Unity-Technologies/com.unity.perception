@@ -156,11 +156,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             foreach (var perceptionCamera in FindObjectsOfType<PerceptionCamera>())
                 perceptionCamera.enabled = false;
 
-            QuitApplication();
-        }
-
-        void QuitApplication()
-        {
             if (quitOnComplete)
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;

@@ -10,7 +10,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
     public static class SamplerUtility
     {
         public const uint largePrime = 0x202A96CF;
-        public const int SamplingBatchSize = 64;
+        public const int samplingBatchSize = 64;
 
         /// <summary>
         /// Non-deterministically generates a random seed
@@ -48,7 +48,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         public static void ValidateRange(FloatRange range)
         {
             if (range.minimum > range.maximum)
-                throw new SamplerException("Invalid sampling range");
+                throw new ArgumentException("Invalid sampling range");
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
             {
                 sampler = sampler,
                 samples = samples
-            }.ScheduleBatch(totalSamples, SamplingBatchSize);
+            }.ScheduleBatch(totalSamples, samplingBatchSize);
             return samples;
         }
 
@@ -90,7 +90,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
             public void Execute(int startIndex, int count)
             {
                 var endIndex = startIndex + count;
-                var batchIndex = (uint)startIndex / SamplingBatchSize;
+                var batchIndex = (uint)startIndex / samplingBatchSize;
                 sampler.seed = IterateSeed(batchIndex, sampler.seed);
                 for (var i = startIndex; i < endIndex; i++)
                     samples[i] = sampler.NextSample();

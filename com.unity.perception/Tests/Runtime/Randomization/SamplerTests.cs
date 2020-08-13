@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using NUnit.Framework;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.TestTools;
@@ -27,7 +28,7 @@ namespace RandomizationTests
 
         static void NativeSamplesInRange(ISampler sampler)
         {
-            var samples = sampler.CopyAndIterate(k_ScenarioIteration).NativeSamples(k_TestSampleCount, out var handle);
+            var samples = sampler.CopyAndIterate(k_ScenarioIteration).Samples(k_TestSampleCount, out var handle);
             handle.Complete();
             Assert.AreEqual(samples.Length, k_TestSampleCount);
             foreach (var sample in samples)
@@ -67,16 +68,9 @@ namespace RandomizationTests
         }
 
         [Test]
-        public void PlaceholderRangeThrowsExceptionsWhenSamplingTest()
-        {
-            var phSampler = new PlaceholderRangeSampler();
-            Assert.Throws<SamplerException>(() => phSampler.NextSample());
-        }
-
-        [Test]
         public void CatchInvalidSamplerRangeTest()
         {
-            Assert.Throws<SamplerException>(() => SamplerUtility.ValidateRange(new FloatRange(1, -1)));
+            Assert.Throws<ArgumentException>(() => SamplerUtility.ValidateRange(new FloatRange(1, -1)));
         }
     }
 }

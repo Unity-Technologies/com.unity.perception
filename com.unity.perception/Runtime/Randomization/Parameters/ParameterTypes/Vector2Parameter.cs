@@ -36,8 +36,8 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public override NativeArray<Vector2> Samples(int index, int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<Vector2>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var xRng = x.CopyAndIterate(index).NativeSamples(totalSamples, out var xHandle);
-            var yRng = y.CopyAndIterate(index).NativeSamples(totalSamples, out var yHandle);
+            var xRng = x.CopyAndIterate(index).Samples(totalSamples, out var xHandle);
+            var yRng = y.CopyAndIterate(index).Samples(totalSamples, out var yHandle);
             var combinedJobHandles = JobHandle.CombineDependencies(xHandle, yHandle);
             jobHandle = new SamplesJob
             {

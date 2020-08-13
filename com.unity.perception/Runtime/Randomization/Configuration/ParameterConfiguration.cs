@@ -11,7 +11,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
     /// Creates parameter interfaces for randomizing simulations
     /// </summary>
     [ExecuteInEditMode]
-    [AddComponentMenu("Randomization/ParameterConfiguration")]
+    [AddComponentMenu("Perception/Randomization/ParameterConfiguration")]
     public class ParameterConfiguration : MonoBehaviour
     {
         public static HashSet<ParameterConfiguration> configurations = new HashSet<ParameterConfiguration>();

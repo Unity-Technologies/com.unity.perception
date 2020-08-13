@@ -17,7 +17,7 @@ namespace RandomizationTests
     public class ScenarioTests
     {
         GameObject m_TestObject;
-        FixedFrameLengthScenario m_Scenario;
+        FixedLengthScenario m_Scenario;
 
         [SetUp]
         public void Setup()
@@ -33,7 +33,7 @@ namespace RandomizationTests
 
         IEnumerator CreateNewScenario()
         {
-            m_Scenario = m_TestObject.AddComponent<FixedFrameLengthScenario>();
+            m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
             m_Scenario.quitOnComplete = false;
             yield return null;
         }
@@ -44,14 +44,14 @@ namespace RandomizationTests
             yield return CreateNewScenario();
             m_Scenario.serializedConstantsFileName = "perception_serialization_test";
 
-            var constants = new FixedFrameLengthScenario.Constants
+            var constants = new FixedLengthScenario.Constants
             {
                 framesPerIteration = 2,
                 startingIteration = 2,
                 totalIterations = 2
             };
 
-            var changedConstants = new FixedFrameLengthScenario.Constants
+            var changedConstants = new FixedLengthScenario.Constants
             {
                 framesPerIteration = 0,
                 startingIteration = 0,

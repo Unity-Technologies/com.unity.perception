@@ -1,9 +1,9 @@
 # Parameters
 
 All parameters are derived from one of three abstract classes:
-1. Categorical parameters
-2. Struct parameters
-3. Typed parameters
+1. `Categorical parameters`
+2. `Struct parameters`
+3. `Typed parameters`
 
 ### Categorical Parameters
 

@@ -190,7 +190,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                     if (iterator.propertyPath == "m_Script" || iterator.propertyPath == "parameterName")
                         continue;
                     if (iterator.type.Contains("managedReference") &&
-                        iterator.managedReferenceFieldTypename == StaticData.SamplerSerializedFieldType)
+                        iterator.managedReferenceFieldTypename == StaticData.samplerSerializedFieldType)
                         m_ExtraProperties.Add(new SamplerElement(iterator.Copy()));
                     else
                     {

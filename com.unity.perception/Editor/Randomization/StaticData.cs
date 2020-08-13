@@ -13,7 +13,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         const string k_RandomizationDir = "Packages/com.unity.perception/Editor/Randomization";
         public const string uxmlDir = k_RandomizationDir + "/Uxml";
 
-        public static readonly string SamplerSerializedFieldType;
+        public static readonly string samplerSerializedFieldType;
 
         public static Type[] parameterTypes;
         public static Type[] samplerTypes;
@@ -22,7 +22,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         {
             GatherParameterAndSamplerTypes();
             var samplerType = typeof(ISampler);
-            SamplerSerializedFieldType = $"{samplerType.Assembly.GetName().Name} {samplerType.FullName}";
+            samplerSerializedFieldType = $"{samplerType.Assembly.GetName().Name} {samplerType.FullName}";
         }
 
         static void GatherParameterAndSamplerTypes()

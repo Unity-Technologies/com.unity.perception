@@ -33,7 +33,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public override NativeArray<bool> Samples(int index, int sampleCount, out JobHandle jobHandle)
         {
             var samples = new NativeArray<bool>(sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var rngSamples = value.CopyAndIterate(index).NativeSamples(sampleCount, out jobHandle);
+            var rngSamples = value.CopyAndIterate(index).Samples(sampleCount, out jobHandle);
             jobHandle = new SamplesJob
             {
                 rngSamples = rngSamples,

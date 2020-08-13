@@ -51,10 +51,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public override NativeArray<Color> Samples(int index, int sampleCount, out JobHandle jobHandle)
         {
             var samples = new NativeArray<Color>(sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var hueRng = hue.CopyAndIterate(index).NativeSamples(sampleCount, out var hueHandle);
-            var satRng = saturation.CopyAndIterate(index).NativeSamples(sampleCount, out var satHandle);
-            var valRng = value.CopyAndIterate(index).NativeSamples(sampleCount, out var valHandle);
-            var alphaRng = alpha.CopyAndIterate(index).NativeSamples(sampleCount, out var alphaHandle);
+            var hueRng = hue.CopyAndIterate(index).Samples(sampleCount, out var hueHandle);
+            var satRng = saturation.CopyAndIterate(index).Samples(sampleCount, out var satHandle);
+            var valRng = value.CopyAndIterate(index).Samples(sampleCount, out var valHandle);
+            var alphaRng = alpha.CopyAndIterate(index).Samples(sampleCount, out var alphaHandle);
 
             var handles = new NativeArray<JobHandle>(4, Allocator.TempJob)
             {

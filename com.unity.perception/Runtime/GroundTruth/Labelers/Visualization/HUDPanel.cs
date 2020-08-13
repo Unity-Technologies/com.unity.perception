@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,119 +14,125 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class HUDPanel : MonoBehaviour
     {
-        Dictionary<string, (bool, KeyValuePanel)> entries = new Dictionary<string, (bool, KeyValuePanel)>();
-        Stack<KeyValuePanel> orphans = new Stack<KeyValuePanel>();
+        readonly Dictionary<string, Dictionary<string, string>> entries = new Dictionary<string, Dictionary<string, string>>();
 
-        /// <summary>
-        /// The panel that will hold all of the key value panel elements, this reference is needed to be able to hide the panel
-        /// </summary>
-        public GameObject contentPanel = null;
-        /// <summary>
-        /// The scroll rect of the HUD panel, this reference is needed to be able to hide the panel
-        /// </summary>
-        public ScrollRect scrollRect = null;
-        /// <summary>
-        /// The background image of the HUD panel, this reference is needed to be able to hide the panel
-        /// </summary>
-        public Image img = null;
+        private GUIStyle keyStyle;
+        private GUIStyle valueStyle;
 
-        void Update()
+        private const int LineHeight = 22;
+        private const int XPadding = 10;
+        private const int YPadding = 10;
+        private const int BoxWidth = 200;
+        private const int YLineSpacing = 4;
+
+        private void Awake()
         {
-            if (entries.Any() != scrollRect.enabled)
+            keyStyle = new GUIStyle
             {
-                scrollRect.enabled = !scrollRect.enabled;
-                img.enabled = scrollRect.enabled;
-                foreach (var i in GetComponentsInChildren<Image>())
-                {
-                    i.enabled = scrollRect.enabled;
-                }
-            }
+                alignment = TextAnchor.MiddleLeft,
+                padding = new RectOffset(10, 10, 5, 5),
+                normal = {textColor = Color.white}
+            };
 
-            // Go through everyone that has not been updated and remove them and
-            // if they have been updated mark them dirty for next round
-            var keys = new List<string>(entries.Keys);
-            foreach (var key in keys)
+            valueStyle = new GUIStyle
             {
-                var entry = entries[key];
-
-                if (!entry.Item1)
-                {
-                    entry.Item2.gameObject.SetActive(false);
-                    orphans.Push(entry.Item2);
-                }
-                else
-                {
-                    entry.Item1 = false;
-                    entries[key] = entry;
-                }
-            }
+                alignment = TextAnchor.MiddleRight,
+                padding = new RectOffset(10, 10, 5, 5),
+                normal = {textColor = Color.white}
+            };
         }
 
         /// <summary>
         /// Updates (or creates) an entry with the passed in key value pair
         /// </summary>
+        /// <param name="labeler">The labeler that requested the HUD entry</param>
         /// <param name="key">The key of the HUD entry</param>
         /// <param name="value">The value of the entry</param>
-        public void UpdateEntry(string key, string value)
+        public void UpdateEntry(CameraLabeler labeler, string key, string value)
         {
-            (bool, KeyValuePanel) val;
+            var name = labeler.GetType().Name;
+            if (!entries.ContainsKey(name)) entries[name] = new Dictionary<string, string>();
+            entries[name][key] = value;
+        }
 
-            if (!entries.ContainsKey(key))
+        private Vector2 scrollPosition;
+
+        private bool guiStylesInitialized = false;
+
+        private void SetUpGUIStyles()
+        {
+            GUI.skin.label.fontSize = 12;
+            GUI.skin.label.font = Resources.Load<Font>("Inter-Light");
+            GUI.skin.label.padding = new RectOffset(0, 0, 1, 1);
+            GUI.skin.label.margin = new RectOffset(0, 0, 1, 1);
+            GUI.skin.box.padding = new RectOffset(5, 5, 5, 5);
+            GUI.skin.toggle.margin = new RectOffset(0, 0, 0, 0);
+            GUI.skin.horizontalSlider.margin = new RectOffset(0, 0, 0, 0);
+            guiStylesInitialized = true;
+        }
+
+        int EntriesCount()
+        {
+            return entries.Count + entries.Sum(entry => entry.Value.Count);
+        }
+
+        internal void onDrawGUI()
+        {
+            if (entries.Count == 0) return;
+
+            if (!guiStylesInitialized) SetUpGUIStyles();
+
+            GUI.depth = 0; // Draw HUD objects on the top of other UI objects
+
+            var height = Math.Min(LineHeight * EntriesCount(), Screen.height * 0.5f - YPadding * 2);
+            var xPos = Screen.width - BoxWidth - XPadding;
+            var yPos = Screen.height - height - YPadding;
+
+            GUILayout.BeginArea(new Rect(xPos, yPos, BoxWidth, height), GUI.skin.box);
+
+            scrollPosition = GUILayout.BeginScrollView(scrollPosition);
+
+            bool firstTime = true;
+            foreach (var labeler in entries.Keys)
             {
-                if (orphans.Any())
+                if (!firstTime) GUILayout.Space(YLineSpacing);
+                firstTime = false;
+                GUILayout.Label(labeler);
+                foreach (var entry in entries[labeler])
                 {
-                    val = (true, orphans.Pop());
-                    val.Item2.gameObject.SetActive(true);
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Space(5);
+                    GUILayout.Label(entry.Key);
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label(entry.Value);
+                    GUILayout.EndHorizontal();
                 }
-                else
-                {
-                    val = (true, GameObject.Instantiate(Resources.Load<GameObject>("KeyValuePanel")).GetComponent<KeyValuePanel>());
-                    val.Item2.transform.SetParent(contentPanel.transform, false);
-                }
-
-                val.Item2.SetKey(key);
-            }
-            else
-            {
-                val = entries[key];
-                val.Item1 = true;
             }
 
-            val.Item2.SetValue(value);
-            entries[key] = val;
+            GUILayout.EndScrollView();
+            GUILayout.EndArea();
         }
 
         /// <summary>
         /// Removes the key value pair from the HUD
         /// </summary>
+        /// <param name="labeler">The labeler that requested the removal</param>
         /// <param name="key">The key of the entry to remove</param>
-        public void RemoveEntry(string key)
+        public void RemoveEntry(CameraLabeler labeler, string key)
         {
-            if (entries.ContainsKey(key))
+            if (entries.ContainsKey(labeler.GetType().Name))
             {
-                var entry = entries[key];
-                entry.Item2.gameObject.SetActive(false);
-                entries.Remove(key);
-                orphans.Push(entry.Item2);
+                entries[labeler.GetType().Name].Remove(key);
             }
         }
 
         /// <summary>
         /// Removes all of the passed in entries from the HUD
         /// </summary>
-        /// <param name="keys">List of keys to remove from the panel</param>
-        public void RemoveEntries(List<string> keys)
+        /// <param name="labeler">The labeler that requested the removal</param>
+        public void RemoveEntries(CameraLabeler labeler)
         {
-            foreach (var k in keys) RemoveEntry(k);
-        }
-
-        /// <summary>
-        /// Removes all of the passed in entries from the HUD
-        /// </summary>
-        /// <param name="keys">List of keys t remove from the panel</param>
-        public void RemoveEntries(string[] keys)
-        {
-            foreach (var k in keys) RemoveEntry(k);
+            entries.Remove(labeler.GetType().Name);
         }
     }
 }

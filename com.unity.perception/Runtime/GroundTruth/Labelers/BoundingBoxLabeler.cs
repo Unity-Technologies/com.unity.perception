@@ -44,9 +44,11 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_BoundingBoxAnnotationDefinition;
         BoundingBoxValue[] m_BoundingBoxValues;
 
-        private GameObject visualizationHolder = null;
-
         private Vector2 originalScreenSize = Vector2.zero;
+
+        private Texture boundingBoxTexture;
+        private Texture labelTexture;
+        private GUIStyle style;
 
         /// <summary>
         /// Creates a new BoundingBox2DLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
@@ -85,6 +87,16 @@ namespace UnityEngine.Perception.GroundTruth
             // Record the original screen size. The screen size can change during play, and the visual bounding
             // boxes need to be scaled appropriately
             originalScreenSize = new Vector2(Screen.width, Screen.height);
+
+            boundingBoxTexture = Resources.Load<Texture>("outline_box");
+            labelTexture = Resources.Load<Texture>("solid_white");
+
+            style = new GUIStyle();
+            style.normal.textColor = Color.black;
+            style.fontSize = 16;
+            style.padding = new RectOffset(4, 4, 4, 4);
+            style.contentOffset = new Vector2(4, 0);
+            style.alignment = TextAnchor.MiddleLeft;
         }
 
         /// <inheritdoc/>
@@ -126,77 +138,34 @@ namespace UnityEngine.Perception.GroundTruth
                 if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount)
                     Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
 
-                if (visualizationEnabled)
-                {
-                    Visualize();
-                }
-
                 asyncAnnotation.ReportValues(m_BoundingBoxValues);
             }
         }
 
         /// <inheritdoc/>
-        protected override void PopulateVisualizationPanel(ControlPanel panel)
+        protected override void OnVisualize()
         {
-            panel.AddToggleControl("BoundingBoxes", enabled => {
-                visualizationEnabled = enabled;
-            });
+            if (m_BoundingBoxValues == null) return;
 
-            objectPool = new List<GameObject>();
-
-            visualizationHolder = new GameObject("BoundsHolder" + Time.frameCount);
-            visualizationCanvas.AddComponent(visualizationHolder);
-        }
-
-        void ClearObjectPool(int count)
-        {
-            for (int i = count; i < objectPool.Count; i++)
-            {
-                objectPool[i].SetActive(false);
-            }
-        }
-
-        List<GameObject> objectPool = null;
-
-        void Visualize()
-        {
-            ClearObjectPool(m_BoundingBoxValues.Length);
+            GUI.depth = 5;
 
             // The player screen can be dynamically resized during play, need to
             // scale the bounding boxes appropriately from the original screen size
             float screenRatioWidth = Screen.width / originalScreenSize.x;
             float screenRatioHeight = Screen.height / originalScreenSize.y;
 
-            for (int i = 0; i < m_BoundingBoxValues.Length; i++)
+            foreach (var box in m_BoundingBoxValues)
             {
-                var boxVal = m_BoundingBoxValues[i];
+                float x = box.x * screenRatioWidth;
+                float y = box.y * screenRatioHeight;
 
-                if (i >= objectPool.Count)
-                {
-                    var boundingBoxObject = GameObject.Instantiate(Resources.Load<GameObject>("BoundingBoxPrefab"));
-                    objectPool.Add(boundingBoxObject);
-                    var rectTransform = (RectTransform)boundingBoxObject.transform;
-                    rectTransform.SetParent(visualizationHolder.transform, false);
-                }
-
-                if (!objectPool[i].activeSelf) objectPool[i].SetActive(true);
-
-                string label = boxVal.label_name + "_" + boxVal.instance_id;
-                objectPool[i].GetComponentInChildren<Text>().text = label;
-
-                var rectTrans = objectPool[i].transform as RectTransform;
-
-                rectTrans.anchoredPosition = new Vector2(boxVal.x * screenRatioWidth, -boxVal.y * screenRatioHeight);
-                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, boxVal.width * screenRatioWidth);
-                rectTrans.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, boxVal.height * screenRatioHeight);
+                var boxRect = new Rect(x, y, box.width * screenRatioWidth, box.height * screenRatioHeight);
+                var labelWidth = Math.Min(120, box.width * screenRatioWidth);
+                var labelRect = new Rect(x, y - 17, labelWidth, 17);
+                GUI.DrawTexture(boxRect, boundingBoxTexture, ScaleMode.StretchToFill, true, 0, Color.yellow, 3, 0.25f);
+                GUI.DrawTexture(labelRect, labelTexture, ScaleMode.StretchToFill, true, 0, Color.yellow, 0, 0);
+                GUI.Label(labelRect, box.label_name + "_" + box.instance_id, style);
             }
-        }
-
-        /// <inheritdoc/>
-        override protected void OnVisualizerEnabledChanged(bool enabled)
-        {
-            if (visualizationHolder != null)
-                visualizationHolder.SetActive(enabled);
         }
     }
 }

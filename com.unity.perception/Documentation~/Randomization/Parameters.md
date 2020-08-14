@@ -1,6 +1,37 @@
-# Custom Parameters
+# Parameters
 
-All parameters derive from the Parameter abstract class, but all included perception package parameter types derive from two specialized Parameter base classes:
+## Lookup Parameters
+
+To obtain a parameter from a paramter configuration, use the GetParameter() method:
+```
+// Get a reference to the parameter configuration attached to this GameObject
+var parameterConfiguration = GetComponent<ParameterConfiguration>();
+
+// Lookup the parameter "ObjectWidth" by name
+var parameter = GetComponent<FloatParameter>("ObjectWidth");
+``` 
+
+## Creating and Sampling Parameters
+
+Parameters are typically managed by `ParameterConfigurations` in the Unity Editor. However, parameters can be instanced independently like a regular class too:
+```
+// Create a color parameter
+var colorParameter = new HsvaColorParameter();
+
+// Generate one color sample
+var color = colorParameter.Sample();
+```
+
+Note that parameters, like samplers, generate new random values for each call to the Sample() method:
+```
+var color1 = colorParameter.Sample();
+var color2 = colorParameter.Sample();
+Assert.AreNotEqual(color1, color2);
+```
+
+## Defining Custom Parameters
+
+All parameters derive from the `Parameter` abstract class, but all included perception package parameter types derive from two specialized Parameter base classes:
 1. `CategoricalParameter`
 2. `NumericParameter`
 
@@ -26,13 +57,19 @@ namespace UnityEngine.Perception.Randomization.Parameters
 
 Numeric parameters use samplers to generate randomized structs. Take a look at the [ColorHsvaParameter]() class included in the perception package for an example on how to implement a numeric parameter.
 
-## Performance
+## Improving Sampling Performance
 For numeric parameters, it is recommended to use the JobHandle overload of the Samples() method when generating a large number of samples. The JobHandle overload will utilize the Unity Burst Compiler and Job System to automatically optimize and multithread parameter sampling jobs. The code block below is an example of how to use this overload to sample two parameters in parallel:
 ```
+// Get a reference to the parameter configuration attached to this GameObject
+var parameterConfiguration = GetComponent<ParameterConfiguration>();
+
+// Lookup parameters
+var cubeColorParameter = parameterConfiguration.GetParameter<HsvaColorParameter>("CubeColor");
+var cubePositionParameter = parameterConfiguration.GetParameter<Vector3Parameter>("CubePosition");
+
 // Schedule sampling jobs
-var currentIteration = ScenarioBase.ActiveScenario.currentIteration
-var cubeColors = ObjectColor.Samples(constants.objectCount, out var colorHandle);
-var cubePositions = ObjectPosition.Samples(constants.objectCount, out var positionHandle);
+var cubeColors = cubeColorParameter.Samples(constants.cubeCount, out var colorHandle);
+var cubePositions = cubePositionParameter.Samples(constants.cubeCount, out var positionHandle);
 
 // Combine job handles
 var handles = JobHandle.CombineDependencies(colorHandle, positionHandle);
@@ -41,7 +78,7 @@ var handles = JobHandle.CombineDependencies(colorHandle, positionHandle);
 handles.Complete();
 
 // Use the created samples
-for (var i = 0; i < constants.objectCount; i++)
+for (var i = 0; i < constants.cubeCount; i++)
 {
     m_ObjectMaterials[i].SetColor(k_BaseColorProperty, cubeColors[i]);
     m_Objects[i].transform.position = cubePositions[i];

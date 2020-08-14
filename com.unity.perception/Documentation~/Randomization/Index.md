@@ -1,10 +1,12 @@
 # Overview
 
-The randomization toolest within the perception package simplifies the process of randomizing aspects of the generated dataset.
+The randomization toolset simplifies randomizing aspects of generating synthetic data. It facilitates exposing parameters for randomization, offers samplers to pick random values from parameters, and provides scenarios to define a full randomization process. Each of these also allows for custom implementations to fit particular randomization needs.
 
 **What is Domain Randomization?**
 
-Domain Randomization is a technique used in the genration of synthetic datasets. It adds variance to the examples used to train an ML model by randomizing several aspects of the content. The intuition is that a model trained on such data is more robust to the inevitable variance encountered in the real world where the model will be tested. The term was first coined by OpenAI when they trained a robot for a pick and place task [using only synthetic data](http://arxiv.org/abs/1703.06907).
+Domain randomization is used to create variability in synthetic datasets to help ML models trained in a synthetic domain (Unity) work well in real world applications. The intuition is that the real world is complex and varies widely, while synthetic datasets have limited variation. By randomizing parts of the synthetic domain the ML model will be exposed to enough variability to perform well when deployed. Domain randomization techniques vary widely in what they randomize and how they choose the randomization to apply. The randomization toolset is intended to facilitate a broad variety of implementations and applications.
+
+Our use of domain randomization draws from Tobin et al. (2017) work training robotic pick and place using purely synthetic data.
 
 **How can a Unity project be randomized using the Perception Randomization toolset?** 
 

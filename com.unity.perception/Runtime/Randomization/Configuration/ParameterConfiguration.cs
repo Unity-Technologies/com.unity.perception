@@ -87,8 +87,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
         public void ResetParameterStates(int scenarioIteration)
         {
             foreach (var parameter in parameters)
-                foreach (var sampler in parameter.samplers)
-                    sampler.ResetState(scenarioIteration);
+                parameter.ResetState(scenarioIteration);
         }
 
         /// <summary>

@@ -77,14 +77,20 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_TargetContainer = this.Q<VisualElement>("target-container");
             ToggleTargetContainer();
             m_TargetPropertyMenu = this.Q<ToolbarMenu>("property-select-menu");
+
             var frequencyField = this.Q<PropertyField>("application-frequency");
             frequencyField.BindProperty(m_SerializedProperty.FindPropertyRelative("target.applicationFrequency"));
+
             var targetField = this.Q<PropertyField>("target");
-            targetField.BindProperty(m_SerializedProperty.FindPropertyRelative("target.gameObject"));
-            targetField.RegisterCallback<ChangeEvent<Object>>((evt) =>
+            var targetObjectProperty = m_SerializedProperty.FindPropertyRelative("target.gameObject");
+            targetField.BindProperty(targetObjectProperty);
+            targetField.RegisterCallback<ChangeEvent<Object>>(evt =>
             {
+                if (evt.newValue == targetObjectProperty.objectReferenceValue)
+                    return;
                 ClearTarget();
-                parameter.target.gameObject = (GameObject)evt.newValue;
+                targetObjectProperty.objectReferenceValue = (GameObject)evt.newValue;
+                m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 ToggleTargetContainer();
                 FillPropertySelectMenu();
             });
@@ -141,8 +147,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             {
                 m_TargetPropertyMenu.menu.AppendAction(
                     TargetPropertyDisplayText(option),
-                    a => { SetTarget(option); },
-                    a => DropdownMenuAction.Status.Normal);
+                    a => { SetTarget(option); });
             }
         }
 

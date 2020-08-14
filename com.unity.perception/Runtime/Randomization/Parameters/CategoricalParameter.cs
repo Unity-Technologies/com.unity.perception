@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Unity.Assertions;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
@@ -12,12 +11,12 @@ namespace UnityEngine.Perception.Randomization.Parameters
     public abstract class CategoricalParameter<T> : CategoricalParameterBase
     {
         [SerializeField] internal bool uniform;
-        [SerializeField] UniformSampler m_Sampler = new UniformSampler(0f, 1f);
+        [SerializeReference] ISampler m_Sampler = new UniformSampler(0f, 1f);
 
         [SerializeField] List<T> m_Options = new List<T>();
         float[] m_NormalizedProbabilities;
 
-        public override ISampler[] samplers => new ISampler[] { m_Sampler };
+        public override ISampler[] samplers => new [] { m_Sampler };
 
         public sealed override Type OutputType => typeof(T);
 
@@ -96,6 +95,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
                 if (probabilities.Count != m_Options.Count)
                     throw new ParameterValidationException(
                         "Number of options must be equal to the number of probabilities");
+                NormalizeProbabilities();
             }
         }
 

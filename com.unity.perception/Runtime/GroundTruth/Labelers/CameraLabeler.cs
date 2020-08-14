@@ -140,7 +140,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (visualizationEnabled) OnVisualize();
         }
 
-        internal void Init(PerceptionCamera newPerceptionCamera)//, VisualizationCanvas visualizationCanvas)
+        internal void Init(PerceptionCamera newPerceptionCamera)
         {
             try
             {
@@ -149,7 +149,7 @@ namespace UnityEngine.Perception.GroundTruth
                 Setup();
                 isInitialized = true;
 
-                m_ShowVisualizations = supportsVisualization;// && visualizationCanvas != null;
+                m_ShowVisualizations = supportsVisualization && perceptionCamera.showVisualizations;
             }
             catch (Exception)
             {

@@ -306,6 +306,19 @@ namespace UnityEngine.Perception.GroundTruth
                 SetupVisualizationElements();
             }
 
+            var rt = segVisual.transform as RectTransform;
+            if (rt != null && camHeight != Screen.height)
+            {
+                camHeight = Screen.height;
+                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
+            }
+
+            if (rt != null && camWidth != Screen.width)
+            {
+                camWidth = Screen.width;
+                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Screen.width);
+            }
+
             GUILayout.Space(4);
             GUILayout.Label("Object Alpha:", labelStyle);
             segmentTransparency = GUILayout.HorizontalSlider(segmentTransparency, 0.0f, 1.0f, sliderStyle, GUI.skin.horizontalSliderThumb);

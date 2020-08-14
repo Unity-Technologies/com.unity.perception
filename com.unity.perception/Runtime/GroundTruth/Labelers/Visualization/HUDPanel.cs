@@ -14,27 +14,30 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class HUDPanel : MonoBehaviour
     {
-        readonly Dictionary<string, Dictionary<string, string>> entries = new Dictionary<string, Dictionary<string, string>>();
+        readonly Dictionary<string, Dictionary<string, string>> m_Entries = new Dictionary<string, Dictionary<string, string>>();
+        readonly Dictionary<string, string> m_LabelerNames = new Dictionary<string, string>();
 
-        private GUIStyle keyStyle;
-        private GUIStyle valueStyle;
+        GUIStyle m_KeyStyle;
+        GUIStyle m_ValueStyle;
 
-        private const int LineHeight = 22;
-        private const int XPadding = 10;
-        private const int YPadding = 10;
-        private const int BoxWidth = 200;
-        private const int YLineSpacing = 4;
+        const int k_LineHeight = 22;
+        const int k_XPadding = 10;
+        const int k_YPadding = 10;
+        const int k_BoxWidth = 200;
+        const int k_YLineSpacing = 4;
 
-        private void Awake()
+        public int entryCount => m_Entries.Keys.Count();
+
+        void Awake()
         {
-            keyStyle = new GUIStyle
+            m_KeyStyle = new GUIStyle
             {
                 alignment = TextAnchor.MiddleLeft,
                 padding = new RectOffset(10, 10, 5, 5),
                 normal = {textColor = Color.white}
             };
 
-            valueStyle = new GUIStyle
+            m_ValueStyle = new GUIStyle
             {
                 alignment = TextAnchor.MiddleRight,
                 padding = new RectOffset(10, 10, 5, 5),
@@ -50,16 +53,19 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="value">The value of the entry</param>
         public void UpdateEntry(CameraLabeler labeler, string key, string value)
         {
-            var name = labeler.GetType().Name;
-            if (!entries.ContainsKey(name)) entries[name] = new Dictionary<string, string>();
-            entries[name][key] = value;
+            if (!m_Entries.ContainsKey(labeler.uniqueLabelerId))
+            {
+                m_Entries[labeler.uniqueLabelerId] = new Dictionary<string, string>();
+                m_LabelerNames[labeler.uniqueLabelerId] = labeler.GetType().Name;
+            }
+            m_Entries[labeler.uniqueLabelerId][key] = value;
         }
 
-        private Vector2 scrollPosition;
+        Vector2 m_ScrollPosition;
 
-        private bool guiStylesInitialized = false;
+        bool m_GUIStylesInitialized = false;
 
-        private void SetUpGUIStyles()
+        void SetUpGUIStyles()
         {
             GUI.skin.label.fontSize = 12;
             GUI.skin.label.font = Resources.Load<Font>("Inter-Light");
@@ -68,37 +74,37 @@ namespace UnityEngine.Perception.GroundTruth
             GUI.skin.box.padding = new RectOffset(5, 5, 5, 5);
             GUI.skin.toggle.margin = new RectOffset(0, 0, 0, 0);
             GUI.skin.horizontalSlider.margin = new RectOffset(0, 0, 0, 0);
-            guiStylesInitialized = true;
+            m_GUIStylesInitialized = true;
         }
 
         int EntriesCount()
         {
-            return entries.Count + entries.Sum(entry => entry.Value.Count);
+            return m_Entries.Count + m_Entries.Sum(entry => entry.Value.Count);
         }
 
-        internal void onDrawGUI()
+        internal void OnDrawGUI()
         {
-            if (entries.Count == 0) return;
+            if (m_Entries.Count == 0) return;
 
-            if (!guiStylesInitialized) SetUpGUIStyles();
+            if (!m_GUIStylesInitialized) SetUpGUIStyles();
 
             GUI.depth = 0; // Draw HUD objects on the top of other UI objects
 
-            var height = Math.Min(LineHeight * EntriesCount(), Screen.height * 0.5f - YPadding * 2);
-            var xPos = Screen.width - BoxWidth - XPadding;
-            var yPos = Screen.height - height - YPadding;
+            var height = Math.Min(k_LineHeight * EntriesCount(), Screen.height * 0.5f - k_YPadding * 2);
+            var xPos = Screen.width - k_BoxWidth - k_XPadding;
+            var yPos = Screen.height - height - k_YPadding;
 
-            GUILayout.BeginArea(new Rect(xPos, yPos, BoxWidth, height), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(xPos, yPos, k_BoxWidth, height), GUI.skin.box);
 
-            scrollPosition = GUILayout.BeginScrollView(scrollPosition);
+            m_ScrollPosition = GUILayout.BeginScrollView(m_ScrollPosition);
 
-            bool firstTime = true;
-            foreach (var labeler in entries.Keys)
+            var firstTime = true;
+            foreach (var labeler in m_Entries.Keys)
             {
-                if (!firstTime) GUILayout.Space(YLineSpacing);
+                if (!firstTime) GUILayout.Space(k_YLineSpacing);
                 firstTime = false;
-                GUILayout.Label(labeler);
-                foreach (var entry in entries[labeler])
+                GUILayout.Label(m_LabelerNames[labeler]);
+                foreach (var entry in m_Entries[labeler])
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Space(5);
@@ -120,9 +126,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="key">The key of the entry to remove</param>
         public void RemoveEntry(CameraLabeler labeler, string key)
         {
-            if (entries.ContainsKey(labeler.GetType().Name))
+            if (m_Entries.ContainsKey(labeler.uniqueLabelerId))
             {
-                entries[labeler.GetType().Name].Remove(key);
+                m_Entries[labeler.uniqueLabelerId].Remove(key);
             }
         }
 
@@ -132,7 +138,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="labeler">The labeler that requested the removal</param>
         public void RemoveEntries(CameraLabeler labeler)
         {
-            entries.Remove(labeler.GetType().Name);
+            m_Entries.Remove(labeler.uniqueLabelerId);
+            m_LabelerNames.Remove(labeler.uniqueLabelerId);
         }
     }
 }

@@ -64,7 +64,7 @@ namespace UnityEngine.Perception.GroundTruth
 #pragma warning restore 414
 
         static PerceptionCamera s_VisualizedPerceptionCamera;
-        
+
         /// <summary>
         /// Turns on/off the realtime visualization capability.
         /// </summary>
@@ -195,7 +195,9 @@ namespace UnityEngine.Perception.GroundTruth
                 anyVisualizing |= labeler.InternalVisualizationEnabled;
             }
 
-            // TODO - figure this out or talk to Jon about it. Push off to later...
+            // Currently there is an issue in the perception camera that causes the UI layer not to be visualized
+            // if we are utilizing async readback and we have to flip our captured image. We have created a jira
+            // issue for this (aisv-779) and have notified the engine team about this.
             anyVisualizing = true;
 
             if (m_ShowingVisualizations)
@@ -243,7 +245,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             GUI.depth = 0;
 
-            hudPanel.onDrawGUI();
+            hudPanel.OnDrawGUI();
 
             var x = Screen.width - panelWidth - 10;
             var height = Math.Min(Screen.height * 0.5f - 20, panelHeight);

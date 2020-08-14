@@ -47,6 +47,15 @@ namespace UnityEngine.Perception.GroundTruth
         protected SensorHandle sensorHandle { get; private set; }
 
         /// <summary>
+        /// Each labeler needs a unique ID for their metrics or annotations.
+        /// </summary>
+        /// <returns>The unique labeler ID as a string</returns>
+        internal abstract string uniqueLabelerId
+        {
+            get;
+        }
+
+        /// <summary>
         /// Called just before the first call to <see cref="OnUpdate"/> or <see cref="OnBeginRendering"/>. Implement this
         /// to initialize state.
         /// </summary>
@@ -67,13 +76,15 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Labeling pass to display labeler's visualization components, if applicable. Important note, all labeler's visualizations need
         /// to use Unity's Immediate Mode GUI (IMGUI) <see cref="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
-        /// This called is triggered from <see cref="perceptionCamera.OnGUI"/> call.
+        /// This called is triggered from <see cref="perceptionCamera.OnGUI"/> call. This call happens immediately before <see cref="OnVisualizeAdditionalUI"/>
+        /// so that the visualization components are drawn below the UI elements.
         /// </summary>
         protected virtual void OnVisualize() {}
         /// <summary>
         /// In this pass, a labeler can add custom GUI controls to the scene. Important note, all labeler's additional
         /// GUIs need to use Unity's Immediate Mode GUI (IMGUI) <see cref="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
-        /// This called is triggered from <see cref="perceptionCamera.OnGUI"/> call.
+        /// This called is triggered from <see cref="perceptionCamera.OnGUI"/> call. This call happens immediately after the <see cref="OnVisualize"/>
+        /// so that the visualization components are drawn below the UI elements.
         /// </summary>
         protected virtual void OnVisualizeAdditionalUI() {}
 

@@ -68,6 +68,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <inheritdoc/>
         protected override bool supportsVisualization => true;
+        /// <inheritdoc/>
+        internal override string uniqueLabelerId => annotationId;
 
         /// <inheritdoc/>
         protected override void Setup()

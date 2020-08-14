@@ -39,6 +39,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public SemanticSegmentationLabelConfig labelConfig;
 
+        /// <inheritdoc/>
+        internal override string uniqueLabelerId => annotationId;
+
         /// <summary>
         /// Event information for <see cref="SemanticSegmentationLabeler.imageReadback"/>
         /// </summary>
@@ -304,6 +307,19 @@ namespace UnityEngine.Perception.GroundTruth
             if (segImage == null)
             {
                 SetupVisualizationElements();
+            }
+
+            var rt = segVisual.transform as RectTransform;
+            if (rt != null && camHeight != Screen.height)
+            {
+                camHeight = Screen.height;
+                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
+            }
+
+            if (rt != null && camWidth != Screen.width)
+            {
+                camWidth = Screen.width;
+                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Screen.width);
             }
 
             GUILayout.Space(4);

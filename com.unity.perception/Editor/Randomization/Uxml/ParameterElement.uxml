@@ -8,20 +8,20 @@
                 <Box class="parameter-type-label-box">
                     <VisualElement name="collapse" class="collapse-parameter-toggle foldout-open"/>
                     <Label name="parameter-type-label" text="Type:" class="parameter-type-label"/>
-                    <TextField binding-path="parameterName" name="parameter-name" text="Parameter Name"/>
+                    <TextField name="name" text="Parameter Name"/>
                 </Box>
                 <Button name="remove-parameter" class="remove-parameter-button"/>
             </VisualElement>
 
             <VisualElement name="properties" class="parameter-properties-container" style="margin-bottom: 2px;">
                 <Box>
-                    <editor:PropertyField label="Target GameObject" binding-path="target.gameObject" name="target-field"/>
+                    <editor:PropertyField label="Target GameObject" name="target"/>
                     <VisualElement name="target-container">
                         <VisualElement class="unity-base-field">
                             <Label text="Target Property" class="unity-base-field__label"/>
                             <editor:ToolbarMenu text="Select A Property" name="property-select-menu" class="property-select-menu"/>
                         </VisualElement>
-                        <editor:PropertyField binding-path="target.applicationFrequency"/>
+                        <editor:PropertyField name="application-frequency"/>
                     </VisualElement>
                 </Box>
                 <Box name="extra-properties" style="padding-left: 4px; border-top-width: 0px;"/>

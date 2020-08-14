@@ -1,4 +1,5 @@
-﻿using Unity.Burst;
+﻿using System;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
@@ -6,9 +7,9 @@ using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
-    [AddComponentMenu("")]
+    [Serializable]
     [ParameterMetaData("Bool")]
-    public class BooleanParameter : StructParameter<bool>
+    public class BooleanParameter : NumericParameter<bool>
     {
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
 

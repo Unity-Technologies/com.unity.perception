@@ -26,7 +26,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.parameterName == parameterName)
+                if (parameter.name == parameterName)
                     return parameter;
             }
             throw new ParameterConfigurationException(
@@ -40,7 +40,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.parameterName == parameterName && parameter is T typedParameter)
+                if (parameter.name == parameterName && parameter is T typedParameter)
                     return typedParameter;
             }
             throw new ParameterConfigurationException(
@@ -49,16 +49,16 @@ namespace UnityEngine.Perception.Randomization.Configuration
 
         void NameAndAddParameterToList(Parameter parameter)
         {
-            parameter.parameterName = $"Parameter{parameters.Count}";
+            parameter.name = $"Parameter{parameters.Count}";
             parameters.Add(parameter);
         }
 
         /// <summary>
         /// Adds a new typed parameter to this configuration
         /// </summary>
-        public T AddParameter<T>() where T : Parameter
+        public T AddParameter<T>() where T : Parameter, new()
         {
-            var parameter = gameObject.AddComponent<T>();
+            var parameter = new T();
             NameAndAddParameterToList(parameter);
             return parameter;
         }
@@ -70,7 +70,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
         {
             if (!parameterType.IsSubclassOf(typeof(Parameter)))
                 throw new ParameterConfigurationException($"Cannot add non-parameter types ({parameterType})");
-            var parameter = (Parameter)gameObject.AddComponent(parameterType);
+            var parameter = (Parameter)Activator.CreateInstance(parameterType);
             NameAndAddParameterToList(parameter);
             return parameter;
         }
@@ -93,10 +93,10 @@ namespace UnityEngine.Perception.Randomization.Configuration
             var parameterNames = new HashSet<string>();
             foreach (var parameter in parameters)
             {
-                if (parameterNames.Contains(parameter.parameterName))
+                if (parameterNames.Contains(parameter.name))
                     throw new ParameterConfigurationException($"Two or more parameters cannot share the same name " +
-                        $"(\"{parameter.parameterName}\")");
-                parameterNames.Add(parameter.parameterName);
+                        $"(\"{parameter.name}\")");
+                parameterNames.Add(parameter.name);
                 parameter.Validate();
             }
         }
@@ -109,38 +109,6 @@ namespace UnityEngine.Perception.Randomization.Configuration
         void OnDisable()
         {
             configurations.Remove(this);
-        }
-
-        void OnDestroy()
-        {
-#if UNITY_EDITOR
-            // Cleaning up child parameters requires detecting if the scene is changing.
-            // A scene change causes all objects to be destroyed and destroying objects twice throws an error.
-
-            // Check if in play mode and not changing from play mode to edit mode
-            if (EditorApplication.isPlayingOrWillChangePlaymode && EditorApplication.isPlaying)
-            {
-                foreach(var parameter in parameters)
-                    if (parameter != null) Destroy(parameter);
-            }
-            // Check if in the editor and not changing from edit mode to play mode
-            else if (!EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
-            {
-                // Delaying the destroy call avoids the issue of destroying child parameters
-                // twice when the user changes scenes in the editor
-                EditorApplication.delayCall += () =>
-                {
-                    foreach (var parameter in parameters)
-                    {
-                        var param = parameter;
-                        if (param != null) DestroyImmediate(param);
-                    }
-                };
-            }
-#else
-            foreach(var parameter in parameters)
-                if (parameter != null) Destroy(parameter);
-#endif
         }
     }
 }

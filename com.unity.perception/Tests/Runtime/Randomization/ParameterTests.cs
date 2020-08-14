@@ -19,15 +19,15 @@ namespace RandomizationTests
             m_TestObject = new GameObject();
             m_Parameters = new Parameter[]
             {
-                m_TestObject.AddComponent<BooleanParameter>(),
-                m_TestObject.AddComponent<IntegerParameter>(),
-                m_TestObject.AddComponent<FloatParameter>(),
-                m_TestObject.AddComponent<Vector2Parameter>(),
-                m_TestObject.AddComponent<Vector3Parameter>(),
-                m_TestObject.AddComponent<Vector4Parameter>(),
-                m_TestObject.AddComponent<ColorHsvaParameter>(),
-                m_TestObject.AddComponent<StringParameter>(),
-                m_TestObject.AddComponent<MaterialParameter>()
+                new BooleanParameter(),
+                new IntegerParameter(),
+                new FloatParameter(),
+                new Vector2Parameter(),
+                new Vector3Parameter(),
+                new Vector4Parameter(),
+                new ColorHsvaParameter(),
+                new StringParameter(),
+                new MaterialParameter()
             };
         }
 

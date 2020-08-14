@@ -13,25 +13,23 @@ namespace UnityEngine.Perception.Randomization.Editor
         ISampler m_Sampler;
         SerializedProperty m_Property;
         SerializedProperty m_RangeProperty;
-        SerializedObject m_ParameterSo;
         VisualElement m_Properties;
         ToolbarMenu m_SamplerTypeDropdown;
 
-        public SamplerElement(SerializedProperty property)
+        public SamplerElement(SerializedProperty property, Parameter parameter)
         {
             m_Property = property;
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{StaticData.uxmlDir}/SamplerElement.uxml");
             template.CloneTree(this);
 
-            m_ParameterSo = property.serializedObject;
-            m_Parameter = (Parameter)m_ParameterSo.targetObject;
+            m_Parameter = parameter;
             m_Sampler = GetSamplerFromSerializedObject();
 
             if (m_Sampler == null)
                 CreateSampler(typeof(UniformSampler));
 
             var samplerName = this.Q<Label>("sampler-name");
-            samplerName.text = UppercaseFirstLetter(m_Property.propertyPath);
+            samplerName.text = UppercaseFirstLetter(m_Property.name);
 
             m_Properties = this.Q<VisualElement>("fields-container");
             m_SamplerTypeDropdown = this.Q<ToolbarMenu>("sampler-type-dropdown");
@@ -66,7 +64,7 @@ namespace UnityEngine.Perception.Randomization.Editor
 
             m_Sampler = newSampler;
             m_Property.managedReferenceValue = newSampler;
-            m_ParameterSo.ApplyModifiedProperties();
+            m_Property.serializedObject.ApplyModifiedProperties();
         }
 
         void CreatePropertyFields()
@@ -110,9 +108,9 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         ISampler GetSamplerFromSerializedObject()
         {
-            var propertyPath = m_Property.propertyPath;
-            var parameterType = m_Parameter.GetType();
-            return (ISampler)parameterType.GetField(propertyPath).GetValue(m_Parameter);
+            var configType = m_Parameter.GetType();
+            var field = configType.GetField(m_Property.name);
+            return (ISampler)field.GetValue(m_Parameter);
         }
     }
 }

@@ -30,8 +30,8 @@ namespace RandomizationTests
             var config = m_TestObject.AddComponent<ParameterConfiguration>();
             var param1 = config.AddParameter<FloatParameter>();
             var param2 = config.AddParameter<BooleanParameter>();
-            param1.parameterName = "SameName";
-            param2.parameterName = "SameName";
+            param1.name = "SameName";
+            param2.name = "SameName";
             Assert.Throws<ParameterConfigurationException>(() => config.ValidateParameters());
         }
 

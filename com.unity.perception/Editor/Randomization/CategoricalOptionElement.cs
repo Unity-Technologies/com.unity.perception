@@ -11,7 +11,9 @@ namespace UnityEngine.Perception.Randomization.Editor
         SerializedProperty m_OptionsProperty;
         SerializedProperty m_ProbabilitiesProperty;
 
-        public CategoricalOptionElement(SerializedProperty optionsProperty, SerializedProperty probabilitiesProperty, ListView view)
+        public CategoricalOptionElement(
+            SerializedProperty optionsProperty,
+            SerializedProperty probabilitiesProperty)
         {
             m_OptionsProperty = optionsProperty;
             m_ProbabilitiesProperty = probabilitiesProperty;
@@ -19,15 +21,6 @@ namespace UnityEngine.Perception.Randomization.Editor
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/CategoricalOptionElement.uxml");
             template.CloneTree(this);
-
-            var removeButton = this.Q<Button>("remove");
-            removeButton.clicked += () =>
-            {
-                optionsProperty.DeleteArrayElementAtIndex(m_Index);
-                probabilitiesProperty.DeleteArrayElementAtIndex(m_Index);
-                optionsProperty.serializedObject.ApplyModifiedProperties();
-                view.Refresh();
-            };
         }
 
         // Called from categorical parameter
@@ -36,12 +29,6 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_Index = i;
             var indexLabel = this.Q<Label>("index-label");
             indexLabel.text = $"[{m_Index}]";
-
-            var optionProperty = m_OptionsProperty.GetArrayElementAtIndex(i);
-            var option = this.Q<PropertyField>("option");
-            option.BindProperty(optionProperty);
-            var label = option.Q<Label>();
-            label.parent.Remove(label);
 
             var probabilityProperty = m_ProbabilitiesProperty.GetArrayElementAtIndex(i);
             var probability = this.Q<FloatField>("probability");
@@ -53,6 +40,12 @@ namespace UnityEngine.Perception.Randomization.Editor
             probability.labelElement.style.minWidth = 0;
             probability.labelElement.style.marginRight = 4;
             probability.BindProperty(probabilityProperty);
+
+            var optionProperty = m_OptionsProperty.GetArrayElementAtIndex(i);
+            var option = this.Q<PropertyField>("option");
+            option.BindProperty(optionProperty);
+            var label = option.Q<Label>();
+            label.parent.Remove(label);
         }
     }
 }

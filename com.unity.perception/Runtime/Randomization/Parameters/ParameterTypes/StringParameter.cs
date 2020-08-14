@@ -1,8 +1,9 @@
-﻿using UnityEngine.Perception.Randomization.Parameters.Attributes;
+﻿using System;
+using UnityEngine.Perception.Randomization.Parameters.Attributes;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
-    [AddComponentMenu("")]
+    [Serializable]
     [ParameterMetaData("String")]
     public class StringParameter : CategoricalParameter<string> {}
 }

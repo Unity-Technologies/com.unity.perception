@@ -20,13 +20,13 @@ namespace RandomizationTests
             m_TestObject = new GameObject();
             m_Tests = new BaseStructParameterTest[]
             {
-                new StructParameterTest<bool>(m_TestObject.AddComponent<BooleanParameter>()),
-                new StructParameterTest<int>(m_TestObject.AddComponent<IntegerParameter>()),
-                new StructParameterTest<float>(m_TestObject.AddComponent<FloatParameter>()),
-                new StructParameterTest<Vector2>(m_TestObject.AddComponent<Vector2Parameter>()),
-                new StructParameterTest<Vector3>(m_TestObject.AddComponent<Vector3Parameter>()),
-                new StructParameterTest<Vector4>(m_TestObject.AddComponent<Vector4Parameter>()),
-                new StructParameterTest<Color>(m_TestObject.AddComponent<ColorHsvaParameter>()),
+                new NumericParameterTest<bool>(new BooleanParameter()),
+                new NumericParameterTest<int>(new IntegerParameter()),
+                new NumericParameterTest<float>(new FloatParameter()),
+                new NumericParameterTest<Vector2>(new Vector2Parameter()),
+                new NumericParameterTest<Vector3>(new Vector3Parameter()),
+                new NumericParameterTest<Vector4>(new Vector4Parameter()),
+                new NumericParameterTest<Color>(new ColorHsvaParameter()),
             };
         }
 
@@ -49,11 +49,11 @@ namespace RandomizationTests
         public abstract void GeneratesNativeSamples();
     }
 
-    public class StructParameterTest<T> : BaseStructParameterTest where T : struct
+    public class NumericParameterTest<T> : BaseStructParameterTest where T : struct
     {
-        StructParameter<T> m_Parameter;
+        NumericParameter<T> m_Parameter;
 
-        public StructParameterTest(StructParameter<T> parameter)
+        public NumericParameterTest(NumericParameter<T> parameter)
         {
             m_Parameter = parameter;
         }

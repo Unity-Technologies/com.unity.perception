@@ -7,24 +7,62 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// <summary>
     /// Generates samples by choosing one option from a weighted list of choices.
     /// </summary>
-    public abstract class CategoricalParameter<T> : TypedParameter<T>, ICategoricalParameter
+    [Serializable]
+    public abstract class CategoricalParameter<T> : CategoricalParameterBase
     {
         public bool uniform;
-        [Min(0)] public uint seed;
-        public List<T> options = new List<T>();
-        public List<float> probabilities = new List<float>();
+        public uint seed;
+        [SerializeField]
+        List<T> m_Options = new List<T>();
 
         float[] m_NormalizedProbabilities;
 
-        public List<float> Probabilities => probabilities;
         public override ISampler[] Samplers => new ISampler[0];
+        public sealed override Type OutputType => typeof(T);
+        public T GetOption(int index) => m_Options[index];
+        public float GetProbability(int index) => probabilities[index];
+
+        internal override void AddOption()
+        {
+            m_Options.Add(default);
+            probabilities.Add(0f);
+        }
+
+        public void AddOption(T option, float probability)
+        {
+            m_Options.Add(option);
+            probabilities.Add(probability);
+        }
+
+        public override void RemoveOption(int index)
+        {
+            m_Options.RemoveAt(index);
+            probabilities.RemoveAt(index);
+        }
+
+        public override void ClearOptions()
+        {
+            m_Options.Clear();
+            probabilities.Clear();
+        }
+
+        public IReadOnlyList<(T, float)> options
+        {
+            get
+            {
+                var catOptions = new List<(T, float)>(m_Options.Count);
+                for (var i = 0; i < catOptions.Count; i++)
+                    catOptions.Add((m_Options[i], probabilities[i]));
+                return catOptions;
+            }
+        }
 
         public override void Validate()
         {
             base.Validate();
             if (!uniform)
             {
-                if (probabilities.Count != options.Count)
+                if (probabilities.Count != m_Options.Count)
                     throw new ParameterValidationException(
                         "Number of options must be equal to the number of probabilities");
                 NormalizeProbabilities();
@@ -78,11 +116,15 @@ namespace UnityEngine.Perception.Randomization.Parameters
         {
             var randomValue = rng.NextFloat();
             return uniform
-                ? options[(int)(randomValue * options.Count)]
-                : options[BinarySearch(randomValue)];
+                ? m_Options[(int)(randomValue * m_Options.Count)]
+                : m_Options[BinarySearch(randomValue)];
         }
 
-        public override T Sample(int index)
+        /// <summary>
+        /// Generates one parameter sample
+        /// </summary>
+        /// <param name="index">Often the current scenario iteration or a scenario's framesSinceInitialization</param>
+        public T Sample(int index)
         {
             NormalizeProbabilities();
             var iteratedSeed = SamplerUtility.IterateSeed((uint)index, seed);
@@ -90,7 +132,12 @@ namespace UnityEngine.Perception.Randomization.Parameters
             return Sample(ref rng);
         }
 
-        public override T[] Samples(int index, int sampleCount)
+        /// <summary>
+        /// Generates an array of parameter samples
+        /// </summary>
+        /// <param name="index">Often the current scenario iteration or a scenario's framesSinceInitialization</param>
+        /// <param name="sampleCount">Number of parameter samples to generate</param>
+        public T[] Samples(int index, int sampleCount)
         {
             NormalizeProbabilities();
             var samples = new T[sampleCount];
@@ -99,6 +146,13 @@ namespace UnityEngine.Perception.Randomization.Parameters
             for (var i = 0; i < sampleCount; i++)
                 samples[i] = Sample(ref rng);
             return samples;
+        }
+
+        public sealed override void ApplyToTarget(int seedOffset)
+        {
+            if (!hasTarget)
+                return;
+            target.ApplyValueToTarget(Sample(seedOffset));
         }
     }
 }

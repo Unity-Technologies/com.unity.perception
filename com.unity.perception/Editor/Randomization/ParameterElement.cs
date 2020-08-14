@@ -9,24 +9,27 @@ namespace UnityEngine.Perception.Randomization.Editor
 {
     public class ParameterElement : VisualElement
     {
+        int m_ParameterIndex;
         bool m_Filtered;
-        Parameter m_Parameter;
         VisualElement m_Properties;
         VisualElement m_ExtraProperties;
         VisualElement m_TargetContainer;
         ToolbarMenu m_TargetPropertyMenu;
-        SerializedObject m_SerializedObject;
+        SerializedProperty m_SerializedProperty;
 
         const string k_CollapsedParameterClass = "collapsed-parameter";
 
-        public int ParameterIndex => parent.IndexOf(this);
         public ParameterConfigurationEditor ConfigEditor { get; private set; }
+        Parameter parameter => ConfigEditor.config.parameters[m_ParameterIndex];
+        CategoricalParameterBase categoricalParameter => (CategoricalParameterBase)parameter;
+        public int ParameterIndex => parent.IndexOf(this);
 
         public bool Collapsed
         {
-            get => ClassListContains(k_CollapsedParameterClass);
+            get => parameter.collapsed;
             set
             {
+                parameter.collapsed = value;
                 if (value)
                     AddToClassList(k_CollapsedParameterClass);
                 else
@@ -46,18 +49,20 @@ namespace UnityEngine.Perception.Randomization.Editor
             }
         }
 
-        public ParameterElement(Parameter parameter, ParameterConfigurationEditor paramConfigEditor)
+        public ParameterElement(int index, ParameterConfigurationEditor paramConfigEditor)
         {
             ConfigEditor = paramConfigEditor;
-            m_Parameter = parameter;
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/ParameterElement.uxml");
             template.CloneTree(this);
 
-            m_SerializedObject = new SerializedObject(parameter);
-            this.Bind(m_SerializedObject);
+            m_ParameterIndex = index;
+            m_SerializedProperty =
+                ConfigEditor.serializedObject.FindProperty("parameters").GetArrayElementAtIndex(m_ParameterIndex);
 
             this.AddManipulator(new ParameterDragManipulator());
+
+            Collapsed = parameter.collapsed;
 
             var removeButton = this.Q<Button>("remove-parameter");
             removeButton.RegisterCallback<MouseUpEvent>(evt => paramConfigEditor.RemoveParameter(this));
@@ -65,11 +70,16 @@ namespace UnityEngine.Perception.Randomization.Editor
             var parameterTypeLabel = this.Query<Label>("parameter-type-label").First();
             parameterTypeLabel.text = parameter.MetaData.typeDisplayName;
 
+            var parameterNameField = this.Q<TextField>("name");
+            parameterNameField.BindProperty(m_SerializedProperty.FindPropertyRelative("name"));
+
             m_TargetContainer = this.Q<VisualElement>("target-container");
             ToggleTargetContainer();
-
             m_TargetPropertyMenu = this.Q<ToolbarMenu>("property-select-menu");
-            var targetField = this.Q<PropertyField>("target-field");
+            var frequencyField = this.Q<PropertyField>("application-frequency");
+            frequencyField.BindProperty(m_SerializedProperty.FindPropertyRelative("target.applicationFrequency"));
+            var targetField = this.Q<PropertyField>("target");
+            targetField.BindProperty(m_SerializedProperty.FindPropertyRelative("target.gameObject"));
             targetField.RegisterCallback<ChangeEvent<Object>>((evt) =>
             {
                 ClearTarget();
@@ -88,26 +98,26 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         void ToggleTargetContainer()
         {
-            m_TargetContainer.style.display = m_Parameter.hasTarget
+            m_TargetContainer.style.display = parameter.hasTarget
                 ? new StyleEnum<DisplayStyle>(DisplayStyle.Flex)
                 : new StyleEnum<DisplayStyle>(DisplayStyle.None);
         }
 
         void ClearTarget()
         {
-            m_SerializedObject.FindProperty("target.component").objectReferenceValue = null;
-            m_SerializedObject.FindProperty("target.propertyName").stringValue = string.Empty;
-            m_SerializedObject.ApplyModifiedProperties();
+            m_SerializedProperty.FindPropertyRelative("target.component").objectReferenceValue = null;
+            m_SerializedProperty.FindPropertyRelative("target.propertyName").stringValue = string.Empty;
+            m_SerializedProperty.serializedObject.ApplyModifiedProperties();
         }
 
         void SetTarget(ParameterTarget newTarget)
         {
-            m_SerializedObject.FindProperty("target.gameObject").objectReferenceValue = newTarget.gameObject;
-            m_SerializedObject.FindProperty("target.component").objectReferenceValue = newTarget.component;
-            m_SerializedObject.FindProperty("target.propertyName").stringValue = newTarget.propertyName;
-            m_SerializedObject.FindProperty("target.fieldOrProperty").enumValueIndex = (int)newTarget.fieldOrProperty;
-            m_SerializedObject.ApplyModifiedProperties();
-            m_TargetPropertyMenu.text = TargetPropertyDisplayText(m_Parameter.target);
+            m_SerializedProperty.FindPropertyRelative("target.gameObject").objectReferenceValue = newTarget.gameObject;
+            m_SerializedProperty.FindPropertyRelative("target.component").objectReferenceValue = newTarget.component;
+            m_SerializedProperty.FindPropertyRelative("target.propertyName").stringValue = newTarget.propertyName;
+            m_SerializedProperty.FindPropertyRelative("target.fieldOrProperty").enumValueIndex = (int)newTarget.fieldOrProperty;
+            m_SerializedProperty.serializedObject.ApplyModifiedProperties();
+            m_TargetPropertyMenu.text = TargetPropertyDisplayText(parameter.target);
         }
 
         static string TargetPropertyDisplayText(ParameterTarget target)
@@ -117,15 +127,15 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         void FillPropertySelectMenu()
         {
-            if (!m_Parameter.hasTarget)
+            if (!parameter.hasTarget)
                 return;
 
             m_TargetPropertyMenu.menu.MenuItems().Clear();
-            m_TargetPropertyMenu.text = m_Parameter.target.propertyName == string.Empty
+            m_TargetPropertyMenu.text = parameter.target.propertyName == string.Empty
                 ? "Select a property"
-                : TargetPropertyDisplayText(m_Parameter.target);
+                : TargetPropertyDisplayText(parameter.target);
 
-            var options = GatherPropertyOptions(m_Parameter.target.gameObject, m_Parameter.OutputType);
+            var options = GatherPropertyOptions(parameter.target.gameObject, parameter.OutputType);
             foreach (var option in options)
             {
                 m_TargetPropertyMenu.menu.AppendAction(
@@ -176,41 +186,45 @@ namespace UnityEngine.Perception.Randomization.Editor
         {
             m_ExtraProperties.Clear();
 
-            if (m_Parameter is ICategoricalParameter)
+            if (parameter is CategoricalParameterBase)
             {
                 CreateCategoricalParameterFields();
                 return;
             }
 
-            var iterator = m_SerializedObject.GetIterator();
-            if (iterator.NextVisible(true))
+            var currentProperty = m_SerializedProperty.Copy();
+            var nextSiblingProperty = m_SerializedProperty.Copy();
+            nextSiblingProperty.Next(false);
+
+            if (currentProperty.Next(true))
             {
                 do
                 {
-                    if (iterator.propertyPath == "m_Script" || iterator.propertyPath == "parameterName")
+                    if (SerializedProperty.EqualContents(currentProperty, nextSiblingProperty))
+                        break;
+                    if (currentProperty.name == "name")
                         continue;
-                    if (iterator.type.Contains("managedReference") &&
-                        iterator.managedReferenceFieldTypename == StaticData.samplerSerializedFieldType)
-                        m_ExtraProperties.Add(new SamplerElement(iterator.Copy()));
+                    if (currentProperty.type.Contains("managedReference") &&
+                        currentProperty.managedReferenceFieldTypename == StaticData.samplerSerializedFieldType)
+                        m_ExtraProperties.Add(new SamplerElement(currentProperty.Copy(), parameter));
                     else
                     {
-                        var propertyField = new PropertyField(iterator.Copy());
-                        propertyField.Bind(m_SerializedObject);
+                        var propertyField = new PropertyField(currentProperty.Copy());
+                        propertyField.Bind(currentProperty.serializedObject);
                         m_ExtraProperties.Add(propertyField);
                     }
-                } while (iterator.NextVisible(false));
+                } while (currentProperty.NextVisible(false));
             }
         }
 
         void CreateCategoricalParameterFields()
         {
-            var categoricalParameter = (ICategoricalParameter)m_Parameter;
             var categoricalParameterTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/CategoricalParameterTemplate.uxml").CloneTree();
 
-            var optionsProperty = m_SerializedObject.FindProperty("options");
-            var probabilitiesProperty = m_SerializedObject.FindProperty("probabilities");
-            var probabilities = categoricalParameter.Probabilities;
+            var optionsProperty = m_SerializedProperty.FindPropertyRelative("m_Options");
+            var probabilitiesProperty = m_SerializedProperty.FindPropertyRelative("probabilities");
+            var probabilities = categoricalParameter.probabilities;
 
             var listView = categoricalParameterTemplate.Q<ListView>("options");
             listView.itemsSource = probabilities;
@@ -219,15 +233,36 @@ namespace UnityEngine.Perception.Randomization.Editor
             listView.style.flexGrow = 1.0f;
             listView.style.height = new StyleLength(listView.itemHeight * 4);
 
-            VisualElement MakeItem() => new CategoricalOptionElement(optionsProperty, probabilitiesProperty, listView);
+            VisualElement MakeItem() => new CategoricalOptionElement(
+                optionsProperty, probabilitiesProperty);
             listView.makeItem = MakeItem;
 
             void BindItem(VisualElement e, int i)
             {
                 var optionElement = (CategoricalOptionElement)e;
                 optionElement.BindProperties(i);
+                var removeButton = optionElement.Q<Button>("remove");
+                removeButton.clicked += () =>
+                {
+                    probabilitiesProperty.DeleteArrayElementAtIndex(i);
+                    optionsProperty.DeleteArrayElementAtIndex(i);
+                    m_SerializedProperty.serializedObject.ApplyModifiedProperties();
+                    listView.itemsSource = categoricalParameter.probabilities;
+                    listView.Refresh();
+                };
             }
             listView.bindItem = BindItem;
+
+            var addOptionButton = categoricalParameterTemplate.Q<Button>("add-option");
+            addOptionButton.clicked += () =>
+            {
+                probabilitiesProperty.arraySize++;
+                optionsProperty.arraySize++;
+                m_SerializedProperty.serializedObject.ApplyModifiedProperties();
+                listView.itemsSource = categoricalParameter.probabilities;
+                listView.Refresh();
+                listView.ScrollToItem(probabilitiesProperty.arraySize);
+            };
 
             var scrollView = listView.Q<ScrollView>();
             listView.RegisterCallback<WheelEvent>(evt =>
@@ -239,18 +274,9 @@ namespace UnityEngine.Perception.Randomization.Editor
                     evt.StopImmediatePropagation();
             });
 
-            var addOptionButton = categoricalParameterTemplate.Q<Button>("add-option");
-            addOptionButton.clicked += () =>
-            {
-                optionsProperty.arraySize++;
-                probabilitiesProperty.arraySize++;
-                m_SerializedObject.ApplyModifiedProperties();
-                listView.Refresh();
-                listView.ScrollToItem(probabilitiesProperty.arraySize);
-            };
-
             var uniformToggle = categoricalParameterTemplate.Q<Toggle>("uniform");
-            uniformToggle.BindProperty(m_SerializedObject.FindProperty("uniform"));
+            var uniformProperty = m_SerializedProperty.FindPropertyRelative("uniform");
+            uniformToggle.BindProperty(uniformProperty);
             void ToggleProbabilityFields(bool toggle)
             {
                 if (toggle)

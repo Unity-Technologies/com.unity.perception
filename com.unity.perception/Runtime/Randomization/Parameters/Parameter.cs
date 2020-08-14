@@ -10,9 +10,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// randomizing simulations.
     /// </summary>
     [Serializable]
-    public abstract class Parameter : MonoBehaviour
+    public abstract class Parameter
     {
-        public string parameterName = "Parameter";
+        internal bool collapsed;
+        public string name = "Parameter";
         [HideInInspector] public ParameterTarget target = new ParameterTarget();
 
         public bool hasTarget => target.gameObject != null;
@@ -46,9 +47,9 @@ namespace UnityEngine.Perception.Randomization.Parameters
             if (hasTarget)
             {
                 if (target.component == null)
-                    throw new ParameterException($"Null component target on parameter \"{parameterName}\"");
+                    throw new ParameterException($"Null component target on parameter \"{name}\"");
                 if (string.IsNullOrEmpty(target.propertyName))
-                    throw new ParameterException($"Invalid property target on parameter \"{parameterName}\"");
+                    throw new ParameterException($"Invalid property target on parameter \"{name}\"");
             }
         }
     }

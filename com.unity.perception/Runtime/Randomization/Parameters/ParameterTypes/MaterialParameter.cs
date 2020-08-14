@@ -3,7 +3,7 @@ using UnityEngine.Perception.Randomization.Parameters.Attributes;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
-    [AddComponentMenu("")]
+    [Serializable]
     [ParameterMetaData("Material")]
     public class MaterialParameter : CategoricalParameter<Material> {}
 }

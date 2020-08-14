@@ -7,9 +7,9 @@ using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
-    [AddComponentMenu("")]
+    [Serializable]
     [ParameterMetaData("Vector4")]
-    public class Vector4Parameter : StructParameter<Vector4>
+    public class Vector4Parameter : NumericParameter<Vector4>
     {
         [SerializeReference] public ISampler x = new UniformSampler(0f, 1f);
         [SerializeReference] public ISampler y = new UniformSampler(0f, 1f);

@@ -7,9 +7,9 @@ using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
-    [AddComponentMenu("")]
+    [Serializable]
     [ParameterMetaData("ColorHSVA")]
-    public class ColorHsvaParameter : StructParameter<Color>
+    public class ColorHsvaParameter : NumericParameter<Color>
     {
         [SerializeReference] public ISampler hue = new UniformSampler(0f, 1f);
         [SerializeReference] public ISampler saturation = new UniformSampler(0f, 1f);

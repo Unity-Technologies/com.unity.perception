@@ -6,9 +6,9 @@ using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
-    [AddComponentMenu("")]
+    [Serializable]
     [ParameterMetaData("Float")]
-    public class FloatParameter : StructParameter<float>
+    public class FloatParameter : NumericParameter<float>
     {
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
 

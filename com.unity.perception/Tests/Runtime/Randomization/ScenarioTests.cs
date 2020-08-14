@@ -39,7 +39,7 @@ namespace RandomizationTests
         }
 
         [UnityTest]
-        public IEnumerator SerializationTest()
+        public IEnumerator OverwritesConstantsOnSerialization()
         {
             yield return CreateNewScenario();
             m_Scenario.serializedConstantsFileName = "perception_serialization_test";
@@ -78,7 +78,7 @@ namespace RandomizationTests
         }
 
         [UnityTest]
-        public IEnumerator MultipleFrameIterationTest()
+        public IEnumerator IterationsCanLastMultipleFrames()
         {
             yield return CreateNewScenario();
             const int testIterationFrameCount = 5;
@@ -96,7 +96,7 @@ namespace RandomizationTests
         }
 
         [UnityTest]
-        public IEnumerator ScenarioCompletionTest()
+        public IEnumerator CompletesWhenIsScenarioCompleteIsTrue()
         {
             yield return CreateNewScenario();
             const int testIterationTotal = 5;

@@ -1,11 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.TestTools;
 
-namespace RandomizationTests
+namespace RandomizationTests.ParameterTests
 {
     [TestFixture]
     public class CategoricalParameterTests
@@ -25,7 +22,7 @@ namespace RandomizationTests
         }
 
         [Test]
-        public void NegativeProbabilitiesTest()
+        public void NegativeProbabilities()
         {
             var parameter = new StringParameter();
             parameter.AddOption("option1", 1f);

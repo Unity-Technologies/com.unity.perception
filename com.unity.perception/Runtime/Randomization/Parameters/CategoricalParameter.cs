@@ -10,17 +10,47 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [Serializable]
     public abstract class CategoricalParameter<T> : CategoricalParameterBase
     {
-        public bool uniform;
-        public uint seed;
-        [SerializeField]
-        List<T> m_Options = new List<T>();
+        [SerializeField] internal bool uniform;
+        [SerializeField] UniformSampler m_Sampler = new UniformSampler(0f, 1f);
 
+        [SerializeField] List<T> m_Options = new List<T>();
         float[] m_NormalizedProbabilities;
 
-        public override ISampler[] Samplers => new ISampler[0];
+        public override ISampler[] samplers => new ISampler[] { m_Sampler };
+
         public sealed override Type OutputType => typeof(T);
+
         public T GetOption(int index) => m_Options[index];
+
         public float GetProbability(int index) => probabilities[index];
+
+        internal CategoricalParameter() { }
+
+        /// <summary>
+        /// Create a new categorical parameter from a list of categories with uniform probabilities
+        /// </summary>
+        /// <param name="categoricalOptions">List of categorical options</param>
+        public CategoricalParameter(IEnumerable<T> categoricalOptions)
+        {
+            if (options.Count == 0)
+                throw new ArgumentException("List of options is empty");
+            uniform = true;
+            foreach (var option in categoricalOptions)
+                AddOption(option, 1f);
+        }
+
+        /// <summary>
+        /// Create a new categorical parameter from a list of categories and their associated probabilities
+        /// </summary>
+        /// <param name="categoricalOptions">List of options and their associated probabilities</param>
+        public CategoricalParameter(IEnumerable<(T, float)> categoricalOptions)
+        {
+            if (options.Count == 0)
+                throw new ArgumentException("List of options is empty");
+            foreach (var (category, probability) in categoricalOptions)
+                AddOption(category, probability);
+            NormalizeProbabilities();
+        }
 
         internal override void AddOption()
         {
@@ -28,19 +58,19 @@ namespace UnityEngine.Perception.Randomization.Parameters
             probabilities.Add(0f);
         }
 
-        public void AddOption(T option, float probability)
+        internal void AddOption(T option, float probability)
         {
             m_Options.Add(option);
             probabilities.Add(probability);
         }
 
-        public override void RemoveOption(int index)
+        internal override void RemoveOption(int index)
         {
             m_Options.RemoveAt(index);
             probabilities.RemoveAt(index);
         }
 
-        public override void ClearOptions()
+        internal override void ClearOptions()
         {
             m_Options.Clear();
             probabilities.Clear();
@@ -65,11 +95,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
                 if (probabilities.Count != m_Options.Count)
                     throw new ParameterValidationException(
                         "Number of options must be equal to the number of probabilities");
-                NormalizeProbabilities();
             }
         }
 
-        void NormalizeProbabilities()
+        internal void NormalizeProbabilities()
         {
             var totalProbability = 0f;
             for (var i = 0; i < probabilities.Count; i++)
@@ -112,47 +141,22 @@ namespace UnityEngine.Perception.Randomization.Parameters
             return minNum;
         }
 
-        T Sample(ref Unity.Mathematics.Random rng)
-        {
-            var randomValue = rng.NextFloat();
-            return uniform
-                ? m_Options[(int)(randomValue * m_Options.Count)]
-                : m_Options[BinarySearch(randomValue)];
-        }
-
         /// <summary>
         /// Generates one parameter sample
         /// </summary>
-        /// <param name="index">Often the current scenario iteration or a scenario's framesSinceInitialization</param>
-        public T Sample(int index)
+        public T Sample()
         {
-            NormalizeProbabilities();
-            var iteratedSeed = SamplerUtility.IterateSeed((uint)index, seed);
-            var rng = new Unity.Mathematics.Random(iteratedSeed);
-            return Sample(ref rng);
-        }
-
-        /// <summary>
-        /// Generates an array of parameter samples
-        /// </summary>
-        /// <param name="index">Often the current scenario iteration or a scenario's framesSinceInitialization</param>
-        /// <param name="sampleCount">Number of parameter samples to generate</param>
-        public T[] Samples(int index, int sampleCount)
-        {
-            NormalizeProbabilities();
-            var samples = new T[sampleCount];
-            var iteratedSeed = SamplerUtility.IterateSeed((uint)index, seed);
-            var rng = new Unity.Mathematics.Random(iteratedSeed);
-            for (var i = 0; i < sampleCount; i++)
-                samples[i] = Sample(ref rng);
-            return samples;
+            var randomValue = m_Sampler.Sample();
+            return uniform
+                ? m_Options[(int)(randomValue * m_Options.Count)]
+                : m_Options[BinarySearch(randomValue)];
         }
 
         public sealed override void ApplyToTarget(int seedOffset)
         {
             if (!hasTarget)
                 return;
-            target.ApplyValueToTarget(Sample(seedOffset));
+            target.ApplyValueToTarget(Sample());
         }
     }
 }

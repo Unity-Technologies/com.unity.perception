@@ -12,21 +12,16 @@ namespace UnityEngine.Perception.Randomization.Parameters
     {
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
 
-        public override ISampler[] Samplers => new []{ value };
+        public override ISampler[] samplers => new []{ value };
 
-        public override float Sample(int index)
+        public override float Sample()
         {
-            return value.CopyAndIterate(index).NextSample();
+            return value.Sample();
         }
 
-        public override float[] Samples(int index, int sampleCount)
+        public override NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle)
         {
-            return SamplerUtility.GenerateSamples(value.CopyAndIterate(index), sampleCount);
-        }
-
-        public override NativeArray<float> Samples(int index, int sampleCount, out JobHandle jobHandle)
-        {
-            return value.CopyAndIterate(index).Samples(sampleCount, out jobHandle);
+            return value.Samples(sampleCount, out jobHandle);
         }
     }
 }

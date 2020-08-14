@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
-namespace RandomizationTests
+namespace RandomizationTests.ParameterTests
 {
     [TestFixture]
     public class StructParameterTests
@@ -60,8 +58,7 @@ namespace RandomizationTests
 
         public override void GeneratesNativeSamples()
         {
-            var nativeSamples = m_Parameter.Samples(
-                TestValues.ScenarioIteration, TestValues.TestSampleCount, out var handle);
+            var nativeSamples = m_Parameter.Samples(TestValues.TestSampleCount, out var handle);
             handle.Complete();
             Assert.AreEqual(nativeSamples.Length, TestValues.TestSampleCount);
             nativeSamples.Dispose();

@@ -9,7 +9,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         public RandomSeedField(SerializedProperty property)
         {
             label = "Seed";
-            this.BindProperty(property.FindPropertyRelative("state"));
+            this.BindProperty(property);
         }
     }
 }

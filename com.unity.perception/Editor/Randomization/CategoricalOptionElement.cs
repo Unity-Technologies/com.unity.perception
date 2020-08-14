@@ -30,22 +30,32 @@ namespace UnityEngine.Perception.Randomization.Editor
             var indexLabel = this.Q<Label>("index-label");
             indexLabel.text = $"[{m_Index}]";
 
-            var probabilityProperty = m_ProbabilitiesProperty.GetArrayElementAtIndex(i);
-            var probability = this.Q<FloatField>("probability");
-            probability.RegisterValueChangedCallback((evt) =>
-            {
-                if (evt.newValue < 0f)
-                    probability.value = 0f;
-            });
-            probability.labelElement.style.minWidth = 0;
-            probability.labelElement.style.marginRight = 4;
-            probability.BindProperty(probabilityProperty);
-
             var optionProperty = m_OptionsProperty.GetArrayElementAtIndex(i);
             var option = this.Q<PropertyField>("option");
             option.BindProperty(optionProperty);
             var label = option.Q<Label>();
             label.parent.Remove(label);
+
+            var probabilityProperty = m_ProbabilitiesProperty.GetArrayElementAtIndex(i);
+            var probability = this.Q<FloatField>("probability");
+            probability.isDelayed = true;
+            probability.labelElement.style.minWidth = 0;
+            probability.labelElement.style.marginRight = 4;
+            if (Application.isPlaying)
+            {
+                probability.value = probabilityProperty.floatValue;
+                probability.SetEnabled(false);
+            }
+            else
+            {
+                probability.SetEnabled(true);
+                probability.RegisterValueChangedCallback((evt) =>
+                {
+                    if (evt.newValue < 0f)
+                        probability.value = 0f;
+                });
+                probability.BindProperty(probabilityProperty);
+            }
         }
     }
 }

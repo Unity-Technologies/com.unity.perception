@@ -91,10 +91,11 @@ In this step, we will configure 6 parameters to randomize the scene: *CubePositi
 ## Step 4: Configure Scenario
 1. Right click on the *Scripts* folder in the project hierarchy and select `Create -> C# Script`. Name the script "CubeScenario" and press enter.
 2. Double click on the new "CubeScenario" script to open it for edit
-3. In your code editor, paste the following C# code in the CubeScenario script:
+3. In your code editor, paste the following C# code into the CubeScenario script:
     ```
     using System;
     using UnityEngine;
+    using UnityEngine.Perception.Randomization.Configuration;
     using UnityEngine.Perception.Randomization.Parameters;
     using UnityEngine.Perception.Randomization.Scenarios;
     
@@ -108,26 +109,29 @@ In this step, we will configure 6 parameters to randomize the scene: *CubePositi
     
         public override bool isIterationComplete => currentIterationFrame >= 1;
         public override bool isScenarioComplete => currentIteration >= constants.totalIterations;
-        
-        public ColorHsvaParameter backgroundColorParameter;
-        public ColorHsvaParameter cubeColorParameter;
+    
+        public ParameterConfiguration config;
         public GameObject background;
         public GameObject cube;
         
+        ColorHsvaParameter m_BackgroundColorParameter;
+        ColorHsvaParameter m_CubeColorParameter;
         Material m_BackgroundMaterial;
         Material m_CubeMaterial;
         static readonly int k_BaseColor = Shader.PropertyToID("_BaseColor");
     
         public override void OnInitialize()
         {
+            m_BackgroundColorParameter = config.GetParameter<ColorHsvaParameter>("BackgroundColor");
+            m_CubeColorParameter = config.GetParameter<ColorHsvaParameter>("CubeColor");
             m_BackgroundMaterial = background.GetComponent<MeshRenderer>().material;
             m_CubeMaterial = cube.GetComponent<MeshRenderer>().material;
         }
     
         public override void OnIterationSetup()
         {
-            m_BackgroundMaterial.SetColor(k_BaseColor, backgroundColorParameter.Sample(currentIteration));
-            m_CubeMaterial.SetColor(k_BaseColor, cubeColorParameter.Sample(currentIteration));
+            m_BackgroundMaterial.SetColor(k_BaseColor, m_BackgroundColorParameter.Sample());
+            m_CubeMaterial.SetColor(k_BaseColor, m_CubeColorParameter.Sample());
         }
     }
     ```
@@ -135,9 +139,9 @@ In this step, we will configure 6 parameters to randomize the scene: *CubePositi
     1. The *Constants* nested class in this scenario script determines what scenario parameters can be JSON serialized. Only these parameters can be changed externally from a built player. In this example, we expose the number of total iterations the scenario will complete.
     2. The overrided properties *isIterationComplete* and *isScenarioComplete* are checked before every frame to control the scenario's execution flow. In this case, the scenario will execute for only one frame for each iteration and continue executing until reaching the total iteration limit set by the *totalIterations* field in the constants class.
     3. In Unity, manipulating the color of a material is a shader specific task that cannot be accomplished directly from a color parameter's target GameObject setting. Instead we:
-        1. Expose references to the cube and background color parameters in this scenario's inspector as the public script variables *backgroundColorParameter* and *cubeColorParameter*
-        2. Lookup the ID of the *_BaseColor* shader property
-        3. Override the OnInitialize() method to cache references to the materials attached to the cube and background GameObjects when the simulation starts
+        1. Expose a reference to the parameter configuration this scenario's inspector as the public script variable
+        2. Cache the ID of the *_BaseColor* shader property
+        3. Override the OnInitialize() method to cache a few references. First, we lookup the parameters *BackgroundColor* and *CubeColor* by name from the the parameter configuration. Second, we grab the references to the materials attached to the cube and background GameObjects when the simulation starts.
         4. Override the OnIterationSetup() method to apply randomly sampled color values to the shaders of the cached materials at the beginning of each scenario iteration
 4. Back in the Unity editor, navigate to the inspector of the *Config* GameObject and use `Add Component -> CubeScenario` to add the new CubeScenario component to your parameter configuration.
 5. Open the constants dropdown and confirm how many iterations the scenario should run (the default is 1000)

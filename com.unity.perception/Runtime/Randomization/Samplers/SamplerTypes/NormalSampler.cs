@@ -10,38 +10,51 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// </summary>
     [Serializable]
     [SamplerMetaData("Normal")]
-    public struct NormalSampler : ISampler
+    public struct NormalSampler : ISampler, IRandomRangedSampler
     {
+        Unity.Mathematics.Random m_Random;
+
         public float mean;
         public float standardDeviation;
-        [SerializeField] Unity.Mathematics.Random m_Random;
+
+        [field: SerializeField]
+        public uint baseSeed { get; set; }
 
         [field: SerializeField]
         public FloatRange range { get; set; }
 
-        public uint seed
+        public uint state
         {
             get => m_Random.state;
             set => m_Random = new Unity.Mathematics.Random { state = value };
         }
 
-        public NormalSampler(float min, float max, float mean, float standardDeviation)
+        public NormalSampler(float min, float max, float mean, float standardDeviation, uint seed=SamplerUtility.largePrime)
         {
             range = new FloatRange(min, max);
             this.mean = mean;
             this.standardDeviation = standardDeviation;
-            m_Random = new Unity.Mathematics.Random();
-            m_Random.InitState();
+            baseSeed = seed;
+            m_Random.state = baseSeed;
         }
 
-        public ISampler CopyAndIterate(int index)
+        public void ResetState()
         {
-            var newSampler = this;
-            newSampler.seed = SamplerUtility.IterateSeed((uint)index, seed);
-            return newSampler;
+            state = baseSeed;
         }
 
-        public float NextSample()
+        public void ResetState(int index)
+        {
+            ResetState();
+            IterateState(index);
+        }
+
+        public void IterateState(int batchIndex)
+        {
+            state = SamplerUtility.IterateSeed((uint)batchIndex, state);
+        }
+
+        public float Sample()
         {
             return SamplerUtility.TruncatedNormalSample(
                 m_Random.NextFloat(), range.minimum, range.maximum, mean, standardDeviation);
@@ -49,7 +62,9 @@ namespace UnityEngine.Perception.Randomization.Samplers
 
         public NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle)
         {
-            return SamplerUtility.GenerateSamples(this, sampleCount, out jobHandle);
+            var samples = SamplerUtility.GenerateSamples(this, sampleCount, out jobHandle);
+            IterateState(sampleCount);
+            return samples;
         }
     }
 }

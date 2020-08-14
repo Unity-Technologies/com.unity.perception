@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Perception.Randomization.Configuration
 {
@@ -15,9 +13,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
     public class ParameterConfiguration : MonoBehaviour
     {
         public static HashSet<ParameterConfiguration> configurations = new HashSet<ParameterConfiguration>();
-
-        [SerializeReference]
-        public List<Parameter> parameters = new List<Parameter>();
+        [SerializeReference] internal List<Parameter> parameters = new List<Parameter>();
 
         /// <summary>
         /// Find a parameter in this configuration by name
@@ -83,6 +79,16 @@ namespace UnityEngine.Perception.Randomization.Configuration
             foreach (var parameter in parameters)
                 if (parameter.target.applicationFrequency == frequency)
                     parameter.ApplyToTarget(seedOffset);
+        }
+
+        /// <summary>
+        /// Resets sampler states to their baseSeed then offsets using the current scenario iteration
+        /// </summary>
+        public void ResetParameterStates(int scenarioIteration)
+        {
+            foreach (var parameter in parameters)
+                foreach (var sampler in parameter.samplers)
+                    sampler.ResetState(scenarioIteration);
         }
 
         /// <summary>

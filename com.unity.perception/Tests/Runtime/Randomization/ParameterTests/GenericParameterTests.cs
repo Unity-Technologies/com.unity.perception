@@ -1,13 +1,11 @@
-﻿using System.Collections;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.TestTools;
 
-namespace RandomizationTests
+namespace RandomizationTests.ParameterTests
 {
     [TestFixture]
-    public class ParameterTests
+    public class GenericParameterTests
     {
         GameObject m_TestObject;
 
@@ -42,7 +40,7 @@ namespace RandomizationTests
         {
             foreach (var parameter in m_Parameters)
             {
-                foreach (var sampler in parameter.Samplers)
+                foreach (var sampler in parameter.samplers)
                     Assert.NotNull(sampler);
             }
         }

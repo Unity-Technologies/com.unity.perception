@@ -14,30 +14,18 @@ namespace UnityEngine.Perception.Randomization.Parameters
         [SerializeReference] public ISampler x = new UniformSampler(0f, 1f);
         [SerializeReference] public ISampler y = new UniformSampler(0f, 1f);
 
-        public override ISampler[] Samplers => new []{ x, y };
+        public override ISampler[] samplers => new []{ x, y };
 
-        public override Vector2 Sample(int index)
+        public override Vector2 Sample()
         {
-            return new Vector2(
-                x.CopyAndIterate(index).NextSample(),
-                y.CopyAndIterate(index).NextSample());
+            return new Vector2(x.Sample(), y.Sample());
         }
 
-        public override Vector2[] Samples(int index, int sampleCount)
-        {
-            var samples = new Vector2[sampleCount];
-            var xRng = x.CopyAndIterate(index);
-            var yRng = y.CopyAndIterate(index);
-            for (var i = 0; i < sampleCount; i++)
-                samples[i] = new Vector2(xRng.NextSample(), yRng.NextSample());
-            return samples;
-        }
-
-        public override NativeArray<Vector2> Samples(int index, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<Vector2> Samples(int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<Vector2>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var xRng = x.CopyAndIterate(index).Samples(totalSamples, out var xHandle);
-            var yRng = y.CopyAndIterate(index).Samples(totalSamples, out var yHandle);
+            var xRng = x.Samples(totalSamples, out var xHandle);
+            var yRng = y.Samples(totalSamples, out var yHandle);
             var combinedJobHandles = JobHandle.CombineDependencies(xHandle, yHandle);
             jobHandle = new SamplesJob
             {

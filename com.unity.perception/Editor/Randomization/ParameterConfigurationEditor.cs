@@ -81,8 +81,9 @@ namespace UnityEngine.Perception.Randomization.Editor
         void AddParameter(Type parameterType)
         {
             var parameter = config.AddParameter(parameterType);
-            foreach (var sampler in parameter.Samplers)
-                sampler.seed = SamplerUtility.GenerateRandomSeed();
+            foreach (var sampler in parameter.samplers)
+                if (sampler is IRandomRangedSampler rangedSampler)
+                    rangedSampler.baseSeed = SamplerUtility.GenerateRandomSeed();
 
             serializedObject.Update();
             m_ParameterContainer.Add(CreateParameterElement(config.parameters.Count - 1));

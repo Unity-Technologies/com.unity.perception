@@ -45,9 +45,9 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// <summary>
         /// Throws an exception if a sampler has an invalid range
         /// </summary>
-        public static void ValidateRange(FloatRange range)
+        public static void ValidateRange(IRandomRangedSampler rangedSampler)
         {
-            if (range.minimum > range.maximum)
+            if (rangedSampler.range.minimum > rangedSampler.range.maximum)
                 throw new ArgumentException("Invalid sampling range");
         }
 
@@ -58,7 +58,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         {
             var samples = new float[totalSamples];
             for (var i = 0; i < totalSamples; i++)
-                samples[i] = sampler.NextSample();
+                samples[i] = sampler.Sample();
             return samples;
         }
 
@@ -90,10 +90,10 @@ namespace UnityEngine.Perception.Randomization.Samplers
             public void Execute(int startIndex, int count)
             {
                 var endIndex = startIndex + count;
-                var batchIndex = (uint)startIndex / samplingBatchSize;
-                sampler.seed = IterateSeed(batchIndex, sampler.seed);
+                var batchIndex = startIndex / samplingBatchSize;
+                sampler.IterateState(batchIndex);
                 for (var i = startIndex; i < endIndex; i++)
-                    samples[i] = sampler.NextSample();
+                    samples[i] = sampler.Sample();
             }
         }
 

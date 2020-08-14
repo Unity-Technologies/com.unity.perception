@@ -12,23 +12,14 @@ namespace UnityEngine.Perception.Randomization.Parameters
     public class IntegerParameter : NumericParameter<int>
     {
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
-        public override ISampler[] Samplers => new[] { value };
+        public override ISampler[] samplers => new[] { value };
 
-        public override int Sample(int index) => (int)value.CopyAndIterate(index).NextSample();
+        public override int Sample() => (int)value.Sample();
 
-        public override int[] Samples(int index, int sampleCount)
-        {
-            var samples = new int[sampleCount];
-            var sampler = value.CopyAndIterate(index);
-            for (var i = 0; i < sampleCount; i++)
-                samples[i] = (int)sampler.NextSample();
-            return samples;
-        }
-
-        public override NativeArray<int> Samples(int index, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<int> Samples(int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<int>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var rngSamples = value.CopyAndIterate(index).Samples(totalSamples, out jobHandle);
+            var rngSamples = value.Samples(totalSamples, out jobHandle);
             jobHandle = new SamplesJob
             {
                 rngSamples = rngSamples,

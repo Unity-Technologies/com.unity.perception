@@ -134,6 +134,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             {
                 DatasetCapture.StartNewSequence();
                 foreach (var config in ParameterConfiguration.configurations)
+                    config.ResetParameterStates(currentIteration);
+                foreach (var config in ParameterConfiguration.configurations)
                     config.ApplyParameters(currentIteration, ParameterApplicationFrequency.OnIterationSetup);
                 OnIterationSetup();
                 while (!isIterationComplete)

@@ -42,21 +42,5 @@ namespace RandomizationTests
             Assert.DoesNotThrow(() => config.AddParameter(typeof(FloatParameter)));
             Assert.Throws<ParameterConfigurationException>(() => config.AddParameter(typeof(Rigidbody)));
         }
-
-        [UnityTest]
-        public IEnumerator CleansUpParametersOnDestroy()
-        {
-            var config = m_TestObject.AddComponent<ParameterConfiguration>();
-            var parameter1 = config.AddParameter<FloatParameter>();
-            var parameter2 = config.AddParameter<FloatParameter>();
-            Object.DestroyImmediate(config);
-
-            // Wait for next frame, at which point OnDestroy() has been called for both parameters
-            yield return null;
-
-            Assert.True(config == null);
-            Assert.True(parameter1 == null);
-            Assert.True(parameter2 == null);
-        }
     }
 }

@@ -71,6 +71,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             parameterTypeLabel.text = parameter.MetaData.typeDisplayName;
 
             var parameterNameField = this.Q<TextField>("name");
+            parameterNameField.isDelayed = true;
             parameterNameField.BindProperty(m_SerializedProperty.FindPropertyRelative("name"));
 
             m_TargetContainer = this.Q<VisualElement>("target-container");
@@ -219,14 +220,14 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         void CreateCategoricalParameterFields()
         {
-            var categoricalParameterTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+            var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/CategoricalParameterTemplate.uxml").CloneTree();
 
             var optionsProperty = m_SerializedProperty.FindPropertyRelative("m_Options");
             var probabilitiesProperty = m_SerializedProperty.FindPropertyRelative("probabilities");
             var probabilities = categoricalParameter.probabilities;
 
-            var listView = categoricalParameterTemplate.Q<ListView>("options");
+            var listView = template.Q<ListView>("options");
             listView.itemsSource = probabilities;
             listView.itemHeight = 22;
             listView.selectionType = SelectionType.None;
@@ -253,7 +254,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             }
             listView.bindItem = BindItem;
 
-            var addOptionButton = categoricalParameterTemplate.Q<Button>("add-option");
+            var addOptionButton = template.Q<Button>("add-option");
             addOptionButton.clicked += () =>
             {
                 probabilitiesProperty.arraySize++;
@@ -262,6 +263,16 @@ namespace UnityEngine.Perception.Randomization.Editor
                 listView.itemsSource = categoricalParameter.probabilities;
                 listView.Refresh();
                 listView.ScrollToItem(probabilitiesProperty.arraySize);
+            };
+
+            var clearOptionsButton = template.Q<Button>("clear-options");
+            clearOptionsButton.clicked += () =>
+            {
+                probabilitiesProperty.arraySize = 0;
+                optionsProperty.arraySize = 0;
+                m_SerializedProperty.serializedObject.ApplyModifiedProperties();
+                listView.itemsSource = categoricalParameter.probabilities;
+                listView.Refresh();
             };
 
             var scrollView = listView.Q<ScrollView>();
@@ -274,7 +285,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                     evt.StopImmediatePropagation();
             });
 
-            var uniformToggle = categoricalParameterTemplate.Q<Toggle>("uniform");
+            var uniformToggle = template.Q<Toggle>("uniform");
             var uniformProperty = m_SerializedProperty.FindPropertyRelative("uniform");
             uniformToggle.BindProperty(uniformProperty);
             void ToggleProbabilityFields(bool toggle)
@@ -290,7 +301,10 @@ namespace UnityEngine.Perception.Randomization.Editor
             });
             ToggleProbabilityFields(uniformToggle.value);
 
-            m_ExtraProperties.Add(categoricalParameterTemplate);
+            var seedField = template.Q<IntegerField>("seed");
+            seedField.BindProperty(m_SerializedProperty.FindPropertyRelative("m_Sampler.<baseSeed>k__BackingField"));
+
+            m_ExtraProperties.Add(template);
         }
     }
 }

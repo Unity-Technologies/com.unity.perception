@@ -13,28 +13,19 @@ namespace UnityEngine.Perception.Randomization.Parameters
     {
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
 
-        public override ISampler[] Samplers => new[] { value };
+        public override ISampler[] samplers => new[] { value };
 
         static bool Sample(float t) => t >= 0.5f;
 
-        public override bool Sample(int index)
+        public override bool Sample()
         {
-            return Sample(value.CopyAndIterate(index).NextSample());
+            return Sample(value.Sample());
         }
 
-        public override bool[] Samples(int index, int sampleCount)
-        {
-            var samples = new bool[sampleCount];
-            var sampler = value.CopyAndIterate(index);
-            for (var i = 0; i < sampleCount; i++)
-                samples[i] = Sample(sampler.NextSample());
-            return samples;
-        }
-
-        public override NativeArray<bool> Samples(int index, int sampleCount, out JobHandle jobHandle)
+        public override NativeArray<bool> Samples(int sampleCount, out JobHandle jobHandle)
         {
             var samples = new NativeArray<bool>(sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var rngSamples = value.CopyAndIterate(index).Samples(sampleCount, out jobHandle);
+            var rngSamples = value.Samples(sampleCount, out jobHandle);
             jobHandle = new SamplesJob
             {
                 rngSamples = rngSamples,

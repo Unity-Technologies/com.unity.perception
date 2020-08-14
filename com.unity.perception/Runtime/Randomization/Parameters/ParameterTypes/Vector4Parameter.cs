@@ -16,36 +16,20 @@ namespace UnityEngine.Perception.Randomization.Parameters
         [SerializeReference] public ISampler z = new UniformSampler(0f, 1f);
         [SerializeReference] public ISampler w = new UniformSampler(0f, 1f);
 
-        public override ISampler[] Samplers => new []{ x, y, z, w };
+        public override ISampler[] samplers => new []{ x, y, z, w };
 
-        public override Vector4 Sample(int index)
+        public override Vector4 Sample()
         {
-            return new Vector4(
-                x.CopyAndIterate(index).NextSample(),
-                y.CopyAndIterate(index).NextSample(),
-                z.CopyAndIterate(index).NextSample(),
-                w.CopyAndIterate(index).NextSample());
+            return new Vector4(x.Sample(), y.Sample(), z.Sample(), w.Sample());
         }
 
-        public override Vector4[] Samples(int index, int sampleCount)
-        {
-            var samples = new Vector4[sampleCount];
-            var xRng = x.CopyAndIterate(index);
-            var yRng = y.CopyAndIterate(index);
-            var zRng = z.CopyAndIterate(index);
-            var wRng = w.CopyAndIterate(index);
-            for (var i = 0; i < sampleCount; i++)
-                samples[i] = new Vector4(xRng.NextSample(), yRng.NextSample(), zRng.NextSample(), wRng.NextSample());
-            return samples;
-        }
-
-        public override NativeArray<Vector4> Samples(int index, int totalSamples, out JobHandle jobHandle)
+        public override NativeArray<Vector4> Samples(int totalSamples, out JobHandle jobHandle)
         {
             var samples = new NativeArray<Vector4>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var xRng = x.CopyAndIterate(index).Samples(totalSamples, out var xHandle);
-            var yRng = y.CopyAndIterate(index).Samples(totalSamples, out var yHandle);
-            var zRng = z.CopyAndIterate(index).Samples(totalSamples, out var zHandle);
-            var wRng = w.CopyAndIterate(index).Samples(totalSamples, out var wHandle);
+            var xRng = x.Samples(totalSamples, out var xHandle);
+            var yRng = y.Samples(totalSamples, out var yHandle);
+            var zRng = z.Samples(totalSamples, out var zHandle);
+            var wRng = w.Samples(totalSamples, out var wHandle);
 
             var handles = new NativeArray<JobHandle>(4, Allocator.Temp)
             {

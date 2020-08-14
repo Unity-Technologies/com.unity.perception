@@ -10,21 +10,31 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// </summary>
     public interface ISampler
     {
-        uint seed { get; set; }
-        FloatRange range { get; set; }
+        /// <summary>
+        /// Resets a sampler's state to its base random seed
+        /// </summary>
+        void ResetState();
 
         /// <summary>
-        /// Returns a duplicate sampler with an iterated seed
+        /// Resets a sampler's state to its base random seed and then offsets said seed using an index value
         /// </summary>
         /// <param name="index">
-        /// Offset value is often a the active scenario's currentIteration or framesSinceInitialization.
+        /// Often a the active scenario's currentIteration
         /// </param>
-        ISampler CopyAndIterate(int index);
+        void ResetState(int index);
+
+        /// <summary>
+        /// Deterministically offsets a sampler's state when generating values within a batched job
+        /// </summary>
+        /// <param name="batchIndex">
+        /// The current job index
+        /// </param>
+        void IterateState(int batchIndex);
 
         /// <summary>
         /// Generate one sample
         /// </summary>
-        float NextSample();
+        float Sample();
 
         /// <summary>
         /// Schedule a job to generate multiple samples

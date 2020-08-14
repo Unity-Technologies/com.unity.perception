@@ -55,12 +55,15 @@ namespace UnityEngine.Perception.Randomization.Editor
         void CreateSampler(Type samplerType)
         {
             var newSampler = (ISampler)Activator.CreateInstance(samplerType);
-            newSampler.seed = SamplerUtility.GenerateRandomSeed();
+            if (newSampler is IRandomRangedSampler rangedSampler)
+            {
+                rangedSampler.baseSeed = SamplerUtility.GenerateRandomSeed();
 
-            if (m_RangeProperty != null)
-                newSampler.range = new FloatRange(
-                    m_RangeProperty.FindPropertyRelative("minimum").floatValue,
-                    m_RangeProperty.FindPropertyRelative("maximum").floatValue);
+                if (m_RangeProperty != null)
+                    rangedSampler.range = new FloatRange(
+                        m_RangeProperty.FindPropertyRelative("minimum").floatValue,
+                        m_RangeProperty.FindPropertyRelative("maximum").floatValue);
+            }
 
             m_Sampler = newSampler;
             m_Property.managedReferenceValue = newSampler;
@@ -81,7 +84,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 {
                     if (SerializedProperty.EqualContents(currentProperty, nextSiblingProperty))
                         break;
-                    if (currentProperty.type == "Random")
+                    if (currentProperty.name == "<baseSeed>k__BackingField")
                     {
                         m_Properties.Add(new RandomSeedField(currentProperty.Copy()));
                     }

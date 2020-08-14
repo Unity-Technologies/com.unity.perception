@@ -16,45 +16,22 @@ namespace UnityEngine.Perception.Randomization.Parameters
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
         [SerializeReference] public ISampler alpha = new ConstantSampler(1f);
 
-        public override ISampler[] Samplers => new []{ hue, saturation, value, alpha };
+        public override ISampler[] samplers => new []{ hue, saturation, value, alpha };
 
-        static Color CreateColorHsva(float h, float s, float v, float a)
+        public override Color Sample()
         {
-            var color = Color.HSVToRGB(h, s, v);
-            color.a = a;
+            var color = Color.HSVToRGB(hue.Sample(), saturation.Sample(), value.Sample());
+            color.a = alpha.Sample();
             return color;
         }
 
-        public override Color Sample(int index)
-        {
-            var color = Color.HSVToRGB(
-                hue.CopyAndIterate(index).NextSample(),
-                saturation.CopyAndIterate(index).NextSample(),
-                value.CopyAndIterate(index).NextSample());
-            color.a = alpha.CopyAndIterate(index).NextSample();
-            return color;
-        }
-
-        public override Color[] Samples(int index, int sampleCount)
-        {
-            var samples = new Color[sampleCount];
-            var hueRng = hue.CopyAndIterate(index);
-            var satRng = saturation.CopyAndIterate(index);
-            var valRng = value.CopyAndIterate(index);
-            var alphaRng = alpha.CopyAndIterate(index);
-            for (var i = 0; i < sampleCount; i++)
-                samples[i] = CreateColorHsva(
-                    hueRng.NextSample(), satRng.NextSample(), valRng.NextSample(), alphaRng.NextSample());
-            return samples;
-        }
-
-        public override NativeArray<Color> Samples(int index, int sampleCount, out JobHandle jobHandle)
+        public override NativeArray<Color> Samples(int sampleCount, out JobHandle jobHandle)
         {
             var samples = new NativeArray<Color>(sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var hueRng = hue.CopyAndIterate(index).Samples(sampleCount, out var hueHandle);
-            var satRng = saturation.CopyAndIterate(index).Samples(sampleCount, out var satHandle);
-            var valRng = value.CopyAndIterate(index).Samples(sampleCount, out var valHandle);
-            var alphaRng = alpha.CopyAndIterate(index).Samples(sampleCount, out var alphaHandle);
+            var hueRng = hue.Samples(sampleCount, out var hueHandle);
+            var satRng = saturation.Samples(sampleCount, out var satHandle);
+            var valRng = value.Samples(sampleCount, out var valHandle);
+            var alphaRng = alpha.Samples(sampleCount, out var alphaHandle);
 
             var handles = new NativeArray<JobHandle>(4, Allocator.TempJob)
             {
@@ -86,6 +63,13 @@ namespace UnityEngine.Perception.Randomization.Parameters
             [DeallocateOnJobCompletion] public NativeArray<float> valRng;
             [DeallocateOnJobCompletion] public NativeArray<float> alphaRng;
             public NativeArray<Color> samples;
+
+            static Color CreateColorHsva(float h, float s, float v, float a)
+            {
+                var color = Color.HSVToRGB(h, s, v);
+                color.a = a;
+                return color;
+            }
 
             public void Execute()
             {

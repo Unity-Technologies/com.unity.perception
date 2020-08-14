@@ -13,29 +13,18 @@ namespace UnityEngine.Perception.Randomization.Samplers
     {
         public float value;
 
-        public uint seed
-        {
-            get => 0;
-            set { }
-        }
-
-        public FloatRange range
-        {
-            get => new FloatRange(value, value);
-            set { }
-        }
-
         public ConstantSampler(float value)
         {
             this.value = value;
         }
 
-        public ISampler CopyAndIterate(int index)
-        {
-            return new ConstantSampler(value);
-        }
+        public void ResetState() { }
 
-        public float NextSample()
+        public void ResetState(int index) { }
+
+        public void IterateState(int batchIndex) { }
+
+        public float Sample()
         {
             return value;
         }

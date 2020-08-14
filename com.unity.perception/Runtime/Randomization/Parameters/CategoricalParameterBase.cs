@@ -9,7 +9,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         [SerializeField] internal List<float> probabilities = new List<float>();
 
         internal abstract void AddOption();
-        public abstract void RemoveOption(int index);
-        public abstract void ClearOptions();
+        internal abstract void RemoveOption(int index);
+        internal abstract void ClearOptions();
     }
 }

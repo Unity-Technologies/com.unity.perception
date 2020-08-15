@@ -12,26 +12,32 @@ namespace UnityEngine.Perception.Randomization.Configuration
     [AddComponentMenu("Perception/Randomization/ParameterConfiguration")]
     public class ParameterConfiguration : MonoBehaviour
     {
-        public static HashSet<ParameterConfiguration> configurations = new HashSet<ParameterConfiguration>();
+        internal static HashSet<ParameterConfiguration> configurations = new HashSet<ParameterConfiguration>();
         [SerializeReference] internal List<Parameter> parameters = new List<Parameter>();
 
         /// <summary>
         /// Find a parameter in this configuration by name
         /// </summary>
-        public Parameter GetParameter(string parameterName)
+        /// <param name="parameterName">The name of the parameter to lookup</param>
+        /// <param name="parameterType">The type of parameter to lookup</param>
+        /// <returns>The parameter if found, null otherwise</returns>
+        /// <exception cref="ParameterConfigurationException"></exception>
+        public Parameter GetParameter(string parameterName, Type parameterType)
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.name == parameterName)
+                if (parameter.name == parameterName && parameter.GetType() ==  parameterType)
                     return parameter;
             }
-            throw new ParameterConfigurationException(
-                $"Parameter with name {parameterName} not found");
+            return null;
         }
 
         /// <summary>
-        /// Find a parameter in this configuration by name
+        /// Find a parameter in this configuration by name and type
         /// </summary>
+        /// <param name="parameterName"></param>
+        /// <typeparam name="T">The type of parameter to look for</typeparam>
+        /// <returns>The parameter if found, null otherwise</returns>
         public T GetParameter<T>(string parameterName) where T : Parameter
         {
             foreach (var parameter in parameters)
@@ -39,61 +45,54 @@ namespace UnityEngine.Perception.Randomization.Configuration
                 if (parameter.name == parameterName && parameter is T typedParameter)
                     return typedParameter;
             }
-            throw new ParameterConfigurationException(
-                $"Parameter with name {parameterName} and type {typeof(T).Name} not found");
+            return null;
         }
 
-        void NameAndAddParameterToList(Parameter parameter)
-        {
-            parameter.name = $"Parameter{parameters.Count}";
-            parameters.Add(parameter);
-        }
+        string PlaceholderParameterName() => $"Parameter{parameters.Count}";
 
         /// <summary>
         /// Adds a new typed parameter to this configuration
         /// </summary>
+        /// <typeparam name="T">The type of parameter to add</typeparam>
+        /// <returns>The newly added parameter</returns>
         public T AddParameter<T>() where T : Parameter, new()
         {
             var parameter = new T();
-            NameAndAddParameterToList(parameter);
+            parameter.name = PlaceholderParameterName();
+            parameters.Add(parameter);
             return parameter;
         }
 
         /// <summary>
         /// Adds a new parameter to this configuration
         /// </summary>
+        /// <param name="parameterType">The type of parameter to add</param>
+        /// <returns>The newly added parameter</returns>
+        /// <exception cref="ParameterConfigurationException"></exception>
         public Parameter AddParameter(Type parameterType)
         {
             if (!parameterType.IsSubclassOf(typeof(Parameter)))
                 throw new ParameterConfigurationException($"Cannot add non-parameter types ({parameterType})");
             var parameter = (Parameter)Activator.CreateInstance(parameterType);
-            NameAndAddParameterToList(parameter);
+            parameter.name = PlaceholderParameterName();
+            parameters.Add(parameter);
             return parameter;
         }
 
-        /// <summary>
-        /// Calls apply on all parameters with GameObject targets in this configuration
-        /// </summary>
-        public void ApplyParameters(int seedOffset, ParameterApplicationFrequency frequency)
+        internal void ApplyParameters(int seedOffset, ParameterApplicationFrequency frequency)
         {
             foreach (var parameter in parameters)
                 if (parameter.target.applicationFrequency == frequency)
                     parameter.ApplyToTarget(seedOffset);
         }
 
-        /// <summary>
-        /// Resets sampler states to their baseSeed then offsets using the current scenario iteration
-        /// </summary>
-        public void ResetParameterStates(int scenarioIteration)
+        internal void ResetParameterStates(int scenarioIteration)
         {
             foreach (var parameter in parameters)
                 parameter.ResetState(scenarioIteration);
         }
 
-        /// <summary>
-        /// Calls Validate() on all parameters within this configuration
-        /// </summary>
-        public void ValidateParameters()
+        internal void ValidateParameters()
         {
             var parameterNames = new HashSet<string>();
             foreach (var parameter in parameters)

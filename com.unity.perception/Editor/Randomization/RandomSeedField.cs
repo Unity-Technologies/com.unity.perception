@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    public class RandomSeedField : IntegerField
+    class RandomSeedField : IntegerField
     {
         public RandomSeedField(SerializedProperty property)
         {

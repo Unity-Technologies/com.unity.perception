@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 namespace UnityEngine.Perception.Randomization.Editor
 {
     [CustomEditor(typeof(ScenarioBase), true)]
-    public class ScenarioBaseEditor : UnityEditor.Editor
+    class ScenarioBaseEditor : UnityEditor.Editor
     {
         ScenarioBase m_Scenario;
         SerializedObject m_SerializedObject;

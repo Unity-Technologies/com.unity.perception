@@ -5,13 +5,13 @@ using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    public class CategoricalOptionElement : VisualElement
+    class CategoricalOptionElement : VisualElement
     {
         int m_Index;
         SerializedProperty m_OptionsProperty;
         SerializedProperty m_ProbabilitiesProperty;
 
-        public CategoricalOptionElement(
+        internal CategoricalOptionElement(
             SerializedProperty optionsProperty,
             SerializedProperty probabilitiesProperty)
         {

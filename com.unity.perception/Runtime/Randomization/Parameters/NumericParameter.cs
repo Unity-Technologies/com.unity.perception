@@ -8,7 +8,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [Serializable]
     public abstract class NumericParameter<T> : Parameter where T : struct
     {
-        public sealed override Type OutputType => typeof(T);
+        public sealed override Type sampleType => typeof(T);
 
         /// <summary>
         /// Generates one parameter sample
@@ -23,14 +23,14 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// <param name="jobHandle">The JobHandle returned from scheduling the sampling job</param>
         public abstract NativeArray<T> Samples(int sampleCount, out JobHandle jobHandle);
 
-        public sealed override void ApplyToTarget(int seedOffset)
+        internal sealed override void ApplyToTarget(int seedOffset)
         {
             if (!hasTarget)
                 return;
             target.ApplyValueToTarget(Sample());
         }
 
-        public override void Validate()
+        internal override void Validate()
         {
             base.Validate();
             foreach (var sampler in samplers)

@@ -2,7 +2,7 @@
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    public class ParameterDragManipulator : MouseManipulator
+    class ParameterDragManipulator : MouseManipulator
     {
         bool m_Active;
         float m_Offset;

@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    public class ParameterElement : VisualElement
+    class ParameterElement : VisualElement
     {
         int m_ParameterIndex;
         bool m_Filtered;
@@ -142,7 +142,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 ? "Select a property"
                 : TargetPropertyDisplayText(parameter.target);
 
-            var options = GatherPropertyOptions(parameter.target.gameObject, parameter.OutputType);
+            var options = GatherPropertyOptions(parameter.target.gameObject, parameter.sampleType);
             foreach (var option in options)
             {
                 m_TargetPropertyMenu.menu.AppendAction(

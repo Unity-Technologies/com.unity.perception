@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    public class FloatRangeElement : VisualElement
+    class FloatRangeElement : VisualElement
     {
         public FloatRangeElement(SerializedProperty property)
         {

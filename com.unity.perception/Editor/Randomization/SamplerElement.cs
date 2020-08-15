@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    public class SamplerElement : VisualElement
+    class SamplerElement : VisualElement
     {
         Parameter m_Parameter;
         ISampler m_Sampler;

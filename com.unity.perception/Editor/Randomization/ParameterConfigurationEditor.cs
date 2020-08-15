@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 namespace UnityEngine.Perception.Randomization.Editor
 {
     [CustomEditor(typeof(ParameterConfiguration))]
-    public class ParameterConfigurationEditor : UnityEditor.Editor
+    class ParameterConfigurationEditor : UnityEditor.Editor
     {
         VisualElement m_Root;
         VisualElement m_ParameterContainer;

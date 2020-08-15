@@ -8,15 +8,15 @@ using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    public static class StaticData
+    static class StaticData
     {
         const string k_RandomizationDir = "Packages/com.unity.perception/Editor/Randomization";
-        public const string uxmlDir = k_RandomizationDir + "/Uxml";
+        internal const string uxmlDir = k_RandomizationDir + "/Uxml";
 
-        public static readonly string samplerSerializedFieldType;
+        internal static readonly string samplerSerializedFieldType;
 
-        public static Type[] parameterTypes;
-        public static Type[] samplerTypes;
+        internal static Type[] parameterTypes;
+        internal static Type[] samplerTypes;
 
         static StaticData()
         {

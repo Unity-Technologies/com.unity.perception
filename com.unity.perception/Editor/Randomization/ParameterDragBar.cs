@@ -2,7 +2,7 @@
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    public class ParameterDragBar : VisualElement
+    class ParameterDragBar : VisualElement
     {
         public ParameterDragBar()
         {

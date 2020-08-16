@@ -15,9 +15,14 @@ namespace UnityEngine.Perception.Randomization.Samplers
         internal const uint largePrime = 0x202A96CF;
         const int k_SamplingBatchSize = 64;
 
-        internal static string GetSamplerDisplayName(Type sampleType)
+        /// <summary>
+        /// Returns the sampler's display name
+        /// </summary>
+        /// <param name="samplerType">The sampler type</param>
+        /// <returns>The display name</returns>
+        public static string GetSamplerDisplayName(Type samplerType)
         {
-            return sampleType.Name.Replace("Sampler", string.Empty);
+            return samplerType.Name.Replace("Sampler", string.Empty);
         }
 
         /// <summary>

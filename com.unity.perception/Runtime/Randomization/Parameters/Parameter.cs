@@ -15,7 +15,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// Returns the display name of a parameter type
         /// </summary>
         /// <param name="type">A subclass of Parameter</param>
-        /// <returns>A parameter type's display name</returns>
+        /// <returns>The parameter type's display name</returns>
         public static string GetDisplayName(Type type)
         {
             return type.Name.Replace("Parameter", "");
@@ -53,11 +53,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// An array containing a reference to each sampler field in this parameter
         /// </summary>
         public abstract ISampler[] samplers { get; }
-
-        /// <summary>
-        /// The display name of this parameter's sample type
-        /// </summary>
-        public virtual string displayName => GetDisplayName(GetType());
 
         /// <summary>
         /// Constructs a new parameter

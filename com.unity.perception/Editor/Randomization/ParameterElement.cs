@@ -70,7 +70,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             removeButton.RegisterCallback<MouseUpEvent>(evt => paramConfigEditor.RemoveParameter(this));
 
             var parameterTypeLabel = this.Query<Label>("parameter-type-label").First();
-            parameterTypeLabel.text = parameter.displayName;
+            parameterTypeLabel.text = Parameter.GetDisplayName(parameter.GetType());
 
             var parameterNameField = this.Q<TextField>("name");
             parameterNameField.isDelayed = true;
@@ -140,7 +140,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_TargetPropertyMenu.menu.MenuItems().Clear();
             m_TargetPropertyMenu.text = parameter.target.propertyName == string.Empty
                 ? "Select a property"
-                : TargetPropertyDisplayText(parameter.target);
+                : Parameter.GetDisplayName(parameter.GetType());
 
             var options = GatherPropertyOptions(parameter.target.gameObject, parameter.sampleType);
             foreach (var option in options)

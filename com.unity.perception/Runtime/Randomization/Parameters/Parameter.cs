@@ -12,17 +12,17 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [Serializable]
     public abstract class Parameter
     {
-        [SerializeField] internal bool collapsed;
+        [HideInInspector, SerializeField] internal bool collapsed;
 
         /// <summary>
         /// The name of the parameter
         /// </summary>
-        public string name = "Parameter";
+        [HideInInspector] public string name = "Parameter";
 
         /// <summary>
         /// The target this parameter apply a sample to
         /// </summary>
-        [SerializeField] internal ParameterTarget target = new ParameterTarget();
+        [HideInInspector, SerializeField] internal ParameterTarget target = new ParameterTarget();
 
         /// <summary>
         /// Indicates whether this parameter has a target GameObject
@@ -45,6 +45,9 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// </summary>
         public abstract ISampler[] samplers { get; }
 
+        /// <summary>
+        /// Constructs a new parameter
+        /// </summary>
         protected Parameter()
         {
             InitializeSamplers();

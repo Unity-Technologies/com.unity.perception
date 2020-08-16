@@ -16,8 +16,15 @@ namespace UnityEngine.Perception.Randomization.Parameters
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
         [SerializeReference] public ISampler alpha = new ConstantSampler(1f);
 
+        /// <summary>
+        /// Returns the samplers employed by this parameter
+        /// </summary>
         public override ISampler[] samplers => new []{ hue, saturation, value, alpha };
 
+        /// <summary>
+        /// Generates a color sample
+        /// </summary>
+        /// <returns>The generated sample</returns>
         public override Color Sample()
         {
             var color = Color.HSVToRGB(hue.Sample(), saturation.Sample(), value.Sample());
@@ -25,6 +32,12 @@ namespace UnityEngine.Perception.Randomization.Parameters
             return color;
         }
 
+        /// <summary>
+        /// Schedules a job to generate an array of samples
+        /// </summary>
+        /// <param name="sampleCount">The number of samples to generate</param>
+        /// <param name="jobHandle">The handle of the scheduled job</param>
+        /// <returns>A NativeArray of samples</returns>
         public override NativeArray<Color> Samples(int sampleCount, out JobHandle jobHandle)
         {
             var samples = new NativeArray<Color>(sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);

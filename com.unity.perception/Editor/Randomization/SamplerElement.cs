@@ -78,7 +78,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             var nextSiblingProperty = m_Property.Copy();
             nextSiblingProperty.Next(false);
 
-            if (currentProperty.Next(true))
+            if (currentProperty.NextVisible(true))
             {
                 do
                 {
@@ -100,7 +100,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                         m_Properties.Add(propertyField);
                     }
                 }
-                while (currentProperty.Next(false));
+                while (currentProperty.NextVisible(false));
             }
         }
 

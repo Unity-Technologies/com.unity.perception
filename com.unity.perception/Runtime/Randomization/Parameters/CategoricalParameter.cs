@@ -41,6 +41,9 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// <returns>The probability value stored at the specified index</returns>
         public float GetProbability(int index) => probabilities[index];
 
+        /// <summary>
+        /// Constructs a new categorical parameter
+        /// </summary>
         protected CategoricalParameter() { }
 
         /// <summary>

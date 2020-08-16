@@ -17,6 +17,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         VisualElement m_TargetContainer;
         ToolbarMenu m_TargetPropertyMenu;
         SerializedProperty m_SerializedProperty;
+        SerializedProperty m_TargetGameObjectProperty;
 
         const string k_CollapsedParameterClass = "collapsed-parameter";
 
@@ -76,21 +77,19 @@ namespace UnityEngine.Perception.Randomization.Editor
             parameterNameField.BindProperty(m_SerializedProperty.FindPropertyRelative("name"));
 
             m_TargetContainer = this.Q<VisualElement>("target-container");
-            ToggleTargetContainer();
             m_TargetPropertyMenu = this.Q<ToolbarMenu>("property-select-menu");
+            m_TargetGameObjectProperty = m_SerializedProperty.FindPropertyRelative("target.gameObject");
+            ToggleTargetContainer();
 
             var frequencyField = this.Q<PropertyField>("application-frequency");
             frequencyField.BindProperty(m_SerializedProperty.FindPropertyRelative("target.applicationFrequency"));
 
             var targetField = this.Q<PropertyField>("target");
-            var targetObjectProperty = m_SerializedProperty.FindPropertyRelative("target.gameObject");
-            targetField.BindProperty(targetObjectProperty);
+            targetField.BindProperty(m_TargetGameObjectProperty);
             targetField.RegisterCallback<ChangeEvent<Object>>(evt =>
             {
-                if (evt.newValue == targetObjectProperty.objectReferenceValue)
-                    return;
                 ClearTarget();
-                targetObjectProperty.objectReferenceValue = (GameObject)evt.newValue;
+                m_TargetGameObjectProperty.objectReferenceValue = (GameObject)evt.newValue;
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 ToggleTargetContainer();
                 FillPropertySelectMenu();
@@ -106,9 +105,9 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         void ToggleTargetContainer()
         {
-            m_TargetContainer.style.display = parameter.hasTarget
-                ? new StyleEnum<DisplayStyle>(DisplayStyle.Flex)
-                : new StyleEnum<DisplayStyle>(DisplayStyle.None);
+            m_TargetContainer.style.display = m_TargetGameObjectProperty.objectReferenceValue == null
+                ? new StyleEnum<DisplayStyle>(DisplayStyle.None)
+                : new StyleEnum<DisplayStyle>(DisplayStyle.Flex);
         }
 
         void ClearTarget()
@@ -203,14 +202,12 @@ namespace UnityEngine.Perception.Randomization.Editor
             var nextSiblingProperty = m_SerializedProperty.Copy();
             nextSiblingProperty.Next(false);
 
-            if (currentProperty.Next(true))
+            if (currentProperty.NextVisible(true))
             {
                 do
                 {
                     if (SerializedProperty.EqualContents(currentProperty, nextSiblingProperty))
                         break;
-                    if (currentProperty.name == "name")
-                        continue;
                     if (currentProperty.type.Contains("managedReference") &&
                         currentProperty.managedReferenceFieldTypename == StaticData.samplerSerializedFieldType)
                         m_ExtraProperties.Add(new SamplerElement(currentProperty.Copy(), parameter));

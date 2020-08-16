@@ -11,15 +11,32 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [ParameterMetaData("Int")]
     public class IntegerParameter : NumericParameter<int>
     {
+        /// <summary>
+        /// The sampler used as a source of random values for this parameter
+        /// </summary>
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
+
+        /// <summary>
+        /// Returns the sampler employed by this parameter
+        /// </summary>
         public override ISampler[] samplers => new[] { value };
 
+        /// <summary>
+        /// Generates an integer sample
+        /// </summary>
+        /// <returns>The generated sample</returns>
         public override int Sample() => (int)value.Sample();
 
-        public override NativeArray<int> Samples(int totalSamples, out JobHandle jobHandle)
+        /// <summary>
+        /// Schedules a job to generate an array of samples
+        /// </summary>
+        /// <param name="sampleCount">The number of samples to generate</param>
+        /// <param name="jobHandle">The handle of the scheduled job</param>
+        /// <returns>A NativeArray of samples</returns>
+        public override NativeArray<int> Samples(int sampleCount, out JobHandle jobHandle)
         {
-            var samples = new NativeArray<int>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var rngSamples = value.Samples(totalSamples, out jobHandle);
+            var samples = new NativeArray<int>(sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var rngSamples = value.Samples(sampleCount, out jobHandle);
             jobHandle = new SamplesJob
             {
                 rngSamples = rngSamples,

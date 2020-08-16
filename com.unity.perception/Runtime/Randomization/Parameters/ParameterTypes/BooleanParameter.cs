@@ -11,17 +11,33 @@ namespace UnityEngine.Perception.Randomization.Parameters
     [ParameterMetaData("Bool")]
     public class BooleanParameter : NumericParameter<bool>
     {
-        [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
+        /// <summary>
+        /// The sampler used as a source of random values for this parameter
+        /// </summary>
+        [HideInInspector, SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
 
+        /// <summary>
+        /// Returns the sampler employed by this parameter
+        /// </summary>
         public override ISampler[] samplers => new[] { value };
 
         static bool Sample(float t) => t >= 0.5f;
 
+        /// <summary>
+        /// Generates a boolean sample
+        /// </summary>
+        /// <returns>The generated sample</returns>
         public override bool Sample()
         {
             return Sample(value.Sample());
         }
 
+        /// <summary>
+        /// Schedules a job to generate an array of samples
+        /// </summary>
+        /// <param name="sampleCount">The number of samples to generate</param>
+        /// <param name="jobHandle">The handle of the scheduled job</param>
+        /// <returns>A NativeArray of samples</returns>
         public override NativeArray<bool> Samples(int sampleCount, out JobHandle jobHandle)
         {
             var samples = new NativeArray<bool>(sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);

@@ -15,19 +15,32 @@ namespace UnityEngine.Perception.Randomization.Parameters
         [SerializeReference] public ISampler y = new UniformSampler(0f, 1f);
         [SerializeReference] public ISampler z = new UniformSampler(0f, 1f);
 
+        /// <summary>
+        /// Returns the samplers employed by this parameter
+        /// </summary>
         public override ISampler[] samplers => new []{ x, y, z };
 
+        /// <summary>
+        /// Generates a Vector3 sample
+        /// </summary>
+        /// <returns>The generated sample</returns>
         public override Vector3 Sample()
         {
             return new Vector3(x.Sample(), y.Sample(), z.Sample());
         }
 
-        public override NativeArray<Vector3> Samples(int totalSamples, out JobHandle jobHandle)
+        /// <summary>
+        /// Schedules a job to generate an array of samples
+        /// </summary>
+        /// <param name="sampleCount">The number of samples to generate</param>
+        /// <param name="jobHandle">The handle of the scheduled job</param>
+        /// <returns>A NativeArray of samples</returns>
+        public override NativeArray<Vector3> Samples(int sampleCount, out JobHandle jobHandle)
         {
-            var samples = new NativeArray<Vector3>(totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var xRng = x.Samples(totalSamples, out var xHandle);
-            var yRng = y.Samples(totalSamples, out var yHandle);
-            var zRng = z.Samples(totalSamples, out var zHandle);
+            var samples = new NativeArray<Vector3>(sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var xRng = x.Samples(sampleCount, out var xHandle);
+            var yRng = y.Samples(sampleCount, out var yHandle);
+            var zRng = z.Samples(sampleCount, out var zHandle);
             var combinedJobHandles = JobHandle.CombineDependencies(xHandle, yHandle, zHandle);
             jobHandle = new SamplesJob
             {

@@ -10,7 +10,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A numeric parameter for generating Vector2 samples
     /// </summary>
     [Serializable]
-    [ParameterDisplayName("Vector2")]
     public class Vector2Parameter : NumericParameter<Vector2>
     {
         /// <summary>

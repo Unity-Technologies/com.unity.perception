@@ -8,7 +8,6 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// Returns a constant value when sampled
     /// </summary>
     [Serializable]
-    [SamplerDisplayName("Constant")]
     public struct ConstantSampler : ISampler
     {
         /// <summary>

@@ -6,6 +6,5 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A categorical parameter for generating GameObject samples
     /// </summary>
     [Serializable]
-    [ParameterDisplayName("GameObject")]
     public class GameObjectParameter : CategoricalParameter<GameObject> { }
 }

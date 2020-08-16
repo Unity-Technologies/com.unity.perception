@@ -10,7 +10,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A numeric parameter for generating integer samples
     /// </summary>
     [Serializable]
-    [ParameterDisplayName("Int")]
     public class IntegerParameter : NumericParameter<int>
     {
         /// <summary>

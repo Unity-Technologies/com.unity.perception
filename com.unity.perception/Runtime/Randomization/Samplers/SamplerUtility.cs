@@ -15,6 +15,11 @@ namespace UnityEngine.Perception.Randomization.Samplers
         internal const uint largePrime = 0x202A96CF;
         const int k_SamplingBatchSize = 64;
 
+        internal static string GetSamplerDisplayName(Type sampleType)
+        {
+            return sampleType.Name.Replace("Sampler", string.Empty);
+        }
+
         /// <summary>
         /// Non-deterministically generates a random seed
         /// </summary>

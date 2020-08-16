@@ -9,7 +9,6 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// https://en.wikipedia.org/wiki/Truncated_normal_distribution
     /// </summary>
     [Serializable]
-    [SamplerDisplayName("Normal")]
     public struct NormalSampler : ISampler, IRandomRangedSampler
     {
         Unity.Mathematics.Random m_Random;

@@ -10,7 +10,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A numeric parameter for generating Color samples
     /// </summary>
     [Serializable]
-    [ParameterDisplayName("ColorHSVA")]
     public class ColorHsvaParameter : NumericParameter<Color>
     {
         /// <summary>

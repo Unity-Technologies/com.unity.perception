@@ -6,6 +6,5 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A categorical parameter for generating Material samples
     /// </summary>
     [Serializable]
-    [ParameterDisplayName("Material")]
     public class MaterialParameter : CategoricalParameter<Material> {}
 }

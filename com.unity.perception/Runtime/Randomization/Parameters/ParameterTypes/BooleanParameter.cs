@@ -10,7 +10,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A numeric parameter for generating boolean samples
     /// </summary>
     [Serializable]
-    [ParameterDisplayName("Bool")]
     public class BooleanParameter : NumericParameter<bool>
     {
         /// <summary>

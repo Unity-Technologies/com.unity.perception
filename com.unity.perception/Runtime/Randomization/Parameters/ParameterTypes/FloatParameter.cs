@@ -9,7 +9,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A numeric parameter for generating float samples
     /// </summary>
     [Serializable]
-    [ParameterDisplayName("Float")]
     public class FloatParameter : NumericParameter<float>
     {
         /// <summary>

@@ -274,6 +274,8 @@ namespace UnityEngine.Perception.Randomization.Editor
                 addFolderButton.clicked += () =>
                 {
                     var folderPath = EditorUtility.OpenFolderPanel("Add Options From Folder", Application.dataPath, "Goober");
+                    if (folderPath == string.Empty)
+                        return;
                     var categories = LoadAssetsFromFolder(folderPath, categoricalParameter.sampleType);
                     probabilitiesProperty.arraySize += categories.Count;
                     optionsProperty.arraySize += categories.Count;

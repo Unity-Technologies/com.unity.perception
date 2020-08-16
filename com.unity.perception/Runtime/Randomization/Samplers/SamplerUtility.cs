@@ -82,7 +82,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         }
 
         /// <summary>
-        /// https://www.johndcook.com/blog/csharp_phi/
+        /// Source: https://www.johndcook.com/blog/csharp_phi/
         /// </summary>
         static float NormalCdf(float x)
         {
@@ -105,7 +105,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         }
 
         /// <summary>
-        /// https://www.johndcook.com/blog/csharp_phi_inverse/
+        /// Source: https://www.johndcook.com/blog/csharp_phi_inverse/
         /// </summary>
         static float RationalApproximation(float t)
         {
@@ -119,17 +119,15 @@ namespace UnityEngine.Perception.Randomization.Samplers
         }
 
         /// <summary>
-        /// https://www.johndcook.com/blog/csharp_phi_inverse/
+        /// Source: https://www.johndcook.com/blog/csharp_phi_inverse/
+        /// Note: generates NaN values for values 0 and 1
         /// </summary>
-        /// <param name="probability">Must be with the range (0, 1)</param>
-        static float NormalCdfInverse(float probability)
+        /// <param name="uniformSample">A uniform sample value between the range (0, 1)</param>
+        static float NormalCdfInverse(float uniformSample)
         {
-            if (probability <= 0f || probability >= 1.0f)
-                throw new ArgumentOutOfRangeException($"Probability {probability} is outside the range (0, 1)");
-
-            return probability < 0.5f
-                ? -RationalApproximation(math.sqrt(-2.0f * math.log(probability)))
-                : RationalApproximation(math.sqrt(-2.0f * math.log(1.0f - probability)));
+            return uniformSample < 0.5f
+                ? -RationalApproximation(math.sqrt(-2.0f * math.log(uniformSample)))
+                : RationalApproximation(math.sqrt(-2.0f * math.log(1.0f - uniformSample)));
         }
 
         /// <summary>
@@ -137,21 +135,28 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// Further reading about this distribution can be found here:
         /// https://en.wikipedia.org/wiki/Truncated_normal_distribution
         /// </summary>
-        public static float TruncatedNormalSample(float u, float min, float max, float mean, float stdDev)
+        /// <param name="uniformSample">A sample value between 0 and 1 generated from a uniform distribution</param>
+        /// <param name="min">The minimum possible value to generate</param>
+        /// <param name="max">The maximum possible value to generate</param>
+        /// <param name="mean">The mean of the normal distribution</param>
+        /// <param name="stdDev">The standard deviation of the normal distribution</param>
+        /// <returns>A value sampled from a truncated normal distribution</returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static float TruncatedNormalSample(float uniformSample, float min, float max, float mean, float stdDev)
         {
             if (min > max)
                 throw new ArgumentException("Invalid range");
 
-            if (u == 0f)
+            if (uniformSample == 0f)
                 return min;
-            if (u == 1f)
+            if (uniformSample == 1f)
                 return max;
             if (stdDev == 0f)
                 return math.clamp(mean, min, max);
 
             var a = NormalCdf((min - mean) / stdDev);
             var b = NormalCdf((max - mean) / stdDev);
-            var c = math.lerp(a, b, u);
+            var c = math.lerp(a, b, uniformSample);
 
             if (c == 0f)
                 return max;

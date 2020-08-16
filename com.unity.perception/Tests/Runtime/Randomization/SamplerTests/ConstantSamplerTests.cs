@@ -10,10 +10,9 @@ namespace RandomizationTests.SamplerTests
         public void ConstantSamplerGeneratesConstantValues()
         {
             var constantSampler = new ConstantSampler();
-            var samples = SamplerUtility.GenerateSamples(constantSampler, TestValues.TestSampleCount);
-            Assert.AreEqual(samples.Length, TestValues.TestSampleCount);
-            foreach (var sample in samples)
-                Assert.AreEqual(sample, constantSampler.value);
+            var sample1 = constantSampler.Sample();
+            var sample2 = constantSampler.Sample();
+            Assert.AreEqual(sample1, sample2);
         }
     }
 }

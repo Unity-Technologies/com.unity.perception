@@ -33,10 +33,10 @@ namespace UnityEngine.Perception.Randomization.Editor
 
             m_Properties = this.Q<VisualElement>("fields-container");
             m_SamplerTypeDropdown = this.Q<ToolbarMenu>("sampler-type-dropdown");
-            m_SamplerTypeDropdown.text = SamplerMetaData.GetMetaData(m_Sampler.GetType()).displayName;
+            m_SamplerTypeDropdown.text = SamplerDisplayName.GetDisplayName(m_Sampler.GetType()).displayName;
             foreach (var samplerType in StaticData.samplerTypes)
             {
-                var displayName = SamplerMetaData.GetMetaData(samplerType).displayName;
+                var displayName = SamplerDisplayName.GetDisplayName(samplerType).displayName;
                 m_SamplerTypeDropdown.menu.AppendAction(
                     displayName,
                     a => { ReplaceSampler(samplerType); },
@@ -48,7 +48,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         void ReplaceSampler(Type samplerType)
         {
             CreateSampler(samplerType);
-            m_SamplerTypeDropdown.text = SamplerMetaData.GetMetaData(m_Sampler.GetType()).displayName;
+            m_SamplerTypeDropdown.text = SamplerDisplayName.GetDisplayName(m_Sampler.GetType()).displayName;
             CreatePropertyFields();
         }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine.Perception.Randomization.Parameters.Attributes;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -7,6 +6,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A categorical parameter for generating Material samples
     /// </summary>
     [Serializable]
-    [ParameterMetaData("Material")]
+    [ParameterDisplayName("Material")]
     public class MaterialParameter : CategoricalParameter<Material> {}
 }

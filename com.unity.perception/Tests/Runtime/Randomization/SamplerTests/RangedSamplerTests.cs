@@ -20,15 +20,15 @@ namespace RandomizationTests.SamplerTests
         [Test]
         public void SamplesInRange()
         {
-            var samples = SamplerUtility.GenerateSamples(m_Sampler, k_TestSampleCount);
-
+            var samples = m_Sampler.Samples(k_TestSampleCount, out var handle);
+            handle.Complete();
             Assert.AreEqual(samples.Length, k_TestSampleCount);
-
             foreach (var sample in samples)
             {
                 Assert.GreaterOrEqual(sample, m_Sampler.range.minimum);
                 Assert.LessOrEqual(sample, m_Sampler.range.maximum);
             }
+            samples.Dispose();
         }
 
         [Test]
@@ -76,13 +76,6 @@ namespace RandomizationTests.SamplerTests
 
             samples1.Dispose();
             samples2.Dispose();
-        }
-
-        [Test]
-        public void InvalidRange()
-        {
-            m_Sampler.range = new FloatRange(1, -1);
-            Assert.Throws<ArgumentException>(() => SamplerUtility.ValidateRange(m_Sampler));
         }
     }
 }

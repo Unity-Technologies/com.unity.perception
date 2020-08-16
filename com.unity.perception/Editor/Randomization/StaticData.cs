@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Newtonsoft.Json;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Editor
@@ -50,10 +48,10 @@ namespace UnityEngine.Perception.Randomization.Editor
                 {
                     var isNotAbstract = (type.Attributes & TypeAttributes.Abstract) == 0;
                     if (typeof(Parameter).IsAssignableFrom(type) && isNotAbstract &&
-                        ParameterMetaData.GetMetaData(type) != null)
+                        ParameterDisplayName.GetDisplayName(type) != null)
                         parameterTypesList.Add(type);
                     else if (typeof(ISampler).IsAssignableFrom(type) &&
-                        isNotAbstract && SamplerMetaData.GetMetaData(type) != null)
+                        isNotAbstract && SamplerDisplayName.GetDisplayName(type) != null)
                     {
                         samplerTypesList.Add(type);
                     }

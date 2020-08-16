@@ -13,5 +13,11 @@ namespace UnityEngine.Perception.Randomization.Samplers
             minimum = min;
             maximum = max;
         }
+
+        public void Validate()
+        {
+            if (minimum > maximum)
+                throw new ArgumentException("Invalid sampling range");
+        }
     }
 }

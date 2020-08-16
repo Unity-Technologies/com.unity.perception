@@ -70,7 +70,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             removeButton.RegisterCallback<MouseUpEvent>(evt => paramConfigEditor.RemoveParameter(this));
 
             var parameterTypeLabel = this.Query<Label>("parameter-type-label").First();
-            parameterTypeLabel.text = parameter.MetaData.typeDisplayName;
+            parameterTypeLabel.text = parameter.displayName.displayName;
 
             var parameterNameField = this.Q<TextField>("name");
             parameterNameField.isDelayed = true;

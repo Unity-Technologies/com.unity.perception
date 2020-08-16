@@ -2,22 +2,39 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
+    /// <summary>
+    /// A numeric parameter for generating Vector4 samples
+    /// </summary>
     [Serializable]
-    [ParameterMetaData("Vector4")]
+    [ParameterDisplayName("Vector4")]
     public class Vector4Parameter : NumericParameter<Vector4>
     {
+        /// <summary>
+        /// The sampler used for randomizing the x component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler x = new UniformSampler(0f, 1f);
+
+        /// <summary>
+        /// The sampler used for randomizing the y component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler y = new UniformSampler(0f, 1f);
+
+        /// <summary>
+        /// The sampler used for randomizing the z component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler z = new UniformSampler(0f, 1f);
+
+        /// <summary>
+        /// The sampler used for randomizing the w component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler w = new UniformSampler(0f, 1f);
 
         /// <summary>
-        /// Returns the samplers employed by this parameter
+        /// The sampler used the samplers employed by this parameter
         /// </summary>
         public override ISampler[] samplers => new []{ x, y, z, w };
 

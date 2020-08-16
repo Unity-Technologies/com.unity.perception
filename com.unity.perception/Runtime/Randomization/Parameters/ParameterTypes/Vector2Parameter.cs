@@ -2,16 +2,25 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
+    /// <summary>
+    /// A numeric parameter for generating Vector2 samples
+    /// </summary>
     [Serializable]
-    [ParameterMetaData("Vector2")]
+    [ParameterDisplayName("Vector2")]
     public class Vector2Parameter : NumericParameter<Vector2>
     {
+        /// <summary>
+        /// The sampler used for randomizing the x component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler x = new UniformSampler(0f, 1f);
+
+        /// <summary>
+        /// The sampler used for randomizing the y component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler y = new UniformSampler(0f, 1f);
 
         /// <summary>

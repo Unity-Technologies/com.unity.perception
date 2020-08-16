@@ -9,12 +9,13 @@ namespace UnityEngine.Perception.Randomization.Samplers
 {
     public static class SamplerUtility
     {
-        public const uint largePrime = 0x202A96CF;
-        public const int samplingBatchSize = 64;
+        internal const uint largePrime = 0x202A96CF;
+        const int k_SamplingBatchSize = 64;
 
         /// <summary>
         /// Non-deterministically generates a random seed
         /// </summary>
+        /// <returns>A non-deterministically generated random seed</returns>
         public static uint GenerateRandomSeed()
         {
             return (uint)Random.Range(1, uint.MaxValue);
@@ -25,6 +26,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// </summary>
         /// <param name="index">Usually the current scenario iteration or framesSinceInitialization</param>
         /// <param name="baseSeed">The seed to be offset</param>
+        /// <returns>A new random state</returns>
         public static uint IterateSeed(uint index, uint baseSeed)
         {
             return ShuffleSeed(index + 1) * baseSeed;
@@ -43,44 +45,26 @@ namespace UnityEngine.Perception.Randomization.Samplers
         }
 
         /// <summary>
-        /// Throws an exception if a sampler has an invalid range
-        /// </summary>
-        public static void ValidateRange(IRandomRangedSampler rangedSampler)
-        {
-            if (rangedSampler.range.minimum > rangedSampler.range.maximum)
-                throw new ArgumentException("Invalid sampling range");
-        }
-
-        /// <summary>
-        /// Generates an array of samples
-        /// </summary>
-        public static float[] GenerateSamples(ISampler sampler, int totalSamples)
-        {
-            var samples = new float[totalSamples];
-            for (var i = 0; i < totalSamples; i++)
-                samples[i] = sampler.Sample();
-            return samples;
-        }
-
-        /// <summary>
         /// Schedules a multi-threaded job to generate an array of samples
         /// </summary>
+        /// <param name="sampler">The sampler to generate samples from</param>
+        /// <param name="sampleCount">The number of samples to generate</param>
+        /// <param name="jobHandle">The handle of the scheduled job</param>
+        /// <typeparam name="T">The type of sampler to sample</typeparam>
+        /// <returns>A NativeArray of generated samples</returns>
         public static NativeArray<float> GenerateSamples<T>(
-            T sampler, int totalSamples, out JobHandle jobHandle) where T : struct, ISampler
+            T sampler, int sampleCount, out JobHandle jobHandle) where T : struct, ISampler
         {
             var samples = new NativeArray<float>(
-                totalSamples, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+                sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
             jobHandle = new SampleJob<T>
             {
                 sampler = sampler,
                 samples = samples
-            }.ScheduleBatch(totalSamples, samplingBatchSize);
+            }.ScheduleBatch(sampleCount, k_SamplingBatchSize);
             return samples;
         }
 
-        /// <summary>
-        /// A multi-threaded job for generating an array of samples
-        /// </summary>
         [BurstCompile]
         struct SampleJob<T> : IJobParallelForBatch where T : ISampler
         {
@@ -90,7 +74,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
             public void Execute(int startIndex, int count)
             {
                 var endIndex = startIndex + count;
-                var batchIndex = startIndex / samplingBatchSize;
+                var batchIndex = startIndex / k_SamplingBatchSize;
                 sampler.IterateState(batchIndex);
                 for (var i = startIndex; i < endIndex; i++)
                     samples[i] = sampler.Sample();
@@ -100,7 +84,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// <summary>
         /// https://www.johndcook.com/blog/csharp_phi/
         /// </summary>
-        public static float NormalCdf(float x)
+        static float NormalCdf(float x)
         {
             const float a1 = 0.254829592f;
             const float a2 = -0.284496736f;
@@ -137,20 +121,21 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// <summary>
         /// https://www.johndcook.com/blog/csharp_phi_inverse/
         /// </summary>
-        /// <param name="p">Must be with the range (0, 1)</param>
-        public static float NormalCdfInverse(float p)
+        /// <param name="probability">Must be with the range (0, 1)</param>
+        static float NormalCdfInverse(float probability)
         {
-            if (p <= 0f || p >= 1.0f)
-                throw new ArgumentOutOfRangeException($"p == {p}");
+            if (probability <= 0f || probability >= 1.0f)
+                throw new ArgumentOutOfRangeException($"Probability {probability} is outside the range (0, 1)");
 
-            return p < 0.5f
-                ? -RationalApproximation(math.sqrt(-2.0f * math.log(p)))
-                : RationalApproximation(math.sqrt(-2.0f * math.log(1.0f - p)));
+            return probability < 0.5f
+                ? -RationalApproximation(math.sqrt(-2.0f * math.log(probability)))
+                : RationalApproximation(math.sqrt(-2.0f * math.log(1.0f - probability)));
         }
 
         /// <summary>
+        /// Generates samples from a truncated normal distribution.
+        /// Further reading about this distribution can be found here:
         /// https://en.wikipedia.org/wiki/Truncated_normal_distribution
-        /// TODO: fix issues with sampling at the either ends of the distribution
         /// </summary>
         public static float TruncatedNormalSample(float u, float min, float max, float mean, float stdDev)
         {

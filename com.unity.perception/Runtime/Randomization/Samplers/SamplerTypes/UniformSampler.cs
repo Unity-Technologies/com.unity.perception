@@ -9,7 +9,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// Returns uniformly distributed random values within a designated range.
     /// </summary>
     [Serializable]
-    [SamplerMetaData("Uniform")]
+    [SamplerDisplayName("Uniform")]
     public struct UniformSampler : ISampler, IRandomRangedSampler
     {
         Unity.Mathematics.Random m_Random;

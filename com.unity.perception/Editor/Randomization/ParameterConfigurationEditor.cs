@@ -4,8 +4,6 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Configuration;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Parameters.Attributes;
-using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.Randomization.Editor
@@ -56,7 +54,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             foreach (var parameterType in StaticData.parameterTypes)
             {
                 parameterTypeMenu.menu.AppendAction(
-                    ParameterMetaData.GetMetaData(parameterType).typeDisplayName,
+                    ParameterDisplayName.GetDisplayName(parameterType).displayName,
                     a => { AddParameter(parameterType); },
                     a => DropdownMenuAction.Status.Normal);
             }

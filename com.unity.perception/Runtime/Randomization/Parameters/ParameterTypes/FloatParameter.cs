@@ -1,15 +1,20 @@
 ﻿using System;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
+    /// <summary>
+    /// A numeric parameter for generating float samples
+    /// </summary>
     [Serializable]
-    [ParameterMetaData("Float")]
+    [ParameterDisplayName("Float")]
     public class FloatParameter : NumericParameter<float>
     {
+        /// <summary>
+        /// The sampler used to generate random float values
+        /// </summary>
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
 
         /// <summary>

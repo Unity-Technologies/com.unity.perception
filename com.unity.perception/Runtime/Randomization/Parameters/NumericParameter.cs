@@ -44,7 +44,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
             base.Validate();
             foreach (var sampler in samplers)
                 if (sampler is IRandomRangedSampler rangedSampler)
-                    SamplerUtility.ValidateRange(rangedSampler);
+                    rangedSampler.range.Validate();
         }
     }
 }

@@ -2,18 +2,35 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.Perception.Randomization.Parameters.Attributes;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
+    /// <summary>
+    /// A numeric parameter for generating Color samples
+    /// </summary>
     [Serializable]
-    [ParameterMetaData("ColorHSVA")]
+    [ParameterDisplayName("ColorHSVA")]
     public class ColorHsvaParameter : NumericParameter<Color>
     {
+        /// <summary>
+        /// The sampler used for randomizing the hue component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler hue = new UniformSampler(0f, 1f);
+
+        /// <summary>
+        /// The sampler used for randomizing the saturation component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler saturation = new UniformSampler(0f, 1f);
+
+        /// <summary>
+        /// The sampler used for randomizing the value component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
+
+        /// <summary>
+        /// The sampler used for randomizing the alpha component of generated samples
+        /// </summary>
         [SerializeReference] public ISampler alpha = new ConstantSampler(1f);
 
         /// <summary>

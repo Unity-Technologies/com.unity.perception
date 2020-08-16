@@ -8,7 +8,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// Returns a constant value when sampled
     /// </summary>
     [Serializable]
-    [SamplerMetaData("Constant")]
+    [SamplerDisplayName("Constant")]
     public struct ConstantSampler : ISampler
     {
         public float value;

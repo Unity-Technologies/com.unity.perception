@@ -7,11 +7,26 @@ using UnityEngine.Perception.Randomization.Parameters;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
+    /// <summary>
+    /// The base class of all scenario classes
+    /// </summary>
     public abstract class ScenarioBase : MonoBehaviour
     {
         static ScenarioBase s_ActiveScenario;
+
+        /// <summary>
+        /// If true, this scenario will quit the Unity application when it's finished executing
+        /// </summary>
         [HideInInspector] public bool quitOnComplete = true;
+
+        /// <summary>
+        /// When true, this scenario will deserializes constants from a Json file before it begins executing
+        /// </summary>
         [HideInInspector] public bool deserializeOnStart;
+
+        /// <summary>
+        /// The name of the Json file this scenario's constants are serialized to/from.
+        /// </summary>
         [HideInInspector] public string serializedConstantsFileName = "constants";
 
         /// <summary>
@@ -83,16 +98,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// Called when the scenario has finished iterating
         /// </summary>
         public virtual void OnComplete() { }
-
-        /// <summary>
-        /// To be overriden in derived Scenario classes
-        /// </summary>
-        public abstract string OnSerialize();
-
-        /// <summary>
-        /// To be overriden in derived Scenario classes
-        /// </summary>
-        public abstract void OnDeserialize(string json);
 
         /// <summary>
         /// Serializes the scenario's constants to a JSON file located at serializedConstantsFilePath

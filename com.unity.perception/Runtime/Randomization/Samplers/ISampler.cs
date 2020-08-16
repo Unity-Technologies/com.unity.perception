@@ -24,25 +24,30 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// <summary>
         /// Set the base seed value of this sampler
         /// </summary>
-        /// <param name="seed"></param>
+        /// <param name="seed">The seed that will replace the sampler's current seed</param>
         void Rebase(uint seed);
 
         /// <summary>
         /// Deterministically offsets a sampler's state when generating values within a batched job
         /// </summary>
-        /// <param name="batchIndex">
-        /// The current job index
+        /// <param name="offsetIndex">
+        /// The index used to offset the sampler's state.
+        /// Typically set to either the current scenario iteration or a job's batch index.
         /// </param>
-        void IterateState(int batchIndex);
+        void IterateState(int offsetIndex);
 
         /// <summary>
-        /// Generate one sample
+        /// Generates one sample
         /// </summary>
+        /// <returns>The generated sample</returns>
         float Sample();
 
         /// <summary>
-        /// Schedule a job to generate multiple samples
+        /// Schedules a job to generate an array of samples
         /// </summary>
+        /// <param name="sampleCount">The number of samples to generate</param>
+        /// <param name="jobHandle">The handle of the scheduled job</param>
+        /// <returns>A NativeArray of generated samples</returns>
         NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle);
     }
 }

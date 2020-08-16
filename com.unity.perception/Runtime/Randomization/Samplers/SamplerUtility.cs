@@ -7,6 +7,9 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
+    /// <summary>
+    /// A set of utility functions for defining sampler interfaces
+    /// </summary>
     public static class SamplerUtility
     {
         internal const uint largePrime = 0x202A96CF;

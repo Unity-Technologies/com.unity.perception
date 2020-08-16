@@ -109,32 +109,33 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         public abstract void Deserialize();
 
-
         void OnEnable()
         {
             ActiveScenario = this;
-            if (deserializeOnStart)
-                Deserialize();
         }
 
         void OnDisable()
         {
             s_ActiveScenario = null;
+            StopCoroutine(UpdateLoop());
         }
 
-        void Start()
+        IEnumerator Start()
         {
+            if (deserializeOnStart)
+                Deserialize();
             foreach (var config in ParameterConfiguration.configurations)
                 config.ValidateParameters();
             OnInitialize();
+
+            // TODO: remove this yield when the perception camera no longer skips the first frame of the simulation
+            yield return null;
+
             StartCoroutine(UpdateLoop());
         }
 
         IEnumerator UpdateLoop()
         {
-            // TODO: remove this yield when the perception camera no longer skips the first frame of the simulation
-            yield return null;
-
             while (!isScenarioComplete)
             {
                 DatasetCapture.StartNewSequence();
@@ -152,17 +153,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                     currentIterationFrame++;
                     framesSinceInitialization++;
                 }
-                OnIterationTeardown();
                 currentIteration++;
                 currentIterationFrame = 0;
+                OnIterationTeardown();
             }
 
             OnComplete();
-
-            // Disable perception cameras
-            foreach (var perceptionCamera in FindObjectsOfType<PerceptionCamera>())
-                perceptionCamera.enabled = false;
-
+            DatasetCapture.ResetSimulation();
             if (quitOnComplete)
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;

@@ -2,7 +2,7 @@
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
-    public class ParameterValidationException : Exception
+    class ParameterValidationException : Exception
     {
         public ParameterValidationException(string msg) : base(msg) {}
     }

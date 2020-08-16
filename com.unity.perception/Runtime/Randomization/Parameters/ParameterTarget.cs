@@ -7,7 +7,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// Typically managed by a parameter configuration.
     /// </summary>
     [Serializable]
-    public class ParameterTarget
+    class ParameterTarget
     {
         public GameObject gameObject;
         public Component component;
@@ -15,7 +15,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public FieldOrProperty fieldOrProperty;
         public ParameterApplicationFrequency applicationFrequency;
 
-        public void Set(
+        public void AssignNewTarget(
             GameObject obj, Component comp, string fieldOrPropertyName, ParameterApplicationFrequency frequency)
         {
             gameObject = obj;
@@ -45,7 +45,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
             {
                 var field = componentType.GetField(propertyName);
                 if (field == null)
-                    throw new ParameterException(
+                    throw new ParameterValidationException(
                         $"Component type {componentType.Name} does not have a field named {propertyName}");
                 field.SetValue(component, value);
             }
@@ -53,20 +53,20 @@ namespace UnityEngine.Perception.Randomization.Parameters
             {
                 var property = componentType.GetProperty(propertyName);
                 if (property == null)
-                    throw new ParameterException(
+                    throw new ParameterValidationException(
                         $"Component type {componentType.Name} does not have a property named {propertyName}");
                 property.SetValue(component, value);
             }
         }
     }
 
-    public enum ParameterApplicationFrequency
+    enum ParameterApplicationFrequency
     {
         OnIterationSetup,
         EveryFrame
     }
 
-    public enum FieldOrProperty
+    enum FieldOrProperty
     {
         Field, Property
     }

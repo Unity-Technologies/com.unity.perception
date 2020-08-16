@@ -41,14 +41,14 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// <returns>The probability value stored at the specified index</returns>
         public float GetProbability(int index) => probabilities[index];
 
-        internal CategoricalParameter() { }
+        protected CategoricalParameter() { }
 
         /// <summary>
         /// Create a new categorical parameter from a list of categories with uniform probabilities
         /// </summary>
         /// <param name="categoricalOptions">List of categories</param>
         /// <exception cref="ArgumentException"></exception>
-        public CategoricalParameter(IEnumerable<T> categoricalOptions)
+        protected CategoricalParameter(IEnumerable<T> categoricalOptions)
         {
             if (categories.Count == 0)
                 throw new ArgumentException("List of options is empty");
@@ -62,7 +62,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// </summary>
         /// <param name="categoricalOptions">List of categories and their associated probabilities</param>
         /// <exception cref="ArgumentException"></exception>
-        public CategoricalParameter(IEnumerable<(T, float)> categoricalOptions)
+        protected CategoricalParameter(IEnumerable<(T, float)> categoricalOptions)
         {
             if (categories.Count == 0)
                 throw new ArgumentException("List of options is empty");
@@ -119,8 +119,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
             if (!uniform)
             {
                 if (probabilities.Count != m_Categories.Count)
-                    throw new ParameterValidationException(
-                        "Number of options must be equal to the number of probabilities");
+                    throw new ParameterValidationException("Number of options must be equal to the number of probabilities");
                 NormalizeProbabilities();
             }
         }

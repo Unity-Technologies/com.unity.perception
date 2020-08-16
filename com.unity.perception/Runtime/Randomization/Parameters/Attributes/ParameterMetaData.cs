@@ -3,7 +3,7 @@
 namespace UnityEngine.Perception.Randomization.Parameters.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class ParameterMetaData : Attribute
+    class ParameterMetaData : Attribute
     {
         public static ParameterMetaData GetMetaData(Type type) =>
             (ParameterMetaData)GetCustomAttribute(type, typeof(ParameterMetaData));

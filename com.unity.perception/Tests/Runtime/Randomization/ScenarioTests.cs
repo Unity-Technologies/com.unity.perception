@@ -126,7 +126,7 @@ namespace RandomizationTests
             parameter.x = new UniformSampler(1, 2);
             parameter.y = new UniformSampler(1, 2);
             parameter.z = new UniformSampler(1, 2);
-            parameter.target.Set(
+            parameter.target.AssignNewTarget(
                 m_TestObject, m_TestObject.transform, "position", ParameterApplicationFrequency.EveryFrame);
 
             var initialPosition = new Vector3();
@@ -150,7 +150,7 @@ namespace RandomizationTests
             parameter.z = new UniformSampler(1, 2);
 
             var transform = m_Scenario.transform;
-            parameter.target.Set(
+            parameter.target.AssignNewTarget(
                 m_TestObject, transform, "position", ParameterApplicationFrequency.OnIterationSetup);
 
             var initialPosition = new Vector3();

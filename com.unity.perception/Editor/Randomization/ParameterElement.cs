@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Parameters;
@@ -228,7 +229,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/CategoricalParameterTemplate.uxml").CloneTree();
 
-            var optionsProperty = m_SerializedProperty.FindPropertyRelative("m_Options");
+            var optionsProperty = m_SerializedProperty.FindPropertyRelative("m_Categories");
             var probabilitiesProperty = m_SerializedProperty.FindPropertyRelative("probabilities");
             var probabilities = categoricalParameter.probabilities;
 
@@ -270,6 +271,31 @@ namespace UnityEngine.Perception.Randomization.Editor
                 listView.ScrollToItem(probabilitiesProperty.arraySize);
             };
 
+            var addFolderButton = template.Q<Button>("add-folder");
+            if (categoricalParameter.sampleType.IsSubclassOf(typeof(Object)))
+            {
+                addFolderButton.clicked += () =>
+                {
+                    var folderPath = EditorUtility.OpenFolderPanel("Add Options From Folder", Application.dataPath, "Goober");
+                    var categories = LoadAssetsFromFolder(folderPath, categoricalParameter.sampleType);
+                    probabilitiesProperty.arraySize += categories.Count;
+                    optionsProperty.arraySize += categories.Count;
+                    var uniformProbability = 1f / categories.Count;
+                    for (var i = 0; i < categories.Count; i++)
+                    {
+                        var optionProperty = optionsProperty.GetArrayElementAtIndex(i);
+                        var probabilityProperty = probabilitiesProperty.GetArrayElementAtIndex(i);
+                        optionProperty.objectReferenceValue = categories[i];
+                        probabilityProperty.floatValue = uniformProbability;
+                    }
+                    m_SerializedProperty.serializedObject.ApplyModifiedProperties();
+                    listView.itemsSource = categoricalParameter.probabilities;
+                    listView.Refresh();
+                };
+            }
+            else
+                addFolderButton.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
+
             var clearOptionsButton = template.Q<Button>("clear-options");
             clearOptionsButton.clicked += () =>
             {
@@ -310,6 +336,18 @@ namespace UnityEngine.Perception.Randomization.Editor
             seedField.BindProperty(m_SerializedProperty.FindPropertyRelative("m_Sampler.<baseSeed>k__BackingField"));
 
             m_ExtraProperties.Add(template);
+        }
+
+        static List<Object> LoadAssetsFromFolder(string folderPath, Type assetType)
+        {
+            if (!folderPath.StartsWith(Application.dataPath))
+                throw new ApplicationException("Selected folder is not an asset folder in this project");
+            var assetsPath = "Assets" + folderPath.Remove(0, Application.dataPath.Length);
+            var guids = AssetDatabase.FindAssets($"t:{assetType.Name}", new []{assetsPath});
+            var assets = new List<Object>();
+            foreach (var guid in guids)
+                assets.Add(AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(guid), assetType));
+            return assets;
         }
     }
 }

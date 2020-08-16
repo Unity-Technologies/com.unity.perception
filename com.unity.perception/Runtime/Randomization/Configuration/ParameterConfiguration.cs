@@ -50,12 +50,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
 
         string PlaceholderParameterName() => $"Parameter{parameters.Count}";
 
-        /// <summary>
-        /// Adds a new typed parameter to this configuration
-        /// </summary>
-        /// <typeparam name="T">The type of parameter to add</typeparam>
-        /// <returns>The newly added parameter</returns>
-        public T AddParameter<T>() where T : Parameter, new()
+        internal T AddParameter<T>() where T : Parameter, new()
         {
             var parameter = new T();
             parameter.name = PlaceholderParameterName();
@@ -63,13 +58,7 @@ namespace UnityEngine.Perception.Randomization.Configuration
             return parameter;
         }
 
-        /// <summary>
-        /// Adds a new parameter to this configuration
-        /// </summary>
-        /// <param name="parameterType">The type of parameter to add</param>
-        /// <returns>The newly added parameter</returns>
-        /// <exception cref="ParameterConfigurationException"></exception>
-        public Parameter AddParameter(Type parameterType)
+        internal Parameter AddParameter(Type parameterType)
         {
             if (!parameterType.IsSubclassOf(typeof(Parameter)))
                 throw new ParameterConfigurationException($"Cannot add non-parameter types ({parameterType})");

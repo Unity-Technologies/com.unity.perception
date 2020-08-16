@@ -5,14 +5,22 @@ using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
+    /// <summary>
+    /// Numeric parameters use samplers to generate randomized structs
+    /// </summary>
+    /// <typeparam name="T">The sample type of the parameter</typeparam>
     [Serializable]
     public abstract class NumericParameter<T> : Parameter where T : struct
     {
+        /// <summary>
+        /// The sample type of parameter
+        /// </summary>
         public sealed override Type sampleType => typeof(T);
 
         /// <summary>
         /// Generates one parameter sample
         /// </summary>
+        /// <returns>The generated sample</returns>
         public abstract T Sample();
 
         /// <summary>
@@ -21,6 +29,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// </summary>
         /// <param name="sampleCount">Number of parameter samples to generate</param>
         /// <param name="jobHandle">The JobHandle returned from scheduling the sampling job</param>
+        /// <returns>A NativeArray containing generated samples</returns>
         public abstract NativeArray<T> Samples(int sampleCount, out JobHandle jobHandle);
 
         internal sealed override void ApplyToTarget(int seedOffset)

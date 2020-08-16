@@ -8,14 +8,14 @@ namespace UnityEngine.Perception.Randomization.Editor
     class CategoricalOptionElement : VisualElement
     {
         int m_Index;
-        SerializedProperty m_OptionsProperty;
+        SerializedProperty m_CategoryProperty;
         SerializedProperty m_ProbabilitiesProperty;
 
         internal CategoricalOptionElement(
-            SerializedProperty optionsProperty,
+            SerializedProperty categoryProperty,
             SerializedProperty probabilitiesProperty)
         {
-            m_OptionsProperty = optionsProperty;
+            m_CategoryProperty = categoryProperty;
             m_ProbabilitiesProperty = probabilitiesProperty;
 
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
@@ -30,7 +30,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             var indexLabel = this.Q<Label>("index-label");
             indexLabel.text = $"[{m_Index}]";
 
-            var optionProperty = m_OptionsProperty.GetArrayElementAtIndex(i);
+            var optionProperty = m_CategoryProperty.GetArrayElementAtIndex(i);
             var option = this.Q<PropertyField>("option");
             option.BindProperty(optionProperty);
             var label = option.Q<Label>();

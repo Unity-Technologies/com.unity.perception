@@ -44,6 +44,11 @@ namespace UnityEngine.Perception.Randomization.Samplers
             IterateState(index);
         }
 
+        public void Rebase(uint seed)
+        {
+            baseSeed = seed;
+        }
+
         public void IterateState(int batchIndex)
         {
             state = SamplerUtility.IterateSeed((uint)batchIndex, state);

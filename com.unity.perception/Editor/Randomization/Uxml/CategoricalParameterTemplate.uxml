@@ -6,6 +6,7 @@
     </VisualElement>
     <VisualElement style="flex-direction: row; justify-content: flex-end;">
         <Button name="add-option" text="Add Option" class="add-option-button"/>
+        <Button name="add-folder" text="Add Folder" class="add-option-button"/>
         <Button name="clear-options" text="Clear Options" class="add-option-button"/>
     </VisualElement>
 </UXML>

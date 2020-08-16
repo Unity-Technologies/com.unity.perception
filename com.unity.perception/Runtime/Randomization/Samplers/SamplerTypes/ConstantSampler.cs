@@ -22,6 +22,8 @@ namespace UnityEngine.Perception.Randomization.Samplers
 
         public void ResetState(int index) { }
 
+        public void Rebase(uint seed) { }
+
         public void IterateState(int batchIndex) { }
 
         public float Sample()

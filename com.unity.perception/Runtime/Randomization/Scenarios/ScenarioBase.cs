@@ -117,7 +117,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         void OnDisable()
         {
             s_ActiveScenario = null;
-            StopCoroutine(UpdateLoop());
         }
 
         IEnumerator Start()
@@ -127,16 +126,33 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             foreach (var config in ParameterConfiguration.configurations)
                 config.ValidateParameters();
             OnInitialize();
-
             // TODO: remove this yield when the perception camera no longer skips the first frame of the simulation
             yield return null;
-
-            StartCoroutine(UpdateLoop());
         }
 
-        IEnumerator UpdateLoop()
+        void Update()
         {
-            while (!isScenarioComplete)
+            if (isScenarioComplete)
+            {
+                OnComplete();
+                DatasetCapture.ResetSimulation();
+                if (quitOnComplete)
+#if UNITY_EDITOR
+                    UnityEditor.EditorApplication.isPlaying = false;
+#else
+                    Application.Quit();
+#endif
+                return;
+            }
+
+            if (isIterationComplete)
+            {
+                currentIteration++;
+                currentIterationFrame = 0;
+                OnIterationTeardown();
+            }
+
+            if (currentIterationFrame == 0)
             {
                 DatasetCapture.StartNewSequence();
                 foreach (var config in ParameterConfiguration.configurations)
@@ -144,28 +160,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 foreach (var config in ParameterConfiguration.configurations)
                     config.ApplyParameters(currentIteration, ParameterApplicationFrequency.OnIterationSetup);
                 OnIterationSetup();
-                while (!isIterationComplete)
-                {
-                    foreach (var config in ParameterConfiguration.configurations)
-                        config.ApplyParameters(framesSinceInitialization, ParameterApplicationFrequency.EveryFrame);
-                    OnFrameStart();
-                    yield return null;
-                    currentIterationFrame++;
-                    framesSinceInitialization++;
-                }
-                currentIteration++;
-                currentIterationFrame = 0;
-                OnIterationTeardown();
             }
 
-            OnComplete();
-            DatasetCapture.ResetSimulation();
-            if (quitOnComplete)
-#if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
-#else
-                Application.Quit();
-#endif
+            foreach (var config in ParameterConfiguration.configurations)
+                config.ApplyParameters(framesSinceInitialization, ParameterApplicationFrequency.EveryFrame);
+            OnFrameStart();
+            currentIterationFrame++;
+            framesSinceInitialization++;
         }
     }
 }

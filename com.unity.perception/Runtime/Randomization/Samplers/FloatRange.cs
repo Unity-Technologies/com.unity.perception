@@ -36,7 +36,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// <exception cref="ArgumentException"></exception>
         public void Validate()
         {
-            Assert.IsTrue(minimum > maximum);
+            Assert.IsTrue(minimum <= maximum);
         }
     }
 }

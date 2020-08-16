@@ -10,7 +10,7 @@ namespace RandomizationTests.SamplerTests
         [Test]
         public void InvalidRange()
         {
-            Assert.Throws<ArgumentException>(() => new FloatRange(1, -1).Validate());
+            Assert.Throws<UnityEngine.Assertions.AssertionException>(() => new FloatRange(1, -1).Validate());
         }
     }
 }

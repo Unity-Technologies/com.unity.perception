@@ -87,8 +87,8 @@ namespace UnityEngine.Perception.Randomization.Configuration
             foreach (var parameter in parameters)
             {
                 if (parameterNames.Contains(parameter.name))
-                    throw new ParameterConfigurationException($"Two or more parameters cannot share the same name " +
-                        $"(\"{parameter.name}\")");
+                    throw new ParameterConfigurationException(
+                        $"Two or more parameters cannot share the same name (\"{parameter.name}\")");
                 parameterNames.Add(parameter.name);
                 parameter.Validate();
             }

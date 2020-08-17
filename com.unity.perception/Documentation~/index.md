@@ -9,6 +9,8 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 [Setting up your first perception scene](GettingStarted.md)
 
+[Randomizing your simulation](Randomization/Index.md)
+
 ## Example projects using Perception
 
 ### SynthDet
@@ -30,3 +32,4 @@ The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologie
 |[LabelConfig](GroundTruth-Labeling.md#LabelConfig)|Asset which defines a taxonomy of labels for ground truth generation|
 |[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html)|
 |[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset|
+|[Randomization](Randomization/Index.md)|Integrate domain randomization principles into your simulation|

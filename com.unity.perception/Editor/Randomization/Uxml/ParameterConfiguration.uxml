@@ -1,0 +1,21 @@
+<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement>
+        <Style src="../Uss/Styles.uss"/>
+
+        <VisualElement style="flex-direction: row; align-items: center; margin-bottom: 2px; margin-top: 2px;">
+            <VisualElement class="search-icon" style="margin-left: 3px; margin-right: 2px;"/>
+            <TextField name="filter-parameters" style="flex-grow: 1; flex-shrink: 1;"/>
+        </VisualElement>
+        <ScrollView name="parameter-scroll-view" class="dark-viewport" style="min-height: 100px; max-height: 600px;">
+            <VisualElement name="parameters-container" style="flex-shrink: 0;"/>
+        </ScrollView>
+
+        <VisualElement style="flex-direction: row; justify-content: space-between;">
+            <VisualElement style="flex-grow: 1"/>
+            <editor:ToolbarMenu text="Add New Parameter" name="parameter-type-menu" class="parameter-type-menu"/>
+            <Button name="collapse-all" text="Collapse All" style="font-size: 13px; padding: 4px;"/>
+            <Button name="expand-all" text="Expand All" style="font-size: 13px; padding: 4px;"/>
+            <VisualElement style="flex-grow: 1"/>
+        </VisualElement>
+    </VisualElement>
+</UXML>

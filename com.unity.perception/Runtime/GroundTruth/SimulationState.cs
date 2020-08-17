@@ -597,18 +597,20 @@ namespace UnityEngine.Perception.GroundTruth
                 throw new InvalidOperationException("AsyncAnnotation has already been reported and cannot be reported again.");
 
             PendingCapture pendingCapture = null;
+            int annotationIndex = -1;
             foreach (var c in m_PendingCaptures)
             {
                 if (c.Step == asyncAnnotation.Annotation.Step && c.SensorHandle == asyncAnnotation.Annotation.SensorHandle)
                 {
                     pendingCapture = c;
-                    break;
+                    annotationIndex = pendingCapture.Annotations.FindIndex(a => a.Item1.Equals(asyncAnnotation.Annotation));
+                    if (annotationIndex != -1)
+                        break;
                 }
             }
 
-            Debug.Assert(pendingCapture != null);
+            Debug.Assert(pendingCapture != null && annotationIndex != -1);
 
-            var annotationIndex = pendingCapture.Annotations.FindIndex(a => a.Item1.Equals(asyncAnnotation.Annotation));
             var annotationTuple = pendingCapture.Annotations[annotationIndex];
             var annotationData = annotationTuple.Item2;
 

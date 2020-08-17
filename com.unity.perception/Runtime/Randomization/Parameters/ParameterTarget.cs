@@ -72,7 +72,14 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// </summary>
     public enum ParameterApplicationFrequency
     {
+        /// <summary>
+        /// Applies a parameter once every iteration
+        /// </summary>
         OnIterationSetup,
+
+        /// <summary>
+        /// Applies a parameter once every frame
+        /// </summary>
         EveryFrame
     }
 

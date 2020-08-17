@@ -88,6 +88,8 @@ namespace UnityEngine.Perception.Randomization.Editor
             targetField.BindProperty(m_TargetGameObjectProperty);
             targetField.RegisterCallback<ChangeEvent<Object>>(evt =>
             {
+                if (evt.newValue == parameter.target.gameObject)
+                    return;
                 ClearTarget();
                 m_TargetGameObjectProperty.objectReferenceValue = (GameObject)evt.newValue;
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
@@ -140,7 +142,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_TargetPropertyMenu.menu.MenuItems().Clear();
             m_TargetPropertyMenu.text = parameter.target.propertyName == string.Empty
                 ? "Select a property"
-                : Parameter.GetDisplayName(parameter.GetType());
+                : TargetPropertyDisplayText(parameter.target);
 
             var options = GatherPropertyOptions(parameter.target.gameObject, parameter.sampleType);
             foreach (var option in options)

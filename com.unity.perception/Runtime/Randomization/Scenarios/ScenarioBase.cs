@@ -14,6 +14,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     {
         static ScenarioBase s_ActiveScenario;
         bool m_FirstFrame = true;
+        bool m_FirstIteration = true;
 
         /// <summary>
         /// If true, this scenario will quit the Unity application when it's finished executing
@@ -131,7 +132,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         void Update()
         {
-            if (currentIterationFrame == 0 && !m_FirstFrame)
+            // TODO: remove this check when the perception camera can capture the first frame of output
+            if (m_FirstFrame)
+                return;
+
+            if (currentIterationFrame == 0 && !m_FirstIteration)
                 OnIterationTeardown();
 
             if (isScenarioComplete)
@@ -164,14 +169,20 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         void LateUpdate()
         {
+            // TODO: remove this check when the perception camera can capture the first frame of output
+            if (m_FirstFrame)
+            {
+                m_FirstFrame = false;
+                return;
+            }
             currentIterationFrame++;
             framesSinceInitialization++;
             if (isIterationComplete)
             {
+                m_FirstIteration = false;
                 currentIteration++;
                 currentIterationFrame = 0;
             }
-            m_FirstFrame = false;
         }
     }
 }

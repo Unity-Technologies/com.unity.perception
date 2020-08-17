@@ -31,16 +31,18 @@ namespace RandomizationTests
             Object.DestroyImmediate(m_TestObject);
         }
 
-        void CreateNewScenario()
+        // TODO: update this function once the perception camera doesn't skip the first frame
+        IEnumerator CreateNewScenario()
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
             m_Scenario.quitOnComplete = false;
+            yield return null;
         }
 
         [UnityTest]
         public IEnumerator OverwritesConstantsOnSerialization()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             m_Scenario.serializedConstantsFileName = "perception_serialization_test";
 
             var constants = new FixedLengthScenario.Constants
@@ -79,7 +81,7 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator IterationsCanLastMultipleFrames()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             const int testIterationFrameCount = 5;
             m_Scenario.constants.framesPerIteration = testIterationFrameCount;
 
@@ -94,7 +96,7 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator FinishesWhenIsScenarioCompleteIsTrue()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             const int testIterationTotal = 5;
             m_Scenario.constants.framesPerIteration = 1;
             m_Scenario.constants.totalIterations = testIterationTotal;
@@ -110,7 +112,7 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator AppliesParametersEveryFrame()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             m_Scenario.constants.framesPerIteration = 5;
             m_Scenario.constants.totalIterations = 1;
 
@@ -143,8 +145,8 @@ namespace RandomizationTests
             parameter.target.AssignNewTarget(
                 m_TestObject, transform, "position", ParameterApplicationFrequency.OnIterationSetup);
 
-            yield return new WaitForEndOfFrame();
-            CreateNewScenario();
+
+            yield return CreateNewScenario();
             m_Scenario.constants.framesPerIteration = 2;
             m_Scenario.constants.totalIterations = 2;
 
@@ -165,7 +167,7 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator StartNewDatasetSequenceEveryIteration()
         {
-            CreateNewScenario();
+            yield return CreateNewScenario();
             m_Scenario.constants.framesPerIteration = 2;
             m_Scenario.constants.totalIterations = 2;
 

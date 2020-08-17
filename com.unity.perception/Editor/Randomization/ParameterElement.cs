@@ -162,7 +162,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 var fieldInfos = componentType.GetFields();
                 foreach (var fieldInfo in fieldInfos)
                 {
-                    if (fieldInfo.FieldType == propertyType)
+                    if (fieldInfo.FieldType == propertyType && fieldInfo.IsPublic && !fieldInfo.IsInitOnly)
                         options.Add(new ParameterTarget()
                         {
                             gameObject = obj,
@@ -175,7 +175,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 var propertyInfos = componentType.GetProperties();
                 foreach (var propertyInfo in propertyInfos)
                 {
-                    if (propertyInfo.PropertyType == propertyType)
+                    if (propertyInfo.PropertyType == propertyType && propertyInfo.GetSetMethod() != null)
                         options.Add(new ParameterTarget()
                         {
                             gameObject = obj,

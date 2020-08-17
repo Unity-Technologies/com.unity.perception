@@ -16,7 +16,7 @@ More commonly, users will find the need to create their own Scenario class. Belo
 6. **OnComplete** - actions to complete after the scenario as completed
 
 ## Constants
-Scenarios define constants from which to expose global simulation behaviors like a starting iteration value or a total iteration count. Users can serialize these scenario constants to JSON, modify them in an external program, and finally reimport the JSON constants at runtime to configure their simulation even after their project has been built. Below is an example of the constants used in the `FixedFrameLengthScenario` class:
+Scenarios define constants from which to expose global simulation behaviors like a starting iteration value or a total iteration count. Users can serialize these scenario constants to JSON, modify them in an external program, and finally reimport the JSON constants at runtime to configure their simulation even after their project has been built. Below is an example of the constants used in the `FixedLengthScenario` class:
 ```
 [Serializable]
 public class Constants

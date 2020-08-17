@@ -167,12 +167,11 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator StartNewDatasetSequenceEveryIteration()
         {
+            var perceptionCamera = SetupPerceptionCamera();
+
             yield return CreateNewScenario();
             m_Scenario.constants.framesPerIteration = 2;
             m_Scenario.constants.totalIterations = 2;
-
-            var perceptionCamera = m_TestObject.AddComponent<PerceptionCamera>();
-            perceptionCamera.startTime = 0;
 
             // Skip first frame
             yield return new WaitForEndOfFrame();
@@ -185,6 +184,20 @@ namespace RandomizationTests
             // Third frame, second iteration, SequenceTime has been reset
             yield return new WaitForEndOfFrame();
             Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
+        }
+
+        PerceptionCamera SetupPerceptionCamera()
+        {
+            m_TestObject.SetActive(false);
+            var camera = m_TestObject.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = 1;
+
+            var perceptionCamera = m_TestObject.AddComponent<PerceptionCamera>();
+            perceptionCamera.captureRgbImages = false;
+
+            m_TestObject.SetActive(true);
+            return perceptionCamera;
         }
     }
 }

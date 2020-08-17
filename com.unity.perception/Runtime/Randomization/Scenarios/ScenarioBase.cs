@@ -13,8 +13,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     public abstract class ScenarioBase : MonoBehaviour
     {
         static ScenarioBase s_ActiveScenario;
-        bool m_FirstFrame = true;
-        bool m_FirstIteration = true;
+        bool m_SkipFrame = true;
+        bool m_FirstScenarioFrame = true;
 
         /// <summary>
         /// If true, this scenario will quit the Unity application when it's finished executing
@@ -133,12 +133,30 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         void Update()
         {
             // TODO: remove this check when the perception camera can capture the first frame of output
-            if (m_FirstFrame)
+            if (m_SkipFrame)
+            {
+                m_SkipFrame = false;
                 return;
+            }
 
-            if (currentIterationFrame == 0 && !m_FirstIteration)
-                OnIterationTeardown();
+            // Iterate Scenario
+            if (m_FirstScenarioFrame)
+            {
+                m_FirstScenarioFrame = false;
+            }
+            else
+            {
+                currentIterationFrame++;
+                framesSinceInitialization++;
+                if (isIterationComplete)
+                {
+                    currentIteration++;
+                    currentIterationFrame = 0;
+                    OnIterationTeardown();
+                }
+            }
 
+            // Quit if scenario is complete
             if (isScenarioComplete)
             {
                 OnComplete();
@@ -147,11 +165,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 #if UNITY_EDITOR
                     UnityEditor.EditorApplication.isPlaying = false;
 #else
-                    Application.Quit();
+                Application.Quit();
 #endif
-                return;
             }
 
+            // Perform new iteration tasks
             if (currentIterationFrame == 0)
             {
                 DatasetCapture.StartNewSequence();
@@ -162,27 +180,10 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 OnIterationSetup();
             }
 
+            // Perform new frame tasks
             foreach (var config in ParameterConfiguration.configurations)
                 config.ApplyParameters(framesSinceInitialization, ParameterApplicationFrequency.EveryFrame);
             OnFrameStart();
-        }
-
-        void LateUpdate()
-        {
-            // TODO: remove this check when the perception camera can capture the first frame of output
-            if (m_FirstFrame)
-            {
-                m_FirstFrame = false;
-                return;
-            }
-            currentIterationFrame++;
-            framesSinceInitialization++;
-            if (isIterationComplete)
-            {
-                m_FirstIteration = false;
-                currentIteration++;
-                currentIterationFrame = 0;
-            }
         }
     }
 }

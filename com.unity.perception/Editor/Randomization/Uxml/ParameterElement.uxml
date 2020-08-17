@@ -15,7 +15,7 @@
 
             <VisualElement name="properties" class="parameter-properties-container" style="margin-bottom: 2px;">
                 <Box>
-                    <editor:PropertyField label="Target GameObject" name="target"/>
+                    <editor:ObjectField label="Target GameObject" name="target"/>
                     <VisualElement name="target-container">
                         <VisualElement class="unity-base-field">
                             <Label text="Target Property" class="unity-base-field__label"/>

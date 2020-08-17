@@ -8,7 +8,7 @@ This goal of this tutorial is to walk users through an example randomized percep
 6. Building a simulation runtime
 7. Modifying scenario constants
 
-By the end of this guide, the user should have a new project that generates the perception data necessary to train a model to recognize a cube from a solid colored background.
+By the end of this guide, the user should have a new project that generates the perception data necessary to train a model to identify a cube from a solid colored background.
 
 Note: Before beginning the tutorial, follow [this guide](../SetupSteps.md) to install the perception package into a new Unity project.
 

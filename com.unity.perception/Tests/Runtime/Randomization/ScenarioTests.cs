@@ -32,17 +32,20 @@ namespace RandomizationTests
         }
 
         // TODO: update this function once the perception camera doesn't skip the first frame
-        IEnumerator CreateNewScenario()
+        IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration)
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
             m_Scenario.quitOnComplete = false;
-            yield return null;
+            m_Scenario.constants.totalIterations = totalIterations;
+            m_Scenario.constants.framesPerIteration = framesPerIteration;
+            yield return null; // Skip Start() frame
+            yield return null; // Skip first Update() frame
         }
 
         [UnityTest]
         public IEnumerator OverwritesConstantsOnSerialization()
         {
-            yield return CreateNewScenario();
+            yield return CreateNewScenario(10, 10);
             m_Scenario.serializedConstantsFileName = "perception_serialization_test";
 
             var constants = new FixedLengthScenario.Constants
@@ -81,11 +84,9 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator IterationsCanLastMultipleFrames()
         {
-            yield return CreateNewScenario();
-            const int testIterationFrameCount = 5;
-            m_Scenario.constants.framesPerIteration = testIterationFrameCount;
-
-            for (var i = 0; i < testIterationFrameCount; i++)
+            const int frameCount = 5;
+            yield return CreateNewScenario(1, frameCount);
+            for (var i = 0; i < frameCount; i++)
             {
                 Assert.AreEqual(0, m_Scenario.currentIteration);
                 yield return null;
@@ -96,12 +97,9 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator FinishesWhenIsScenarioCompleteIsTrue()
         {
-            yield return CreateNewScenario();
-            const int testIterationTotal = 5;
-            m_Scenario.constants.framesPerIteration = 1;
-            m_Scenario.constants.totalIterations = testIterationTotal;
-
-            for (var i = 0; i < testIterationTotal; i++)
+            const int iterationCount = 5;
+            yield return CreateNewScenario(iterationCount, 1);
+            for (var i = 0; i < iterationCount; i++)
             {
                 Assert.False(m_Scenario.isScenarioComplete);
                 yield return null;
@@ -112,10 +110,6 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator AppliesParametersEveryFrame()
         {
-            yield return CreateNewScenario();
-            m_Scenario.constants.framesPerIteration = 5;
-            m_Scenario.constants.totalIterations = 1;
-
             var config = m_TestObject.AddComponent<ParameterConfiguration>();
             var parameter = config.AddParameter<Vector3Parameter>();
             parameter.x = new UniformSampler(1, 2);
@@ -124,10 +118,16 @@ namespace RandomizationTests
             parameter.target.AssignNewTarget(
                 m_TestObject, m_TestObject.transform, "position", ParameterApplicationFrequency.EveryFrame);
 
-            var initialPosition = new Vector3();
-            m_TestObject.transform.position = initialPosition;
+            var initialPosition = Vector3.zero;
+            yield return CreateNewScenario(1, 5);
+
+            // ReSharper disable once Unity.InefficientPropertyAccess
+            Assert.AreNotEqual(initialPosition, m_TestObject.transform.position);
+            // ReSharper disable once Unity.InefficientPropertyAccess
+            initialPosition = m_TestObject.transform.position;
 
             yield return null;
+            // ReSharper disable once Unity.InefficientPropertyAccess
             Assert.AreNotEqual(initialPosition, m_TestObject.transform.position);
         }
 
@@ -141,27 +141,27 @@ namespace RandomizationTests
             parameter.z = new UniformSampler(1, 2);
 
             var transform = m_TestObject.transform;
-            transform.position = new Vector3();
+            var prevPosition = new Vector3();
+            transform.position = prevPosition;
             parameter.target.AssignNewTarget(
                 m_TestObject, transform, "position", ParameterApplicationFrequency.OnIterationSetup);
 
 
-            yield return CreateNewScenario();
-            m_Scenario.constants.framesPerIteration = 2;
-            m_Scenario.constants.totalIterations = 2;
+            yield return CreateNewScenario(2, 2);
 
-            yield return new WaitForEndOfFrame();
-            var initialPosition = transform.position;
-            Assert.AreNotEqual(new Vector3(), initialPosition);
-
-            yield return new WaitForEndOfFrame();
+            Assert.AreNotEqual(prevPosition, transform.position);
             // ReSharper disable once Unity.InefficientPropertyAccess
-            var nextPosition = transform.position;
-            Assert.AreEqual(initialPosition, nextPosition);
+            prevPosition = transform.position;
 
-            yield return new WaitForEndOfFrame();
+            yield return null;
             // ReSharper disable once Unity.InefficientPropertyAccess
-            Assert.AreNotEqual(nextPosition, transform.position);
+            Assert.AreEqual(prevPosition, transform.position);
+            // ReSharper disable once Unity.InefficientPropertyAccess
+            prevPosition = transform.position;
+
+            yield return null;
+            // ReSharper disable once Unity.InefficientPropertyAccess
+            Assert.AreNotEqual(prevPosition, transform.position);
         }
 
         [UnityTest]
@@ -169,20 +169,15 @@ namespace RandomizationTests
         {
             var perceptionCamera = SetupPerceptionCamera();
 
-            yield return CreateNewScenario();
-            m_Scenario.constants.framesPerIteration = 2;
-            m_Scenario.constants.totalIterations = 2;
-
-            // Skip first frame
-            yield return new WaitForEndOfFrame();
+            yield return CreateNewScenario(2, 2);
             Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
 
             // Second frame, first iteration
-            yield return new WaitForEndOfFrame();
+            yield return null;
             Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, perceptionCamera.period);
 
             // Third frame, second iteration, SequenceTime has been reset
-            yield return new WaitForEndOfFrame();
+            yield return null;
             Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
         }
 

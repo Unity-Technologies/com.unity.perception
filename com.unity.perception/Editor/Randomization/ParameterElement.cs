@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Parameters;
@@ -84,12 +83,11 @@ namespace UnityEngine.Perception.Randomization.Editor
             var frequencyField = this.Q<EnumField>("application-frequency");
             frequencyField.BindProperty(m_SerializedProperty.FindPropertyRelative("target.applicationFrequency"));
 
-            var targetField = this.Q<PropertyField>("target");
-            targetField.BindProperty(m_TargetGameObjectProperty);
+            var targetField = this.Q<ObjectField>("target");
+            targetField.objectType = typeof(GameObject);
+            targetField.value = m_TargetGameObjectProperty.objectReferenceValue;
             targetField.RegisterCallback<ChangeEvent<Object>>(evt =>
             {
-                if (evt.newValue == parameter.target.gameObject)
-                    return;
                 ClearTarget();
                 m_TargetGameObjectProperty.objectReferenceValue = (GameObject)evt.newValue;
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();

@@ -15,6 +15,24 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// </summary>
         public float value;
 
+        public uint baseSeed
+        {
+            get => SamplerUtility.largePrime;
+            set { }
+        }
+
+        public uint state
+        {
+            get => SamplerUtility.largePrime;
+            set { }
+        }
+
+        public FloatRange range
+        {
+            get => new FloatRange(value, value);
+            set { }
+        }
+
         /// <summary>
         /// Constructs a new ConstantSampler
         /// </summary>

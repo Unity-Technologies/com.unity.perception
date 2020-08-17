@@ -64,7 +64,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
             var i = 0;
             foreach (var sampler in samplers)
             {
-                sampler.Rebase(SamplerUtility.IterateSeed((uint)i++, SamplerUtility.largePrime));
+                sampler.IterateState(i++);
                 sampler.ResetState();
             }
         }
@@ -73,7 +73,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         {
             foreach (var sampler in samplers)
             {
-                sampler.Rebase(SamplerUtility.GenerateRandomSeed());
+                sampler.baseSeed = SamplerUtility.GenerateRandomSeed();
                 sampler.ResetState();
             }
         }
@@ -85,7 +85,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public void ResetState(int scenarioIteration)
         {
             foreach (var sampler in samplers)
-                sampler.ResetState(scenarioIteration);
+            {
+                sampler.ResetState();
+                sampler.IterateState(scenarioIteration);
+            }
         }
 
         /// <summary>

@@ -5,7 +5,7 @@ using UnityEngine.Perception.Randomization.Samplers;
 
 namespace RandomizationTests.SamplerTests
 {
-    public abstract class RangedSamplerTests<T> where T : struct, ISampler, IRandomRangedSampler
+    public abstract class RangedSamplerTests<T> where T : struct, ISampler
     {
         const int k_TestSampleCount = 30;
         protected T m_BaseSampler;

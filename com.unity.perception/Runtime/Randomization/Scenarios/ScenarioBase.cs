@@ -13,6 +13,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     public abstract class ScenarioBase : MonoBehaviour
     {
         static ScenarioBase s_ActiveScenario;
+        bool m_FirstFrame = true;
 
         /// <summary>
         /// If true, this scenario will quit the Unity application when it's finished executing
@@ -80,7 +81,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public virtual void OnInitialize() { }
 
         /// <summary>
-        /// Called when each scenario iteration starts
+        /// Called at the beginning of every scenario iteration
         /// </summary>
         public virtual void OnIterationSetup() { }
 
@@ -90,7 +91,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public virtual void OnFrameStart() { }
 
         /// <summary>
-        /// Called right before the scenario iterates
+        /// Called the frame after an iteration ends
         /// </summary>
         public virtual void OnIterationTeardown() { }
 
@@ -119,19 +120,20 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             s_ActiveScenario = null;
         }
 
-        IEnumerator Start()
+        void Start()
         {
             if (deserializeOnStart)
                 Deserialize();
             foreach (var config in ParameterConfiguration.configurations)
                 config.ValidateParameters();
             OnInitialize();
-            // TODO: remove this yield when the perception camera no longer skips the first frame of the simulation
-            yield return null;
         }
 
         void Update()
         {
+            if (currentIterationFrame == 0 && !m_FirstFrame)
+                OnIterationTeardown();
+
             if (isScenarioComplete)
             {
                 OnComplete();
@@ -143,13 +145,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                     Application.Quit();
 #endif
                 return;
-            }
-
-            if (isIterationComplete)
-            {
-                currentIteration++;
-                currentIterationFrame = 0;
-                OnIterationTeardown();
             }
 
             if (currentIterationFrame == 0)
@@ -165,8 +160,18 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             foreach (var config in ParameterConfiguration.configurations)
                 config.ApplyParameters(framesSinceInitialization, ParameterApplicationFrequency.EveryFrame);
             OnFrameStart();
+        }
+
+        void LateUpdate()
+        {
             currentIterationFrame++;
             framesSinceInitialization++;
+            if (isIterationComplete)
+            {
+                currentIteration++;
+                currentIterationFrame = 0;
+            }
+            m_FirstFrame = false;
         }
     }
 }

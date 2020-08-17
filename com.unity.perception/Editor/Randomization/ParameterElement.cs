@@ -81,7 +81,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_TargetGameObjectProperty = m_SerializedProperty.FindPropertyRelative("target.gameObject");
             ToggleTargetContainer();
 
-            var frequencyField = this.Q<PropertyField>("application-frequency");
+            var frequencyField = this.Q<EnumField>("application-frequency");
             frequencyField.BindProperty(m_SerializedProperty.FindPropertyRelative("target.applicationFrequency"));
 
             var targetField = this.Q<PropertyField>("target");

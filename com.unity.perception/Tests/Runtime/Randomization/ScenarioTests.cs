@@ -31,17 +31,16 @@ namespace RandomizationTests
             Object.DestroyImmediate(m_TestObject);
         }
 
-        IEnumerator CreateNewScenario()
+        void CreateNewScenario()
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
             m_Scenario.quitOnComplete = false;
-            yield return null;
         }
 
         [UnityTest]
         public IEnumerator OverwritesConstantsOnSerialization()
         {
-            yield return CreateNewScenario();
+            CreateNewScenario();
             m_Scenario.serializedConstantsFileName = "perception_serialization_test";
 
             var constants = new FixedLengthScenario.Constants
@@ -80,12 +79,9 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator IterationsCanLastMultipleFrames()
         {
-            yield return CreateNewScenario();
+            CreateNewScenario();
             const int testIterationFrameCount = 5;
             m_Scenario.constants.framesPerIteration = testIterationFrameCount;
-
-            // Scenario update loop starts next frame
-            yield return null;
 
             for (var i = 0; i < testIterationFrameCount; i++)
             {
@@ -96,15 +92,12 @@ namespace RandomizationTests
         }
 
         [UnityTest]
-        public IEnumerator CompletesWhenIsScenarioCompleteIsTrue()
+        public IEnumerator FinishesWhenIsScenarioCompleteIsTrue()
         {
-            yield return CreateNewScenario();
+            CreateNewScenario();
             const int testIterationTotal = 5;
             m_Scenario.constants.framesPerIteration = 1;
             m_Scenario.constants.totalIterations = testIterationTotal;
-
-            // Scenario update loop starts next frame
-            yield return null;
 
             for (var i = 0; i < testIterationTotal; i++)
             {
@@ -117,7 +110,7 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator AppliesParametersEveryFrame()
         {
-            yield return CreateNewScenario();
+            CreateNewScenario();
             m_Scenario.constants.framesPerIteration = 5;
             m_Scenario.constants.totalIterations = 1;
 
@@ -139,39 +132,40 @@ namespace RandomizationTests
         [UnityTest]
         public IEnumerator AppliesParametersEveryIteration()
         {
-            yield return CreateNewScenario();
-            m_Scenario.constants.framesPerIteration = 5;
-            m_Scenario.constants.totalIterations = 1;
-
             var config = m_TestObject.AddComponent<ParameterConfiguration>();
             var parameter = config.AddParameter<Vector3Parameter>();
             parameter.x = new UniformSampler(1, 2);
             parameter.y = new UniformSampler(1, 2);
             parameter.z = new UniformSampler(1, 2);
 
-            var transform = m_Scenario.transform;
+            var transform = m_TestObject.transform;
+            transform.position = new Vector3();
             parameter.target.AssignNewTarget(
                 m_TestObject, transform, "position", ParameterApplicationFrequency.OnIterationSetup);
 
-            var initialPosition = new Vector3();
-            transform.position = initialPosition;
+            yield return new WaitForEndOfFrame();
+            CreateNewScenario();
+            m_Scenario.constants.framesPerIteration = 2;
+            m_Scenario.constants.totalIterations = 2;
 
-            // The position should change when the first iteration starts
-            yield return null;
-            Assert.AreNotEqual(initialPosition, transform.position);
-            // ReSharper disable once Unity.InefficientPropertyAccess
-            initialPosition = transform.position;
+            yield return new WaitForEndOfFrame();
+            var initialPosition = transform.position;
+            Assert.AreNotEqual(new Vector3(), initialPosition);
 
-            // The position should stay the same since the iteration doesn't change for another 4 frames
-            yield return null;
+            yield return new WaitForEndOfFrame();
             // ReSharper disable once Unity.InefficientPropertyAccess
-            Assert.AreEqual(initialPosition, transform.position);
+            var nextPosition = transform.position;
+            Assert.AreEqual(initialPosition, nextPosition);
+
+            yield return new WaitForEndOfFrame();
+            // ReSharper disable once Unity.InefficientPropertyAccess
+            Assert.AreNotEqual(nextPosition, transform.position);
         }
 
         [UnityTest]
         public IEnumerator StartNewDatasetSequenceEveryIteration()
         {
-            yield return CreateNewScenario();
+            CreateNewScenario();
             m_Scenario.constants.framesPerIteration = 2;
             m_Scenario.constants.totalIterations = 2;
 

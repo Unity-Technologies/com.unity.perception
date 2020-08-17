@@ -7,19 +7,29 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// Typically managed by a parameter configuration.
     /// </summary>
     [Serializable]
-    class ParameterTarget
+    public class ParameterTarget
     {
-        public GameObject gameObject;
-        public Component component;
-        public string propertyName = "";
-        public FieldOrProperty fieldOrProperty;
-        public ParameterApplicationFrequency applicationFrequency;
+        [SerializeField] internal GameObject gameObject;
+        [SerializeField] internal Component component;
+        [SerializeField] internal string propertyName = "";
+        [SerializeField] internal FieldOrProperty fieldOrProperty;
+        [SerializeField] internal ParameterApplicationFrequency applicationFrequency;
 
+        /// <summary>
+        /// Assigns a new target
+        /// </summary>
+        /// <param name="targetObject">The target GameObject</param>
+        /// <param name="targetComponent">The target component on the target GameObject</param>
+        /// <param name="fieldOrPropertyName">The name of the property to apply the parameter to</param>
+        /// <param name="frequency">How often to apply the parameter to its target</param>
         public void AssignNewTarget(
-            GameObject obj, Component comp, string fieldOrPropertyName, ParameterApplicationFrequency frequency)
+            GameObject targetObject,
+            Component targetComponent,
+            string fieldOrPropertyName,
+            ParameterApplicationFrequency frequency)
         {
-            gameObject = obj;
-            component = comp;
+            gameObject = targetObject;
+            component = targetComponent;
             propertyName = fieldOrPropertyName;
             applicationFrequency = frequency;
             var componentType = component.GetType();
@@ -28,17 +38,14 @@ namespace UnityEngine.Perception.Randomization.Parameters
                 : FieldOrProperty.Property;
         }
 
-        public void Clear()
+        internal void Clear()
         {
             gameObject = null;
             component = null;
             propertyName = string.Empty;
         }
 
-        /// <summary>
-        /// Writes a sampled value to the target GameObject and property
-        /// </summary>
-        public void ApplyValueToTarget(object value)
+        internal void ApplyValueToTarget(object value)
         {
             var componentType = component.GetType();
             if (fieldOrProperty == FieldOrProperty.Field)
@@ -60,7 +67,10 @@ namespace UnityEngine.Perception.Randomization.Parameters
         }
     }
 
-    enum ParameterApplicationFrequency
+    /// <summary>
+    /// How often to apply a new sample to a parameter's target
+    /// </summary>
+    public enum ParameterApplicationFrequency
     {
         OnIterationSetup,
         EveryFrame

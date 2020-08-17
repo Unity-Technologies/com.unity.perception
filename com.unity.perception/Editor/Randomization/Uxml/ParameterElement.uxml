@@ -21,7 +21,7 @@
                             <Label text="Target Property" class="unity-base-field__label"/>
                             <editor:ToolbarMenu text="Select A Property" name="property-select-menu" class="property-select-menu"/>
                         </VisualElement>
-                        <editor:PropertyField name="application-frequency"/>
+                        <editor:EnumField label="Application Frequency" name="application-frequency"/>
                     </VisualElement>
                 </Box>
                 <Box name="extra-properties" style="padding-left: 4px; border-top-width: 0px;"/>

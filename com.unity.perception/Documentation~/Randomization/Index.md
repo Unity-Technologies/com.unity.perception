@@ -24,6 +24,8 @@ Next, create a few parameters and modify their properties. Parameters often cust
 
 Finally, add a Scenario component to the scene. Scenarios are used to coordinate the application of randomizations during the execution of a simulation.
 
+
+
 Continue reading for more details concerning the three primary components driving randomizations in the perception package: parameters, samplers, and scenarios.
 
 ## Parameters
@@ -58,8 +60,6 @@ It is possible to configure parameters to affect simulation properties directly 
 ![Example Parameters](./Images/TestScenario.png)
 
 Finally, scenarios define constants from which to expose global simulation behaviors automatically. By modifying serialized constants externally, users can customize their simulation runtime even after their project has been built.
-
-Visit our [randomization tutorial](Tutorial.md) to get started using the randomization tools in an example project.
 
 
 ## Getting Started

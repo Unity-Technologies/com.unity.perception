@@ -114,6 +114,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         {
             m_SerializedProperty.FindPropertyRelative("target.component").objectReferenceValue = null;
             m_SerializedProperty.FindPropertyRelative("target.propertyName").stringValue = string.Empty;
+            m_SerializedProperty.FindPropertyRelative("target.applicationFrequency").enumValueIndex = 0;
             m_SerializedProperty.serializedObject.ApplyModifiedProperties();
         }
 
@@ -249,7 +250,13 @@ namespace UnityEngine.Perception.Randomization.Editor
                 removeButton.clicked += () =>
                 {
                     probabilitiesProperty.DeleteArrayElementAtIndex(i);
+
+                    // First delete sets option to null, second delete removes option
+                    var numOptions = optionsProperty.arraySize;
                     optionsProperty.DeleteArrayElementAtIndex(i);
+                    if (numOptions == optionsProperty.arraySize)
+                        optionsProperty.DeleteArrayElementAtIndex(i);
+
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = categoricalParameter.probabilities;
                     listView.Refresh();
@@ -326,11 +333,11 @@ namespace UnityEngine.Perception.Randomization.Editor
                 else
                     listView.RemoveFromClassList("uniform-probability");
             }
-            uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt =>
-            {
-                ToggleProbabilityFields(evt.newValue);
-            });
             ToggleProbabilityFields(uniformToggle.value);
+            if (Application.isPlaying)
+                uniformToggle.SetEnabled(false);
+            else
+                uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt => ToggleProbabilityFields(evt.newValue));
 
             var seedField = template.Q<IntegerField>("seed");
             seedField.BindProperty(m_SerializedProperty.FindPropertyRelative("m_Sampler.<baseSeed>k__BackingField"));

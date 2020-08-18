@@ -8,7 +8,6 @@ namespace UnityEditor.Perception.GroundTruth
     [CustomEditor(typeof(Labeling)), CanEditMultipleObjects]
     class LabelingEditor : Editor
     {
-        const int k_Indent = 7;
         const string k_Placeholder = "Enter a new label...";
         ReorderableList m_LabelsList;
 
@@ -107,11 +106,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             using (var change = new EditorGUI.ChangeCheckScope())
             {
-                var indent = k_Indent * index;
-                if (indent >= rect.width)
-                    return;
-
-                var contentRect = new Rect(rect.x + indent, rect.y, rect.width - indent, rect.height);
+                var contentRect = new Rect(rect.x, rect.y, rect.width, rect.height);
 
                 var current = labeling.labels[index];
 

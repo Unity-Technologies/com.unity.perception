@@ -39,9 +39,6 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public SemanticSegmentationLabelConfig labelConfig;
 
-        /// <inheritdoc/>
-        public override string uniqueLabelerId => annotationId;
-
         /// <summary>
         /// Event information for <see cref="SemanticSegmentationLabeler.imageReadback"/>
         /// </summary>

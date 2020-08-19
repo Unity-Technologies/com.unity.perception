@@ -23,9 +23,6 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public IdLabelConfig labelConfig => m_LabelConfig;
 
-        /// <inheritdoc/>
-        public override string uniqueLabelerId => objectCountMetricId;
-
         /// <summary>
         /// Fired when the object counts are computed for a frame.
         /// </summary>

@@ -14,8 +14,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class HUDPanel : MonoBehaviour
     {
-        readonly Dictionary<string, Dictionary<string, string>> m_Entries = new Dictionary<string, Dictionary<string, string>>();
-        readonly Dictionary<string, string> m_LabelerNames = new Dictionary<string, string>();
+        readonly Dictionary<CameraLabeler, Dictionary<string, string>> m_Entries = new Dictionary<CameraLabeler, Dictionary<string, string>>();
 
         GUIStyle m_KeyStyle;
         GUIStyle m_ValueStyle;
@@ -53,12 +52,11 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="value">The value of the entry</param>
         public void UpdateEntry(CameraLabeler labeler, string key, string value)
         {
-            if (!m_Entries.ContainsKey(labeler.uniqueLabelerId))
+            if (!m_Entries.ContainsKey(labeler))
             {
-                m_Entries[labeler.uniqueLabelerId] = new Dictionary<string, string>();
-                m_LabelerNames[labeler.uniqueLabelerId] = labeler.GetType().Name;
+                m_Entries[labeler] = new Dictionary<string, string>();
             }
-            m_Entries[labeler.uniqueLabelerId][key] = value;
+            m_Entries[labeler][key] = value;
         }
 
         Vector2 m_ScrollPosition;
@@ -103,7 +101,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 if (!firstTime) GUILayout.Space(k_YLineSpacing);
                 firstTime = false;
-                GUILayout.Label(m_LabelerNames[labeler]);
+                GUILayout.Label(labeler.GetType().Name);
                 foreach (var entry in m_Entries[labeler])
                 {
                     GUILayout.BeginHorizontal();
@@ -126,9 +124,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="key">The key of the entry to remove</param>
         public void RemoveEntry(CameraLabeler labeler, string key)
         {
-            if (m_Entries.ContainsKey(labeler.uniqueLabelerId))
+            if (m_Entries.ContainsKey(labeler))
             {
-                m_Entries[labeler.uniqueLabelerId].Remove(key);
+                m_Entries[labeler].Remove(key);
             }
         }
 
@@ -138,8 +136,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="labeler">The labeler that requested the removal</param>
         public void RemoveEntries(CameraLabeler labeler)
         {
-            m_Entries.Remove(labeler.uniqueLabelerId);
-            m_LabelerNames.Remove(labeler.uniqueLabelerId);
+            m_Entries.Remove(labeler);
         }
     }
 }

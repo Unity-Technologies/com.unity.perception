@@ -47,15 +47,6 @@ namespace UnityEngine.Perception.GroundTruth
         protected SensorHandle sensorHandle { get; private set; }
 
         /// <summary>
-        /// Each labeler needs a unique ID for their metrics or annotations.
-        /// </summary>
-        /// <returns>The unique labeler ID as a string</returns>
-        public abstract string uniqueLabelerId
-        {
-            get;
-        }
-
-        /// <summary>
         /// Called just before the first call to <see cref="OnUpdate"/> or <see cref="OnBeginRendering"/>. Implement this
         /// to initialize state.
         /// </summary>

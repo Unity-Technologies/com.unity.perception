@@ -45,7 +45,7 @@ namespace UnityEngine.Perception.GroundTruth
         MetricDefinition m_RenderedObjectInfoMetricDefinition;
 
         /// <inheritdoc/>
-        internal override string uniqueLabelerId => objectInfoMetricId;
+        public override string uniqueLabelerId => objectInfoMetricId;
 
         /// <summary>
         /// Creates a new RenderedObjectInfoLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.

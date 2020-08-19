@@ -50,7 +50,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Each labeler needs a unique ID for their metrics or annotations.
         /// </summary>
         /// <returns>The unique labeler ID as a string</returns>
-        internal abstract string uniqueLabelerId
+        public abstract string uniqueLabelerId
         {
             get;
         }

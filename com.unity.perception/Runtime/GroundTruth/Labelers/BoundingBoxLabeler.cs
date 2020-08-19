@@ -44,11 +44,11 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_BoundingBoxAnnotationDefinition;
         BoundingBoxValue[] m_BoundingBoxValues;
 
-        private Vector2 originalScreenSize = Vector2.zero;
+        Vector2 m_OriginalScreenSize = Vector2.zero;
 
-        private Texture boundingBoxTexture;
-        private Texture labelTexture;
-        private GUIStyle style;
+        Texture m_BoundingBoxTexture;
+        Texture m_LabelTexture;
+        GUIStyle m_Style;
 
         /// <summary>
         /// Creates a new BoundingBox2DLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
@@ -69,7 +69,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override bool supportsVisualization => true;
         /// <inheritdoc/>
-        internal override string uniqueLabelerId => annotationId;
+        public override string uniqueLabelerId => annotationId;
 
         /// <inheritdoc/>
         protected override void Setup()
@@ -88,17 +88,17 @@ namespace UnityEngine.Perception.GroundTruth
 
             // Record the original screen size. The screen size can change during play, and the visual bounding
             // boxes need to be scaled appropriately
-            originalScreenSize = new Vector2(Screen.width, Screen.height);
+            m_OriginalScreenSize = new Vector2(Screen.width, Screen.height);
 
-            boundingBoxTexture = Resources.Load<Texture>("outline_box");
-            labelTexture = Resources.Load<Texture>("solid_white");
+            m_BoundingBoxTexture = Resources.Load<Texture>("outline_box");
+            m_LabelTexture = Resources.Load<Texture>("solid_white");
 
-            style = new GUIStyle();
-            style.normal.textColor = Color.black;
-            style.fontSize = 16;
-            style.padding = new RectOffset(4, 4, 4, 4);
-            style.contentOffset = new Vector2(4, 0);
-            style.alignment = TextAnchor.MiddleLeft;
+            m_Style = new GUIStyle();
+            m_Style.normal.textColor = Color.black;
+            m_Style.fontSize = 16;
+            m_Style.padding = new RectOffset(4, 4, 4, 4);
+            m_Style.contentOffset = new Vector2(4, 0);
+            m_Style.alignment = TextAnchor.MiddleLeft;
         }
 
         /// <inheritdoc/>
@@ -153,8 +153,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             // The player screen can be dynamically resized during play, need to
             // scale the bounding boxes appropriately from the original screen size
-            float screenRatioWidth = Screen.width / originalScreenSize.x;
-            float screenRatioHeight = Screen.height / originalScreenSize.y;
+            float screenRatioWidth = Screen.width / m_OriginalScreenSize.x;
+            float screenRatioHeight = Screen.height / m_OriginalScreenSize.y;
 
             foreach (var box in m_BoundingBoxValues)
             {
@@ -164,9 +164,9 @@ namespace UnityEngine.Perception.GroundTruth
                 var boxRect = new Rect(x, y, box.width * screenRatioWidth, box.height * screenRatioHeight);
                 var labelWidth = Math.Min(120, box.width * screenRatioWidth);
                 var labelRect = new Rect(x, y - 17, labelWidth, 17);
-                GUI.DrawTexture(boxRect, boundingBoxTexture, ScaleMode.StretchToFill, true, 0, Color.yellow, 3, 0.25f);
-                GUI.DrawTexture(labelRect, labelTexture, ScaleMode.StretchToFill, true, 0, Color.yellow, 0, 0);
-                GUI.Label(labelRect, box.label_name + "_" + box.instance_id, style);
+                GUI.DrawTexture(boxRect, m_BoundingBoxTexture, ScaleMode.StretchToFill, true, 0, Color.yellow, 3, 0.25f);
+                GUI.DrawTexture(labelRect, m_LabelTexture, ScaleMode.StretchToFill, true, 0, Color.yellow, 0, 0);
+                GUI.Label(labelRect, box.label_name + "_" + box.instance_id, m_Style);
             }
         }
     }

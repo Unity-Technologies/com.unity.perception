@@ -82,8 +82,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
 
-        private float defaultSegmentTransparency = 0.8f;
-        private float defaultBackgroundTransparency = 0.0f;
+        private float segmentTransparency = 0.8f;
+        private float backgroundTransparency = 0.0f;
 
         /// <summary>
         /// Creates a new SemanticSegmentationLabeler. Be sure to assign <see cref="labelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
@@ -121,8 +121,12 @@ namespace UnityEngine.Perception.GroundTruth
         int camWidth = 0;
         int camHeight = 0;
 
+        private GameObject segCanvas;
         private GameObject segVisual = null;
         private RawImage segImage = null;
+
+        GUIStyle labelStyle = null;
+        GUIStyle sliderStyle = null;
 
         /// <inheritdoc/>
         protected override bool supportsVisualization => true;
@@ -192,6 +196,37 @@ namespace UnityEngine.Perception.GroundTruth
             visualizationEnabled = supportsVisualization;
         }
 
+        private void SetupVisualizationElements()
+        {
+            segmentTransparency = 0.8f;
+            backgroundTransparency = 0.0f;
+
+            segVisual = GameObject.Instantiate(Resources.Load<GameObject>("SegmentTexture"));
+
+            segImage = segVisual.GetComponent<RawImage>();
+            segImage.material.SetFloat("_SegmentTransparency", segmentTransparency);
+            segImage.material.SetFloat("_BackTransparency", backgroundTransparency);
+            segImage.texture = targetTexture;
+
+            var rt = segVisual.transform as RectTransform;
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, camWidth);
+            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
+
+            if (segCanvas == null)
+            {
+                segCanvas = new GameObject(perceptionCamera.gameObject.name + "_segmentation_canvas");
+                segCanvas.AddComponent<RectTransform>();
+                var canvas = segCanvas.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                segCanvas.AddComponent<CanvasScaler>();
+
+                segVisual.transform.SetParent(segCanvas.transform, false);
+            }
+
+            labelStyle = new GUIStyle(GUI.skin.label) {padding = {left = 10}};
+            sliderStyle = new GUIStyle(GUI.skin.horizontalSlider) {margin = {left = 12}};
+        }
+
         void OnSemanticSegmentationImageRead(int frameCount, NativeArray<Color32> data)
         {
             if (!m_AsyncAnnotations.TryGetValue(frameCount, out var annotation))
@@ -245,6 +280,9 @@ namespace UnityEngine.Perception.GroundTruth
             m_SemanticSegmentationTextureReader?.Dispose();
             m_SemanticSegmentationTextureReader = null;
 
+            Object.Destroy(segCanvas);
+            segCanvas = null;
+
             if (m_TargetTextureOverride != null)
                 m_TargetTextureOverride.Release();
 
@@ -252,40 +290,47 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void PopulateVisualizationPanel(ControlPanel panel)
-        {
-            panel.AddToggleControl("Segmentation Information", enabled => { visualizationEnabled = enabled; });
-
-            defaultSegmentTransparency = 0.8f;
-            defaultBackgroundTransparency = 0.0f;
-
-            panel.AddSliderControl("Object Alpha", defaultSegmentTransparency, val => {
-                if (segImage != null) segImage.material.SetFloat("_SegmentTransparency", val);
-            });
-
-            panel.AddSliderControl("Background Alpha", defaultBackgroundTransparency, val => {
-                if (segImage != null) segImage.material.SetFloat("_BackTransparency", val);
-            });
-
-            segVisual = GameObject.Instantiate(Resources.Load<GameObject>("SegmentTexture"));
-
-            segImage = segVisual.GetComponent<RawImage>();
-            segImage.material.SetFloat("_SegmentTransparency", defaultSegmentTransparency);
-            segImage.material.SetFloat("_BackTransparency", defaultBackgroundTransparency);
-            segImage.texture = targetTexture;
-
-            RectTransform rt = segVisual.transform as RectTransform;
-            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, camWidth);
-            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
-
-            visualizationCanvas.AddComponent(segVisual, setAsLowestElement: true);
-        }
-
-        /// <inheritdoc/>
         override protected void OnVisualizerEnabledChanged(bool enabled)
         {
             if (segVisual != null)
                 segVisual.SetActive(enabled);
+        }
+
+
+
+        /// <inheritdoc/>
+        protected override void OnVisualizeAdditionalUI()
+        {
+            if (segImage == null)
+            {
+                SetupVisualizationElements();
+            }
+
+            var rt = segVisual.transform as RectTransform;
+            if (rt != null && camHeight != Screen.height)
+            {
+                camHeight = Screen.height;
+                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
+            }
+
+            if (rt != null && camWidth != Screen.width)
+            {
+                camWidth = Screen.width;
+                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Screen.width);
+            }
+
+            GUILayout.Space(4);
+            GUILayout.Label("Object Alpha:", labelStyle);
+            segmentTransparency = GUILayout.HorizontalSlider(segmentTransparency, 0.0f, 1.0f, sliderStyle, GUI.skin.horizontalSliderThumb);
+            GUILayout.Space(4);
+            GUILayout.Label("Background Alpha:", labelStyle);
+            backgroundTransparency = GUILayout.HorizontalSlider(backgroundTransparency, 0.0f, 1.0f, sliderStyle, GUI.skin.horizontalSliderThumb);
+            GUI.skin.label.padding.left = 0;
+
+            if (!GUI.changed) return;
+            segImage.material.SetFloat("_SegmentTransparency", segmentTransparency);
+            segImage.material.SetFloat("_BackTransparency", backgroundTransparency);
+
         }
     }
 }

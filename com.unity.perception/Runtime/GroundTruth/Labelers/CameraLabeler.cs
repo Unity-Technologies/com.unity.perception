@@ -2,6 +2,7 @@ using System;
 using Unity.Simulation;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -30,20 +31,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <summary>
-        /// Retrieve a handle to the visualization canvas <see cref="VisualizationCanvas"/>. This is the specific canvas that all visualization
-        /// labelers should be added to. The canvas has helper functions to create many common visualization components.
-        /// </summary>
-        public VisualizationCanvas visualizationCanvas { get; private set; }
-
-        /// <summary>
-        /// The control panel that is attached to the visualization canvas. The common location to add interactive controls.
-        /// </summary>
-        public ControlPanel controlPanel => visualizationCanvas != null ? visualizationCanvas.controlPanel : null;
-
-        /// <summary>
         /// The heads up display (HUD) panel. Generally used to add stats to the display.
         /// </summary>
-        public HUDPanel hudPanel => visualizationCanvas != null ? visualizationCanvas.hudPanel : null;
+        public HUDPanel hudPanel => perceptionCamera != null ? perceptionCamera.hudPanel : null;
 
         /// <summary>
         /// The <see cref="PerceptionCamera"/> that contains this labeler.
@@ -62,16 +52,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         protected virtual void Setup() { }
         /// <summary>
-        /// Called immediately after <see cref="setup"/>. Implement this to initialize labeler's visualization
-        /// capability if one exists <see cref="supportVisualization"/>.
-        /// </summary>
-        /// <param name="panel">The target control panel for the labeler's visualization component</param>
-        protected virtual void PopulateVisualizationPanel(ControlPanel panel) { }
-        /// <summary>
         /// Called when the labeler's visualization capability is turned on or off.
         /// </summary>
-        /// <param name="enabled">The current enabled state of the visualizer</param>
-        protected virtual void OnVisualizerEnabledChanged(bool enabled) {}
+        /// <param name="visualizerEnabled">The current enabled state of the visualizer</param>
+        protected virtual void OnVisualizerEnabledChanged(bool visualizerEnabled) {}
         /// <summary>
         /// Called during the Update each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
@@ -80,6 +64,20 @@ namespace UnityEngine.Perception.GroundTruth
         /// Called just before the camera renders each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
         protected virtual void OnBeginRendering() {}
+        /// <summary>
+        /// Labeling pass to display labeler's visualization components, if applicable. Important note, all labeler's visualizations need
+        /// to use Unity's Immediate Mode GUI (IMGUI) <see cref="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
+        /// This called is triggered from <see cref="perceptionCamera.OnGUI"/> call. This call happens immediately before <see cref="OnVisualizeAdditionalUI"/>
+        /// so that the visualization components are drawn below the UI elements.
+        /// </summary>
+        protected virtual void OnVisualize() {}
+        /// <summary>
+        /// In this pass, a labeler can add custom GUI controls to the scene. Important note, all labeler's additional
+        /// GUIs need to use Unity's Immediate Mode GUI (IMGUI) <see cref="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
+        /// This called is triggered from <see cref="perceptionCamera.OnGUI"/> call. This call happens immediately after the <see cref="OnVisualize"/>
+        /// so that the visualization components are drawn below the UI elements.
+        /// </summary>
+        protected virtual void OnVisualizeAdditionalUI() {}
 
         /// <summary>
         /// Called when the Labeler is about to be destroyed or removed from the PerceptionCamera. Use this to clean up to state.
@@ -87,7 +85,6 @@ namespace UnityEngine.Perception.GroundTruth
         protected virtual void Cleanup() {}
 
         internal void InternalSetup() => Setup();
-        internal void InternalPopulateVisualizationPanel(GameObject panel) => PopulateVisualizationPanel(controlPanel);
 
         internal bool InternalVisualizationEnabled
         {
@@ -97,6 +94,7 @@ namespace UnityEngine.Perception.GroundTruth
         internal void InternalOnUpdate() => OnUpdate();
         internal void InternalOnBeginRendering() => OnBeginRendering();
         internal void InternalCleanup() => Cleanup();
+        internal void InternalVisualize() => OnVisualize();
 
         private bool m_ShowVisualizations = false;
 
@@ -105,7 +103,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// visualization (<see cref="supportsVisualization"/>) or visualization is not enabled on the PerceptionCamera
         /// this will not function.
         /// </summary>
-        protected bool visualizationEnabled
+        internal bool visualizationEnabled
         {
             get
             {
@@ -114,7 +112,6 @@ namespace UnityEngine.Perception.GroundTruth
             set
             {
                 if (!supportsVisualization) return;
-                if (visualizationCanvas == null) return;
 
                 if (value != m_ShowVisualizations)
                 {
@@ -125,32 +122,42 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        internal void Init(PerceptionCamera newPerceptionCamera, VisualizationCanvas visualizationCanvas)
+        internal void VisualizeUI()
+        {
+            if (supportsVisualization)
+            {
+                GUILayout.Label(GetType().Name);
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(10);
+                GUILayout.Label("Enabled");
+                GUILayout.FlexibleSpace();
+                visualizationEnabled = GUILayout.Toggle(visualizationEnabled, "");
+                GUILayout.EndHorizontal();
+                if (visualizationEnabled) OnVisualizeAdditionalUI();
+            }
+        }
+
+        internal void Visualize()
+        {
+            if (visualizationEnabled) OnVisualize();
+        }
+
+        internal void Init(PerceptionCamera newPerceptionCamera)
         {
             try
             {
                 this.perceptionCamera = newPerceptionCamera;
                 sensorHandle = newPerceptionCamera.SensorHandle;
-                this.visualizationCanvas = visualizationCanvas;
                 Setup();
                 isInitialized = true;
 
-                if (supportsVisualization && visualizationCanvas != null)
-                {
-                    m_ShowVisualizations = true;
-                    InitVisualizationUI();
-                }
+                m_ShowVisualizations = supportsVisualization && perceptionCamera.showVisualizations;
             }
             catch (Exception)
             {
                 this.enabled = false;
                 throw;
             }
-        }
-
-        private void InitVisualizationUI()
-        {
-            PopulateVisualizationPanel(controlPanel);
         }
     }
 }

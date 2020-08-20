@@ -8,10 +8,7 @@ namespace UnityEditor.Perception.GroundTruth
     [CustomEditor(typeof(Labeling)), CanEditMultipleObjects]
     class LabelingEditor : Editor
     {
-        const string k_Placeholder = "Enter a new label...";
         ReorderableList m_LabelsList;
-
-        GUIStyle m_PlaceHolderStyle;
 
         public void OnEnable()
         {
@@ -100,27 +97,11 @@ namespace UnityEditor.Perception.GroundTruth
 
         void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
         {
-            if (m_PlaceHolderStyle == null)
-            {
-                m_PlaceHolderStyle = new GUIStyle(EditorStyles.textField);
-                m_PlaceHolderStyle.normal.textColor = Color.gray;
-            }
-
             using (var change = new EditorGUI.ChangeCheckScope())
             {
                 var contentRect = new Rect(rect.x, rect.y, rect.width, rect.height);
 
-                var current = labeling.labels[index];
-
-                var style = EditorStyles.textField;
-
-                if (current == string.Empty)
-                {
-                    current = k_Placeholder;
-                    style = m_PlaceHolderStyle;
-                }
-
-                var value = EditorGUI.DelayedTextField(contentRect, current, style);
+                var value = EditorGUI.DelayedTextField(contentRect, labeling.labels[index]);
 
                 if (change.changed)
                 {

@@ -40,7 +40,9 @@ namespace UnityEditor.Perception.GroundTruth
         {
             foreach (var t in targets)
             {
-                ((Labeling)t).labels.Add("");
+                var castedTarget = ((Labeling)t);
+                castedTarget.labels.Add("");
+                EditorUtility.SetDirty(castedTarget);
             }
         }
 

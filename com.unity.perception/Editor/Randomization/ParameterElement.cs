@@ -93,9 +93,9 @@ namespace UnityEngine.Perception.Randomization.Editor
             targetField.RegisterCallback<ChangeEvent<Object>>(evt =>
             {
                 ClearTarget();
-                var appFreqEnumIndex = m_ApplicationFrequency.enumValueIndex;
+                var appFreqEnumIndex = m_ApplicationFrequency.intValue;
                 m_TargetGameObject.objectReferenceValue = (GameObject)evt.newValue;
-                m_ApplicationFrequency.enumValueIndex = appFreqEnumIndex;
+                m_ApplicationFrequency.intValue = appFreqEnumIndex;
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 ToggleTargetContainer();
                 FillPropertySelectMenu();
@@ -128,7 +128,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_TargetGameObject.objectReferenceValue = newTarget.gameObject;
             m_Target.FindPropertyRelative("component").objectReferenceValue = newTarget.component;
             m_Target.FindPropertyRelative("propertyName").stringValue = newTarget.propertyName;
-            m_Target.FindPropertyRelative("fieldOrProperty").enumValueIndex = (int)newTarget.fieldOrProperty;
+            m_Target.FindPropertyRelative("fieldOrProperty").intValue = (int)newTarget.fieldOrProperty;
             m_SerializedProperty.serializedObject.ApplyModifiedProperties();
             m_TargetPropertyMenu.text = TargetPropertyDisplayText(parameter.target);
         }
@@ -144,16 +144,24 @@ namespace UnityEngine.Perception.Randomization.Editor
                 return;
 
             m_TargetPropertyMenu.menu.MenuItems().Clear();
-            m_TargetPropertyMenu.text = parameter.target.propertyName == string.Empty
-                ? "Select a property"
-                : TargetPropertyDisplayText(parameter.target);
-
             var options = GatherPropertyOptions(parameter.target.gameObject, parameter.sampleType);
-            foreach (var option in options)
+            if (options.Count == 0)
             {
-                m_TargetPropertyMenu.menu.AppendAction(
-                    TargetPropertyDisplayText(option),
-                    a => { SetTarget(option); });
+                m_TargetPropertyMenu.text = "No compatible properties";
+                m_TargetPropertyMenu.SetEnabled(false);
+            }
+            else
+            {
+                m_TargetPropertyMenu.SetEnabled(true);
+                foreach (var option in options)
+                {
+                    m_TargetPropertyMenu.menu.AppendAction(
+                        TargetPropertyDisplayText(option),
+                        a => { SetTarget(option); });
+                }
+                m_TargetPropertyMenu.text = parameter.target.propertyName == string.Empty
+                    ? "Select a property"
+                    : TargetPropertyDisplayText(parameter.target);
             }
         }
 

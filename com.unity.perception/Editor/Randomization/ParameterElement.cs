@@ -84,6 +84,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             ToggleTargetContainer();
 
             var frequencyField = this.Q<EnumField>("application-frequency");
+            frequencyField.Init(ParameterApplicationFrequency.OnIterationSetup);
             m_ApplicationFrequency = m_Target.FindPropertyRelative("applicationFrequency");
             frequencyField.BindProperty(m_ApplicationFrequency);
 

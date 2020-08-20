@@ -218,16 +218,36 @@ namespace UnityEngine.Perception.GroundTruth
             GUI.skin.box.padding = new RectOffset(5, 5, 5, 5);
             GUI.skin.toggle.margin = new RectOffset(0, 0, 0, 0);
             GUI.skin.horizontalSlider.margin = new RectOffset(0, 0, 0, 0);
-            guiStylesInitialized = true;
+            m_GUIStylesInitialized = true;
         }
 
-        private bool guiStylesInitialized = false;
+        private bool m_GUIStylesInitialized = false;
+
+        private void DisplayNoLabelersMessage()
+        {
+            var x = Screen.width - panelWidth - 10;
+            var height = Math.Min(Screen.height * 0.5f - 20, 90);
+
+            GUILayout.BeginArea(new Rect(x, 10, panelWidth, height), GUI.skin.box);
+
+            GUILayout.Label("Visualization: No labelers are currently active. Enable at least one labeler from the inspector window of your perception camera to see visualizations.");
+
+            // If a labeler has never been initialized then it was off from the
+            // start, it should not be called to draw on the UI
+            foreach (var labeler in m_Labelers.Where(labeler => labeler.isInitialized))
+            {
+                labeler.VisualizeUI();
+                GUILayout.Space(4);
+            }
+
+            GUILayout.EndArea();
+        }
 
         private void OnGUI()
         {
             if (!m_ShowingVisualizations) return;
 
-            if (!guiStylesInitialized) SetUpGUIStyles();
+            if (!m_GUIStylesInitialized) SetUpGUIStyles();
 
             GUI.depth = 5;
 
@@ -241,7 +261,11 @@ namespace UnityEngine.Perception.GroundTruth
                 anyLabelerEnabled = true;
             }
 
-            if (!anyLabelerEnabled) return;
+            if (!anyLabelerEnabled)
+            {
+                DisplayNoLabelersMessage();
+                return;
+            }
 
             GUI.depth = 0;
 

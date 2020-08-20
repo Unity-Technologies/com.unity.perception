@@ -71,7 +71,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint IterateSeed(uint index, uint baseSeed)
         {
-            return (uint)Hash64(((ulong)index << 32) | baseSeed) << 1 | 1u;
+            return (uint)Hash64(((ulong)index << 32) | baseSeed) | 1u;
         }
 
         /// <summary>

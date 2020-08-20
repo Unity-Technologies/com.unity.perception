@@ -123,6 +123,11 @@ namespace UnityEditor.Perception.GroundTruth
                 if (change.changed)
                 {
                     ReplaceLabelAll(index, value);
+
+                    if (PrefabUtility.IsPartOfAnyPrefab(target))
+                    {
+                        EditorUtility.SetDirty(target);
+                    }
                 }
             }
         }

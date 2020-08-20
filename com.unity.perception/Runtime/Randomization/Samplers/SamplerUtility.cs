@@ -35,26 +35,44 @@ namespace UnityEngine.Perception.Randomization.Samplers
         }
 
         /// <summary>
-        /// Generates new a new random state by deterministically combining a base seed and an iteration index
+        /// Hashes using constants generated from a program that maximizes the avalanche effect, independence of
+        /// output bit changes, and the probability of a change in each output bit if any input bit is changed.
+        /// Source: https://github.com/h2database/h2database/blob/master/h2/src/test/org/h2/test/store/CalculateHashConstant.java
+        /// </summary>
+        /// <param name="x">Unsigned integer to hash</param>
+        /// <returns>The calculated hash value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static uint Hash32(uint x) {
+            x = ((x >> 16) ^ x) * 0x45d9f3b;
+            x = ((x >> 16) ^ x) * 0x45d9f3b;
+            x = (x >> 16) ^ x;
+            return x;
+        }
+
+        /// <summary>
+        /// Based on splitmix64: http://xorshift.di.unimi.it/splitmix64.c
+        /// </summary>
+        /// <param name="x">64-bit value to hash</param>
+        /// <returns>The calculated hash value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static ulong Hash64(ulong x) {
+            x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ul;
+            x = (x ^ (x >> 27)) * 0x94d049bb133111ebul;
+            x ^= (x >> 31);
+            return x;
+        }
+
+        /// <summary>
+        /// Generates new a new random state by deterministically hashing a base seed with an iteration index
         /// </summary>
         /// <param name="index">Usually the current scenario iteration or framesSinceInitialization</param>
         /// <param name="baseSeed">The seed to be offset</param>
         /// <returns>A new random state</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint IterateSeed(uint index, uint baseSeed)
         {
-            return ShuffleSeed(index + 1) * baseSeed;
-        }
-
-        /// <summary>
-        /// Returns a shuffled a seed value
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static uint ShuffleSeed(uint seed)
-        {
-            seed ^= seed << 13;
-            seed ^= seed >> 17;
-            seed ^= seed << 5;
-            return seed;
+            var seedLeftSide = (ulong)index << 32;
+            return (uint)Hash64(seedLeftSide | baseSeed) << 1 | 1u;
         }
 
         /// <summary>

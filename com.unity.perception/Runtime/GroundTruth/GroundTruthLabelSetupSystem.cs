@@ -53,6 +53,7 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     instanceId = instanceId
                 });
+                labeling.SetInstanceId(instanceId);
             });
         }
 

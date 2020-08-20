@@ -17,7 +17,14 @@ namespace UnityEngine.Perception.GroundTruth
         [FormerlySerializedAs("classes")]
         public List<string> labels = new List<string>();
 
+        public uint instanceId { get; private set; }
+
         Entity m_Entity;
+
+        internal void SetInstanceId(uint instanceId)
+        {
+            this.instanceId = instanceId;
+        }
         void Awake()
         {
             m_Entity = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntity();

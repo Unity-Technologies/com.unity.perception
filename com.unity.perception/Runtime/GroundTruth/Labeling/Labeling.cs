@@ -12,7 +12,8 @@ namespace UnityEngine.Perception.GroundTruth
     public class Labeling : MonoBehaviour
     {
         /// <summary>
-        /// The label names to associate with the GameObject.
+        /// The label names to associate with the GameObject. Modifications to this list after the Update() step of the frame the object is created in are 
+        /// not guaranteed to be reflected by labelers.
         /// </summary>
         [FormerlySerializedAs("classes")]
         public List<string> labels = new List<string>();

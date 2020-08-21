@@ -63,7 +63,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         }
 
         /// <summary>
-        /// Generates new a new random state by deterministically hashing a base seed with an iteration index
+        /// Generates new a new non-zero random state by deterministically hashing a base seed with an iteration index
         /// </summary>
         /// <param name="index">Usually the current scenario iteration or framesSinceInitialization</param>
         /// <param name="baseSeed">The seed to be offset</param>
@@ -71,7 +71,8 @@ namespace UnityEngine.Perception.Randomization.Samplers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint IterateSeed(uint index, uint baseSeed)
         {
-            return (uint)Hash64(((ulong)index << 32) | baseSeed) | 1u;
+            var state = (uint)Hash64(((ulong)index << 32) | baseSeed);
+            return state == 0u ? largePrime : state;
         }
 
         /// <summary>

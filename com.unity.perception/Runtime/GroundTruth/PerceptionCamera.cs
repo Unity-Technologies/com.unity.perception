@@ -89,6 +89,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         SensorHandle m_SensorHandle;
+        Ego m_EgoMarker;
 
         static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
         static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
@@ -144,8 +145,8 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (m_SensorHandle.IsNil)
             {
-                Ego egoMarker = this.GetComponentInParent<Ego>();
-                var ego = egoMarker == null ? DatasetCapture.RegisterEgo("") : egoMarker.EgoHandle;
+                m_EgoMarker = GetComponentInParent<Ego>();
+                var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
                 SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime);
             }
         }
@@ -228,6 +229,7 @@ namespace UnityEngine.Perception.GroundTruth
         // Update is called once per frame
         void Update()
         {
+            EnsureSensorRegistered();
             if (!SensorHandle.IsValid)
                 return;
 
@@ -276,8 +278,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             var captureFilename = $"{Manager.Instance.GetDirectoryFor(RgbDirectory)}/{s_RgbFilePrefix}{Time.frameCount}.png";
             var dxRootPath = $"{RgbDirectory}/{s_RgbFilePrefix}{Time.frameCount}.png";
-            Ego egoMarker = this.GetComponentInParent<Ego>();
-            SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(egoMarker == null ? null : egoMarker.gameObject, gameObject), m_PersistentSensorData.Select(kvp => (kvp.Key, kvp.Value)).ToArray());
+            SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(m_EgoMarker == null ? null : m_EgoMarker.gameObject, gameObject), m_PersistentSensorData.Select(kvp => (kvp.Key, kvp.Value)).ToArray());
 
             Func<AsyncRequest<CaptureCamera.CaptureState>, AsyncRequest.Result> colorFunctor;
             var width = cam.pixelWidth;

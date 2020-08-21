@@ -14,6 +14,8 @@ Added new randomization tools
 
 Changed the way realtime visualizers rendered to avoid rendering conflicts
 
+Changed default labeler ids to be lower-case to be consistent with the ids in the dataset.
+
 ### Deprecated
 
 ### Removed
@@ -28,6 +30,10 @@ Fixed the IterateSeed() method where certain combinations of indices and random 
 Fixed labeler editor to allow for editing multiple labelers at a time
 
 Fixed labeler editor to ensure that when duplicating prefabs all labeler entries are also duplicated
+
+Fixed colors in semantic segmentation images being darker than those specified in the label config
+
+Fixed objects being incorrectly labeled when they do not match any entries in the label config
 
 ### Security
 

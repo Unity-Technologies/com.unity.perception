@@ -14,6 +14,7 @@ namespace UnityEngine.Perception.GroundTruth
         const int k_StartingObjectCount = 1 << 8;
         NativeList<ushort> m_InstanceIdToLabelEntryIndexLookup;
         IdLabelConfig m_IdLabelConfig;
+        ushort m_DefaultValue;
 
         public LabelEntryMatchCache(IdLabelConfig idLabelConfig)
         {
@@ -26,7 +27,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             labelEntry = default;
             index = -1;
-            if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
+            if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId || m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] == m_DefaultValue)
                 return false;
 
             index = m_InstanceIdToLabelEntryIndexLookup[(int)instanceId];
@@ -38,9 +39,15 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (m_IdLabelConfig.TryGetMatchingConfigurationEntry(labeling, out _, out var index))
             {
+                m_DefaultValue = ushort.MaxValue;
+                Debug.Assert(index < m_DefaultValue, "Too many entries in the label config");
                 if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
                 {
+                    var oldLength = m_InstanceIdToLabelEntryIndexLookup.Length;
                     m_InstanceIdToLabelEntryIndexLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
+
+                    for (int i = oldLength; i < instanceId; i++)
+                        m_InstanceIdToLabelEntryIndexLookup[i] = m_DefaultValue;
                 }
                 m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] = (ushort)index;
             }

@@ -16,7 +16,9 @@ namespace UnityEngine.Perception.Randomization.Editor
         VisualElement m_TargetContainer;
         ToolbarMenu m_TargetPropertyMenu;
         SerializedProperty m_SerializedProperty;
-        SerializedProperty m_TargetGameObjectProperty;
+        SerializedProperty m_Target;
+        SerializedProperty m_TargetGameObject;
+        SerializedProperty m_ApplicationFrequency;
 
         const string k_CollapsedParameterClass = "collapsed-parameter";
 
@@ -77,19 +79,24 @@ namespace UnityEngine.Perception.Randomization.Editor
 
             m_TargetContainer = this.Q<VisualElement>("target-container");
             m_TargetPropertyMenu = this.Q<ToolbarMenu>("property-select-menu");
-            m_TargetGameObjectProperty = m_SerializedProperty.FindPropertyRelative("target.gameObject");
+            m_Target = m_SerializedProperty.FindPropertyRelative("target");
+            m_TargetGameObject = m_Target.FindPropertyRelative("gameObject");
             ToggleTargetContainer();
 
             var frequencyField = this.Q<EnumField>("application-frequency");
-            frequencyField.BindProperty(m_SerializedProperty.FindPropertyRelative("target.applicationFrequency"));
+            frequencyField.Init(ParameterApplicationFrequency.OnIterationSetup);
+            m_ApplicationFrequency = m_Target.FindPropertyRelative("applicationFrequency");
+            frequencyField.BindProperty(m_ApplicationFrequency);
 
             var targetField = this.Q<ObjectField>("target");
             targetField.objectType = typeof(GameObject);
-            targetField.value = m_TargetGameObjectProperty.objectReferenceValue;
+            targetField.value = m_TargetGameObject.objectReferenceValue;
             targetField.RegisterCallback<ChangeEvent<Object>>(evt =>
             {
                 ClearTarget();
-                m_TargetGameObjectProperty.objectReferenceValue = (GameObject)evt.newValue;
+                var appFreqEnumIndex = m_ApplicationFrequency.intValue;
+                m_TargetGameObject.objectReferenceValue = (GameObject)evt.newValue;
+                m_ApplicationFrequency.intValue = appFreqEnumIndex;
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 ToggleTargetContainer();
                 FillPropertySelectMenu();
@@ -105,24 +112,24 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         void ToggleTargetContainer()
         {
-            m_TargetContainer.style.display = m_TargetGameObjectProperty.objectReferenceValue == null
+            m_TargetContainer.style.display = m_TargetGameObject.objectReferenceValue == null
                 ? new StyleEnum<DisplayStyle>(DisplayStyle.None)
                 : new StyleEnum<DisplayStyle>(DisplayStyle.Flex);
         }
 
         void ClearTarget()
         {
-            m_SerializedProperty.FindPropertyRelative("target.component").objectReferenceValue = null;
-            m_SerializedProperty.FindPropertyRelative("target.propertyName").stringValue = string.Empty;
+            m_Target.FindPropertyRelative("component").objectReferenceValue = null;
+            m_Target.FindPropertyRelative("propertyName").stringValue = string.Empty;
             m_SerializedProperty.serializedObject.ApplyModifiedProperties();
         }
 
         void SetTarget(ParameterTarget newTarget)
         {
-            m_SerializedProperty.FindPropertyRelative("target.gameObject").objectReferenceValue = newTarget.gameObject;
-            m_SerializedProperty.FindPropertyRelative("target.component").objectReferenceValue = newTarget.component;
-            m_SerializedProperty.FindPropertyRelative("target.propertyName").stringValue = newTarget.propertyName;
-            m_SerializedProperty.FindPropertyRelative("target.fieldOrProperty").enumValueIndex = (int)newTarget.fieldOrProperty;
+            m_TargetGameObject.objectReferenceValue = newTarget.gameObject;
+            m_Target.FindPropertyRelative("component").objectReferenceValue = newTarget.component;
+            m_Target.FindPropertyRelative("propertyName").stringValue = newTarget.propertyName;
+            m_Target.FindPropertyRelative("fieldOrProperty").intValue = (int)newTarget.fieldOrProperty;
             m_SerializedProperty.serializedObject.ApplyModifiedProperties();
             m_TargetPropertyMenu.text = TargetPropertyDisplayText(parameter.target);
         }
@@ -138,16 +145,24 @@ namespace UnityEngine.Perception.Randomization.Editor
                 return;
 
             m_TargetPropertyMenu.menu.MenuItems().Clear();
-            m_TargetPropertyMenu.text = parameter.target.propertyName == string.Empty
-                ? "Select a property"
-                : TargetPropertyDisplayText(parameter.target);
-
             var options = GatherPropertyOptions(parameter.target.gameObject, parameter.sampleType);
-            foreach (var option in options)
+            if (options.Count == 0)
             {
-                m_TargetPropertyMenu.menu.AppendAction(
-                    TargetPropertyDisplayText(option),
-                    a => { SetTarget(option); });
+                m_TargetPropertyMenu.text = "No compatible properties";
+                m_TargetPropertyMenu.SetEnabled(false);
+            }
+            else
+            {
+                m_TargetPropertyMenu.SetEnabled(true);
+                foreach (var option in options)
+                {
+                    m_TargetPropertyMenu.menu.AppendAction(
+                        TargetPropertyDisplayText(option),
+                        a => { SetTarget(option); });
+                }
+                m_TargetPropertyMenu.text = parameter.target.propertyName == string.Empty
+                    ? "Select a property"
+                    : TargetPropertyDisplayText(parameter.target);
             }
         }
 
@@ -249,7 +264,13 @@ namespace UnityEngine.Perception.Randomization.Editor
                 removeButton.clicked += () =>
                 {
                     probabilitiesProperty.DeleteArrayElementAtIndex(i);
+
+                    // First delete sets option to null, second delete removes option
+                    var numOptions = optionsProperty.arraySize;
                     optionsProperty.DeleteArrayElementAtIndex(i);
+                    if (numOptions == optionsProperty.arraySize)
+                        optionsProperty.DeleteArrayElementAtIndex(i);
+
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = categoricalParameter.probabilities;
                     listView.Refresh();
@@ -326,11 +347,11 @@ namespace UnityEngine.Perception.Randomization.Editor
                 else
                     listView.RemoveFromClassList("uniform-probability");
             }
-            uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt =>
-            {
-                ToggleProbabilityFields(evt.newValue);
-            });
             ToggleProbabilityFields(uniformToggle.value);
+            if (Application.isPlaying)
+                uniformToggle.SetEnabled(false);
+            else
+                uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt => ToggleProbabilityFields(evt.newValue));
 
             var seedField = template.Q<IntegerField>("seed");
             seedField.BindProperty(m_SerializedProperty.FindPropertyRelative("m_Sampler.<baseSeed>k__BackingField"));

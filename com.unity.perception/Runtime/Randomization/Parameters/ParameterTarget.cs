@@ -11,9 +11,9 @@ namespace UnityEngine.Perception.Randomization.Parameters
     {
         [SerializeField] internal GameObject gameObject;
         [SerializeField] internal Component component;
-        [SerializeField] internal string propertyName = "";
-        [SerializeField] internal FieldOrProperty fieldOrProperty;
-        [SerializeField] internal ParameterApplicationFrequency applicationFrequency;
+        [SerializeField] internal string propertyName = string.Empty;
+        [SerializeField] internal FieldOrProperty fieldOrProperty = FieldOrProperty.Field;
+        [SerializeField] internal ParameterApplicationFrequency applicationFrequency = ParameterApplicationFrequency.OnIterationSetup;
 
         /// <summary>
         /// Assigns a new target

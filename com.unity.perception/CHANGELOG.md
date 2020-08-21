@@ -12,6 +12,8 @@ Added new randomization tools
 
 ### Changed
 
+Changed the way realtime visualizers rendered to avoid rendering conflicts
+
 ### Deprecated
 
 ### Removed
@@ -22,6 +24,10 @@ Fixed a categorical parameter UI error in which deleting an individual option wo
 Fixed the "Application Frequency" parameter UI field not initializing to a default value
 
 Fixed the IterateSeed() method where certain combinations of indices and random seeds would produce a random state value of zero, causing Unity.Mathematics.Random to throw an exception
+
+Fixed labeler editor to allow for editing multiple labelers at a time
+
+Fixed labeler editor to ensure that when duplicating prefabs all labeler entries are also duplicated
 
 ### Security
 

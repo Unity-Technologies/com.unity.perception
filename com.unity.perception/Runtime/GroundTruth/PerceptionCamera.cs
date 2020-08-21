@@ -57,7 +57,6 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
 
         int m_LastFrameCaptured = -1;
-        Ego m_EgoMarker;
 
 #pragma warning disable 414
         //only used to confirm that GroundTruthRendererFeature is present in URP
@@ -79,7 +78,17 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
         /// </summary>
-        public SensorHandle SensorHandle { get; private set; }
+        public SensorHandle SensorHandle
+        {
+            get
+            {
+                EnsureSensorRegistered();
+                return m_SensorHandle;
+            }
+            private set => m_SensorHandle = value;
+        }
+
+        SensorHandle m_SensorHandle;
 
         static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
         static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
@@ -118,10 +127,6 @@ namespace UnityEngine.Perception.GroundTruth
         // Start is called before the first frame update
         void Awake()
         {
-            m_EgoMarker = this.GetComponentInParent<Ego>();
-            var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
-            SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime);
-
             AsyncRequest.maxJobSystemParallelism = 0; // Jobs are not chained to one another in any way, maximizing parallelism
             AsyncRequest.maxAsyncRequestFrameAge = 4; // Ensure that readbacks happen before Allocator.TempJob allocations get stale
 
@@ -133,6 +138,16 @@ namespace UnityEngine.Perception.GroundTruth
 #endif
 
             DatasetCapture.SimulationEnding += OnSimulationEnding;
+        }
+
+        void EnsureSensorRegistered()
+        {
+            if (m_SensorHandle.IsNil)
+            {
+                Ego egoMarker = this.GetComponentInParent<Ego>();
+                var ego = egoMarker == null ? DatasetCapture.RegisterEgo("") : egoMarker.EgoHandle;
+                SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime);
+            }
         }
 
         void OnEnable()
@@ -261,7 +276,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             var captureFilename = $"{Manager.Instance.GetDirectoryFor(RgbDirectory)}/{s_RgbFilePrefix}{Time.frameCount}.png";
             var dxRootPath = $"{RgbDirectory}/{s_RgbFilePrefix}{Time.frameCount}.png";
-            SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(m_EgoMarker == null ? null : m_EgoMarker.gameObject, gameObject), m_PersistentSensorData.Select(kvp => (kvp.Key, kvp.Value)).ToArray());
+            Ego egoMarker = this.GetComponentInParent<Ego>();
+            SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(egoMarker == null ? null : egoMarker.gameObject, gameObject), m_PersistentSensorData.Select(kvp => (kvp.Key, kvp.Value)).ToArray());
 
             Func<AsyncRequest<CaptureCamera.CaptureState>, AsyncRequest.Result> colorFunctor;
             var width = cam.pixelWidth;

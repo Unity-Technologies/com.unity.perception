@@ -78,6 +78,7 @@ namespace UnityEngine.Perception.GroundTruth
 
 #if HDRP_PRESENT
         SemanticSegmentationPass m_SemanticSegmentationPass;
+        private LensDistortionPass m_LensDistortionPass;
 #endif
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
@@ -172,6 +173,12 @@ namespace UnityEngine.Perception.GroundTruth
                 name = "Labeling Pass"
             };
             customPassVolume.customPasses.Add(m_SemanticSegmentationPass);
+
+            m_LensDistortionPass = new LensDistortionPass(myCamera, targetTexture)
+            {
+                name = "Lens Distortion Pass"
+            };
+            customPassVolume.customPasses.Add(m_LensDistortionPass);
 #endif
 #if URP_PRESENT
             perceptionCamera.AddScriptableRenderPass(new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig));

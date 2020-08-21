@@ -7,7 +7,7 @@
 
     Properties
     {
-        _InputTexture ("Texture", 2D) = "white" {}
+        _MainTex ("Texture", 2D) = "white" {}
     }
 
     /*
@@ -113,11 +113,11 @@
                     return o;
                 }
 
-                sampler2D _InputTexture;
+                sampler2D _MainTex;
 
                 fixed4 frag(v2f i) : SV_Target
                 {
-                    return float4(tex2D(_InputTexture, i.uv).rgb, 1.0f);
+                    return float4(tex2D(_MainTex, i.uv).rgb, 1.0f);
                 }
 
             ENDCG

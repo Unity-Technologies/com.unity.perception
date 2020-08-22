@@ -1,5 +1,5 @@
 ﻿using System;
-using Unity.Assertions;
+using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Samplers
 {

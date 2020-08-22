@@ -25,18 +25,16 @@ namespace RandomizationTests.ParameterTests
         public void NegativeProbabilities()
         {
             var parameter = new StringParameter();
-            parameter.AddOption("option1", 1f);
-            parameter.AddOption("option2", -1f);
-            Assert.Throws<ParameterValidationException>(() => parameter.Validate());
+            var optionsArray = new [] { ("option1", 1f), ("option1", -1f) };
+            Assert.Throws<ParameterValidationException>(() => parameter.SetOptions(optionsArray));
         }
 
         [Test]
         public void ZeroSumProbability()
         {
             var parameter = new StringParameter();
-            parameter.AddOption("option1", 0f);
-            parameter.AddOption("option2", 0f);
-            Assert.Throws<ParameterValidationException>(() => parameter.Validate());
+            var optionsArray = new [] { ("option1", 0f), ("option1", 0f) };
+            Assert.Throws<ParameterValidationException>(() => parameter.SetOptions(optionsArray));
         }
     }
 }

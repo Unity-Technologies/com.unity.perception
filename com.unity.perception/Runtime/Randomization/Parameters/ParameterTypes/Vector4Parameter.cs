@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -33,9 +34,18 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         [SerializeReference] public ISampler w = new UniformSampler(0f, 1f);
 
         /// <summary>
-        /// The sampler used the samplers employed by this parameter
+        /// Returns an IEnumerable that iterates over each sampler field in this parameter
         /// </summary>
-        public override ISampler[] samplers => new []{ x, y, z, w };
+        public override IEnumerable<ISampler> samplers
+        {
+            get
+            {
+                yield return x;
+                yield return y;
+                yield return z;
+                yield return w;
+            }
+        }
 
         /// <summary>
         /// Generates a Vector4 sample

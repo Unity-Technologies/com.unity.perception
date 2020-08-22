@@ -1,0 +1,19 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement class="randomizer-element" style="flex-direction: row;">
+        <Style src="../Uss/ParameterStyles.uss"/>
+        <VisualElement name="drag-handle" class="drag-handle"/>
+
+        <VisualElement style="flex-grow: 1;">
+            <VisualElement style="flex-direction: row; justify-content: space-between;">
+                <VisualElement style="flex-direction: row; align-items: center;">
+                    <VisualElement name="collapse" class="collapse-toggle foldout-open"/>
+                    <Toggle name="enabled"/>
+                    <TextElement name="class-name" text="Randomizer Class Name"/>
+                </VisualElement>
+                <Button name="remove" class="remove-option-button"/>
+            </VisualElement>
+
+            <VisualElement name="properties" class="properties-container" style="padding-left: 16px;"/>
+        </VisualElement>
+    </VisualElement>
+</UXML>

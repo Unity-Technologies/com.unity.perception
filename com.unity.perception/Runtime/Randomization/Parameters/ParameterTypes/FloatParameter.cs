@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.Experimental.Perception.Randomization.Samplers;
@@ -17,9 +18,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         [SerializeReference] public ISampler value = new UniformSampler(0f, 1f);
 
         /// <summary>
-        /// Returns the sampler employed by this parameter
+        /// Returns an IEnumerable that iterates over each sampler field in this parameter
         /// </summary>
-        public override ISampler[] samplers => new []{ value };
+        public override IEnumerable<ISampler> samplers
+        {
+            get { yield return value; }
+        }
 
         /// <summary>
         /// Generates a float sample

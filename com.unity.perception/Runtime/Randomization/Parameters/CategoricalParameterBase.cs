@@ -10,9 +10,5 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
     public abstract class CategoricalParameterBase : Parameter
     {
         [SerializeField] internal List<float> probabilities = new List<float>();
-
-        internal abstract void AddOption();
-        internal abstract void RemoveOption(int index);
-        internal abstract void ClearOptions();
     }
 }

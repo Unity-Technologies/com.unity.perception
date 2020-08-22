@@ -41,9 +41,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 
         /// <summary>
-        /// Called before the scenario begins iterating
+        /// Fast forwards the current scenario iteration to the starting iteration indicated in this scenario's constants
         /// </summary>
-        public override void OnInitialize()
+        protected override void OnAwake()
         {
             currentIteration = constants.startingIteration;
         }

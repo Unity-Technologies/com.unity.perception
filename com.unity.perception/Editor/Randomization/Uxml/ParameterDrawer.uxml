@@ -1,0 +1,10 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement>
+        <Style src="../Uss/ParameterStyles.uss"/>
+        <VisualElement style="flex-direction: row; align-items: center;">
+            <VisualElement name="collapse" class="collapse-toggle foldout-open"/>
+            <Label name="field-name" style="font-size: 12px;"/>
+        </VisualElement>
+        <VisualElement name="drawer" class="properties-container" style="padding-left: 18px;"/>
+    </VisualElement>
+</UXML>

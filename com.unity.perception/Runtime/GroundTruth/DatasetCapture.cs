@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
+using Unity.Collections;
 using Unity.Simulation;
 using UnityEngine;
 
@@ -514,7 +516,21 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="values">The annotation data.</param>
         /// <typeparam name="T">The type of the data.</typeparam>
         /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        public void ReportValues<T>(T[] values)
+        public void ReportValues<T>(IEnumerable<T> values)
+        {
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
+            m_SimulationState.ReportAsyncAnnotationResult(this, values: values);
+        }
+
+        /// <summary>
+        /// Report a value-based data for this annotation.
+        /// </summary>
+        /// <param name="values">The annotation data.</param>
+        /// <typeparam name="T">The type of the data.</typeparam>
+        /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
+        public void ReportValues<T>(NativeSlice<T> values) where T : struct
         {
             if (values == null)
                 throw new ArgumentNullException(nameof(values));

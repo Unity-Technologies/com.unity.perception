@@ -19,7 +19,7 @@ namespace GroundTruthTests
     public class PerceptionCameraIntegrationTests : GroundTruthTestBase
     {
         [UnityTest]
-        [UnityPlatform(RuntimePlatform.LinuxPlayer, RuntimePlatform.WindowsPlayer)]
+        [UnityPlatform(RuntimePlatform.LinuxPlayer, RuntimePlatform.WindowsPlayer, RuntimePlatform.LinuxEditor, RuntimePlatform.WindowsEditor, RuntimePlatform.OSXEditor)]
         public IEnumerator EnableBoundingBoxes_GeneratesCorrectDataset()
         {
             //set resolution to ensure we don't have rounding in rendering leading to bounding boxes to change height/width
@@ -46,6 +46,13 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(plane);
             //a plane is 10x10 by default, so scale it down to be 10x1 to cover the center half of the image
             plane.transform.localScale = new Vector3(10f, -1f, .1f);
+            plane.transform.localPosition = new Vector3(0, 0, 10);
+
+            var plane2 = TestHelper.CreateLabeledPlane(label: "nonmatching");
+            AddTestObjectForCleanup(plane2);
+            //place a smaller plane in front to test non-matching objects
+            plane2.transform.localScale = new Vector3(.1f, -1f, .1f);
+            plane2.transform.localPosition = new Vector3(0, 0, 5);
             yield return null;
             DatasetCapture.ResetSimulation();
 

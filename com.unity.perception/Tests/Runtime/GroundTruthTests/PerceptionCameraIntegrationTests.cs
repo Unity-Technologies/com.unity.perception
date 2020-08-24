@@ -55,7 +55,34 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
-        public IEnumerator EnableSemanticSegmentation_GeneratesCorrectDataset()
+        public IEnumerator EnableSemanticSegmentation_GeneratesCorrectDataset([Values(true, false)] bool enabled)
+        {
+            SetupCamera(pc =>
+            {
+                pc.AddLabeler(new SemanticSegmentationLabeler(CreateSemanticSegmentationLabelConfig()));
+            }, enabled);
+
+            string expectedImageFilename = $"segmentation_{Time.frameCount}.png";
+
+            this.AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
+            yield return null;
+            DatasetCapture.ResetSimulation();
+
+            if (enabled)
+            {
+                var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
+                var capturesJson = File.ReadAllText(capturesPath);
+                var imagePath = $"SemanticSegmentation/{expectedImageFilename}";
+                StringAssert.Contains(imagePath, capturesJson);
+            }
+            else
+            {
+                DirectoryAssert.DoesNotExist(DatasetCapture.OutputDirectory);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Disabled_GeneratesCorrectDataset()
         {
             SetupCamera(pc =>
             {
@@ -105,7 +132,7 @@ namespace GroundTruthTests
             return labelingConfiguration;
         }
 
-        void SetupCamera(Action<PerceptionCamera> initPerceptionCamera)
+        void SetupCamera(Action<PerceptionCamera> initPerceptionCamera, bool activate = true)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -117,7 +144,9 @@ namespace GroundTruthTests
             perceptionCamera.captureRgbImages = false;
             initPerceptionCamera?.Invoke(perceptionCamera);
 
-            cameraObject.SetActive(true);
+            if (activate)
+                cameraObject.SetActive(true);
+
             AddTestObjectForCleanup(cameraObject);
         }
     }

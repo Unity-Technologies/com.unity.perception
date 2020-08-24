@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -13,8 +14,6 @@ namespace UnityEngine.Perception.GroundTruth
 {
     partial class SimulationState
     {
-        public string OutputDirectory { get; }
-
         HashSet<SensorHandle> m_ActiveSensors = new HashSet<SensorHandle>();
         Dictionary<SensorHandle, SensorData> m_Sensors = new Dictionary<SensorHandle, SensorData>();
         HashSet<EgoHandle> m_Egos = new HashSet<EgoHandle>();
@@ -46,8 +45,21 @@ namespace UnityEngine.Perception.GroundTruth
         CustomSampler m_SerializeMetricsAsyncSampler = CustomSampler.Create("SerializeMetricsAsync");
         CustomSampler m_GetOrCreatePendingCaptureForThisFrameSampler = CustomSampler.Create("GetOrCreatePendingCaptureForThisFrame");
         float m_LastTimeScale;
+        readonly string m_OutputDirectoryName;
+        string m_OutputDirectoryPath;
 
         public bool IsRunning { get; private set; }
+
+        public string OutputDirectory
+        {
+            get
+            {
+                if (m_OutputDirectoryPath == null)
+                    m_OutputDirectoryPath = Manager.Instance.GetDirectoryFor(m_OutputDirectoryName);
+
+                return m_OutputDirectoryPath;
+            }
+        }
 
         //A sensor will be triggered if sequenceTime is within includeThreshold seconds of the next trigger
         const float k_IncludeInFrameThreshold = .01f;
@@ -57,7 +69,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         public SimulationState(string outputDirectory)
         {
-            OutputDirectory = outputDirectory;
+            m_OutputDirectoryName = outputDirectory;
             IsRunning = true;
         }
 
@@ -285,6 +297,8 @@ namespace UnityEngine.Perception.GroundTruth
                 return m_UnscaledSequenceTimeDoNotUse;
             }
         }
+
+        public string GetOutputDirectoryNoCreate() => Path.Combine(Configuration.Instance.GetStoragePath(), m_OutputDirectoryName);
 
         void EnsureSequenceTimingsUpdated()
         {

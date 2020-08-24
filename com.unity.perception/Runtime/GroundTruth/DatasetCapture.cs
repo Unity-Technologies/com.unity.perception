@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using Unity.Simulation;
@@ -16,7 +17,7 @@ namespace UnityEngine.Perception.GroundTruth
         static readonly Guid k_DatasetGuid = Guid.NewGuid();
         internal static SimulationState SimulationState { get; private set; } = CreateSimulationData();
 
-        internal static string OutputDirectory => SimulationState.OutputDirectory;
+        internal static string OutputDirectory => SimulationState.GetOutputDirectoryNoCreate();
 
         /// <summary>
         /// The json metadata schema version the DatasetCapture's output conforms to.
@@ -159,7 +160,7 @@ namespace UnityEngine.Perception.GroundTruth
         static SimulationState CreateSimulationData()
         {
             //TODO: Remove the Guid path when we have proper dataset merging in USim/Thea
-            return new SimulationState(Manager.Instance.GetDirectoryFor($"Dataset{k_DatasetGuid}"));
+            return new SimulationState($"Dataset{k_DatasetGuid}");
         }
 
         [RuntimeInitializeOnLoadMethod]

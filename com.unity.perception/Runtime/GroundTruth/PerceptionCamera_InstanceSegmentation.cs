@@ -35,6 +35,7 @@ namespace UnityEngine.Perception.GroundTruth
             var width = myCamera.pixelWidth;
             var height = myCamera.pixelHeight;
             m_InstanceSegmentationTexture = new RenderTexture(new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_UNorm, 8));
+            m_InstanceSegmentationTexture.filterMode = FilterMode.Point;
             m_InstanceSegmentationTexture.name = "InstanceSegmentation";
 
             m_RenderedObjectInfoGenerator = new RenderedObjectInfoGenerator();
@@ -51,6 +52,16 @@ namespace UnityEngine.Perception.GroundTruth
             };
             instanceSegmentationPass.EnsureInit();
             customPassVolume.customPasses.Add(instanceSegmentationPass);
+
+            // TODO: Note - the implementation here differs substantially from how things are done in SemanticSegmentationLalber
+            // Also, the naming convention doesn't line up, shouldn't instance segmentation be a labeller?  At least in
+            // architecture
+            var lensDistortionPass = new LensDistortionPass(GetComponent<Camera>(), m_InstanceSegmentationTexture)
+            {
+                name = "Instance Segmentation Lens Distortion Pass"
+            };
+            lensDistortionPass.EnsureInit();
+            customPassVolume.customPasses.Add(lensDistortionPass);
 #endif
 #if URP_PRESENT
             AddScriptableRenderPass(new InstanceSegmentationUrpPass(myCamera, m_InstanceSegmentationTexture));

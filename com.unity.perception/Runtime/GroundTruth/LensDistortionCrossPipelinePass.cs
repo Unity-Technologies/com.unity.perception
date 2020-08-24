@@ -12,7 +12,7 @@ namespace UnityEngine.Perception.GroundTruth
     {
         const string k_ShaderName = "Perception/LensDistortion";
 
-        static int s_LastFrameExecuted = -1;
+        //static int s_LastFrameExecuted = -1;
 
         //Serialize the shader so that the shader asset is included in player builds when the SemanticSegmentationPass is used.
         //Currently commented out and shaders moved to Resources folder due to serialization crashes when it is enabled.
@@ -54,15 +54,16 @@ namespace UnityEngine.Perception.GroundTruth
 
                 m_distortedTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
                 m_distortedTexture.enableRandomWrite = true;
+                m_distortedTexture.filterMode = FilterMode.Point;
                 m_distortedTexture.Create();
             }
         }
 
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
         {
-            if (s_LastFrameExecuted == Time.frameCount)
-                Debug.LogError("Lens Distortion executed twice in the same frame, this may lead to undesirable results.");
-            s_LastFrameExecuted = Time.frameCount;
+            //if (s_LastFrameExecuted == Time.frameCount)
+            //    Debug.LogError("Lens Distortion executed twice in the same frame, this may lead to undesirable results.");
+            //s_LastFrameExecuted = Time.frameCount;
 
             // Blitmayhem
             cmd.Blit(m_TargetTexture, m_distortedTexture, m_LensDistortionMaterial);

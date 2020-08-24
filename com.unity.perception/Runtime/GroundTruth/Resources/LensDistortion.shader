@@ -20,44 +20,6 @@
         //#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         //#include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-        float4 _Distortion_Params1;
-        float4 _Distortion_Params2;
-
-        #define DistCenter              _Distortion_Params1.xy
-        #define DistAxis                _Distortion_Params1.zw
-        #define DistTheta               _Distortion_Params2.x
-        #define DistSigma               _Distortion_Params2.y
-        #define DistScale               _Distortion_Params2.z
-        #define DistIntensity           _Distortion_Params2.w
-
-
-        float2 DistortUV(float2 uv)
-        {
-            // Note: this variant should never be set with XR
-            #if _DISTORTION
-            {
-                uv = (uv - 0.5) * DistScale + 0.5;
-                float2 ruv = DistAxis * (uv - 0.5 - DistCenter);
-                float ru = length(float2(ruv));
-
-                UNITY_BRANCH
-                if (DistIntensity > 0.0)
-                {
-                    float wu = ru * DistTheta;
-                    ru = tan(wu) * (rcp(ru * DistSigma));
-                    uv = uv + ruv * (ru - 1.0);
-                }
-                else
-                {
-                    ru = rcp(ru) * DistTheta * atan(ru * DistSigma);
-                    uv = uv + ruv * (ru - 1.0);
-                }
-            }
-            #endif
-
-            return uv;
-        }
-
         half4 frag(FullscreenVaryings input) : SV_Target
         {
             //UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -82,9 +44,7 @@
 
         Pass
         {
-            // Note: This is taken from the HDRP UberPost shader:
-            // https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.universal/Shaders/PostProcessing/UberPost.shader
-            // TODO: Include this code somehow since we're really only using the DistortUV call
+
             Name "LensDistortion"
 
             CGPROGRAM
@@ -113,11 +73,71 @@
                     return o;
                 }
 
-                sampler2D _MainTex;
+                // Note: This is taken from the HDRP UberPost shader:
+                // https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.universal/Shaders/PostProcessing/UberPost.shader
+                // TODO: Include this code somehow since we're really only using the DistortUV call
 
-                fixed4 frag(v2f i) : SV_Target
+                //float4 _Distortion_Params1;
+                //float4 _Distortion_Params2;
+
+                /*#define DistCenter              _Distortion_Params1.xy
+                #define DistAxis                _Distortion_Params1.zw
+                #define DistTheta               _Distortion_Params2.x
+                #define DistSigma               _Distortion_Params2.y
+                #define DistScale               _Distortion_Params2.z
+                #define DistIntensity           _Distortion_Params2.w*/
+
+                float2 DistortUV(float2 uv)
                 {
-                    return float4(tex2D(_MainTex, i.uv).rgb, 1.0f);
+                    // TODO: Grab these from the camera / volume or whatever
+                    //float4 _Distortion_Params1 = float4(0.0f, 0.0f, 1.0f, .5f);
+                    //float4 _Distortion_Params2 = float4(0.0f, 0.25f, 1.0f, 0.713f);;
+
+                    float2 DistCenter = float2(0.0f, 0.0f);
+                    float2 DistAxis = float2(1.0f, 1.0f);
+                    //float DistTheta = _Distortion_Params2.x;
+                    //float DistSigma = _Distortion_Params2.y;
+                    float DistScale = 1.0f;
+                    float DistIntensity = 0.713f;
+
+                    // https://github.com/Unity-Technologies/Graphics/blob/257b08bba6c11de0f894e42e811124247a522d3c/com.unity.render-pipelines.universal/Runtime/Passes/PostProcessPass.cs
+                    // This will be passed in from CPU eventually
+                    float DistTheta = (115.0f * (3.14f / 180.0f));
+                    float DistSigma = 2.0f * tan(DistTheta * 0.5f);
+
+                    uv = (uv - 0.5) * DistScale + 0.5;
+                    float2 ruv = DistAxis * (uv - 0.5 - DistCenter);
+                    float ru = length(float2(ruv));
+
+                    UNITY_BRANCH
+                    if (DistIntensity > 0.0)
+                    {
+                        float wu = ru * DistTheta;
+                        ru = tan(wu) * (rcp(ru * DistSigma));
+                        uv = uv + ruv * (ru - 1.0);
+                    }
+                    else
+                    {
+                        ru = rcp(ru) * DistTheta * atan(ru * DistSigma);
+                        uv = uv + ruv * (ru - 1.0);
+                    }
+
+                    return uv;
+                }
+
+                //#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+                //#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
+                sampler2D _MainTex;
+                //SamplerState sampler_MainTex;
+
+                fixed4 frag(v2f input) : SV_Target
+                {
+                    float2 uvDistorted = input.uv;
+                    uvDistorted = DistortUV(uvDistorted);
+                    float4 texValue = tex2D(_MainTex, uvDistorted);
+
+                    return texValue;
                 }
 
             ENDCG

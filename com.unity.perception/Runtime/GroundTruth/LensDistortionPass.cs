@@ -24,7 +24,7 @@ namespace UnityEngine.Perception.GroundTruth
             EnsureInit();
         }
 
-        void EnsureInit()
+        public void EnsureInit()
         {
             if (m_LensDistortionCrossPipelinePass == null)
             {

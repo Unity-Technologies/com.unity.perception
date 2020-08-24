@@ -71,7 +71,7 @@ namespace UnityEngine.Perception.GroundTruth
         [SerializeField]
         public bool showVisualizations = true;
 
-        bool m_ShowingVisualizations;
+        bool m_ShowingVisualizations = false;
 
         /// <summary>
         /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
@@ -130,9 +130,8 @@ namespace UnityEngine.Perception.GroundTruth
             SetupInstanceSegmentation();
             var cam = GetComponent<Camera>();
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
             SetupVisualizationCamera(cam);
-#endif
+
 
             DatasetCapture.SimulationEnding += OnSimulationEnding;
         }
@@ -157,6 +156,10 @@ namespace UnityEngine.Perception.GroundTruth
 
         void SetupVisualizationCamera(Camera cam)
         {
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
+            showVisualizations = false;
+#else
+
             var visualizationAllowed = s_VisualizedPerceptionCamera == null;
 
             if (!visualizationAllowed && showVisualizations)
@@ -172,6 +175,7 @@ namespace UnityEngine.Perception.GroundTruth
             s_VisualizedPerceptionCamera = this;
 
             hudPanel = gameObject.AddComponent<HUDPanel>();
+#endif
         }
 
         void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)

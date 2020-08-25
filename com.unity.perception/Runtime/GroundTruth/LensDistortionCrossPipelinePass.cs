@@ -2,6 +2,8 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
+using UnityEngine.Rendering.HighDefinition;
+
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
@@ -19,17 +21,24 @@ namespace UnityEngine.Perception.GroundTruth
         //See https://fogbugz.unity3d.com/f/cases/1187378/
         //[SerializeField]
 
+        // Lens Distortion Shader
         private Shader m_LensDistortionShader;
         private Material m_LensDistortionMaterial;
 
+        public static readonly int _Distortion_Params1 = Shader.PropertyToID("_Distortion_Params1");
+        public static readonly int _Distortion_Params2 = Shader.PropertyToID("_Distortion_Params2");
+
         public RenderTexture m_TargetTexture;
         private RenderTexture m_distortedTexture;
+
+        //private LensDistortion m_LensDistortion;
 
         public LensDistortionCrossPipelinePass(Camera targetCamera, RenderTexture targetTexture)
             : base(targetCamera)
         {
             m_TargetTexture = targetTexture;
         }
+
 
         public override void Setup()
         {
@@ -65,6 +74,10 @@ namespace UnityEngine.Perception.GroundTruth
             //    Debug.LogError("Lens Distortion executed twice in the same frame, this may lead to undesirable results.");
             //s_LastFrameExecuted = Time.frameCount;
 
+            var stack = VolumeManager.instance.stack;
+            var lensDistortion = stack.GetComponent<LensDistortion>();
+            Debug.Log("lens distortion intensity: " + lensDistortion.intensity.value);
+
             // Blitmayhem
             cmd.Blit(m_TargetTexture, m_distortedTexture, m_LensDistortionMaterial);
             cmd.Blit(m_distortedTexture, m_TargetTexture);
@@ -72,26 +85,44 @@ namespace UnityEngine.Perception.GroundTruth
 
         public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
-            // Note: Problably don't need this
+            // Grab the Lens Distortion from Perception Camera (collected in OnBeginCameraRendering
+            //PerceptionCamera perceptionCamera = this.targetCamera.GetComponent<PerceptionCamera>();
+            //if(perceptionCamera != null)
+            //{
+            //    m_LensDistortion = perceptionCamera.m_LensDistortion;
+            //}
 
-            /*
-            var entry = new SemanticSegmentationLabelEntry();
-            bool found = false;
+            // This code is lifted from the SetupLensDistortion() function in
+            // https://github.com/Unity-Technologies/Graphics/blob/257b08bba6c11de0f894e42e811124247a522d3c/com.unity.render-pipelines.universal/Runtime/Passes/PostProcessPass.cs
+            // This is in UnityEngine.Rendering.Universal.Internal.PostProcessPass::SetupLensDistortion so it's
+            // unclear how to re-use this code
 
-            foreach (var l in m_LabelConfig.labelEntries)
-            {
-                if (labeling.labels.Contains(l.label))
-                {
-                    entry = l;
-                    found = true;
-                    break;
-                }
-            }
+            var stack = VolumeManager.instance.stack;
+            var lensDistortion = stack.GetComponent<LensDistortion>();
+            //Debug.Log("lens distortion intensity: " + lensDistortion.intensity.value);
 
-            //Set the labeling ID so that it can be accessed in ClassSemanticSegmentationPass.shader
-            if (found)
-                mpb.SetVector(k_LabelingId, entry.color);
-            */
+            float amount = 1.6f * Mathf.Max(Mathf.Abs(lensDistortion.intensity.value * 100.0f), 1.0f);
+            float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);
+            float sigma = 2.0f * Mathf.Tan(theta * 0.5f);
+            var center = lensDistortion.center.value * 2f - Vector2.one;
+            var p1 = new Vector4(
+                center.x,
+                center.y,
+                Mathf.Max(lensDistortion.xMultiplier.value, 1e-4f),
+                Mathf.Max(lensDistortion.yMultiplier.value, 1e-4f)
+            );
+
+            var p2 = new Vector4(
+                lensDistortion.intensity.value >= 0f ? theta : 1f / theta,
+                sigma,
+                1.0f / lensDistortion.scale.value,
+                lensDistortion.intensity.value * 100.0f
+            );
+
+            // Set Shader Constants
+            m_LensDistortionMaterial.SetVector(_Distortion_Params1, p1);
+            m_LensDistortionMaterial.SetVector(_Distortion_Params2, p2);
+
         }
     }
 }

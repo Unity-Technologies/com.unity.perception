@@ -398,6 +398,10 @@ namespace UnityEngine.Perception.GroundTruth
 #endif
             CaptureRgbData(cam);
 
+            // Capture Lens Distortion
+            //var stack = VolumeManager.instance.stack;
+            //m_LensDistortion = VolumeManager.instance.stack.GetComponent<LensDistortion>();
+
             foreach (var labeler in m_Labelers)
             {
                 if (!labeler.enabled)

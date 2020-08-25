@@ -77,15 +77,15 @@
                 // https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.universal/Shaders/PostProcessing/UberPost.shader
                 // TODO: Include this code somehow since we're really only using the DistortUV call
 
-                //float4 _Distortion_Params1;
-                //float4 _Distortion_Params2;
+                float4 _Distortion_Params1;
+                float4 _Distortion_Params2;
 
-                /*#define DistCenter              _Distortion_Params1.xy
+                #define DistCenter              _Distortion_Params1.xy
                 #define DistAxis                _Distortion_Params1.zw
                 #define DistTheta               _Distortion_Params2.x
                 #define DistSigma               _Distortion_Params2.y
                 #define DistScale               _Distortion_Params2.z
-                #define DistIntensity           _Distortion_Params2.w*/
+                #define DistIntensity           _Distortion_Params2.w
 
                 float2 DistortUV(float2 uv)
                 {
@@ -93,17 +93,17 @@
                     //float4 _Distortion_Params1 = float4(0.0f, 0.0f, 1.0f, .5f);
                     //float4 _Distortion_Params2 = float4(0.0f, 0.25f, 1.0f, 0.713f);;
 
-                    float2 DistCenter = float2(0.0f, 0.0f);
+                    /*float2 DistCenter = float2(0.0f, 0.0f);
                     float2 DistAxis = float2(1.0f, 1.0f);
                     //float DistTheta = _Distortion_Params2.x;
                     //float DistSigma = _Distortion_Params2.y;
                     float DistScale = 1.0f;
-                    float DistIntensity = 0.713f;
+                    float DistIntensity = 0.713f;*/
 
                     // https://github.com/Unity-Technologies/Graphics/blob/257b08bba6c11de0f894e42e811124247a522d3c/com.unity.render-pipelines.universal/Runtime/Passes/PostProcessPass.cs
                     // This will be passed in from CPU eventually
-                    float DistTheta = (115.0f * (3.14f / 180.0f));
-                    float DistSigma = 2.0f * tan(DistTheta * 0.5f);
+                    //float DistTheta = (115.0f * (3.14f / 180.0f));
+                    //float DistSigma = 2.0f * tan(DistTheta * 0.5f);
 
                     uv = (uv - 0.5) * DistScale + 0.5;
                     float2 ruv = DistAxis * (uv - 0.5 - DistCenter);

@@ -70,6 +70,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
         {
+            // Review: This has been removed since we may apply this pass to various stages, just want to confirm I'm
+            // not missing anything before removing it
             //if (s_LastFrameExecuted == Time.frameCount)
             //    Debug.LogError("Lens Distortion executed twice in the same frame, this may lead to undesirable results.");
             //s_LastFrameExecuted = Time.frameCount;
@@ -85,21 +87,16 @@ namespace UnityEngine.Perception.GroundTruth
 
         public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
-            // Grab the Lens Distortion from Perception Camera (collected in OnBeginCameraRendering
-            //PerceptionCamera perceptionCamera = this.targetCamera.GetComponent<PerceptionCamera>();
-            //if(perceptionCamera != null)
-            //{
-            //    m_LensDistortion = perceptionCamera.m_LensDistortion;
-            //}
+            // Grab the Lens Distortion from Perception Camera stack
+            var hdCamera = HDCamera.GetOrCreate(targetCamera);
+            var stack = hdCamera.volumeStack;
+            var lensDistortion = stack.GetComponent<LensDistortion>();
+            Debug.Log("lens distortion intensity: " + lensDistortion.intensity.value);
 
             // This code is lifted from the SetupLensDistortion() function in
             // https://github.com/Unity-Technologies/Graphics/blob/257b08bba6c11de0f894e42e811124247a522d3c/com.unity.render-pipelines.universal/Runtime/Passes/PostProcessPass.cs
             // This is in UnityEngine.Rendering.Universal.Internal.PostProcessPass::SetupLensDistortion so it's
             // unclear how to re-use this code
-
-            var stack = VolumeManager.instance.stack;
-            var lensDistortion = stack.GetComponent<LensDistortion>();
-            //Debug.Log("lens distortion intensity: " + lensDistortion.intensity.value);
 
             float amount = 1.6f * Mathf.Max(Mathf.Abs(lensDistortion.intensity.value * 100.0f), 1.0f);
             float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);

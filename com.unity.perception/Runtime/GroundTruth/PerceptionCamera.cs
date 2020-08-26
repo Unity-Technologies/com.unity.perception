@@ -396,11 +396,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (UnityEditor.EditorApplication.isPaused)
                 return;
 #endif
-            CaptureRgbData(cam);
-
-            // Capture Lens Distortion
-            //var stack = VolumeManager.instance.stack;
-            //m_LensDistortion = VolumeManager.instance.stack.GetComponent<LensDistortion>();
+            CaptureRgbData(cam)
 
             foreach (var labeler in m_Labelers)
             {

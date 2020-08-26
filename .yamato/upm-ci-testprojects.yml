@@ -2,7 +2,7 @@
 
 ---
 
-{% for editor in test_editors %}
+{% for editor in complete_editors %}
 {% for suite in suites %}
 {% for project in projects %}
 {{project.name}}_windows_{{suite.name}}_{{editor.version}}:
@@ -30,7 +30,7 @@
 {% endfor %}
 {% endfor %}
 
-{% for editor in test_editors %}
+{% for editor in coverage_editors %}
 {% for suite in suites %}
 codecoverage_windows_{{suite.name}}_{{editor.version}}:
   name : CodeCoverage {{ suite.display_name }} tests ({{ editor.version }}, Windows)
@@ -54,7 +54,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
 {% endfor %}
 {% endfor %}
 
-{% for editor in test_editors %}
+{% for editor in complete_editors %}
 {% for suite in suites %}
 {% for project in projects %}
 {{project.name}}_linux_{{suite.name}}_{{editor.version}}:

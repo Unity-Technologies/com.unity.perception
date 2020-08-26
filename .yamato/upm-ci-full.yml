@@ -19,7 +19,7 @@ pack_{{ variant.name }}:
 {% endfor %}
 
 {% for variant in package_variants %}
-{% for editor in test_editors %}
+{% for editor in complete_editors %}
 {% for platform in test_platforms %}
 pkg_test_{{variant.name}}_{{ platform.name }}_{{ editor.version }}:
   name : Package tests ({{variant.name}} pkg, {{ editor.version }}, {{ platform.name }})
@@ -42,7 +42,7 @@ pkg_test_{{variant.name}}_{{ platform.name }}_{{ editor.version }}:
 {% endfor %}
 
 test_trigger:
-  name: All Tests
+  name: Per Commit Tests
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -66,16 +66,17 @@ test_trigger:
         - "upm-ci~/packages/**/*"
   dependencies:
     {% for variant in package_variants %}
-    {% for editor in test_editors %}
+    {% for editor in per_commit_editors %}
     {% for platform in test_platforms %}
     - .yamato/upm-ci-full.yml#pkg_test_{{variant.name}}_{{platform.name}}_{{editor.version}}
     {% endfor %}
     {% endfor %}
     {% endfor %}
 
-    # Disabling trigger of standalone tests which aren't working at the moment
-    {% for editor in test_editors %}
+    {% for editor in coverage_editors %}
     - .yamato/upm-ci-testprojects.yml#codecoverage_windows_editmode_{{editor.version}}
+    {% endfor %}
+    {% for editor in per_commit_editors %}
     {% for project in projects %}
     - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{editor.version}}
     - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{editor.version}}

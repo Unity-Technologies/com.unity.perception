@@ -63,7 +63,7 @@ promote:
         - "upm-ci~/packages/*.tgz"
   dependencies:
     {% for variant in package_variants %}
-    {% for editor in publish_editors %}
+    {% for editor in complete_editors %}
     {% for platform in publish_platforms %}
     - .yamato/upm-ci-full.yml#pack_{{ variant.name }}
     - .yamato/promote.yml#promotion_test_{{ platform.name }}_{{ editor.version }}

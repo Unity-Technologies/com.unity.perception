@@ -2,7 +2,11 @@
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
-using UnityEngine.Rendering.HighDefinition;
+#if HDRP_PRESENT
+    using UnityEngine.Rendering.HighDefinition;
+#else
+    using UnityEngine.Rendering.Universal;
+#endif
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -78,20 +82,29 @@ namespace UnityEngine.Perception.GroundTruth
 
             var stack = VolumeManager.instance.stack;
             var lensDistortion = stack.GetComponent<LensDistortion>();
-            Debug.Log("lens distortion intensity: " + lensDistortion.intensity.value);
+            //Debug.Log("lens distortion intensity: " + lensDistortion.intensity.value);
 
             // Blitmayhem
             cmd.Blit(m_TargetTexture, m_distortedTexture, m_LensDistortionMaterial);
             cmd.Blit(m_distortedTexture, m_TargetTexture);
+
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
         }
 
         public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
+
+#if HDRP_PRESENT
             // Grab the Lens Distortion from Perception Camera stack
             var hdCamera = HDCamera.GetOrCreate(targetCamera);
             var stack = hdCamera.volumeStack;
             var lensDistortion = stack.GetComponent<LensDistortion>();
+#else
+            var stack = VolumeManager.instance.stack;
+            var lensDistortion = stack.GetComponent<LensDistortion>();
             Debug.Log("lens distortion intensity: " + lensDistortion.intensity.value);
+#endif
 
             // This code is lifted from the SetupLensDistortion() function in
             // https://github.com/Unity-Technologies/Graphics/blob/257b08bba6c11de0f894e42e811124247a522d3c/com.unity.render-pipelines.universal/Runtime/Passes/PostProcessPass.cs

@@ -55,6 +55,30 @@ namespace UnityEngine.Perception.GroundTruth
         }
     }
 
+    class LensDistortionUrpPass : ScriptableRenderPass
+    {
+        LensDistortionCrossPipelinePass m_LensDistortionCrossPipelinePass;
+
+        public LensDistortionUrpPass(Camera camera, RenderTexture targetTexture)
+        {
+            m_LensDistortionCrossPipelinePass = new LensDistortionCrossPipelinePass(camera, targetTexture);
+            ConfigureTarget(targetTexture, targetTexture.depthBuffer);
+            m_LensDistortionCrossPipelinePass.Setup();
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            var commandBuffer = CommandBufferPool.Get(nameof(SemanticSegmentationUrpPass));
+            m_LensDistortionCrossPipelinePass.Execute(context, commandBuffer, renderingData.cameraData.camera, renderingData.cullResults);
+            CommandBufferPool.Release(commandBuffer);
+        }
+
+        public void Cleanup()
+        {
+            m_LensDistortionCrossPipelinePass.Cleanup();
+        }
+    }
+
     public class GroundTruthRendererFeature : ScriptableRendererFeature
     {
         public override void Create() {}

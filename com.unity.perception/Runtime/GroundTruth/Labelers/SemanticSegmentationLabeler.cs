@@ -180,9 +180,11 @@ namespace UnityEngine.Perception.GroundTruth
                 name = "Lens Distortion Pass"
             };
             customPassVolume.customPasses.Add(m_LensDistortionPass);
-#endif
-#if URP_PRESENT
+#elif URP_PRESENT
             perceptionCamera.AddScriptableRenderPass(new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig));
+
+            // Lens Distortion
+            perceptionCamera.AddScriptableRenderPass(new LensDistortionUrpPass(myCamera, targetTexture));
 #endif
 
             var specs = labelConfig.labelEntries.Select((l) => new SemanticSegmentationSpec()

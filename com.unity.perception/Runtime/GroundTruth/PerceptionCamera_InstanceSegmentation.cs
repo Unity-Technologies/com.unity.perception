@@ -62,9 +62,11 @@ namespace UnityEngine.Perception.GroundTruth
             };
             lensDistortionPass.EnsureInit();
             customPassVolume.customPasses.Add(lensDistortionPass);
-#endif
-#if URP_PRESENT
+#elif URP_PRESENT
             AddScriptableRenderPass(new InstanceSegmentationUrpPass(myCamera, m_InstanceSegmentationTexture));
+
+            // Lens Distortion
+            AddScriptableRenderPass(new LensDistortionUrpPass(myCamera, m_InstanceSegmentationTexture));
 #endif
 
             m_InstanceSegmentationReader = new RenderTextureReader<uint>(m_InstanceSegmentationTexture, myCamera, (frameCount, data, tex) =>

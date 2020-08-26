@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 
 ### Fixed
+Fixed 2d bounding boxes being reported for objects that do not match the label config.
 
 ### Security
 

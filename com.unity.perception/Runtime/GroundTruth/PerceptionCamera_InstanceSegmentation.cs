@@ -29,6 +29,19 @@ namespace UnityEngine.Perception.GroundTruth
         RenderTexture m_InstanceSegmentationTexture;
         RenderTextureReader<uint> m_InstanceSegmentationReader;
 
+    #if HDRP_PRESENT
+        InstanceSegmentationPass m_InstanceSegmentationPass;
+        LensDistortionPass m_LensDistortionPass;
+    #elif URP_PRESENT
+        InstanceSegmentationUrpPass m_InstanceSegmentationPass;
+        LensDistortionUrpPass m_LensDistortionPass;
+    #endif
+
+        public void OverrideLensDistortionIntensity(float intensity)
+        {
+            m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride = intensity;
+        }
+
         void SetupInstanceSegmentation()
         {
             var myCamera = GetComponent<Camera>();
@@ -44,29 +57,31 @@ namespace UnityEngine.Perception.GroundTruth
             var customPassVolume = this.GetComponent<CustomPassVolume>() ?? gameObject.AddComponent<CustomPassVolume>();
             customPassVolume.injectionPoint = CustomPassInjectionPoint.BeforeRendering;
             customPassVolume.isGlobal = true;
-            var instanceSegmentationPass = new InstanceSegmentationPass()
+            m_InstanceSegmentationPass = new InstanceSegmentationPass()
             {
                 name = "Instance segmentation pass",
                 targetCamera = GetComponent<Camera>(),
                 targetTexture = m_InstanceSegmentationTexture
             };
-            instanceSegmentationPass.EnsureInit();
-            customPassVolume.customPasses.Add(instanceSegmentationPass);
+            m_InstanceSegmentationPass.EnsureInit();
+            customPassVolume.customPasses.Add(m_InstanceSegmentationPass);
 
             // TODO: Note - the implementation here differs substantially from how things are done in SemanticSegmentationLalber
             // Also, the naming convention doesn't line up, shouldn't instance segmentation be a labeller?  At least in
             // architecture
-            var lensDistortionPass = new LensDistortionPass(GetComponent<Camera>(), m_InstanceSegmentationTexture)
+            m_LensDistortionPass = new LensDistortionPass(GetComponent<Camera>(), m_InstanceSegmentationTexture)
             {
                 name = "Instance Segmentation Lens Distortion Pass"
             };
-            lensDistortionPass.EnsureInit();
-            customPassVolume.customPasses.Add(lensDistortionPass);
+            m_LensDistortionPass.EnsureInit();
+            customPassVolume.customPasses.Add(m_LensDistortionPass);
 #elif URP_PRESENT
-            AddScriptableRenderPass(new InstanceSegmentationUrpPass(myCamera, m_InstanceSegmentationTexture));
+            m_InstanceSegmentationPass = new InstanceSegmentationUrpPass(myCamera, m_InstanceSegmentationTexture);
+            AddScriptableRenderPass(m_InstanceSegmentationPass);
 
             // Lens Distortion
-            AddScriptableRenderPass(new LensDistortionUrpPass(myCamera, m_InstanceSegmentationTexture));
+            m_LensDistortionPass = new LensDistortionUrpPass(myCamera, m_InstanceSegmentationTexture);
+            AddScriptableRenderPass(m_LensDistortionPass);
 #endif
 
             m_InstanceSegmentationReader = new RenderTextureReader<uint>(m_InstanceSegmentationTexture, myCamera, (frameCount, data, tex) =>

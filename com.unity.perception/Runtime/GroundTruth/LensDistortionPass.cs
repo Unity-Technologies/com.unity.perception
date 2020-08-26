@@ -15,7 +15,7 @@ namespace UnityEngine.Perception.GroundTruth
         public RenderTexture targetTexture;
         public Camera targetCamera;
 
-        LensDistortionCrossPipelinePass m_LensDistortionCrossPipelinePass;
+        public LensDistortionCrossPipelinePass m_LensDistortionCrossPipelinePass;
 
         public LensDistortionPass(Camera targetCamera, RenderTexture targetTexture)
         {

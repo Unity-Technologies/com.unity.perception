@@ -1,14 +1,21 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Rendering;
+
+
 #if HDRP_PRESENT
+    using UnityEngine.Rendering.HighDefinition;
+#elif URP_PRESENT
+    using UnityEngine.Rendering.Universal;
 #endif
+
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
@@ -121,6 +128,87 @@ namespace GroundTruthTests
             DestroyTestObject(planeObject);
 
             Assert.AreEqual(4, timesSegmentationImageReceived);
+        }
+
+        [UnityTest]
+        public IEnumerator SemanticSegmentationPass_WithLensDistortion()
+        {
+            GameObject cameraObject = null;
+            PerceptionCamera perceptionCamera;
+            bool fLensDistortionEnabled = false;
+            bool fDone = false;
+            int frames = 0;
+
+            var dataBBox = new uint[]
+            {
+                1, 1,
+                1, 1
+            };
+
+
+            Rect boundingBoxWithoutLensDistortion = new Rect();
+            Rect boundingBoxWithLensDistortion = new Rect();
+
+            void OnSegmentationImageReceived(int frameCount, NativeArray<uint> data, RenderTexture tex)
+            {
+                frames++;
+
+                if (frames < 10)
+                    return;
+
+                // Calculate the bounding box
+                if (fLensDistortionEnabled == false)
+                {
+                    fLensDistortionEnabled = true;
+
+                    var renderedObjectInfoGenerator = new RenderedObjectInfoGenerator();
+                    renderedObjectInfoGenerator.Compute(data, tex.width, BoundingBoxOrigin.TopLeft, out var boundingBoxes, Allocator.Temp);
+
+                    boundingBoxWithoutLensDistortion = boundingBoxes[0].boundingBox;
+
+                    // Add this
+                    perceptionCamera.OverrideLensDistortionIntensity(0.715f);
+
+                    frames = 0;
+                }
+                else
+                {
+                    var renderedObjectInfoGenerator = new RenderedObjectInfoGenerator();
+                    renderedObjectInfoGenerator.Compute(data, tex.width, BoundingBoxOrigin.TopLeft, out var boundingBoxes, Allocator.Temp);
+
+                    boundingBoxWithLensDistortion = boundingBoxes[0].boundingBox;
+
+                    Assert.AreNotEqual(boundingBoxWithoutLensDistortion, boundingBoxWithLensDistortion);
+                    Assert.Greater(boundingBoxWithLensDistortion.width, boundingBoxWithoutLensDistortion.width);
+
+                    fDone = true;
+                }
+            }
+
+            cameraObject = SetupCamera(out perceptionCamera, false);
+            perceptionCamera.InstanceSegmentationImageReadback += OnSegmentationImageReceived;
+            cameraObject.SetActive(true);
+
+            // Put a plane in front of the camera
+            var planeObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
+
+            planeObject.transform.SetPositionAndRotation(new Vector3(0, 0, 10), Quaternion.Euler(90, 0, 0));
+            planeObject.transform.localScale = new Vector3(0.1f, -1, 0.1f);
+            var labeling = planeObject.AddComponent<Labeling>();
+            labeling.labels.Add("label");
+
+            AddTestObjectForCleanup(planeObject);
+
+            perceptionCamera.OverrideLensDistortionIntensity(0.5f);
+
+            while (fDone != true)
+            {
+                yield return null;
+            }
+
+            // Destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            DestroyTestObject(planeObject);
         }
 
         [UnityTest]

@@ -33,7 +33,7 @@ namespace UnityEngine.Perception.GroundTruth
 
     class SemanticSegmentationUrpPass : ScriptableRenderPass
     {
-        SemanticSegmentationCrossPipelinePass m_SemanticSegmentationCrossPipelinePass;
+        public SemanticSegmentationCrossPipelinePass m_SemanticSegmentationCrossPipelinePass;
 
         public SemanticSegmentationUrpPass(Camera camera, RenderTexture targetTexture, SemanticSegmentationLabelConfig labelConfig)
         {
@@ -57,7 +57,7 @@ namespace UnityEngine.Perception.GroundTruth
 
     class LensDistortionUrpPass : ScriptableRenderPass
     {
-        LensDistortionCrossPipelinePass m_LensDistortionCrossPipelinePass;
+        public LensDistortionCrossPipelinePass m_LensDistortionCrossPipelinePass;
 
         public LensDistortionUrpPass(Camera camera, RenderTexture targetTexture)
         {

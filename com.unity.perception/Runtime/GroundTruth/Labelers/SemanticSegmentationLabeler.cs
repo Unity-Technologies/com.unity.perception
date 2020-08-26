@@ -78,8 +78,11 @@ namespace UnityEngine.Perception.GroundTruth
         RenderTextureReader<Color32> m_SemanticSegmentationTextureReader;
 
 #if HDRP_PRESENT
-        SemanticSegmentationPass m_SemanticSegmentationPass;
-        private LensDistortionPass m_LensDistortionPass;
+    SemanticSegmentationPass m_SemanticSegmentationPass;
+    LensDistortionPass m_LensDistortionPass;
+#elif URP_PRESENT
+    SemanticSegmentationUrpPass m_SemanticSegmentationPass;
+    LensDistortionUrpPass m_LensDistortionPass;
 #endif
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
@@ -181,10 +184,13 @@ namespace UnityEngine.Perception.GroundTruth
             };
             customPassVolume.customPasses.Add(m_LensDistortionPass);
 #elif URP_PRESENT
-            perceptionCamera.AddScriptableRenderPass(new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig));
+            // Semantic Segmentation
+            m_SemanticSegmentationPass = new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig);
+            perceptionCamera.AddScriptableRenderPass(m_SemanticSegmentationPass);
 
             // Lens Distortion
-            perceptionCamera.AddScriptableRenderPass(new LensDistortionUrpPass(myCamera, targetTexture));
+            m_LensDistortionPass = new LensDistortionUrpPass(myCamera, targetTexture);
+            perceptionCamera.AddScriptableRenderPass(m_LensDistortionPass);
 #endif
 
             var specs = labelConfig.labelEntries.Select((l) => new SemanticSegmentationSpec()

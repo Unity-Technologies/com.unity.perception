@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.Mathematics;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
@@ -14,7 +15,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// Custom Pass which renders labeled images where each object labeled with a Labeling component is drawn with the
     /// value specified by the given LabelingConfiguration.
     /// </summary>
-    class LensDistortionCrossPipelinePass : GroundTruthCrossPipelinePass
+    public class LensDistortionCrossPipelinePass : GroundTruthCrossPipelinePass
     {
         const string k_ShaderName = "Perception/LensDistortion";
 
@@ -29,8 +30,13 @@ namespace UnityEngine.Perception.GroundTruth
         private Shader m_LensDistortionShader;
         private Material m_LensDistortionMaterial;
 
+        private bool fInitialized = false;
+
         public static readonly int _Distortion_Params1 = Shader.PropertyToID("_Distortion_Params1");
         public static readonly int _Distortion_Params2 = Shader.PropertyToID("_Distortion_Params2");
+
+        public LensDistortion m_lensDistortion;
+        public float? lensDistortionOverride = null;        // Largely for testing, but could be useful otherwise
 
         public RenderTexture m_TargetTexture;
         private RenderTexture m_distortedTexture;
@@ -70,6 +76,19 @@ namespace UnityEngine.Perception.GroundTruth
                 m_distortedTexture.filterMode = FilterMode.Point;
                 m_distortedTexture.Create();
             }
+
+            // Grab the lens distortion
+#if HDRP_PRESENT
+            // Grab the Lens Distortion from Perception Camera stack
+            var hdCamera = HDCamera.GetOrCreate(targetCamera);
+            var stack = hdCamera.volumeStack;
+            m_lensDistortion = stack.GetComponent<LensDistortion>();
+#else
+            var stack = VolumeManager.instance.stack;
+            m_lensDistortion = stack.GetComponent<LensDistortion>();
+#endif
+
+            fInitialized = true;
         }
 
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
@@ -80,11 +99,9 @@ namespace UnityEngine.Perception.GroundTruth
             //    Debug.LogError("Lens Distortion executed twice in the same frame, this may lead to undesirable results.");
             //s_LastFrameExecuted = Time.frameCount;
 
-            var stack = VolumeManager.instance.stack;
-            var lensDistortion = stack.GetComponent<LensDistortion>();
-            //Debug.Log("lens distortion intensity: " + lensDistortion.intensity.value);
+            SetLensDistortionShaderParameters();
 
-            // Blitmayhem
+                // Blitmayhem
             cmd.Blit(m_TargetTexture, m_distortedTexture, m_LensDistortionMaterial);
             cmd.Blit(m_distortedTexture, m_TargetTexture);
 
@@ -92,47 +109,60 @@ namespace UnityEngine.Perception.GroundTruth
             cmd.Clear();
         }
 
-        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
+        public void SetLensDistortionShaderParameters()
         {
-
-#if HDRP_PRESENT
-            // Grab the Lens Distortion from Perception Camera stack
-            var hdCamera = HDCamera.GetOrCreate(targetCamera);
-            var stack = hdCamera.volumeStack;
-            var lensDistortion = stack.GetComponent<LensDistortion>();
-#else
-            var stack = VolumeManager.instance.stack;
-            var lensDistortion = stack.GetComponent<LensDistortion>();
-            Debug.Log("lens distortion intensity: " + lensDistortion.intensity.value);
-#endif
+            if (fInitialized == false)
+                return;
 
             // This code is lifted from the SetupLensDistortion() function in
             // https://github.com/Unity-Technologies/Graphics/blob/257b08bba6c11de0f894e42e811124247a522d3c/com.unity.render-pipelines.universal/Runtime/Passes/PostProcessPass.cs
             // This is in UnityEngine.Rendering.Universal.Internal.PostProcessPass::SetupLensDistortion so it's
             // unclear how to re-use this code
 
-            float amount = 1.6f * Mathf.Max(Mathf.Abs(lensDistortion.intensity.value * 100.0f), 1.0f);
+            float intensity = 0.5f;
+            float scale = 1.0f;
+            var center = new Vector2(0.0f, 0.0f);
+            var mult = new Vector2(1.0f, 1.0f);
+
+            if (lensDistortionOverride.HasValue)
+            {
+                intensity = lensDistortionOverride.Value;
+            }
+            else if (m_lensDistortion != null)
+            {
+                intensity = m_lensDistortion.intensity.value;
+                center = m_lensDistortion.center.value * 2f - Vector2.one;
+                mult.x = Mathf.Max(m_lensDistortion.xMultiplier.value, 1e-4f);
+                mult.y = Mathf.Max(m_lensDistortion.yMultiplier.value, 1e-4f);
+                scale = 1.0f / m_lensDistortion.scale.value;
+            }
+
+            float amount = 1.6f * Mathf.Max(Mathf.Abs(intensity * 100.0f), 1.0f);
             float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);
             float sigma = 2.0f * Mathf.Tan(theta * 0.5f);
-            var center = lensDistortion.center.value * 2f - Vector2.one;
+
             var p1 = new Vector4(
                 center.x,
                 center.y,
-                Mathf.Max(lensDistortion.xMultiplier.value, 1e-4f),
-                Mathf.Max(lensDistortion.yMultiplier.value, 1e-4f)
+                mult.x,
+                mult.y
             );
 
             var p2 = new Vector4(
-                lensDistortion.intensity.value >= 0f ? theta : 1f / theta,
+                intensity >= 0f ? theta : 1f / theta,
                 sigma,
-                1.0f / lensDistortion.scale.value,
-                lensDistortion.intensity.value * 100.0f
+                scale,
+                intensity * 100.0f
             );
 
             // Set Shader Constants
             m_LensDistortionMaterial.SetVector(_Distortion_Params1, p1);
             m_LensDistortionMaterial.SetVector(_Distortion_Params2, p2);
+        }
 
+        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
+        {
+            SetLensDistortionShaderParameters();
         }
     }
 }

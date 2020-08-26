@@ -3,9 +3,13 @@ upmci_registry: https://artifactory.prd.cds.internal.unity3d.com/artifactory/api
 
 test_editors:
   - version: 2019.4.6f1
+  - version: 2020.1.3f1
+  - version: 2020.2.0a21
 
 publish_editors:
   - version: 2019.4.6f1
+  - version: 2020.1.3f1
+  - version: 2020.2.0a21
 
 publish_platforms:
   - name: win

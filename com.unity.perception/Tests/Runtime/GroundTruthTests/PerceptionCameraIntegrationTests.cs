@@ -60,7 +60,7 @@ namespace GroundTruthTests
 
             var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
-            StringAssert.Contains(jsonExpected, capturesJson);
+            StringAssert.Contains(TestHelper.NormalizeJson(jsonExpected, true), TestHelper.NormalizeJson(capturesJson, true));
         }
 
         [UnityTest]

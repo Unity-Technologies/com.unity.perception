@@ -897,14 +897,9 @@ namespace GroundTruthTests
             if (escapeGuids)
                 jsonActual = EscapeGuids(jsonActual);
 
-            if (ignoreFormatting)
-            {
-                jsonActual = Regex.Replace(jsonActual, "^\\s*", "", RegexOptions.Multiline);
-                jsonExpected = Regex.Replace(jsonExpected, "^\\s*", "", RegexOptions.Multiline);
-            }
 
-            jsonActual = TestHelper.NormalizeJson(jsonActual);
-            jsonExpected = TestHelper.NormalizeJson(jsonExpected);
+            jsonActual = TestHelper.NormalizeJson(jsonActual, ignoreFormatting);
+            jsonExpected = TestHelper.NormalizeJson(jsonExpected, ignoreFormatting);
 
             Assert.AreEqual(jsonExpected, jsonActual, $"Expected:\n{jsonExpected}\nActual:\n{jsonActual}");
         }

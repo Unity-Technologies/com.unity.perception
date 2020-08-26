@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 
@@ -28,8 +29,11 @@ namespace GroundTruthTests
         }
 
 #endif
-        public static string NormalizeJson(string json)
+        public static string NormalizeJson(string json, bool normalizeFormatting = false)
         {
+            if (normalizeFormatting)
+                json = Regex.Replace(json, "^\\s*", "", RegexOptions.Multiline);
+
             return json.Replace("\r\n", "\n");
         }
     }

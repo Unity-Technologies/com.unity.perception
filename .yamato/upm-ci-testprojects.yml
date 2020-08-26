@@ -86,7 +86,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
 # Not including OSX because the only OSX platform on Bokken with a GPU is a Mac Mini, of which there are only a few and setting up Yamato jobs is very complicated.
 
 # {% for variant in package_variants %}
-# {% for editor in test_editors %}
+# {% for editor in complete_editors %}
 # code_coverage_win_{{editor.version}}:
 #   name: Code Coverage Report - Windows
 #   agent:

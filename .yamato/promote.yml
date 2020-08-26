@@ -2,7 +2,7 @@
 
 ---
 {% for variant in package_variants %}
-{% for editor in test_editors %}
+{% for editor in complete_editors %}
 {% for platform in test_platforms %}
 promotion_test_{{ platform.name }}_{{ editor.version }}:
   name : Package tests ({{variant.name}} pkg, {{ editor.version }}, {{ platform.name }})
@@ -29,7 +29,7 @@ promotion_test_{{ platform.name }}_{{ editor.version }}:
 promotion_test_trigger:
   name: Promotion Tests Trigger
   dependencies:
-    {% for editor in publish_editors %}
+    {% for editor in complete_editors %}
     {% for platform in publish_platforms %}
     {% for suite in suites %}
     {% for project in projects %}

@@ -27,7 +27,8 @@ namespace GroundTruthTests
             //give the screen a chance to resize
             yield return null;
 
-            var jsonExpected = $@"            {{
+            var jsonExpected = $@"[
+            {{
               ""label_id"": 100,
               ""label_name"": ""label"",
               ""instance_id"": 1,
@@ -35,7 +36,8 @@ namespace GroundTruthTests
               ""y"": {Screen.height / 4:F1},
               ""width"": {Screen.width:F1},
               ""height"": {Screen.height / 2:F1}
-            }}";
+            }}
+          ]";
             var labelingConfiguration = CreateLabelingConfiguration();
             SetupCamera(pc =>
             {

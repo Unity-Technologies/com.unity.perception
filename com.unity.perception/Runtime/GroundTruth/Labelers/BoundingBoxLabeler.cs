@@ -119,7 +119,7 @@ namespace UnityEngine.Perception.GroundTruth
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
-                    if (!idLabelConfig.TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry, out var index))
+                    if (!idLabelConfig.TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry))
                         continue;
 
                     m_BoundingBoxValues.Add(new BoundingBoxValue

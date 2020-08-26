@@ -8,8 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+Added new randomization tools
 
 ### Changed
+
+Changed the way realtime visualizers rendered to avoid rendering conflicts
+
+Changed default labeler ids to be lower-case to be consistent with the ids in the dataset.
 
 ### Deprecated
 
@@ -17,6 +22,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 Fixed 2d bounding boxes being reported for objects that do not match the label config.
+
+Fixed a categorical parameter UI error in which deleting an individual option would successfully remove the option from the UI but only serialize the option to null during serialization instead of removing it
+
+Fixed the "Application Frequency" parameter UI field not initializing to a default value
+
+Fixed the IterateSeed() method where certain combinations of indices and random seeds would produce a random state value of zero, causing Unity.Mathematics.Random to throw an exception
+
+Fixed labeler editor to allow for editing multiple labelers at a time
+
+Fixed labeler editor to ensure that when duplicating prefabs all labeler entries are also duplicated
+
+Fixed colors in semantic segmentation images being darker than those specified in the label config
+
+Fixed objects being incorrectly labeled when they do not match any entries in the label config
 
 ### Security
 

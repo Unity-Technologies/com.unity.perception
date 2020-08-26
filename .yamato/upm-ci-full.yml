@@ -53,9 +53,6 @@ test_trigger:
     branches:
       only:
         - "/.*/"
-    recurring:
-      - branch: master
-        frequency: daily # Should run between midnight and 6AM UTC
     cancel_old_ci: true
   artifacts:
     logs:
@@ -77,6 +74,48 @@ test_trigger:
     - .yamato/upm-ci-testprojects.yml#codecoverage_windows_editmode_{{editor.version}}
     {% endfor %}
     {% for editor in per_commit_editors %}
+    {% for project in projects %}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{editor.version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{editor.version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{editor.version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{editor.version}}
+    {% endfor %}
+    {% endfor %}
+
+all_tests:
+  name: All Tests
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.small
+  commands:
+    - dir
+  triggers:
+    recurring:
+      - branch: master
+        frequency: daily # Should run between midnight and 6AM UTC
+    cancel_old_ci: true
+  artifacts:
+    logs:
+      paths:
+        - "upm-ci~/test-results/**/*"
+    packages:
+      paths:
+        - "upm-ci~/packages/**/*"
+  dependencies:
+    {% for variant in package_variants %}
+    {% for editor in complete_editors %}
+    {% for platform in test_platforms %}
+    - .yamato/promote.yml#promotion_test_{{platform.name}}_{{editor.version}}
+    - .yamato/upm-ci-full.yml#pkg_test_{{variant.name}}_{{platform.name}}_{{editor.version}}
+    {% endfor %}
+    {% endfor %}
+    {% endfor %}
+
+    {% for editor in coverage_editors %}
+    - .yamato/upm-ci-testprojects.yml#codecoverage_windows_editmode_{{editor.version}}
+    {% endfor %}
+    {% for editor in complete_editors %}
     {% for project in projects %}
     - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{editor.version}}
     - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{editor.version}}

@@ -396,7 +396,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (UnityEditor.EditorApplication.isPaused)
                 return;
 #endif
-            CaptureRgbData(cam)
+            CaptureRgbData(cam);
 
             foreach (var labeler in m_Labelers)
             {

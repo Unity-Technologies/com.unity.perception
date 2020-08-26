@@ -19,7 +19,7 @@ namespace GroundTruthTests
     public class PerceptionCameraIntegrationTests : GroundTruthTestBase
     {
         [UnityTest]
-        [UnityPlatform(RuntimePlatform.LinuxPlayer, RuntimePlatform.WindowsPlayer, RuntimePlatform.LinuxEditor, RuntimePlatform.WindowsEditor, RuntimePlatform.OSXEditor)]
+        [UnityPlatform(RuntimePlatform.LinuxPlayer, RuntimePlatform.WindowsPlayer)]
         public IEnumerator EnableBoundingBoxes_GeneratesCorrectDataset()
         {
             //set resolution to ensure we don't have rounding in rendering leading to bounding boxes to change height/width

@@ -5,7 +5,7 @@
 {% for editor in complete_editors %}
 {% for platform in test_platforms %}
 promotion_test_{{ platform.name }}_{{ editor.version }}:
-  name : Package tests ({{variant.name}} pkg, {{ editor.version }}, {{ platform.name }})
+  name : Package promotion tests ({{variant.name}} pkg, {{ editor.version }}, {{ platform.name }})
   agent:
     type: {{ platform.type }}
     image: {{ platform.image }}

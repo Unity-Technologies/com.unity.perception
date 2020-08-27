@@ -27,7 +27,8 @@ namespace GroundTruthTests
             //give the screen a chance to resize
             yield return null;
 
-            var jsonExpected = $@"            {{
+            var jsonExpected = $@"[
+            {{
               ""label_id"": 100,
               ""label_name"": ""label"",
               ""instance_id"": 1,
@@ -35,7 +36,8 @@ namespace GroundTruthTests
               ""y"": {Screen.height / 4:F1},
               ""width"": {Screen.width:F1},
               ""height"": {Screen.height / 2:F1}
-            }}";
+            }}
+          ]";
             var labelingConfiguration = CreateLabelingConfiguration();
             SetupCamera(pc =>
             {
@@ -46,12 +48,19 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(plane);
             //a plane is 10x10 by default, so scale it down to be 10x1 to cover the center half of the image
             plane.transform.localScale = new Vector3(10f, -1f, .1f);
+            plane.transform.localPosition = new Vector3(0, 0, 10);
+
+            var plane2 = TestHelper.CreateLabeledPlane(label: "nonmatching");
+            AddTestObjectForCleanup(plane2);
+            //place a smaller plane in front to test non-matching objects
+            plane2.transform.localScale = new Vector3(.1f, -1f, .1f);
+            plane2.transform.localPosition = new Vector3(0, 0, 5);
             yield return null;
             DatasetCapture.ResetSimulation();
 
             var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
-            StringAssert.Contains(jsonExpected, capturesJson);
+            StringAssert.Contains(TestHelper.NormalizeJson(jsonExpected, true), TestHelper.NormalizeJson(capturesJson, true));
         }
 
         [UnityTest]

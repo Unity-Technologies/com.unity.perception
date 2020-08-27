@@ -21,6 +21,8 @@ Changed default labeler ids to be lower-case to be consistent with the ids in th
 ### Removed
 
 ### Fixed
+Fixed 2d bounding boxes being reported for objects that do not match the label config.
+
 Fixed a categorical parameter UI error in which deleting an individual option would successfully remove the option from the UI but only serialize the option to null during serialization instead of removing it
 
 Fixed the "Application Frequency" parameter UI field not initializing to a default value

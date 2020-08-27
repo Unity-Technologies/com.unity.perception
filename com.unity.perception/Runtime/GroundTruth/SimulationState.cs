@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Unity.Collections;
 using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -605,7 +606,23 @@ namespace UnityEngine.Perception.GroundTruth
             return new AsyncAnnotation(ReportAnnotationFile(annotationDefinition, sensorHandle, null), this);
         }
 
-        public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, T[] values = null)
+        public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, NativeSlice<T> values = default) where T : struct
+        {
+            var jArray = new JArray();
+            foreach (var value in values)
+                jArray.Add(new JRaw(DatasetJsonUtility.ToJToken(value)));
+
+            ReportAsyncAnnotationResult<T>(asyncAnnotation, filename, jArray);
+        }
+
+        public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, IEnumerable<T> values = null)
+        {
+            var jArray = values == null ? null : JArray.FromObject(values);
+
+            ReportAsyncAnnotationResult<T>(asyncAnnotation, filename, jArray);
+        }
+
+        void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename, JArray jArray)
         {
             if (!asyncAnnotation.IsPending)
                 throw new InvalidOperationException("AsyncAnnotation has already been reported and cannot be reported again.");
@@ -629,7 +646,7 @@ namespace UnityEngine.Perception.GroundTruth
             var annotationData = annotationTuple.Item2;
 
             annotationData.Path = filename;
-            annotationData.ValuesJson = values == null ? null : JArray.FromObject(values);
+            annotationData.ValuesJson = jArray;
 
             annotationTuple.Item2 = annotationData;
             pendingCapture.Annotations[annotationIndex] = annotationTuple;

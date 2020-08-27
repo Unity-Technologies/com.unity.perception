@@ -42,7 +42,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
         AnnotationDefinition m_BoundingBoxAnnotationDefinition;
-        BoundingBoxValue[] m_BoundingBoxValues;
+        List<BoundingBoxValue> m_BoundingBoxValues;
 
         Vector2 m_OriginalScreenSize = Vector2.zero;
 
@@ -76,6 +76,7 @@ namespace UnityEngine.Perception.GroundTruth
                 throw new InvalidOperationException("BoundingBox2DLabeler's idLabelConfig field must be assigned");
 
             m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
+            m_BoundingBoxValues = new List<BoundingBoxValue>();
 
             m_BoundingBoxAnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("bounding box", idLabelConfig.GetAnnotationSpecification(),
                 "Bounding box for each labeled object visible to the sensor", id: new Guid(annotationId));
@@ -114,16 +115,14 @@ namespace UnityEngine.Perception.GroundTruth
 
             using (s_BoundingBoxCallback.Auto())
             {
-                if (m_BoundingBoxValues == null || m_BoundingBoxValues.Length != renderedObjectInfos.Length)
-                    m_BoundingBoxValues = new BoundingBoxValue[renderedObjectInfos.Length];
-
+                m_BoundingBoxValues.Clear();
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
                     if (!idLabelConfig.TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry))
                         continue;
 
-                    m_BoundingBoxValues[i] = new BoundingBoxValue
+                    m_BoundingBoxValues.Add(new BoundingBoxValue
                     {
                         label_id = labelEntry.id,
                         label_name = labelEntry.label,
@@ -132,7 +131,7 @@ namespace UnityEngine.Perception.GroundTruth
                         y = objectInfo.boundingBox.y,
                         width = objectInfo.boundingBox.width,
                         height = objectInfo.boundingBox.height,
-                    };
+                    });
                 }
 
                 if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount)

@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 #if HDRP_PRESENT
     using UnityEngine.Rendering.HighDefinition;
-#else
+#elif URP_PRESENT
     using UnityEngine.Rendering.Universal;
 #endif
 
@@ -83,7 +83,7 @@ namespace UnityEngine.Perception.GroundTruth
             var hdCamera = HDCamera.GetOrCreate(targetCamera);
             var stack = hdCamera.volumeStack;
             m_lensDistortion = stack.GetComponent<LensDistortion>();
-#else
+#elif URP_PRESENT
             var stack = VolumeManager.instance.stack;
             m_lensDistortion = stack.GetComponent<LensDistortion>();
 #endif
@@ -128,13 +128,19 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 intensity = lensDistortionOverride.Value;
             }
-            else if (m_lensDistortion != null)
+            else if (m_lensDistortion != null && targetCamera.GetUniversalAdditionalCameraData().renderPostProcessing == true)
             {
-                intensity = m_lensDistortion.intensity.value;
-                center = m_lensDistortion.center.value * 2f - Vector2.one;
-                mult.x = Mathf.Max(m_lensDistortion.xMultiplier.value, 1e-4f);
-                mult.y = Mathf.Max(m_lensDistortion.yMultiplier.value, 1e-4f);
-                scale = 1.0f / m_lensDistortion.scale.value;
+                // This is a bit finicky for URP - since Lens Distortion comes off the VolumeManager stack as active
+                // even if post processing is not enabled.  An intensity of 0.0f is untenable, so the below checks
+                // ensures post processing hasn't been enabled but Lens Distortion actually overriden
+                if (m_lensDistortion.intensity.value != 0.0f)
+                {
+                    intensity = m_lensDistortion.intensity.value;
+                    center = m_lensDistortion.center.value * 2f - Vector2.one;
+                    mult.x = Mathf.Max(m_lensDistortion.xMultiplier.value, 1e-4f);
+                    mult.y = Mathf.Max(m_lensDistortion.yMultiplier.value, 1e-4f);
+                    scale = 1.0f / m_lensDistortion.scale.value;
+                }
             }
 
             float amount = 1.6f * Mathf.Max(Mathf.Abs(intensity * 100.0f), 1.0f);

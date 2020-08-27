@@ -31,7 +31,7 @@ namespace UnityEngine.Perception.GroundTruth
 
     #if HDRP_PRESENT
         InstanceSegmentationPass m_InstanceSegmentationPass;
-        LensDistortionPass m_LensDistortionPass;
+        //LensDistortionPass m_LensDistortionPass;
     #elif URP_PRESENT
         InstanceSegmentationUrpPass m_InstanceSegmentationPass;
         LensDistortionUrpPass m_LensDistortionPass;

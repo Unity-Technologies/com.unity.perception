@@ -33,3 +33,7 @@ The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologie
 |[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html)|
 |[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset|
 |[Randomization](Randomization/Index.md)|Integrate domain randomization principles into your simulation|
+
+## Known Issues
+
+* The Linux Editor 2019.4.7f1 and 2019.4.8f1 have been found to hang when importing HDRP-based perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1

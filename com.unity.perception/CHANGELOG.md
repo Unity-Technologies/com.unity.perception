@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 Added new randomization tools
 
+Added support for 2020.1
+
 ### Changed
 
 Changed the way realtime visualizers rendered to avoid rendering conflicts
 
-Changed default labeler ids to be lower-case to be consistent with the ids in the dataset.
+Changed default labeler ids to be lower-case to be consistent with the ids in the dataset
+
+Switched to latest versions of com.unity.simulation.core and com.unity.simulation.capture
 
 ### Deprecated
 

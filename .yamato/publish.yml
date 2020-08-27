@@ -21,7 +21,7 @@ publish:
         - "upm-ci~/packages/*.tgz"
   dependencies:
     - .yamato/upm-ci-full.yml#pack_Perception
-    {% for editor in publish_editors %}
+    {% for editor in complete_editors %}
     {% for platform in publish_platforms %}
     {% for suite in suites %}
     {% for project in projects %}

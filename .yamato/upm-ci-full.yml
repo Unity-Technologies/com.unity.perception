@@ -83,7 +83,7 @@ test_trigger:
     {% endfor %}
 
 all_tests:
-  name: All Tests
+  name: Complete Tests
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -106,7 +106,6 @@ all_tests:
     {% for variant in package_variants %}
     {% for editor in complete_editors %}
     {% for platform in test_platforms %}
-    - .yamato/promote.yml#promotion_test_{{platform.name}}_{{editor.version}}
     - .yamato/upm-ci-full.yml#pkg_test_{{variant.name}}_{{platform.name}}_{{editor.version}}
     {% endfor %}
     {% endfor %}

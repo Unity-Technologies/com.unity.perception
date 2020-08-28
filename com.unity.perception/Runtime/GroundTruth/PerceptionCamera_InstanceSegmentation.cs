@@ -37,7 +37,7 @@ namespace UnityEngine.Perception.GroundTruth
         LensDistortionUrpPass m_LensDistortionPass;
     #endif
 
-        public void OverrideLensDistortionIntensity(float intensity)
+        internal void OverrideLensDistortionIntensity(float intensity)
         {
             m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride = intensity;
         }
@@ -66,9 +66,6 @@ namespace UnityEngine.Perception.GroundTruth
             m_InstanceSegmentationPass.EnsureInit();
             customPassVolume.customPasses.Add(m_InstanceSegmentationPass);
 
-            // TODO: Note - the implementation here differs substantially from how things are done in SemanticSegmentationLalber
-            // Also, the naming convention doesn't line up, shouldn't instance segmentation be a labeller?  At least in
-            // architecture
             m_LensDistortionPass = new LensDistortionPass(GetComponent<Camera>(), m_InstanceSegmentationTexture)
             {
                 name = "Instance Segmentation Lens Distortion Pass"

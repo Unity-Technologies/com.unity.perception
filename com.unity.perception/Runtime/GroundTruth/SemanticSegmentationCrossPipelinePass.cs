@@ -43,10 +43,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_OverrideMaterial = new Material(m_ClassLabelingShader);
 
-            if (shaderVariantCollection != null)
-            {
-                shaderVariantCollection.WarmUp();
-            }
+            shaderVariantCollection.WarmUp();
         }
 
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)

@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Perception.GroundTruth
 {
-    public abstract class GroundTruthCrossPipelinePass : IGroundTruthGenerator
+    internal abstract class GroundTruthCrossPipelinePass : IGroundTruthGenerator
     {
         public Camera targetCamera;
 

@@ -12,14 +12,14 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
-    /// Custom Pass which renders labeled images where each object labeled with a Labeling component is drawn with the
-    /// value specified by the given LabelingConfiguration.
+    /// Custom Pass which will apply a lens distortion (per the respective volume override in URP or HDRP, or
+    /// through a custom override directly through the pass) to an incoming mask / texture.  The purpose of this
+    /// is to allow the same lens distortion being applied to the RGB image ine the perception camera to be applied
+    /// to the respective ground truths generated.
     /// </summary>
-    public class LensDistortionCrossPipelinePass : GroundTruthCrossPipelinePass
+    internal class LensDistortionCrossPipelinePass : GroundTruthCrossPipelinePass
     {
         const string k_ShaderName = "Perception/LensDistortion";
-
-        //static int s_LastFrameExecuted = -1;
 
         //Serialize the shader so that the shader asset is included in player builds when the SemanticSegmentationPass is used.
         //Currently commented out and shaders moved to Resources folder due to serialization crashes when it is enabled.
@@ -27,19 +27,19 @@ namespace UnityEngine.Perception.GroundTruth
         //[SerializeField]
 
         // Lens Distortion Shader
-        private Shader m_LensDistortionShader;
-        private Material m_LensDistortionMaterial;
+        Shader m_LensDistortionShader;
+        Material m_LensDistortionMaterial;
 
-        private bool fInitialized = false;
+        bool m_fInitialized = false;
 
         public static readonly int _Distortion_Params1 = Shader.PropertyToID("_Distortion_Params1");
         public static readonly int _Distortion_Params2 = Shader.PropertyToID("_Distortion_Params2");
 
-        public LensDistortion m_lensDistortion;
-        public float? lensDistortionOverride = null;        // Largely for testing, but could be useful otherwise
+        LensDistortion m_lensDistortion;
+        internal float? lensDistortionOverride = null;        // Largely for testing, but could be useful otherwise
 
-        public RenderTexture m_TargetTexture;
-        private RenderTexture m_distortedTexture;
+        RenderTexture m_TargetTexture;
+        RenderTexture m_distortedTexture;
 
         //private LensDistortion m_LensDistortion;
 
@@ -88,17 +88,11 @@ namespace UnityEngine.Perception.GroundTruth
             m_lensDistortion = stack.GetComponent<LensDistortion>();
 #endif
 
-            fInitialized = true;
+            m_fInitialized = true;
         }
 
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
         {
-            // Review: This has been removed since we may apply this pass to various stages, just want to confirm I'm
-            // not missing anything before removing it
-            //if (s_LastFrameExecuted == Time.frameCount)
-            //    Debug.LogError("Lens Distortion executed twice in the same frame, this may lead to undesirable results.");
-            //s_LastFrameExecuted = Time.frameCount;
-
             SetLensDistortionShaderParameters();
 
                 // Blitmayhem
@@ -111,7 +105,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         public void SetLensDistortionShaderParameters()
         {
-            if (fInitialized == false)
+            if (m_fInitialized == false)
                 return;
 
             // This code is lifted from the SetupLensDistortion() function in

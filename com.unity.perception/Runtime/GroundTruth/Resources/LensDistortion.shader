@@ -1,43 +1,13 @@
 ﻿Shader "Perception/LensDistortion"
 {
-    //Properties
-    //{
-    //    [PerObjectData] _SegmentationId("Segmentation ID", int) = 0
-    //}
 
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
     }
 
-    /*
-    HLSLINCLUDE
-        #pragma exclude_renderers gles
-        #pragma multi_compile_local_fragment _ _DISTORTION
-
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
-        //#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-        //#include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
-
-        half4 frag(FullscreenVaryings input) : SV_Target
-        {
-            //UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            float2 uvDistorted = DistortUV(uv);
-
-            half3 color = (0.0).xxx;
-
-            return half4(color, 1.0);
-        }
-
-    ENDHLSL
-    */
-
     SubShader
     {
-        //Tags {  "RenderPipeline" = "UniversalPipeline"}
         Tags { "RenderType" = "Opaque" "LightMode" = "SRP" }
         LOD 100
         ZTest Always ZWrite Off Cull Off

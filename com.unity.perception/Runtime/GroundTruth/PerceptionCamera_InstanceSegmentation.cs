@@ -2,11 +2,11 @@
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-#if HDRP_PRESENT
-using UnityEngine.Rendering.HighDefinition;
-#endif
-#if URP_PRESENT
 
+#if HDRP_PRESENT
+    using UnityEngine.Rendering.HighDefinition;
+#elif URP_PRESENT
+    using UnityEngine.Rendering.Universal;
 #endif
 
 namespace UnityEngine.Perception.GroundTruth
@@ -37,10 +37,12 @@ namespace UnityEngine.Perception.GroundTruth
         LensDistortionUrpPass m_LensDistortionPass;
     #endif
 
+    #if HDRP_PRESENT || URP_PRESENT
         internal void OverrideLensDistortionIntensity(float intensity)
         {
             m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride = intensity;
         }
+    #endif
 
         void SetupInstanceSegmentation()
         {

@@ -9,6 +9,8 @@ using UnityEngine.Rendering;
     using UnityEngine.Rendering.Universal;
 #endif
 
+#if HDRP_PRESENT || URP_PRESENT
+
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
@@ -173,3 +175,5 @@ namespace UnityEngine.Perception.GroundTruth
         }
     }
 }
+
+#endif // ! HDRP_PRESENT || URP_PRESENT

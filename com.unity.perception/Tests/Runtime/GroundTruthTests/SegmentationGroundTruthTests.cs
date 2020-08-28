@@ -9,7 +9,6 @@ using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Rendering;
 
-
 #if HDRP_PRESENT
     using UnityEngine.Rendering.HighDefinition;
 #elif URP_PRESENT
@@ -130,6 +129,9 @@ namespace GroundTruthTests
             Assert.AreEqual(4, timesSegmentationImageReceived);
         }
 
+        // Lens Distortion is only applicable in URP or HDRP pipelines
+        // As such, this test will always fail if URP or HDRP are not present (and also not really compile either)
+#if HDRP_PRESENT || URP_PRESENT
         [UnityTest]
         public IEnumerator SemanticSegmentationPass_WithLensDistortion()
         {
@@ -210,6 +212,7 @@ namespace GroundTruthTests
             DestroyTestObject(cameraObject);
             DestroyTestObject(planeObject);
         }
+#endif // ! HDRP_PRESENT || URP_PRESENT
 
         [UnityTest]
         public IEnumerator SemanticSegmentationPass_WithLabeledButNotMatchingObject_ProducesBlack()

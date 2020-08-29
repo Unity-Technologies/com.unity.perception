@@ -124,7 +124,9 @@ namespace UnityEngine.Perception.GroundTruth
         #if HDRP_PRESENT
             fRenderPostProcessingEnabled = m_lensDistortion != null;    // This is redundant, but for path completeness
         #elif URP_PRESENT
-            fRenderPostProcessingEnabled = targetCamera.GetUniversalAdditionalCameraData().renderPostProcessing;
+            if(targetCamera != null) {
+                fRenderPostProcessingEnabled = targetCamera.GetUniversalAdditionalCameraData().renderPostProcessing;
+            }
         #endif
 
             if (lensDistortionOverride.HasValue)

@@ -89,13 +89,16 @@ namespace UnityEngine.Perception.GroundTruth
             var stack = VolumeManager.instance.stack;
             m_lensDistortion = stack.GetComponent<LensDistortion>();
 #endif
-
             m_fInitialized = true;
         }
 
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
         {
-            SetLensDistortionShaderParameters();
+            if (m_fInitialized == false)
+                return;
+
+            if (SetLensDistortionShaderParameters() == false)
+                return;
 
                 // Blitmayhem
             cmd.Blit(m_TargetTexture, m_distortedTexture, m_LensDistortionMaterial);
@@ -105,10 +108,10 @@ namespace UnityEngine.Perception.GroundTruth
             cmd.Clear();
         }
 
-        public void SetLensDistortionShaderParameters()
+        public bool SetLensDistortionShaderParameters()
         {
             if (m_fInitialized == false)
-                return;
+                return false;
 
             // This code is lifted from the SetupLensDistortion() function in
             // https://github.com/Unity-Technologies/Graphics/blob/257b08bba6c11de0f894e42e811124247a522d3c/com.unity.render-pipelines.universal/Runtime/Passes/PostProcessPass.cs
@@ -121,6 +124,7 @@ namespace UnityEngine.Perception.GroundTruth
             var mult = new Vector2(1.0f, 1.0f);
 
             bool fRenderPostProcessingEnabled = false;
+
         #if HDRP_PRESENT
             fRenderPostProcessingEnabled = m_lensDistortion != null;    // This is redundant, but for path completeness
         #elif URP_PRESENT
@@ -147,6 +151,10 @@ namespace UnityEngine.Perception.GroundTruth
                     scale = 1.0f / m_lensDistortion.scale.value;
                 }
             }
+            else
+            {
+                return false;
+            }
 
             float amount = 1.6f * Mathf.Max(Mathf.Abs(intensity * 100.0f), 1.0f);
             float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);
@@ -169,6 +177,8 @@ namespace UnityEngine.Perception.GroundTruth
             // Set Shader Constants
             m_LensDistortionMaterial.SetVector(_Distortion_Params1, p1);
             m_LensDistortionMaterial.SetVector(_Distortion_Params2, p2);
+
+            return true;
         }
 
         public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)

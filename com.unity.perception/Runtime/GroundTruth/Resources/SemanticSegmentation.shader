@@ -32,31 +32,31 @@
 
             CGPROGRAM
 
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex semanticSegmentationVertexStage
+            #pragma fragment semanticSegmentationFragmentStage
 
             #include "UnityCG.cginc"
 
             float4 LabelingId;
 
-            struct appdata
+            struct in_vert
             {
                 float4 vertex : POSITION;
             };
 
-            struct v2f
+            struct vertexToFragment
             {
                 float4 vertex : SV_POSITION;
             };
 
-            v2f vert (appdata v)
+            vertexToFragment semanticSegmentationVertexStage (in_vert vertWorldSpace)
             {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                return o;
+                vertexToFragment vertScreenSpace;
+                vertScreenSpace.vertex = UnityObjectToClipPos(vertWorldSpace.vertex);
+                return vertScreenSpace;
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            fixed4 semanticSegmentationFragmentStage (vertexToFragment vertScreenSpace) : SV_Target
             {
                 return LabelingId;
             }

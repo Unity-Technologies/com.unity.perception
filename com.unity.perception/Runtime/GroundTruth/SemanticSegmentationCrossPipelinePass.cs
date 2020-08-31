@@ -33,11 +33,17 @@ namespace UnityEngine.Perception.GroundTruth
         {
             base.Setup();
             m_ClassLabelingShader = Shader.Find(k_ShaderName);
+
             var shaderVariantCollection = new ShaderVariantCollection();
-            shaderVariantCollection.Add(new ShaderVariantCollection.ShaderVariant(m_ClassLabelingShader, PassType.ScriptableRenderPipeline));
-            shaderVariantCollection.WarmUp();
+
+            if (shaderVariantCollection != null)
+            {
+                shaderVariantCollection.Add(new ShaderVariantCollection.ShaderVariant(m_ClassLabelingShader, PassType.ScriptableRenderPipeline));
+            }
 
             m_OverrideMaterial = new Material(m_ClassLabelingShader);
+
+            shaderVariantCollection.WarmUp();
         }
 
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)

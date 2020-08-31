@@ -28,19 +28,19 @@ uint SampleSegmentationTexture(uint2 pixelCoord)
     return objectId;
 }
 
-// For each pixel in the segmentation image, set InstanceIdPresenceMask[pixelValue] to 1 
+// For each pixel in the segmentation image, set InstanceIdPresenceMask[pixelValue] to 1
 [numthreads(8,8,1)]
 void PresenseMask (uint3 id : SV_DispatchThreadID)
 {
     uint instanceId = SampleSegmentationTexture(id.xy);
     if (instanceId != 0)
         InstanceIdPresenceMask[instanceId] = 1;
-    
-    //Attempt at packing presense into single bits. Good for memory, bad for perf due to InterlockedOr. 
-     
+
+    //Attempt at packing presense into single bits. Good for memory, bad for perf due to InterlockedOr.
+
     //int bitOffset = objectId % 32;
     //int maskOffset = objectId / 32;
-    
+
     //InterlockedOr(IdPresenceMask[maskOffset], 1 << bitOffset);
 }
 
@@ -63,9 +63,9 @@ void CombineCounts (uint3 id : SV_DispatchThreadID)
     uint mask = InstanceIdPresenceMask[id.x];
     if (mask > 0)
         InterlockedAdd(ClassCounts[InstanceIdToClassId[id.x]], 1);
-        
-    //Attempt at packing presense into single bits. Good for memory, bad for perf due to InterlockedOr in PresenseMask(...). 
-    
+
+    //Attempt at packing presense into single bits. Good for memory, bad for perf due to InterlockedOr in PresenseMask(...).
+
     //int idStart = id.x * 32;
     //for(int i = 0; i < 32 ; i++)
     //{

@@ -41,6 +41,8 @@ Fixed colors in semantic segmentation images being darker than those specified i
 
 Fixed objects being incorrectly labeled when they do not match any entries in the label config
 
+Fixed lens distortion in URP and HDRP now being applied to ground truth
+
 ### Security
 
 ## [0.3.0-preview.1] - 2020-08-07

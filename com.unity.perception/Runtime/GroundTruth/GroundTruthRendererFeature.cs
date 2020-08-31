@@ -33,7 +33,7 @@ namespace UnityEngine.Perception.GroundTruth
 
     class SemanticSegmentationUrpPass : ScriptableRenderPass
     {
-        SemanticSegmentationCrossPipelinePass m_SemanticSegmentationCrossPipelinePass;
+        public SemanticSegmentationCrossPipelinePass m_SemanticSegmentationCrossPipelinePass;
 
         public SemanticSegmentationUrpPass(Camera camera, RenderTexture targetTexture, SemanticSegmentationLabelConfig labelConfig)
         {
@@ -52,6 +52,30 @@ namespace UnityEngine.Perception.GroundTruth
         public void Cleanup()
         {
             m_SemanticSegmentationCrossPipelinePass.Cleanup();
+        }
+    }
+
+    class LensDistortionUrpPass : ScriptableRenderPass
+    {
+        public LensDistortionCrossPipelinePass m_LensDistortionCrossPipelinePass;
+
+        public LensDistortionUrpPass(Camera camera, RenderTexture targetTexture)
+        {
+            m_LensDistortionCrossPipelinePass = new LensDistortionCrossPipelinePass(camera, targetTexture);
+            ConfigureTarget(targetTexture, targetTexture.depthBuffer);
+            m_LensDistortionCrossPipelinePass.Setup();
+        }
+
+        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            var commandBuffer = CommandBufferPool.Get(nameof(SemanticSegmentationUrpPass));
+            m_LensDistortionCrossPipelinePass.Execute(context, commandBuffer, renderingData.cameraData.camera, renderingData.cullResults);
+            CommandBufferPool.Release(commandBuffer);
+        }
+
+        public void Cleanup()
+        {
+            m_LensDistortionCrossPipelinePass.Cleanup();
         }
     }
 

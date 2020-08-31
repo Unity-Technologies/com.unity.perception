@@ -8,6 +8,7 @@ using Unity.Collections;
 using Unity.Simulation;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 #if HDRP_PRESENT
@@ -76,9 +77,15 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_SemanticSegmentationAnnotationDefinition;
         RenderTextureReader<Color32> m_SemanticSegmentationTextureReader;
 
-#if HDRP_PRESENT
+        internal bool m_fLensDistortionEnabled = false;
+
+    #if HDRP_PRESENT
         SemanticSegmentationPass m_SemanticSegmentationPass;
-#endif
+        LensDistortionPass m_LensDistortionPass;
+    #elif URP_PRESENT
+        SemanticSegmentationUrpPass m_SemanticSegmentationPass;
+        LensDistortionUrpPass m_LensDistortionPass;
+    #endif
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
 
@@ -172,9 +179,25 @@ namespace UnityEngine.Perception.GroundTruth
                 name = "Labeling Pass"
             };
             customPassVolume.customPasses.Add(m_SemanticSegmentationPass);
-#endif
-#if URP_PRESENT
-            perceptionCamera.AddScriptableRenderPass(new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig));
+
+            m_LensDistortionPass = new LensDistortionPass(myCamera, targetTexture)
+            {
+                name = "Lens Distortion Pass"
+            };
+            customPassVolume.customPasses.Add(m_LensDistortionPass);
+
+            m_fLensDistortionEnabled = true;
+#elif URP_PRESENT
+            // Semantic Segmentation
+            m_SemanticSegmentationPass = new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig);
+            perceptionCamera.AddScriptableRenderPass(m_SemanticSegmentationPass);
+
+            // Lens Distortion
+
+            m_LensDistortionPass = new LensDistortionUrpPass(myCamera, targetTexture);
+            perceptionCamera.AddScriptableRenderPass(m_LensDistortionPass);
+
+            m_fLensDistortionEnabled = true;
 #endif
 
             var specs = labelConfig.labelEntries.Select((l) => new SemanticSegmentationSpec()

@@ -6,7 +6,7 @@
     "com.unity.package-validation-suite": "0.9.1-preview",
     "com.unity.perception": "file:../../../com.unity.perception",
     "com.unity.render-pipelines.universal": "7.3.1",
-    "com.unity.simulation.capture": "0.0.10-preview.12",
+    "com.unity.simulation.capture": "0.0.10-preview.13",
     "com.unity.simulation.core": "0.0.10-preview.19",
     "com.unity.test-framework": "1.1.16",
     "com.unity.textmeshpro": "2.0.1",

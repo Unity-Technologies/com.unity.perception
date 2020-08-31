@@ -77,16 +77,14 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_SemanticSegmentationAnnotationDefinition;
         RenderTextureReader<Color32> m_SemanticSegmentationTextureReader;
 
+        internal bool m_fLensDistortionEnabled = false;
+
     #if HDRP_PRESENT
         SemanticSegmentationPass m_SemanticSegmentationPass;
         LensDistortionPass m_LensDistortionPass;
-        internal readonly bool m_fLensDistortionEnabled = true;
     #elif URP_PRESENT
         SemanticSegmentationUrpPass m_SemanticSegmentationPass;
         LensDistortionUrpPass m_LensDistortionPass;
-        internal readonly bool m_fLensDistortionEnabled = true;
-    #else
-        internal readonly bool m_fLensDistortionEnabled = false;
     #endif
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
@@ -182,24 +180,24 @@ namespace UnityEngine.Perception.GroundTruth
             };
             customPassVolume.customPasses.Add(m_SemanticSegmentationPass);
 
-            if (m_fLensDistortionEnabled)
+            m_LensDistortionPass = new LensDistortionPass(myCamera, targetTexture)
             {
-                m_LensDistortionPass = new LensDistortionPass(myCamera, targetTexture)
-                {
-                    name = "Lens Distortion Pass"
-                };
-                customPassVolume.customPasses.Add(m_LensDistortionPass);
-            }
+                name = "Lens Distortion Pass"
+            };
+            customPassVolume.customPasses.Add(m_LensDistortionPass);
+
+            m_fLensDistortionEnabled = true;
 #elif URP_PRESENT
             // Semantic Segmentation
             m_SemanticSegmentationPass = new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig);
             perceptionCamera.AddScriptableRenderPass(m_SemanticSegmentationPass);
 
             // Lens Distortion
-            if(m_fLensDistortionEnabled) {
-                m_LensDistortionPass = new LensDistortionUrpPass(myCamera, targetTexture);
-                perceptionCamera.AddScriptableRenderPass(m_LensDistortionPass);
-            }
+
+            m_LensDistortionPass = new LensDistortionUrpPass(myCamera, targetTexture);
+            perceptionCamera.AddScriptableRenderPass(m_LensDistortionPass);
+
+            m_fLensDistortionEnabled = true;
 #endif
 
             var specs = labelConfig.labelEntries.Select((l) => new SemanticSegmentationSpec()

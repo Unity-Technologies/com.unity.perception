@@ -29,25 +29,20 @@ namespace UnityEngine.Perception.GroundTruth
         RenderTexture m_InstanceSegmentationTexture;
         RenderTextureReader<uint> m_InstanceSegmentationReader;
 
+        internal bool m_fLensDistortionEnabled = false;
 
-
+#if HDRP_PRESENT || URP_PRESENT
     #if HDRP_PRESENT
         InstanceSegmentationPass m_InstanceSegmentationPass;
         LensDistortionPass m_LensDistortionPass;
-        internal readonly bool m_fLensDistortionEnabled = false;
     #elif URP_PRESENT
         InstanceSegmentationUrpPass m_InstanceSegmentationPass;
         LensDistortionUrpPass m_LensDistortionPass;
-        internal readonly bool m_fLensDistortionEnabled = true;
-    #else
-        internal readonly bool m_fLensDistortionEnabled = false;
     #endif
 
-    #if HDRP_PRESENT || URP_PRESENT
         internal void OverrideLensDistortionIntensity(float? intensity)
         {
-            if(m_fLensDistortionEnabled)
-                m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride = intensity;
+            m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride = intensity;
         }
 #endif
 
@@ -75,24 +70,24 @@ namespace UnityEngine.Perception.GroundTruth
             m_InstanceSegmentationPass.EnsureInit();
             customPassVolume.customPasses.Add(m_InstanceSegmentationPass);
 
-            if (m_fLensDistortionEnabled)
+
+            m_LensDistortionPass = new LensDistortionPass(GetComponent<Camera>(), m_InstanceSegmentationTexture)
             {
-                m_LensDistortionPass = new LensDistortionPass(GetComponent<Camera>(), m_InstanceSegmentationTexture)
-                {
-                    name = "Instance Segmentation Lens Distortion Pass"
-                };
-                m_LensDistortionPass.EnsureInit();
-                customPassVolume.customPasses.Add(m_LensDistortionPass);
-            }
+                name = "Instance Segmentation Lens Distortion Pass"
+            };
+            m_LensDistortionPass.EnsureInit();
+            customPassVolume.customPasses.Add(m_LensDistortionPass);
+
+            m_fLensDistortionEnabled = true;
 #elif URP_PRESENT
             m_InstanceSegmentationPass = new InstanceSegmentationUrpPass(myCamera, m_InstanceSegmentationTexture);
             AddScriptableRenderPass(m_InstanceSegmentationPass);
 
             // Lens Distortion
-            if(m_fLensDistortionEnabled) {
-                m_LensDistortionPass = new LensDistortionUrpPass(myCamera, m_InstanceSegmentationTexture);
-                AddScriptableRenderPass(m_LensDistortionPass);
-            }
+            m_LensDistortionPass = new LensDistortionUrpPass(myCamera, m_InstanceSegmentationTexture);
+            AddScriptableRenderPass(m_LensDistortionPass);
+
+            m_fLensDistortionEnabled = true;
 #endif
 
             m_InstanceSegmentationReader = new RenderTextureReader<uint>(m_InstanceSegmentationTexture, myCamera, (frameCount, data, tex) =>

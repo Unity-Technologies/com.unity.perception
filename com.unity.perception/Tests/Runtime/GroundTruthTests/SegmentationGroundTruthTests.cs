@@ -168,7 +168,7 @@ namespace GroundTruthTests
 
                     boundingBoxWithoutLensDistortion = boundingBoxes[0].boundingBox;
 
-                    // Add this
+                    // Add lens distortion
                     perceptionCamera.OverrideLensDistortionIntensity(0.715f);
 
                     frames = 0;

@@ -123,21 +123,24 @@ namespace UnityEngine.Perception.GroundTruth
             var center = new Vector2(0.0f, 0.0f);
             var mult = new Vector2(1.0f, 1.0f);
 
-            bool fRenderPostProcessingEnabled = false;
-
         #if HDRP_PRESENT
-            fRenderPostProcessingEnabled = m_lensDistortion != null;    // This is redundant, but for path completeness
+            if(m_lensDistortion == null)
+                return false;
         #elif URP_PRESENT
-            if(targetCamera != null) {
-                fRenderPostProcessingEnabled = targetCamera.GetUniversalAdditionalCameraData().renderPostProcessing;
-            }
+            if(targetCamera == null)
+                return false;
+
+            if(targetCamera.GetUniversalAdditionalCameraData().renderPostProcessing == false && lensDistortionOverride.HasValue == false)
+                return false;
+        #else
+            return false;
         #endif
 
             if (lensDistortionOverride.HasValue)
             {
                 intensity = lensDistortionOverride.Value;
             }
-            else if (m_lensDistortion != null && fRenderPostProcessingEnabled == true)
+            else if (m_lensDistortion != null)
             {
                 // This is a bit finicky for URP - since Lens Distortion comes off the VolumeManager stack as active
                 // even if post processing is not enabled.  An intensity of 0.0f is untenable, so the below checks
@@ -150,10 +153,6 @@ namespace UnityEngine.Perception.GroundTruth
                     mult.y = Mathf.Max(m_lensDistortion.yMultiplier.value, 1e-4f);
                     scale = 1.0f / m_lensDistortion.scale.value;
                 }
-            }
-            else
-            {
-                return false;
             }
 
             float amount = 1.6f * Mathf.Max(Mathf.Abs(intensity * 100.0f), 1.0f);

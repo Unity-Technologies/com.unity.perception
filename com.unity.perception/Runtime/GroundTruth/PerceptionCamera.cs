@@ -467,25 +467,6 @@ namespace UnityEngine.Perception.GroundTruth
             return false;
         }
 
-        /// <summary>
-        /// Retrieves the given <see cref="CameraLabeler"/> from the list of labelers under this PerceptionCamera, if it
-        /// is in the list.  Returns null if not found
-        /// </summary>
-        /// <param name="cameraLabeler"></param>
-        /// <returns></returns>
-        public CameraLabeler GetLabeler<T>()
-        {
-            foreach (var labeler in m_Labelers)
-            {
-                if (labeler.GetType() == typeof(T))
-                {
-                    return labeler;
-                }
-            }
-
-            return null;
-        }
-
         internal void OnGroundTruthRendererFeatureRun()
         {
             //only used to confirm that GroundTruthRendererFeature is present in URP

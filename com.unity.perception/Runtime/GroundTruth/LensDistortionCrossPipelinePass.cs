@@ -130,8 +130,14 @@ namespace UnityEngine.Perception.GroundTruth
             if(targetCamera == null)
                 return false;
 
-            if(targetCamera.GetUniversalAdditionalCameraData().renderPostProcessing == false && lensDistortionOverride.HasValue == false)
+            var UACD = targetCamera.GetUniversalAdditionalCameraData();
+
+            if(UACD.renderPostProcessing == false && lensDistortionOverride.HasValue == false)
                 return false;
+
+            if (m_lensDistortion.active == false)
+                return false;
+
         #else
             return false;
         #endif
@@ -152,6 +158,10 @@ namespace UnityEngine.Perception.GroundTruth
                     mult.x = Mathf.Max(m_lensDistortion.xMultiplier.value, 1e-4f);
                     mult.y = Mathf.Max(m_lensDistortion.yMultiplier.value, 1e-4f);
                     scale = 1.0f / m_lensDistortion.scale.value;
+                }
+                else
+                {
+                    return false;
                 }
             }
 

@@ -52,3 +52,14 @@ The Object Count Labeler records object counts for each label in the provided ID
 _Example rendered object info for a single object_
 
 The Rendered Object Info Labeler records a list of all objects visible in the camera image, including its instance id, resolved label id and visible pixels. Objects not resolved to a label in the given ID Label Config are not recorded.
+
+## Limitations
+
+Ground truth is not compatible with all rendering features, especially ones that modify the visibility or shape of objects in the frame.
+
+When generating ground truth:
+* Vertex and geometry shaders are not run
+* Transparency is not considered. All geometry is considered opaque
+* Besides built-in Lens Distortion in URP and HDRP, post-processing effects are not run
+
+If you encounter additional incompatibilities, please open an  [issue](https://github.com/Unity-Technologies/com.unity.perception/issues)

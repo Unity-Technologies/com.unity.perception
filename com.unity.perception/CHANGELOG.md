@@ -12,6 +12,10 @@ Added new randomization tools
 
 Added support for 2020.1
 
+Added Labeling.RefreshLabeling(), which can be used to update ground truth generators after the list of labels or the renderers is changed
+
+Added support for renderers with MaterialPropertyBlocks assigned to individual materials
+
 ### Changed
 
 Changed the way realtime visualizers rendered to avoid rendering conflicts

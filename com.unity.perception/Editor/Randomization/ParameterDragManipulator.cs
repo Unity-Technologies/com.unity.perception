@@ -1,6 +1,6 @@
 ﻿using UnityEngine.UIElements;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEngine.Experimental.Perception.Randomization.Editor
 {
     class ParameterDragManipulator : MouseManipulator
     {

@@ -2,11 +2,11 @@ using System;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine.Perception.Randomization.Configuration;
-using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Configuration;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEngine.Experimental.Perception.Randomization.Editor
 {
     [CustomEditor(typeof(ParameterConfiguration))]
     class ParameterConfigurationEditor : UnityEditor.Editor

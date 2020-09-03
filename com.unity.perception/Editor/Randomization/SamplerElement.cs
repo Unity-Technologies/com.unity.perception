@@ -1,11 +1,11 @@
 ﻿using System;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEngine.Experimental.Perception.Randomization.Editor
 {
     class SamplerElement : VisualElement
     {

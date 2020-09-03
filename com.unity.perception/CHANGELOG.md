@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [0.4.0-preview.1] - 2020-08-07
 
 ### Added
-Added new randomization tools
+
+Added new experimental randomization tools
 
 Added support for 2020.1
 

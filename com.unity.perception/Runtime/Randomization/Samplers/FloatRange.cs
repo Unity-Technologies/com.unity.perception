@@ -1,7 +1,7 @@
 ﻿using System;
 using Unity.Assertions;
 
-namespace UnityEngine.Perception.Randomization.Samplers
+namespace UnityEngine.Experimental.Perception.Randomization.Samplers
 {
     /// <summary>
     /// A struct representing a continuous range of values

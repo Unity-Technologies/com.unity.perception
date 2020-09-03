@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace UnityEngine.Perception.Randomization.Samplers
+namespace UnityEngine.Experimental.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Returns uniformly distributed random values within a designated range.

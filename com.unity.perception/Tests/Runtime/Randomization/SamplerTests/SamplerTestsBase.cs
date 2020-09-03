@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 using Unity.Jobs;
-using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 
 namespace RandomizationTests.SamplerTests
 {

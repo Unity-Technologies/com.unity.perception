@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.Perception.Randomization.Configuration
+namespace UnityEngine.Experimental.Perception.Randomization.Configuration
 {
     [Serializable]
     class ParameterConfigurationException : Exception

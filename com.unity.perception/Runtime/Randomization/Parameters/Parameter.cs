@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 
-namespace UnityEngine.Perception.Randomization.Parameters
+namespace UnityEngine.Experimental.Perception.Randomization.Parameters
 {
     /// <summary>
     /// Parameters, in conjunction with a parameter configuration, are used to create convenient interfaces for

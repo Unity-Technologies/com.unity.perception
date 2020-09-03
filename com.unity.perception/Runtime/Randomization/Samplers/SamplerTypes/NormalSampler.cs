@@ -2,7 +2,7 @@
 using Unity.Collections;
 using Unity.Jobs;
 
-namespace UnityEngine.Perception.Randomization.Samplers
+namespace UnityEngine.Experimental.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Returns normally distributed random values bounded within a specified range

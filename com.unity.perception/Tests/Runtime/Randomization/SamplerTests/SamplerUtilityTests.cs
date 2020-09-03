@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 
 namespace RandomizationTests.SamplerTests
 {

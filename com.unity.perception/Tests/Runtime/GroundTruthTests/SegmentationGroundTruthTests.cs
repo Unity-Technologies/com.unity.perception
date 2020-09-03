@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
+using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Rendering;
@@ -290,15 +291,70 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
 
             yield return null;
-            //NativeArray<Color32> readbackArray = new NativeArray<Color32>(targetTextureOverride.width * targetTextureOverride.height, Allocator.Temp);
-            var request = AsyncGPUReadback.Request(targetTextureOverride, callback: r =>
+            TestHelper.ReadRenderTextureRawData<Color32>(targetTextureOverride, data =>
             {
-                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, targetTextureOverride.width * targetTextureOverride.height), r.GetData<Color32>());
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, targetTextureOverride.width * targetTextureOverride.height), data);
             });
-            AsyncGPUReadback.WaitAllRequests();
-            //request.WaitForCompletion();
-            Assert.IsTrue(request.done);
-            Assert.IsFalse(request.hasError);
+        }
+
+
+        [UnityTest]
+        public IEnumerator SemanticSegmentationPass_WithMultiMaterial_ProducesCorrectValues([Values(true, false)] bool showVisualizations)
+        {
+            int timesSegmentationImageReceived = 0;
+            var expectedPixelValue = k_SemanticPixelValue;
+            void OnSegmentationImageReceived(NativeArray<Color32> data)
+            {
+                timesSegmentationImageReceived++;
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data);
+            }
+
+            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), false);
+
+            var plane = TestHelper.CreateLabeledPlane();
+            var meshRenderer = plane.GetComponent<MeshRenderer>();
+            var baseMaterial = meshRenderer.material;
+            meshRenderer.materials = new[] { baseMaterial, baseMaterial };
+            MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+            mpb.SetFloat("float", 1f);
+            for (int i = 0; i < 2; i++)
+            {
+                meshRenderer.SetPropertyBlock(mpb, i);
+            }
+            AddTestObjectForCleanup(plane);
+            yield return null;
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            Assert.AreEqual(1, timesSegmentationImageReceived);
+        }
+
+
+        [UnityTest]
+        public IEnumerator SemanticSegmentationPass_WithChangingLabeling_ProducesCorrectValues([Values(true, false)] bool showVisualizations)
+        {
+            int timesSegmentationImageReceived = 0;
+            var expectedPixelValue = k_SemanticPixelValue;
+            void OnSegmentationImageReceived(NativeArray<Color32> data)
+            {
+                if (timesSegmentationImageReceived == 1)
+                {
+                    CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data);
+                }
+                timesSegmentationImageReceived++;
+            }
+
+            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), false);
+
+            var plane = TestHelper.CreateLabeledPlane(label: "non-matching");
+            AddTestObjectForCleanup(plane);
+            yield return null;
+            var labeling = plane.GetComponent<Labeling>();
+            labeling.labels = new List<string> { "label" };
+            labeling.RefreshLabeling();
+            yield return null;
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            Assert.AreEqual(2, timesSegmentationImageReceived);
         }
 
         [UnityTest]

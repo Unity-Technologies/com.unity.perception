@@ -70,6 +70,20 @@ namespace UnityEngine.Perception.GroundTruth
                     pass.SetupMaterialProperties(mpb, renderer, labeling, instanceId);
 
                 renderer.SetPropertyBlock(mpb);
+
+                var materialCount = renderer.materials.Length;
+                for (int i = 0; i < materialCount; i++)
+                {
+                    renderer.GetPropertyBlock(mpb, i);
+                    //Only apply to individual materials if there is already a MaterialPropertyBlock on it
+                    if (!mpb.isEmpty)
+                    {
+                        foreach (var pass in m_ActiveGenerators)
+                            pass.SetupMaterialProperties(mpb, renderer, labeling, instanceId);
+
+                        renderer.SetPropertyBlock(mpb, i);
+                    }
+                }
             }
 
             for (var i = 0; i < gameObject.transform.childCount; i++)
@@ -105,6 +119,11 @@ namespace UnityEngine.Perception.GroundTruth
         public bool Deactivate(IGroundTruthGenerator generator)
         {
             return m_ActiveGenerators.Remove(generator);
+        }
+
+        internal void RefreshLabeling(Entity labelingEntity)
+        {
+            EntityManager.RemoveComponent<GroundTruthInfo>(labelingEntity);
         }
     }
 }

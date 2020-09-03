@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 411238278}
   - component: {fileID: 411238277}
   - component: {fileID: 411238282}
+  - component: {fileID: 411238283}
   m_Layer: 0
   m_Name: Crate
   m_TagString: Untagged
@@ -243,6 +244,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   yDegreesPerSecond: 180
+--- !u!114 &411238283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 411238276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 695e410829600ff40bcdd76fa0818f6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  materialPropertyTarget: 1
+  color: {r: 0.745283, g: 0.40428087, b: 0.40428087, a: 0}
 --- !u!1 &464025704
 GameObject:
   m_ObjectHideFlags: 0
@@ -257,6 +272,7 @@ GameObject:
   - component: {fileID: 464025706}
   - component: {fileID: 464025705}
   - component: {fileID: 464025710}
+  - component: {fileID: 464025711}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -309,6 +325,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -365,6 +383,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   yDegreesPerSecond: 180
+--- !u!114 &464025711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 464025704}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 695e410829600ff40bcdd76fa0818f6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  materialPropertyTarget: 1
+  color: {r: 0.34109113, g: 0.42664438, b: 0.6886792, a: 0}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -595,7 +627,7 @@ MonoBehaviour:
   - id: 1
   - id: 2
   - id: 3
-  showVisualizations: 0
+  showVisualizations: 1
   references:
     version: 1
     00000000:

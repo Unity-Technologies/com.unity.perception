@@ -12,7 +12,7 @@ namespace UnityEngine.Perception.GroundTruth
     public class Labeling : MonoBehaviour
     {
         /// <summary>
-        /// The label names to associate with the GameObject. Modifications to this list after the Update() step of the frame the object is created in are 
+        /// The label names to associate with the GameObject. Modifications to this list after the Update() step of the frame the object is created in are
         /// not guaranteed to be reflected by labelers.
         /// </summary>
         [FormerlySerializedAs("classes")]
@@ -36,6 +36,15 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (World.DefaultGameObjectInjectionWorld != null)
                 World.DefaultGameObjectInjectionWorld.EntityManager.DestroyEntity(m_Entity);
+        }
+
+        /// <summary>
+        /// Refresh ground truth generation for the labeling of the attached GameObject. This is necessary when the
+        /// list of labels changes or when renderers or materials change on objects in the hierarchy.
+        /// </summary>
+        public void RefreshLabeling()
+        {
+            World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<GroundTruthLabelSetupSystem>().RefreshLabeling(m_Entity);
         }
     }
 }

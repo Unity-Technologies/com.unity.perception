@@ -27,6 +27,7 @@ namespace UnityEngine.Perception.GroundTruth
     [Serializable]
     public sealed class SemanticSegmentationLabeler : CameraLabeler
     {
+        ///<inheritdoc/>
         public override string description
         {
             get => "Generates a semantic segmentation image for each captured frame. Each object is rendered to the semantic segmentation image using the color associated with it based on this labeler's associated semantic segmentation label configuration. " +

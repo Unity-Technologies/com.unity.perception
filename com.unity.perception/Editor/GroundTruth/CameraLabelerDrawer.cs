@@ -116,7 +116,7 @@ namespace UnityEditor.Perception.GroundTruth {
             enabledRect.x = rect.xMax - enabledSize.x;
             enabledRect.width = enabledSize.x;
 
-            EditorGUI.LabelField(headerRect, $"{cameraLabeler.GetType().Name}", EditorStyles.boldLabel);
+            EditorGUI.LabelField(headerRect, new GUIContent($"{cameraLabeler.GetType().Name}", $"{cameraLabeler.Description}"), EditorStyles.boldLabel);
             EditorGUIUtility.labelWidth = enabledRect.width - 14;
             m_Enabled.boolValue = EditorGUI.Toggle(enabledRect, Styles.enabled, m_Enabled.boolValue);
             EditorGUIUtility.labelWidth = 0;

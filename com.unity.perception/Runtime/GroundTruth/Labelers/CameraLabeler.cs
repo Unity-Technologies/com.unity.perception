@@ -15,6 +15,11 @@ namespace UnityEngine.Perception.GroundTruth
     public abstract class CameraLabeler
     {
         /// <summary>
+        /// A human-readable description of the labeler
+        /// </summary>
+        public abstract string Description { get; protected set; }
+
+        /// <summary>
         /// Whether the CameraLabeler should be set up and called each frame.
         /// </summary>
         public bool enabled = true;

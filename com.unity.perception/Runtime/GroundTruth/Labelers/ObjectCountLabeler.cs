@@ -13,6 +13,12 @@ namespace UnityEngine.Perception.GroundTruth
     [Serializable]
     public sealed class ObjectCountLabeler : CameraLabeler
     {
+        public override string Description
+        {
+            get => "Produces object counts for each label defined in this labeler's associated label configuration.";
+            protected set {}
+        }
+
         /// <summary>
         /// The ID to use for object count annotations in the resulting dataset
         /// </summary>

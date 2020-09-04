@@ -1,12 +1,14 @@
 <UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
     <VisualElement>
         <Style src="../Uss/Styles.uss"/>
-
+        <Label style="white-space: normal; margin-bottom: 2px; margin-top: 2px;" text="Use this component to define a list of parameters for randomizing various aspects of your scene throughout the simulation (e.g. object size and placement, lighting, etc.) and assign them to properties of GameObjects present in your scene."/>
+        <Label style="white-space: normal; margin-bottom: 2px; margin-top: 10px" text ="Search parameter names:"/>
         <VisualElement style="flex-direction: row; align-items: center; margin-bottom: 2px; margin-top: 2px;">
             <VisualElement class="search-icon" style="margin-left: 3px; margin-right: 2px;"/>
             <TextField name="filter-parameters" style="flex-grow: 1; flex-shrink: 1;"/>
         </VisualElement>
-        <ScrollView name="parameter-scroll-view" class="dark-viewport" style="min-height: 100px; max-height: 600px;">
+        <Label style="white-space: normal; margin-bottom: 2px; margin-top: 10px" text ="Parameter list:"/>
+        <ScrollView name="parameter-scroll-view" class="dark-viewport" style="min-height: 100px; max-height: 600px; margin-top: 2px">
             <VisualElement name="parameters-container" style="flex-shrink: 0;"/>
         </ScrollView>
 

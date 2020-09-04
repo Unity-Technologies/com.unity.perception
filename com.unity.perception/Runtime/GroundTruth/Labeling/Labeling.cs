@@ -18,6 +18,9 @@ namespace UnityEngine.Perception.GroundTruth
         [FormerlySerializedAs("classes")]
         public List<string> labels = new List<string>();
 
+        /// <summary>
+        /// The unique id of this labeling component instance
+        /// </summary>
         public uint instanceId { get; private set; }
 
         Entity m_Entity;

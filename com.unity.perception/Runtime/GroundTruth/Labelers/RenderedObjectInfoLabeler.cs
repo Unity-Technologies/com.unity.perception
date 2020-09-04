@@ -15,6 +15,13 @@ namespace UnityEngine.Perception.GroundTruth
     [Serializable]
     public sealed class RenderedObjectInfoLabeler : CameraLabeler
     {
+        ///<inheritdoc/>
+        public override string description
+        {
+            get => "Produces label id, instance id, and visible pixel count in a single metric each frame for each object which takes up one or more pixels in the camera's frame, based on this labeler's associated label configuration.";
+            protected set {}
+        }
+
         // ReSharper disable InconsistentNaming
         struct RenderedObjectInfoValue
         {

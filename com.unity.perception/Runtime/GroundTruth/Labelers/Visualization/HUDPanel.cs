@@ -25,6 +25,10 @@ namespace UnityEngine.Perception.GroundTruth
         const int k_BoxWidth = 200;
         const int k_YLineSpacing = 4;
 
+
+        /// <summary>
+        /// The number of labelers currently displaying real-time information on the visualization HUD
+        /// </summary>
         public int entryCount => m_Entries.Keys.Count();
 
         void Awake()

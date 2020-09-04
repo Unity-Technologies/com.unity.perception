@@ -80,11 +80,11 @@ namespace UnityEditor.Perception.GroundTruth
         {
             using(new EditorGUI.DisabledScope(EditorApplication.isPlaying))
             {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)), new GUIContent("Description", "Provide a description for this perception camera (optional)."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)), new GUIContent("Capture Interval", "The interval at which the perception camera should render and capture (seconds)."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)), new GUIContent("Start Time","Time at which this perception camera starts rendering and capturing (seconds)."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)), new GUIContent("Show Labeler Visualizations", "Display realtime visualizations for labelers that are currently active on this perception camera."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)),new GUIContent("Save Camera Output to Disk", "For each captured frame, save an RGB image of the perception camera's output to disk."));
                 serializedObject.ApplyModifiedProperties();
 
                 //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(PerceptionCamera.labelers)));
@@ -98,7 +98,7 @@ namespace UnityEditor.Perception.GroundTruth
 #if HDRP_PRESENT
             var hdRenderPipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset;
             if (hdRenderPipelineAsset != null &&
-                hdRenderPipelineAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == 
+                hdRenderPipelineAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode ==
                 UnityEngine.Rendering.HighDefinition.RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
             {
                 EditorGUILayout.HelpBox("Deferred Only shader mode is not supported by rendering-based labelers. " +

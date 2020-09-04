@@ -15,6 +15,13 @@ namespace UnityEngine.Perception.GroundTruth
     [Serializable]
     public sealed class BoundingBox2DLabeler : CameraLabeler
     {
+        ///<inheritdoc/>
+        public override string description
+        {
+            get => "Produces 2D bounding box annotations for all visible objects that bear a label defined in this labeler's associated label configuration.";
+            protected set {}
+        }
+
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
         struct BoundingBoxValue

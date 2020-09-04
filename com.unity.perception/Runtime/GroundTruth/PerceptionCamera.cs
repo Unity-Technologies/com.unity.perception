@@ -37,7 +37,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public string description;
         /// <summary>
-        /// The period in seconds that the Camera should render
+        /// The interval in seconds at which the camera should render and capture.
         /// </summary>
         public float period = .0166f;
         /// <summary>

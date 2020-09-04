@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEngine.Experimental.Perception.Randomization.Editor
 {
     class CategoricalOptionElement : VisualElement
     {

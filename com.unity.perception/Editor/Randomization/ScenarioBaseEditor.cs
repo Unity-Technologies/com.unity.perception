@@ -1,9 +1,9 @@
 ﻿using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine.Perception.Randomization.Scenarios;
+using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEngine.Experimental.Perception.Randomization.Editor
 {
     [CustomEditor(typeof(ScenarioBase), true)]
     class ScenarioBaseEditor : UnityEditor.Editor

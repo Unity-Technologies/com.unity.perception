@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using Object = UnityEngine.Object;
 
 namespace RandomizationTests.ParameterTests

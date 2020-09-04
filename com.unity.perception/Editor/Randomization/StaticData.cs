@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEngine.Experimental.Perception.Randomization.Editor
 {
     static class StaticData
     {

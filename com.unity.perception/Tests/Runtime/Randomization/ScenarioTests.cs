@@ -4,10 +4,10 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
-using UnityEngine.Perception.Randomization.Configuration;
-using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Samplers;
-using UnityEngine.Perception.Randomization.Scenarios;
+using UnityEngine.Experimental.Perception.Randomization.Configuration;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 

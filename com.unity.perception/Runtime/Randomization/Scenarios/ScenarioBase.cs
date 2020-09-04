@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
-using UnityEngine.Perception.Randomization.Configuration;
-using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Configuration;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
 
-namespace UnityEngine.Perception.Randomization.Scenarios
+namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 {
     /// <summary>
     /// The base class of all scenario classes

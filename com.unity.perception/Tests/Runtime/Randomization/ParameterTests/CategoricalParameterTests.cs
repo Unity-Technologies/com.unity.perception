@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
 
 namespace RandomizationTests.ParameterTests
 {

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace UnityEngine.Perception.Randomization.Scenarios
+namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 {
     /// <summary>
     /// The base class of scenarios with serializable constants

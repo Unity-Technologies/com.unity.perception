@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace UnityEngine.Perception.Randomization.Parameters
+namespace UnityEngine.Experimental.Perception.Randomization.Parameters
 {
     /// <summary>
     /// The base class of CategoricalParameters.

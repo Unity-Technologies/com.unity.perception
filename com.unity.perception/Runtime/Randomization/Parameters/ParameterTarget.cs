@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.Perception.Randomization.Parameters
+namespace UnityEngine.Experimental.Perception.Randomization.Parameters
 {
     /// <summary>
     /// Used to apply sampled parameter values to a particular GameObject, Component, and property.

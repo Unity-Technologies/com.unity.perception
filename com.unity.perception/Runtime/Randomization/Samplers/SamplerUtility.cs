@@ -5,7 +5,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace UnityEngine.Perception.Randomization.Samplers
+namespace UnityEngine.Experimental.Perception.Randomization.Samplers
 {
     /// <summary>
     /// A set of utility functions for defining sampler interfaces

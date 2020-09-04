@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Profiling;
 using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
-using UnityEngine.Serialization;
-using UnityEngine.UI;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 #endif

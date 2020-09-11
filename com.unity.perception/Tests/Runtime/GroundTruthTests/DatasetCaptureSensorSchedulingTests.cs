@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
@@ -7,14 +9,76 @@ using UnityEngine.TestTools;
 
 namespace GroundTruthTests
 {
+    // Provides accessors and invocation methods for members of SimulationState that would otherwise be in-accessible
+    // due to protection level - use only when testing protected logic is critical
+    class SimulationStateTestHelper
+    {
+        SimulationState m_State => DatasetCapture.SimulationState;
+        Dictionary<SensorHandle, SimulationState.SensorData> m_SensorsReference;
+        MethodInfo m_SequenceTimeOfNextCaptureMethod;
+
+        internal SimulationStateTestHelper()
+        {
+            var bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+            m_SequenceTimeOfNextCaptureMethod = m_State.GetType().GetMethod("SequenceTimeOfNextCapture", bindingFlags);
+            Debug.Assert(m_SequenceTimeOfNextCaptureMethod != null, "Couldn't find sequence time method.");
+            var sensorsField = m_State.GetType().GetField("m_Sensors", bindingFlags);
+            Debug.Assert(sensorsField != null, "Couldn't find internal sensors field");
+            m_SensorsReference = (Dictionary<SensorHandle, SimulationState.SensorData>)(sensorsField.GetValue(m_State));
+            Debug.Assert(m_SensorsReference != null, "Couldn't cast sensor field to dictionary");
+        }
+
+        internal float CallSequenceTimeOfNextCapture(SimulationState.SensorData sensorData)
+        {
+            return (float)m_SequenceTimeOfNextCaptureMethod.Invoke(m_State, new object[] { sensorData });
+        }
+
+        internal SimulationState.SensorData GetSensorData(SensorHandle sensorHandle)
+        {
+            return m_SensorsReference[sensorHandle];
+        }
+    }
+
     [TestFixture]
     public class DatasetCaptureSensorSchedulingTests
     {
+        SimulationStateTestHelper m_TestHelper;
+
+        [SetUp]
+        public void SetUp()
+        {
+            m_TestHelper = new SimulationStateTestHelper();
+        }
+
         [TearDown]
         public void TearDown()
         {
             Time.timeScale = 1;
             DatasetCapture.ResetSimulation();
+        }
+
+        [UnityTest]
+        public IEnumerator SequenceTimeOfNextCapture_ReportsCorrectTime()
+        {
+            var ego = DatasetCapture.RegisterEgo("ego");
+            var firstCaptureTime = 1.5f;
+            var period = .4f;
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime);
+
+            float[] sequenceTimesExpected =
+            {
+                firstCaptureTime,
+                period + firstCaptureTime,
+                period * 2 + firstCaptureTime,
+                period * 3 + firstCaptureTime
+            };
+            for (var i = 0; i < sequenceTimesExpected.Length; i++)
+            {
+                yield return null;
+                var sensorData = m_TestHelper.GetSensorData(sensorHandle);
+                var sequenceTimeActual = m_TestHelper.CallSequenceTimeOfNextCapture(sensorData);
+                Assert.AreEqual(sequenceTimesExpected[i], sequenceTimeActual, 0.0001f);
+            }
         }
 
         [UnityTest]

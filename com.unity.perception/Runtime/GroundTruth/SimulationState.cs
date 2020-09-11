@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -378,10 +379,10 @@ namespace UnityEngine.Perception.GroundTruth
 
         float SequenceTimeOfNextCapture(SensorData sensorData)
         {
+            // If the first capture hasn't happened yet, sequenceTimeNextCapture field won't be valid
             if (sensorData.firstCaptureTime >= UnscaledSequenceTime)
                 return sensorData.firstCaptureTime;
-
-            return sensorData.period - (UnscaledSequenceTime - sensorData.firstCaptureTime) % sensorData.period;
+            return sensorData.sequenceTimeNextCapture;
         }
 
         public bool Contains(Guid id) => m_Ids.Contains(id);
@@ -432,13 +433,12 @@ namespace UnityEngine.Perception.GroundTruth
                 if (!activeSensor.ShouldCaptureThisFrame)
                     continue;
 
-                //Just in case we get in a situation where we are so far beyond sequenceTimeNextCapture that incrementing next time by the period still doesn't get us to a time past "now"
-                do
-                {
-                    sensorData.sequenceTimeNextCapture += sensorData.period;
-                }
-                while (sensorData.sequenceTimeNextCapture <= UnscaledSequenceTime);
-
+                // TODO: AISV-845 This is an errant modification of this record that can lead to undefined behavior
+                // Leaving as-is for now because too many components depend on this logic
+                sensorData.sequenceTimeNextCapture += sensorData.period;
+                Debug.Assert(sensorData.sequenceTimeNextCapture > UnscaledSequenceTime,
+                    $"Next scheduled capture should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeNextCapture}");
+                // sensorData.sequenceTimeNextCapture = SequenceTimeOfNextCapture(sensorData);
                 sensorData.lastCaptureFrameCount = Time.frameCount;
                 m_Sensors[activeSensor] = sensorData;
             }

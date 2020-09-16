@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Simulation;
 using UnityEngine;
@@ -312,11 +313,23 @@ namespace UnityEngine.Perception.GroundTruth
                 m_Labelers = new List<CameraLabeler>();
         }
 
+        // ReSharper disable once InconsistentNaming
+        static float3x3 ToProjectionMatrix3x3(Matrix4x4 inMatrix)
+        {
+            return new float3x3(
+                inMatrix[0,0], inMatrix[0,1], inMatrix[0,2],
+                inMatrix[1,0], inMatrix[1,1], inMatrix[1,2],
+                inMatrix[2,0],inMatrix[2,1], inMatrix[2,2]);
+        }
+
         void CaptureRgbData(Camera cam)
         {
             Profiler.BeginSample("CaptureDataFromLastFrame");
             if (!captureRgbImages)
                 return;
+
+            // Record the camera's projection matrix
+            SetPersistentSensorData("camera_intrinsic", ToProjectionMatrix3x3(cam.projectionMatrix));
 
             var captureFilename = $"{Manager.Instance.GetDirectoryFor(RgbDirectory)}/{s_RgbFilePrefix}{Time.frameCount}.png";
             var dxRootPath = $"{RgbDirectory}/{s_RgbFilePrefix}{Time.frameCount}.png";

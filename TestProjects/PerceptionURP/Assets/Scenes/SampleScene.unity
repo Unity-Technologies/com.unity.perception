@@ -627,6 +627,7 @@ MonoBehaviour:
   - id: 1
   - id: 2
   - id: 3
+  - id: 4
   showVisualizations: 1
   references:
     version: 1
@@ -661,6 +662,15 @@ MonoBehaviour:
         annotationId: 12f94d8d-5425-4deb-9b21-5e53ad957d66
         labelConfig: {fileID: 11400000, guid: c140c5aa05dd09e4fadaa26de31b1f39, type: 2}
         m_TargetTextureOverride: {fileID: 0}
+    00000004:
+      type: {class: BoundingBox3DLabeler, ns: UnityEngine.Perception.GroundTruth,
+        asm: Unity.Perception.Runtime}
+      data:
+        enabled: 1
+        annotationId: 0bfbe00d-00fa-4555-88d1-471b58449f5c
+        mode: 0
+        idLabelConfig: {fileID: 11400000, guid: cedcacfb1d9beb34fbbb231166c472fe,
+          type: 2}
 --- !u!114 &963194231
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
@@ -313,6 +313,7 @@ namespace UnityEngine.Perception.GroundTruth
                 m_Labelers = new List<CameraLabeler>();
         }
 
+        // Convert the Unity 4x4 projection matrix to a 3x3 matrix
         // ReSharper disable once InconsistentNaming
         static float3x3 ToProjectionMatrix3x3(Matrix4x4 inMatrix)
         {

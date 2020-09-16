@@ -11,5 +11,12 @@
   "displayName": "Perception",
   "name": "com.unity.perception",
   "unity": "2019.4",
-  "version": "0.4.0-preview.1"
+  "version": "0.4.0-preview.1",  
+  "samples":[
+    {
+      "displayName": "Tutorial Project",
+      "description": "This project accompanies the tutorial for the Perception Package, found at -link-",
+      "path" : "Samples/Tutorial Project"
+    }
+  ]
 }

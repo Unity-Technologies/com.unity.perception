@@ -10,6 +10,16 @@ While this process may sound complicated, **you do not need to have any prior ex
  * Learning about essential components of the Perception package and creating a basic simulation with these essential elements.
  * Running your simulations on your computer and observing real-time visualizations of the Perception tools working.
  * Finding the synthetic data generated from your simulation and understanding its various pieces
- * Generating common statistics for your synthetic data (e.g. number of objects in each frame, presence of each object in the whole data, etc.)
+ * Generating common statistics and visualizations for your synthetic data (e.g. number of objects in each frame, presence of each object in the whole data, etc.)
  
-In order to get the best out of most perception-oriented machine learning models, the training data needs to contain a large-degree of variation. As a general rule of thumb, the more varied data you can feed to a model while training, the better it performs. This is achieved through randomizing various aspects of your simulation between frames. While you will use basic randomizations in Phase 1, **Phase 2** of the tutorial will help you learn how to randomize your simulations in more complex ways by guiding you through writing your first customized Randomizer in C#. This phase is called **Custom and Complex Randomizations**
+In order to get the best out of most perception-oriented machine learning models, the training data needs to contain a large-degree of variation. As a general rule of thumb, the more varied data you can feed to a model while training, the better it performs. This is achieved through randomizing various aspects of your simulation between frames. While you will use basic randomizations in Phase 1.
+
+**Phase 2** of the tutorial will help you learn how to randomize your simulations in more complex ways by guiding you through writing your first customized randomizer in C#. This phase is called **Custom and Complex Randomizations**, and once you complete it, you will know how to:
+ * Create custom randomizers by extending our provided samples
+ * Coordinate the operation of several randomizers by specifying their order of execution and the objects they affect
+ * Have objects specify criteria (e.g. ranges, means, etc.) for their randomizable attributes.
+ 
+ Finaly, in **Phase 3**, which is simply named **Cloud**, you will learn how to:
+ * Generate larger-scale synthetic datasets by leveraging the power of Unity Simulation. 
+ * Download the cloud-generated data
+ * Generate common and custom statistics and visualizations for your cloud-generated data.

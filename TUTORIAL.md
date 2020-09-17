@@ -1,12 +1,12 @@
 <img src="com.unity.perception/Documentation~/images/unity-wide.png" align="middle" width="3000"/>
 
-#Perception Tutorial
+# Perception Tutorial
 
 The Perception package offers a variety of tools for generating synthetic datasets intended for use in perception-based machine learning tasks, such as object detection, semantic segmentation, and so on. These datasets are in the form of **frames** captured using simulated sensors. These frames are **annotated** with **ground-truth**, which means they are ready to be used for training and validating machine learning models. While the type of ground-truth bundled with this data will depend on your intentended machine learning task, the Perception package already comes with a number of common ground-truth labelers which will make it easier for you to generate synthetic data. This tutorial will guide you all the way from setting up Unity on your computer to generating a large-scale synthetic dataset for training an object-detection model. 
 
 While this process may sound complicated, **you do not need to have any prior experience with Unity or C#** in order to follow the earlier stages of this tutorial and generate large-scale datasets using our provided samples and components. The tutorial will be divided into three high-level phases based on the complexity of the tasks involved. During these phases, you will be gradually introduced to more advanced tools and workflows that the Perception package enables you to perform. 
 
-## Phase 1: Setup and Basic Simulation
+## Phase 1: Setup and Basic Simulations
 
 This phase will cover essential tasks and skills such as:
  * Downloading Unity Editor and the Perception package

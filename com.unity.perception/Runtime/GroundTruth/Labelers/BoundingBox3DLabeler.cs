@@ -147,10 +147,10 @@ namespace UnityEngine.Perception.GroundTruth
                 if (idLabelConfig.TryGetLabelEntryFromInstanceId(groundTruthInfo.instanceId, out var labelEntry))
                 {
                     var camTrans = perceptionCamera.transform;
-                    var labelingTrans = labeling.transform;
                     var bounds = new Bounds(Vector3.zero, Vector3.zero);
                     var boundsUnset = true;
 
+                    // Go through each sub mesh and convert its bounds into the labeling meshes space
                     foreach (var mesh in meshFilters)
                     {
                         var currentTransform = mesh.gameObject.transform;
@@ -160,6 +160,7 @@ namespace UnityEngine.Perception.GroundTruth
                         var meshBounds = mesh.mesh.bounds;
                         var transformedBounds = new Bounds(meshBounds.center, meshBounds.size);
 
+                        // Convert all sub-components bounds into top level component's space
                         while (currentTransform != labeling.transform)
                         {
                             transformedBounds.center += currentTransform.localPosition;
@@ -167,6 +168,7 @@ namespace UnityEngine.Perception.GroundTruth
                             currentTransform = currentTransform.parent;
                         }
 
+                        // Merge the bounds of the current child with the the entire component's bounds
                         if (boundsUnset)
                         {
                             bounds.center = transformedBounds.center;
@@ -177,13 +179,13 @@ namespace UnityEngine.Perception.GroundTruth
                             bounds.Encapsulate(transformedBounds);
                     }
 
-                    // Need to transform our bounding box by the parent transform, but it should not be rotated, the bounding box should
-                    // always be in respect to local transform
+                    // Convert the encapsulated model's bounds into world space
                     var labelTransform = labeling.transform;
                     bounds.center = labelTransform.TransformPoint(bounds.center);
                     bounds.extents = Vector3.Scale(bounds.extents,  labelTransform.localScale);
 
-                    var localRotation = Quaternion.Inverse(camTrans.rotation) * labelingTrans.rotation;
+                    // Now convert all points into camera's space
+                    var localRotation = Quaternion.Inverse(camTrans.rotation) * labelTransform.rotation;
                     var localCenter = camTrans.InverseTransformPoint(bounds.center);
                     localCenter = Vector3.Scale(camTrans.localScale, localCenter);
 

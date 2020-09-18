@@ -31,4 +31,4 @@ You will generally require a large amount of data to train your intended model. 
  * Generate both common and custom statistics and visualizations for your cloud-generated data.
 
 
-[Continue to Phase 1: Setup and Basic Simulations](phase1.md)
+[Continue to Phase 1: Setup and Basic Simulations](Phase1.md)

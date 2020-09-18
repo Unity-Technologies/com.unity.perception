@@ -13,9 +13,9 @@
   "version": "0.4.0-preview.1",  
   "samples":[
     {
-      "displayName": "Tutorial Project",
-      "description": "This project accompanies the tutorial for the Perception Package, found at -link-",
-      "path" : "Samples/Tutorial Project"
+      "displayName": "Tutorial Files",
+      "description": "These files accompamy the tutorial for the Perception Package, found at https://github.com/Unity-Technologies/com.unity.perception/blob/tutorial_sample_project/Tutorial/TUTORIAL.md",
+      "path" : "Samples/Tutorial Files"
     }
   ]
 }

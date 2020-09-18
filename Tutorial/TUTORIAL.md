@@ -1,4 +1,4 @@
-<img src="com.unity.perception/Documentation~/images/unity-wide.png" align="middle" width="3000"/>
+<img src="../com.unity.perception/Documentation~/images/unity-wide.png" align="middle" width="3000"/>
 
 # Perception Tutorial
 
@@ -29,3 +29,6 @@ You will generally require a large amount of data to train your intended model. 
  * Generate large-scale synthetic datasets containing hundreds of thousands of frames by leveraging the power of **Unity Simulation**. 
  * Download the cloud-generated data
  * Generate both common and custom statistics and visualizations for your cloud-generated data.
+
+
+[Continue to Phase 1: Setup and Basic Simulations](Phase1.md)

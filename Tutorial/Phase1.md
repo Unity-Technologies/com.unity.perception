@@ -15,8 +15,8 @@ When you first run Unity, you will be asked to open an existing project, or crea
 <img src="Images/create_new_project.png" align="center" width="800"/>
 </p>
 
-### Step 2: Download the Perception Package
-Once your new project is created and loaded, you will be presented with the Unity Editor interface. 
+### Step 2: Download the Perception Package and Import Samples
+Once your new project is created and loaded, you will be presented with the Unity Editor interface. From this point, whenever we refer to _the editor_, we mean Unity Editor.
 * From the top menu bar, open _**Window**_ -> _**Package Manager**_. 
 
 As the name suggests, the _**Package Manager**_ is where you can download new packages, update or remove existing ones, and access a variety of information and additional actions for each package.
@@ -35,20 +35,39 @@ Each package can come with a set of samples. As seen in the righthand panel, the
 
 * In the _**Package Manager**_ window, from the list of _**Samples**_ for the Perception package, click on the _**Import into Project**_ button for the sample named _**Tutorial Files**_.
 
-Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project. You can view your project's folder structure and access your files from the _**Project**_ tab of Unity Editor, as seen in the image below:
+Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project. You can view your project's folder structure and access your files from the _**Project**_ tab of the editor, as seen in the image below:
 
 <p align="center">
 <img src="Images/project_folders_samples.png" width="600"/>
 </p>
 
+* The _**Project**_ tab contains a search bar; use it to find the file named `ForwardRenderer.asset`, as shown below:
+
+<p align="center">
+<img src="Images/forward_renderer.png"/>
+</p>
+
+* Click on the found file to select it. Then, from the _**Inspector**_ tab of the editor, click on the _**Add Renderer Feature**_ button, and select _**Ground Truth Renderer Feature**_ from the dropdown menu:
+
+<p align="center">
+<img src="Images/forward_renderer_inspector.png" width="400"/>
+</p>
+
+This step prepares your project to render tailor-made images that will be later used for labeling the generates synthetic data.
+
 ### Step 3: Setup a Scene for Your Perception Simulation
 Simply put, in Unity, Scenes contain any object that exists in the world. This world can be a game, or in this case, a perception-oriented simulation. Every new project contains a Scene named _**SampleScene**_, which is automatically openned when the project is created. We will now modify this scene to remove the parts we will not need and tailor it to this tutorial.
 
-The _**Hierarchy**_ tab of Unity Editor displays all the Scenes currently loaded, and all the objects currently present in each loaded Scene, as shown below:
+The _**Hierarchy**_ tab of the editor displays all the Scenes currently loaded, and all the objects currently present in each loaded Scene, as shown below:
 <p align="center">
 <img src="Images/hierarchy.png"/>
 </p>
 
 * Go ahead and remove everything shown in the hierarchy except for _**Main Camera**_ and _**Directional Light**_. 
 
-To remove objects, select them and press _**Delete**_ (Windows) or _**cmd+delete**_ (Mac) on your keyboard. You can also right-click on an object and click _**Delete**_.
+To remove objects, select them and press _**Delete**_ (Windows) or _**cmd+delete**_ (Mac) on your keyboard. You can also right-click an object and click _**Delete**_. After this step, your Scene hierarchy should look like below: 
+<p align="center">
+<img src="Images/hierarchy_1.png" width="200"/>
+</p>
+
+

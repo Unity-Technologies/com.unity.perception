@@ -11,8 +11,9 @@ When you first run Unity, you will be asked to open an existing project, or crea
 
 * Open Unity and create a new project using the Universal Render Pipeline. Name your new project _**Perception Tutorial**_, as shown below. 
 
-<img src="Images/create_new_project.png" align="middle"/>
-
+<p align="center">
+<img src="Images/create_new_project.png" align="center" width="800"/>
+</p>
 
 ### Step 2: Download the Perception Package
 Once your new project is created and loaded, you will be presented with the Unity Editor interface. 
@@ -25,8 +26,9 @@ As the name suggests, the _**Package Manager**_ is where you can download new pa
 
 It will take some time for the manager to download and import the package. Once the operation finishes, you will see the newly download Perception package automatically selected in the _**Package Manager**_, as depicted below:
 
-<img src="Images/package_manager.png" align="middle"/>
-
+<p align="center">
+<img src="Images/package_manager.png" width="600"/>
+</p>
 
 
 Each package can come with a set of samples. As seen in the righthand panel, the Perception package includes a sample named _**Tutorial Files**_, which will be required for completing this tutorial. The sample files consist of example foreground and background objects (foreground: objects that the eventual machine learning model will try to detect, background: objects that will be placed in the background as distractions to for the machine learning model), randomizers, shaders, and other useful elements to work with during this tutorial.
@@ -35,7 +37,18 @@ Each package can come with a set of samples. As seen in the righthand panel, the
 
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project. You can view your project's folder structure and access your files from the _**Project**_ tab of Unity Editor, as seen in the image below:
 
-<img src="Images/project_folders_samples.png" align="middle"/>
+<p align="center">
+<img src="Images/project_folders_samples.png" width="600"/>
+</p>
 
 ### Step 3: Setup a Scene for Your Perception Simulation
-Simply put, in Unity, Scenes contain any object that exists in the world. This world can be a game, or in this case, a perception-oriented simulation. Every new project contains a Scene named _**SampleScene**_, which is automatically open  We will now modifysadaw d
+Simply put, in Unity, Scenes contain any object that exists in the world. This world can be a game, or in this case, a perception-oriented simulation. Every new project contains a Scene named _**SampleScene**_, which is automatically openned when the project is created. We will now modify this scene to remove the parts we will not need and tailor it to this tutorial.
+
+The _**Hierarchy**_ tab of Unity Editor displays all the Scenes currently loaded, and all the objects currently present in each loaded Scene, as shown below:
+<p align="center">
+<img src="Images/hierarchy.png"/>
+</p>
+
+* Go ahead and remove everything shown in the hierarchy except for _**Main Camera**_ and _**Directional Light**_. 
+
+To remove objects, select them and press _**Delete**_ (Windows) or _**cmd+delete**_ (Mac) on your keyboard. You can also right-click on an object and click _**Delete**_.

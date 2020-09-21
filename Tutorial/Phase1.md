@@ -15,7 +15,8 @@ When you first run Unity, you will be asked to open an existing project, or crea
 <img src="Images/create_new_project.png" align="center" width="800"/>
 </p>
 
-### Step 2: Download the Perception Package and Import Samples
+### Step 2: Download the Perception Package and Import 
+
 Once your new project is created and loaded, you will be presented with the Unity Editor interface. From this point, whenever we refer to _the editor_, we mean Unity Editor.
 * From the top menu bar, open _**Window**_ -> _**Package Manager**_. 
 
@@ -76,7 +77,7 @@ We will now add the necessary components to the camera already present in the sc
 * Start typing `Perception Camera` in the search bar that appears, until the `Perception Camera` script is found, with a **#** icon to the left.
 * Click on this script to add it as a component. Your camera is now a _**Perception**_ camera.
 
-Adding components is the standard way in which objects can have various kinds of logic and data attached to them in Unity. This includes objects placed within the Scene (called _**GameObjects**_), such as the camera above, or objects outside of a Scene but in your project folders (called _**Prefabs**_).
+Adding components is the standard way in which objects can have various kinds of logic and data attached to them in Unity. This includes objects placed within the Scene (called GameObjects), such as the camera above, or objects outside of a Scene but in your project folders (called Prefabs).
 
 The `Perception Camera` component comes with its own UI to modify various aspects of synthetic frame generation and annotation, as well as add or remove ground-truth labelers and labelling configurations. If you hover your mouse pointer over each of the fields shown (e.g. _**Capture Interval**_), you will see a tooltip popup with an explanation on what the item controls. You may see a warning at the bottom of this UI regarding asynchronous shader compilation. If so, follow the instructions in the warning message to disable this functionality and remove the warning.
 
@@ -97,12 +98,60 @@ Once you add the labelers, the _**Inspector**_ view of the `Perception Camera` c
 
 It is now time to tell your each labeler added to the `Perception Camera` which objects it should label in the generated dataset. For instance, if your workflow is intended to generate frames and ground-truth for detecting chairs, your labelers would need to know that they should look for objects labeled "chair" within the scene. The chairs should in turn also be labeled "chair" in order to make them visible to their intended labelers. We will now learn how to set-up these configuartions.
 
-You will notice each added labelers has a field named `Id Label Config`. By adding a label configuration here you can instruct the labeler to look for certain labeles within the scene and ignore the rest. To do that, we should first create a fitting label configuration.
+You will notice each added labeler has a field named `Id Label Config`. By adding a label configuration here you can instruct the labeler to look for certain labeles within the scene and ignore the rest. To do that, we should first create a fitting label configuration.
 
 * In the _**Project**_ tab, right-click the `Assets` folder, then click `Create -> Perception -> Id Label Config`.
 
-This will create a new `Id Label Config` asset inside the Assets `folder`.
+This will create a new asset file named `IdLabelConfig` inside the `Assets` folder. 
 
+* Rename the newly created `IdLabelConfig` asset to `TutorialIdLabelConfig`.
 
+Then, click on this asset to bring up its _**Inspector**_ view. In there, you can specify the labels that this config will keep track of. A new label config like this one contains an empty list of labels. 
 
+In this tutorial, we will generate synthetic data intended for detecting 10 everyday grocery items. In this step, you will add labels for each of these 10 items to the list of labels for `TutorialIdLabelConfig`. 
+
+* Select `TutorialIdLabelConfig` and in the _**Inspector**_ tab, click on the _**+**_ button to add 10 new label entries. Use the following exact names for these entries:
+  1 `candy_minipralines_lindt`
+  2 `cereal_cheerios_honeynut`
+  3 `cleaning_snuggle_henkel`
+  4 `craft_yarn_caron_01`
+  * `drink_greentea_itoen`
+  * `drink_whippingcream_lucerne`
+  * `lotion_essentially_nivea`
+  * `pasta_lasagne_barilla`
+  * `snack_biscotti_ghiott_01`
+  * `snack_granolabar_naturevalley`
+
+Once done, the _**Inspector**_ window for `TutorialIdLabelConfig` will look like this:
+
+<p align="center">
+<img src="Images/idlabelconfig.png" width="400"/>
+</p>
+
+These are the names of the 10 grocery items that we will work with in this tutorial. Wonder were the actual objects are? They were imported into your project when you imported the tutorial files from the _**Package Manager**_, and are located at the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1` .
+
+Notice that each of the labels you entered automatically has a numerical ID assigned. These ids are required in order to use the generated data in machine learning models, which typically require numerical ids for classification of objects.
+
+Now that you have created your label configuration, we need to assign this configuration to labelers that you previously added to your `Perception Camera` component. 
+
+* Select the _**Main Camera**_ object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to both labelers. To do so, you can either drag and drop the former into the corresponding fields for each labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. The `Perception Camera` component will now look like the image below:
+
+<p align="center">
+<img src="Images/pclabelconfigsadded.png" width="400"/>
+</p>
+
+The final piece of the label set-up workflow is to assign the same 10 labels to the objects that are supposed to be detected by an eventual object-detection model. As mentioned above, these are located at `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1`. Inside this folder, there are four assets related to each of the 10 foreground objects. These four includes a .fbx model file, a material, a .jpg texture, and a Prefab asset. While the file extensions are not shown as part of the file names in the folder view, if you click on a file to select it, you can view its full name and path in the address bar at the bottom of the _**Project**_ tab.
+
+In Unity, Prefabs are essentially reusable GameObjects that are stored to disk, along with all their child GameObjects, components, and property values. In our case here, the Prefab asset is what brings all the pieces of each foreground object together and will be the actual asset that you will use in your perception pipeline. Let's see what these prefabs include.
+
+* In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1`
+* Double click the file named `drink_whippingcream_lucerne.prefab` to open the Prefab asset. 
+
+When you open the Prefab asset, you will see the object shown in the Scene view and its components shown on the right side of the editor, in the _**Inspector**_ view:
+
+<p align="center">
+<img src="Images/exampleprefab.png"/>
+</p>
+
+The Prefab contains 
 

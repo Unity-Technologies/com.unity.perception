@@ -70,4 +70,39 @@ To remove objects, select them and press _**Delete**_ (Windows) or _**cmd+delete
 <img src="Images/hierarchy_1.png" width="200"/>
 </p>
 
+We will now add the necessary components to the camera already present in the scene in order to equip it for the perception workflow. To do this, we need to add a `PerceptionCamera` component to the camera, and then define which types of ground-truth we wish to generate using this camera.
+
+* Select _**Main Camera**_ in the Scene hierarchy, then, in the _**Inspector**_ tab, click on the _**Add Component**_ button.
+* Start typing `Perception Camera` in the search bar that appears, until the `Perception Camera` script is found, with a **#** icon to the left.
+* Click on this script to add it as a component. Your camera is now a _**Perception**_ camera.
+
+Adding components is the standard way in which objects can have various kinds of logic and data attached to them in Unity. This includes objects placed within the Scene (called _**GameObjects**_), such as the camera above, or objects outside of a Scene but in your project folders (called _**Prefabs**_).
+
+The `Perception Camera` component comes with its own UI to modify various aspects of synthetic frame generation and annotation, as well as add or remove ground-truth labelers and labelling configurations. If you hover your mouse pointer over each of the fields shown (e.g. _**Capture Interval**_), you will see a tooltip popup with an explanation on what the item controls. You may see a warning at the bottom of this UI regarding asynchronous shader compilation. If so, follow the instructions in the warning message to disable this functionality and remove the warning.
+
+As seen in the UI for `Perception Camera`, the list of _**Camera Lebelers**_ is currently empty. For each type of ground-truth you wish to generate along-side your captured frames (e.g. 2D bounding boxes around objects), you will need to add a corresponding _**Camera Labeler**_ to this list. 
+
+To speed-up your perception workflow, the Perception comes pre-packaged with four popular labelers for object-detection tasks; however, if you are comfortable with code, you can easily add your own custom labelers. The labelers that come with the Perception package cover **2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**. In this tutorial, we will be working with the first two. 
+
+* Click on the _**+**_ button to the bottom right corner of the empty labeler list, and select _**BoundingBox2DLabeler**_.
+* Repeat the above step and this time select _**ObjectCountLabeler**_. 
+
+Once you add the labelers, the _**Inspector**_ view of the `Perception Camera` component will look like this:
+
+<p align="center">
+<img src="Images/pc_labelers_added.png" width="400"/>
+</p>
+
+### Specify Ground-Truth and Object Labels
+
+It is now time to tell your each labeler added to the `Perception Camera` which objects it should label in the generated dataset. For instance, if your workflow is intended to generate frames and ground-truth for detecting chairs, your labelers would need to know that they should look for objects labeled "chair" within the scene. The chairs should in turn also be labeled "chair" in order to make them visible to their intended labelers. We will now learn how to set-up these configuartions.
+
+You will notice each added labelers has a field named `Id Label Config`. By adding a label configuration here you can instruct the labeler to look for certain labeles within the scene and ignore the rest. To do that, we should first create a fitting label configuration.
+
+* In the _**Project**_ tab, right-click the `Assets` folder, then click `Create -> Perception -> Id Label Config`.
+
+This will create a new `Id Label Config` asset inside the Assets `folder`.
+
+
+
 

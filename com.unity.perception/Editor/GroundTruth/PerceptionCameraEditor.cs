@@ -93,7 +93,7 @@ namespace UnityEditor.Perception.GroundTruth
             if (EditorSettings.asyncShaderCompilation)
             {
                 EditorGUILayout.HelpBox("Asynchronous shader compilation may result in invalid data in beginning frames. " +
-                    "This can be disabled in Project Settings -> Edtior -> Asynchronous Shader Compilation", MessageType.Warning);
+                    "This can be disabled in Project Settings -> Editor -> Asynchronous Shader Compilation", MessageType.Warning);
             }
 #if HDRP_PRESENT
             var hdRenderPipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset as UnityEngine.Rendering.HighDefinition.HDRenderPipelineAsset;

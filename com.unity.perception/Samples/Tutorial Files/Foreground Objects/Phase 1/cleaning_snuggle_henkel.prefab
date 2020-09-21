@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &4062169516423072207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2955796452549771423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  labels:
+  - cleaning_snuggle_henkel
+--- !u!1001 &6495584984619391382
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 6.723324e-25
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.000000003027916
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4216859302048453862, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 31d28289b6ffcef42a81b0c959451334,
+        type: 3}
+      propertyPath: m_Name
+      value: cleaning_snuggle_henkel
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 31d28289b6ffcef42a81b0c959451334, type: 3}
+--- !u!1 &2955796452549771423 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -927199367670048503, guid: 31d28289b6ffcef42a81b0c959451334,
+    type: 3}
+  m_PrefabInstance: {fileID: 6495584984619391382}
+  m_PrefabAsset: {fileID: 0}

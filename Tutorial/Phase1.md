@@ -64,29 +64,29 @@ The _**Hierarchy**_ tab of the editor displays all the Scenes currently loaded, 
 <img src="Images/hierarchy.png"/>
 </p>
 
-* Go ahead and remove everything shown in the hierarchy except for _**Main Camera**_ and _**Directional Light**_. 
+* Go ahead and remove everything shown in the hierarchy except for `Main Camera` and `Directional Light`. 
 
-To remove objects, select them and press _**Delete**_ (Windows) or _**cmd+delete**_ (Mac) on your keyboard. You can also right-click an object and click _**Delete**_. After this step, your Scene hierarchy should look like below: 
+To remove objects, select them and press `Delete` (Windows) or `cmd+delete` (Mac) on your keyboard. You can also right-click an object and click `Delete`. After this step, your Scene hierarchy should look like below: 
 <p align="center">
 <img src="Images/hierarchy_1.png" width="200"/>
 </p>
 
 We will now add the necessary components to the camera already present in the scene in order to equip it for the perception workflow. To do this, we need to add a `PerceptionCamera` component to the camera, and then define which types of ground-truth we wish to generate using this camera.
 
-* Select _**Main Camera**_ in the Scene hierarchy, then, in the _**Inspector**_ tab, click on the _**Add Component**_ button.
+* Select `Main Camera` in the Scene hierarchy, then, in the _**Inspector**_ tab, click on the _**Add Component**_ button.
 * Start typing `Perception Camera` in the search bar that appears, until the `Perception Camera` script is found, with a **#** icon to the left.
-* Click on this script to add it as a component. Your camera is now a _**Perception**_ camera.
+* Click on this script to add it as a component. Your camera is now a `Perception` camera.
 
 Adding components is the standard way in which objects can have various kinds of logic and data attached to them in Unity. This includes objects placed within the Scene (called GameObjects), such as the camera above, or objects outside of a Scene but in your project folders (called Prefabs).
 
-The `Perception Camera` component comes with its own UI to modify various aspects of synthetic frame generation and annotation, as well as add or remove ground-truth labelers and labelling configurations. If you hover your mouse pointer over each of the fields shown (e.g. _**Capture Interval**_), you will see a tooltip popup with an explanation on what the item controls. You may see a warning at the bottom of this UI regarding asynchronous shader compilation. If so, follow the instructions in the warning message to disable this functionality and remove the warning.
+The `Perception Camera` component comes with its own UI to modify various aspects of synthetic frame generation and annotation, as well as add or remove ground-truth labelers and labelling configurations. If you hover your mouse pointer over each of the fields shown (e.g. `Capture Interval`), you will see a tooltip popup with an explanation on what the item controls. You may see a warning at the bottom of this UI regarding asynchronous shader compilation. If so, follow the instructions in the warning message to disable this functionality and remove the warning.
 
-As seen in the UI for `Perception Camera`, the list of _**Camera Lebelers**_ is currently empty. For each type of ground-truth you wish to generate along-side your captured frames (e.g. 2D bounding boxes around objects), you will need to add a corresponding _**Camera Labeler**_ to this list. 
+As seen in the UI for `Perception Camera`, the list of `Camera Lebelers` is currently empty. For each type of ground-truth you wish to generate along-side your captured frames (e.g. 2D bounding boxes around objects), you will need to add a corresponding `Camera Labeler` to this list. 
 
 To speed-up your perception workflow, the Perception comes pre-packaged with four popular labelers for object-detection tasks; however, if you are comfortable with code, you can easily add your own custom labelers. The labelers that come with the Perception package cover **2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**. In this tutorial, we will be working with the first two. 
 
-* Click on the _**+**_ button to the bottom right corner of the empty labeler list, and select _**BoundingBox2DLabeler**_.
-* Repeat the above step and this time select _**ObjectCountLabeler**_. 
+* Click on the _**+**_ button to the bottom right corner of the empty labeler list, and select `BoundingBox2DLabeler`.
+* Repeat the above step and this time select `ObjectCountLabeler`. 
 
 Once you add the labelers, the _**Inspector**_ view of the `Perception Camera` component will look like this:
 
@@ -100,7 +100,7 @@ It is now time to tell your each labeler added to the `Perception Camera` which 
 
 You will notice each added labeler has a field named `Id Label Config`. By adding a label configuration here you can instruct the labeler to look for certain labeles within the scene and ignore the rest. To do that, we should first create a fitting label configuration.
 
-* In the _**Project**_ tab, right-click the `Assets` folder, then click `Create -> Perception -> Id Label Config`.
+* In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Id Label Config**_.
 
 This will create a new asset file named `IdLabelConfig` inside the `Assets` folder. 
 
@@ -134,7 +134,7 @@ Notice that each of the labels you entered automatically has a numerical ID assi
 
 Now that you have created your label configuration, we need to assign this configuration to labelers that you previously added to your `Perception Camera` component. 
 
-* Select the _**Main Camera**_ object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to both labelers. To do so, you can either drag and drop the former into the corresponding fields for each labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. The `Perception Camera` component will now look like the image below:
+* Select the `Main Camera` object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to both labelers. To do so, you can either drag and drop the former into the corresponding fields for each labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. The `Perception Camera` component will now look like the image below:
 
 <p align="center">
 <img src="Images/pclabelconfigsadded.png" width="400"/>
@@ -155,5 +155,32 @@ When you open the Prefab asset, you will see the object shown in the Scene view 
 
 The Prefab contains a number of components, including a `Transform`, a `Mesh Filter`, a `Mesh Renderer` and a `Labeling` component (highlighted in the image above). While the first three of these are common Unity components, the fourth one is specific to the Perception package, and is used for assigning labels to objects. You can see here that the cream carton is already labeled `drink_whippingcream_lucerner`. This is true for all the foreground objects supplied in the sample tutorial files, which means you do not need to perform any additonal steps to label your foreground objects.
 
-Note that each object can have multiple labels assigned, and thus appear as different objects to labelers with different label configurations. For instance, you may want your semantic segmentation labeler to detect all cream cartons as as `dairy_product`, while your bounding box labeler still distinguishes between different types of dairy product. To achieve this, you can add a `dairy_product` label to all your dairy products, and then in your label configuration for semantic segmentation, only add the `dairy_product` label, and not any specific products or brand names. To add an additional a label to the cream carton, you can click on the _**+**_ button to the bottom right corner of the label list, within the `Labeling` component.
+Note that each object can have multiple labels assigned, and thus appear as different objects to labelers with different label configurations. For instance, you may want your semantic segmentation labeler to detect all cream cartons as as `dairy_product`, while your bounding box labeler still distinguishes between different types of dairy product. To achieve this, you can add a `dairy_product` label to all your dairy products, and then in your label configuration for semantic segmentation, only add the `dairy_product` label, and not any specific products or brand names. To add an additional a label to the cream carton, you can click on the _**+**_ button to the bottom right corner of the label list, in the `Labeling` component.
+
+
+### Set-up Randomization
+
+As mentioned earlier, one of the core ingredients of the perception workflow is the randomization of various aspects of the simulation, in order to introduce sufficient variation into the generated data. 
+
+To start randomizing your simulation you will first need to add a `Scenario` to your scene. Scenarios control the execution flow of your simulation by coordinating all `Randomizer` components added to them. The Perception package comes with a useful set of `Randomizer`s that let you quickly place your foreground objects in the Scene, generate varied backgrounds, as well as randomize various parameters of the simulation over time, including things such as positon, scale, and rotation of objects, number of objects within the camera's view, and so on. `Randomizer`s achieve this through coordinating a number of `Parameter`s, which essentially define the most granular randomization behaviors. For instance, for continuous variable types such as floats, vectors, and colors, `Parameter`s can define the range, sampling distribution, and a seed for randomization. This is while another class of `Paramter`s let you randomly select one of a number of categorical options.  
+
+To summarize, a sample `Scenario` could look like this:
+
+<p align="center">
+<img src="Images/scenario_hierarchy.png" width = "300"/>
+</p>
+
+
+In this tutorial, you will learn how to use the provided Randomizers, as well as how to create new ones that are custom-fitted to your randomization needs.
+
+
+
+
+
+
+Note that at any given time, you can have only one `Scenario` active. 
+
+* Create a new GameObject in your Scene by right-clicking in the _**Hierarchy**_ tab and clicking `Create Empty`.
+* Rename your new GameObject to `Simulation Scenario`.
+
 

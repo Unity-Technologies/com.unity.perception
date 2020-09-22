@@ -153,5 +153,7 @@ When you open the Prefab asset, you will see the object shown in the Scene view 
 <img src="Images/exampleprefab.png"/>
 </p>
 
-The Prefab contains 
+The Prefab contains a number of components, including a `Transform`, a `Mesh Filter`, a `Mesh Renderer` and a `Labeling` component (highlighted in the image above). While the first three of these are common Unity components, the fourth one is specific to the Perception package, and is used for assigning labels to objects. You can see here that the cream carton is already labeled `drink_whippingcream_lucerner`. This is true for all the foreground objects supplied in the sample tutorial files, which means you do not need to perform any additonal steps to label your foreground objects.
+
+Note that each object can have multiple labels assigned, and thus appear as different objects to labelers with different label configurations. For instance, you may want your semantic segmentation labeler to detect all cream cartons as as `dairy_product`, while your bounding box labeler still distinguishes between different types of dairy product. To achieve this, you can add a `dairy_product` label to all your dairy products, and then in your label configuration for semantic segmentation, only add the `dairy_product` label, and not any specific products or brand names. To add an additional a label to the cream carton, you can click on the _**+**_ button to the bottom right corner of the label list, within the `Labeling` component.
 

@@ -1,6 +1,6 @@
 # Overview
 
-*NOTICE: The perception randomization toolset is currently marked as experimental and will experience a number of updates in the near future.*
+*NOTE: The Perception package's randomization toolset is currently marked as experimental and is subject to change.*
 
 The randomization toolset simplifies randomizing aspects of generating synthetic data. It facilitates exposing parameters for randomization, offers samplers to pick random values from parameters, and provides scenarios to define a full randomization process. Each of these also allows for custom implementations to fit particular randomization needs.
 

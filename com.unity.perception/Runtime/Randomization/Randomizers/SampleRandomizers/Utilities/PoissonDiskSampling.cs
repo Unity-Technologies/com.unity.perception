@@ -6,6 +6,9 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers
 {
+    /// <summary>
+    /// Utility for generating lists of poisson disk sampled points
+    /// </summary>
     public static class PoissonDiskSampling
     {
         const int k_DefaultSamplingResolution = 30;
@@ -13,13 +16,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         // Algorithm sourced from Robert Bridson's paper "Fast Poisson Disk Sampling in Arbitrary Dimensions"
         // https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
         /// <summary>
-        ///   <para>Returns a list of poisson disc sampled points for a given area and density</para>
+        /// Returns a list of poisson disc sampled points for a given area and density
         /// </summary>
         /// <param name="width">Width of the sampling area</param>
         /// <param name="height">Height of the sampling area</param>
         /// <param name="minimumRadius">The minimum distance required between each sampled point</param>
         /// <param name="seed">The random seed used to initialize the algorithm state</param>
         /// <param name="samplingResolution">The number of potential points sampled around every valid point</param>
+        /// <returns>The list of generated poisson points</returns>
         public static NativeList<float2> GenerateSamples(
             float width,
             float height,
@@ -69,7 +73,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
             }
         }
 
-        public static NativeList<float2> Sample(
+        static NativeList<float2> Sample(
             float width,
             float height,
             float minimumRadius,

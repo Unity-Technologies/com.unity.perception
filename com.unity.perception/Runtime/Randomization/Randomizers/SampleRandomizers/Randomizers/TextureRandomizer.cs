@@ -4,12 +4,22 @@ using UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandom
 
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers
 {
+    /// <summary>
+    /// Randomizes the material texture of objects tagged with a TextureRandomizerTag
+    /// </summary>
     [Serializable]
     public class TextureRandomizer : Randomizer
     {
         static readonly int k_BaseTexture = Shader.PropertyToID("_BaseMap");
+
+        /// <summary>
+        /// The list of textures to sample and apply to tagged objects
+        /// </summary>
         public Texture2DParameter texture;
 
+        /// <summary>
+        /// Randomizes the material texture of tagged objects at the start of each scenario iteration
+        /// </summary>
         protected override void OnIterationStart()
         {
             var taggedObjects = tagManager.Query<TextureRandomizerTag>();

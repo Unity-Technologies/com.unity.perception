@@ -5,15 +5,37 @@ using UnityEngine.Experimental.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers
 {
+    /// <summary>
+    /// Creates a 2D layer of of evenly spaced GameObjects from a given list of prefabs
+    /// </summary>
     [Serializable]
     public class ForegroundObjectPlacementRandomizer : Randomizer
     {
-        public float depth;
-        public float separationDistance = 2f;
-        public Vector2 placementArea;
-        public GameObjectParameter prefabs;
         List<GameObject> m_SpawnedObjects = new List<GameObject>();
 
+        /// <summary>
+        /// The Z offset component applied to the generated layer of GameObjects
+        /// </summary>
+        public float depth;
+
+        /// <summary>
+        /// The minimum distance between all placed objects
+        /// </summary>
+        public float separationDistance = 2f;
+
+        /// <summary>
+        /// The size of the 2D area designated for object placement
+        /// </summary>
+        public Vector2 placementArea;
+
+        /// <summary>
+        /// The list of prefabs sample and randomly place
+        /// </summary>
+        public GameObjectParameter prefabs;
+
+        /// <summary>
+        /// Generates a foreground layer of objects at the start of each scenario iteration
+        /// </summary>
         protected override void OnIterationStart()
         {
             var seed = SamplerUtility.IterateSeed((uint)scenario.currentIteration, SamplerUtility.largePrime);
@@ -30,6 +52,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
             placementSamples.Dispose();
         }
 
+        /// <summary>
+        /// Deletes generated foreground objects after each scenario iteration is complete
+        /// </summary>
         protected override void OnIterationEnd()
         {
             foreach (var spawnedObject in m_SpawnedObjects)

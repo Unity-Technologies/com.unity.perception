@@ -84,29 +84,31 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
 {% endfor %}
 
 {% for editor in complete_editors %}
+{% for suite in suites %}
 {% for project in projects %}
-{{project.name}}_linux_{{editor.version}}_performance:
-  name : {{project.name}} performance tests ({{ editor.version }}, Linux)
+{{project.name}}_windows_{{suite.name}}_{{editor.version}}:
+  name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Windows)
   agent:
-      type: Unity::VM::GPU
-      image: cds-ops/ubuntu-18.04-base:latest
-      flavor: b1.large
-  variables:
-      PATH: /root/.local/bin:/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
   commands:
-      - git submodule update --init --recursive
-      - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
-      - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-      - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
-      - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" --suite=playmode --platform=StandaloneLinux64
-
+    - git submodule update --init --recursive
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    {% if suite.name == "standalone" %}
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64
+    {% else %}
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}
+    {% endif %}
   artifacts:
-      logs:
-          paths:
-              - "test-results/**/*"
-  {% endfor %}
-  {% endfor %}
-  {% endfor %}
+    logs:
+      paths:
+        - "test-results/**/*"
+{% endfor %}
+{% endfor %}
+{% endfor %}
 
 # Not including OSX because the only OSX platform on Bokken with a GPU is a Mac Mini, of which there are only a few and setting up Yamato jobs is very complicated.
 

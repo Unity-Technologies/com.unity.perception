@@ -1,0 +1,20 @@
+{% metadata_file .yamato/environments.yml %}
+
+---
+
+{% for editor in performance_editors %}
+{% for project in projects %}
+{{project.name}}_windows_{{editor.version}}_performance:
+  name: {{project.name}} performance tests ({{ editor.version }}, Windows)
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    
+
+
+  triggers:
+    recurring:
+      - branch: master
+        frequency: 0/1 * * ? # Run every hour

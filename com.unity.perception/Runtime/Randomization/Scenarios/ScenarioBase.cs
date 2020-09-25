@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
@@ -317,6 +318,29 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             var randomizer = m_Randomizers[currentIndex];
             m_Randomizers.RemoveAt(currentIndex);
             m_Randomizers.Insert(nextIndex, randomizer);
+        }
+
+        /// <summary>
+        /// Generates a random seed by hashing the current scenario iteration with a given base random seed
+        /// </summary>
+        /// <param name="baseSeed">Used to offset the seed generator</param>
+        /// <returns>The generated random seed</returns>
+        public uint GenerateRandomSeed(uint baseSeed = SamplerUtility.largePrime)
+        {
+            var seed = SamplerUtility.IterateSeed((uint)currentIteration, baseSeed);
+            return SamplerUtility.IterateSeed((uint)currentIteration, seed);
+        }
+
+        /// <summary>
+        /// Generates a random seed by hashing three values together: an arbitrary iteration value,
+        /// the current scenario iteration, and a base random seed
+        /// </summary>
+        /// <param name="iteration">An offset value hashed inside the seed generator</param>
+        /// <param name="baseSeed">An offset value hashed inside the seed generator</param>
+        /// <returns>The generated random seed</returns>
+        public uint GenerateIterativeRandomSeed(int iteration, uint baseSeed = SamplerUtility.largePrime)
+        {
+            return SamplerUtility.IterateSeed((uint)iteration, baseSeed);
         }
 
         void ValidateParameters()

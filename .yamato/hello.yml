@@ -1,0 +1,11 @@
+# ./yamato/yamato-config.yml
+
+name: Hello world
+agent:
+    type: Unity::VM
+    image: package-ci/win10:stable 
+    flavor: b1.small
+commands:
+    - echo "Hello world!"  flavor: b1.small
+commands:
+  -echo "Hello World"

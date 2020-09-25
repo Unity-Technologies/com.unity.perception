@@ -1,18 +1,25 @@
-# ./yamato/yamato-config.yml
+{% metadata_file .yamato/environments.yml %}
 
-name: Hello world
-agent:
+---
+
+{% for editor in complete_editors %}
+{% for project in projects %}
+{{project.name}}_windows_{{suite.name}}_{{editor.version}}_performance:    
+  name: {{project.name}} performance tests ({{editor.version}}, Windows)
+  agent:
     type: Unity::VM
     image: package-ci/win10:stable 
-    flavor: b1.small
-commands:
-    - echo "Hello world!"
+    flavor: b1.large
+  commands:
     - git submodule update --init --recursive
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-    - unity-downloader-cli -u 2019.4.6f1 -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
-    - utr/utr --testproject=./TestProjects/PerceptionURP --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --category="Performance" --extra-editor-arg="--force-d3d11" --suite=playmode --suite=editor --platform=Editor --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
-artifacts:
+    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --category="Performance" --extra-editor-arg="--force-d3d11" --suite=playmode --suite=editor --platform=Editor --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
+  artifacts:
     logs:
-        paths:
-            - "test-results/**/*"
+      paths:
+        - "test-results/**/*"
+          
+{% endfor %}
+{% endfor %}

@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     /// Randomizes the material texture of objects tagged with a TextureRandomizerTag
     /// </summary>
     [Serializable]
+    [AddRandomizerMenu("Perception/Texture Randomizer")]
     public class TextureRandomizer : Randomizer
     {
         static readonly int k_BaseTexture = Shader.PropertyToID("_BaseMap");

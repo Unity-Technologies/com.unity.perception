@@ -88,10 +88,10 @@ The `Perception Camera` component comes with its own UI to modify various aspect
 
 As seen in the UI for `Perception Camera`, the list of `Camera Lebelers` is currently empty. For each type of ground-truth you wish to generate along-side your captured frames (e.g. 2D bounding boxes around objects), you will need to add a corresponding `Camera Labeler` to this list. 
 
-To speed-up your perception workflow, the Perception comes pre-packaged with four popular labelers for object-detection tasks; however, if you are comfortable with code, you can easily add your own custom labelers. The labelers that come with the Perception package cover **2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**. In this tutorial, we will be working with the first two. 
+To speed-up your perception workflow, the Perception comes pre-packaged with four useful and common labelers for object-detection tasks; however, if you are comfortable with code, you can easily add your own custom labelers. The labelers that come with the Perception package cover **2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**. In this tutorial, we will be working with the first three. 
 
 * **Action**: Click on the _**+**_ button to the bottom right corner of the empty labeler list, and select `BoundingBox2DLabeler`.
-* **Action**: Repeat the above step and this time select `ObjectCountLabeler`. 
+* **Action**: Repeat the above step to add `ObjectCountLabeler` and `RenderedObjectInfoLabeler`. 
 
 Once you add the labelers, the _**Inspector**_ view of the `Perception Camera` component will look like this:
 
@@ -142,7 +142,7 @@ Notice that each of the labels you entered automatically has a numerical ID assi
 
 Now that you have created your label configuration, we need to assign this configuration to labelers that you previously added to your `Perception Camera` component. 
 
-* **Action**: Select the `Main Camera` object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to both labelers. To do so, you can either drag and drop the former into the corresponding fields for each labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. The `Perception Camera` component will now look like the image below:
+* **Action**: Select the `Main Camera` object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to all three labelers. To do so, you can either drag and drop the former into the corresponding fields for each labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. The `Perception Camera` component will now look like the image below:
 
 <p align="center">
 <img src="Images/pclabelconfigsadded.png" width="400"/>
@@ -233,7 +233,7 @@ As seen in the image above, what we have now is just a beige-colored wall of sha
 
 * **Action**: In the UI snippet for `TextureRandomizer`, click _**Add Folder**_ and choose `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Textures`. 
 
-* **Action**: In the UI snippet for `RotationRandomizer`, change the all the maximum values for the three ranges to `360`. 
+* **Action**: In the UI snippet for `RotationRandomizer`, change the all the maximum values for the three ranges to `360` and leave the minimums at `0`. 
 
 Your list of `Randomizer`s should now look like the screenshot below:
 
@@ -245,7 +245,7 @@ Note that the `Seed` values do not need to match the image above.
 
 There is one more important thing left to do, in order to make sure all the above `Randomizer`s operate as expected. Since `BackgroundObjectPlacementRandomizer` spawns objects, it already knows which objects in the Scene it is dealing with; however, the rest of the `Randomizer`s  we added are not yet aware of what objects they should target because they don't spawn their own objects.
 
-To make sure each `Randomizer` knows which objects it should work with, we will use the tagging system that comes with the Perception package. Each `Randomizer` can query the Scene for objects that carry certain types of `RandomizerTag` components. For instance, the `TextureRandomizer` queries the Scene for objects that have a `TextureRandomizerTag` component (you can change this in code!). Therefore, in order to make sure our background Prefabs are affected by the `TextureRandomizer` we need to make sure they have `TextureRandomizerTag` attached to them.
+To make sure each `Randomizer` knows which objects it should work with, we will use an object tagging and querying workflow that the bundled `Randomizer`s already use. Each `Randomizer` can query the Scene for objects that carry certain types of `RandomizerTag` components. For instance, the `TextureRandomizer` queries the Scene for objects that have a `TextureRandomizerTag` component (you can change this in code!). Therefore, in order to make sure our background Prefabs are affected by the `TextureRandomizer` we need to make sure they have `TextureRandomizerTag` attached to them.
 
 * **Action**: In the _**Project**_ tab, navigate to the `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
 * **Action**: Select all the files inside and from the _**Inspector**_ tab add a `TextureRandomizerTag` to them. This will add the component to all the selected files.
@@ -276,24 +276,19 @@ While the texture and color of the foreground objects will be constant during th
 
 The last step here is to make sure the order of randomizations is correct. `Randomizer`s execute according to their order within the list of `Randomizer`s added to your `Scenario`. If you look at the list now, you will notice that `ForegroundObjectPlacementRandomizer` is coming after `RotationRandomizer`, therefore, foreground objects will NOT be included in the rotation randomizations, even though they are carrying the proper tag. To fix that:
 
-* **Action**: Drag  `ForegroundObjectPlacementRandomizer` and drop it before `RotationRandomizer`.
+* **Action**: Drag  `ForegroundObjectPlacementRandomizer` and drop it above `RotationRandomizer`.
 
-Since our `Scenario` includes `Iteration`s and each `Iteration` runs for one frame,  
+### Step 6: Generate and Verify Synthetic Data
 
-### Step 6: Run Your Simulation and Generate Synthetic Data
+You are now ready to generate your first dataset. The `FixedLengthScenario` component that we used has 1000 `Iteration`s by default, and each `Iteration` runs for one frame. Thus, the simulation will produce 1000 frames of annotated captures.
 
-You are now ready to run your simulation and get your first batch of synthetic data.
+* **Action** Click **▷** (play) again and this time let the simulation finish. It should take about 1 minute, depending on your hardware.
 
-* **Action**: Click on the **▷** (play) button located at top middle section of the editor to run your simulation.
+While the simulation is running, your _**Game**_ view will quickly generate frames similar to the gif below:
 
-
-
-
-
-_To be added: Screenshot for running simulation and visualziation panel_
-
-
-
+<p align="center">
+<img src="Images/generation1.gif" width = "700"/>
+</p>
 
 
 The simulation will take about a minute to complete (depending on your computer's hardware). Once the run is complete, you will see a message in the _**Console**_ tab of the editor, with information on where the generated data has been saved. An example is shown below (Mac OS):
@@ -301,8 +296,6 @@ The simulation will take about a minute to complete (depending on your computer'
 <p align="center">
 <img src="Images/dataset_written.png"/>
 </p>
-
-### Step 7: Review the Generated Data
 
 * **Action**: Navigate to the dataset path addressed above. 
 
@@ -320,3 +313,40 @@ The output dataset includes a large variety of information about various aspects
 * `instance_id`: Unique instance id of the object
 * `x` and `y`: Pixel coordinates of the top-left corner of the object's bounding box. (measured from the top-left corner of the image)
 * `width` and `height` of the object's bounding box.
+
+
+To verify and analyze a variety of metrics for the generated data, such as number of foreground objects in each frame and degree of representation for each foreground object (label), we will now use Unity's Dataset Insights framework. This will involve running a Jupyter notebook which is conveniently packaged within a Docker file that you can download from Unity. 
+
+* **Action**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop)
+* **Action**: Open a command line interface (Command Prompt, Terminal, etc.) and type the following command to run the Dataset Insights Docker image: 
+`docker run -p 8888:8888 -v <path to synthetic data>:/data -t unitytechnologies/datasetinsights:latest`, where the path is what we earlier found in Unity's console messages.
+
+This will download a Docker image from Unity. If you get an error regarding the path to your dataset, make sure you have not included the enclosing `<` and `>` in the path and that the spaces are properly escaped.
+
+* **Action**: The image is now running on your computer. Open a web browser and navigate to `http://localhost:8888` to open the Jupyter notebook:
+
+<p align="center">
+<img src="Images/jupyter1.png"/>
+</p>
+
+* **Action**: To make sure your data is properly mounted, navigate to the `data` folder. If you see the dataset's folders here, we are good to go.
+* **Action**: Navigate to the `datasetinsights/notebooks` folder and open `Perception_Statistics.ipynb`.
+* **Action**: Once in the notebook, replace the `<GUID>` in the `data_root = /data/<GUID>` with the name of the dataset folder inside your generated data. For example `Dataseta26351bc-1b72-46c5-9e0c-d7afd6df2974`.
+
+<p align="center">
+<img src="Images/jupyter2.png"/>
+</p>
+
+This notebook contains a variety of functions for generating plots, tables, and bounding box images that help you analyze your generated dataset. Certain parts of this notebook are currently not of use to us, such as the code meant for downloading data generated through Unity Simulation (coming later in this tutorial), or parts that deal with output from the semantic segmentation labeler (which we did not include in our `PerceptionCamera`). 
+
+* **Action**: Follow the instructions laid out in the notebook and run each code block to view its outputs. Not how parts of the code that are relevant to Unity Simulation are commented.
+
+Below, you can a sample plot generated by the Dataset Insights notebook, depicting the number of times each of the 10 foreground objects appeared in the dataset. As shown in the histogram, there is a high level of uniformity between the labels, which is a desirable outcome. 
+
+
+<p align="center">
+<img src="Images/object_count_plot.png" width="600"/>
+</p>
+
+
+This concludes Phase 1 of the Perception tutoial. In the next phase, you will dive a little bit into randomization code and learn how to build your own custom `Randomizer` quickly. Click here to continue to Phase 2: 

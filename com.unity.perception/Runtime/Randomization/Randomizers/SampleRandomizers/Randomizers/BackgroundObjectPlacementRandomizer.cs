@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         {
             for (var i = 0; i < layerCount; i++)
             {
-                var seed = SamplerUtility.IterateSeed((uint)scenario.currentIteration, (uint)i);
+                var seed = scenario.GenerateIterativeRandomSeed(i);
                 var placementSamples = PoissonDiskSampling.GenerateSamples(
                     placementArea.x, placementArea.y, separationDistance, seed);
                 var offset = new Vector3(placementArea.x, placementArea.y, 0f) * -0.5f;

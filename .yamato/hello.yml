@@ -6,6 +6,13 @@ agent:
     image: package-ci/win10:stable 
     flavor: b1.small
 commands:
-    - echo "Hello world!"  flavor: b1.small
-commands:
-  -echo "Hello World"
+    - echo "Hello world!"
+    - git submodule update --init --recursive
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+    - unity-downloader-cli -u 2019.4.6f1 -c editor StandaloneSupport-IL2CPP -c Linux --wait --published
+    - utr/utr --testproject=./TestProjects/PerceptionURP --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-utr-arg="--category=Performance" --extra-editor-arg="--force-d3d11" --suite=playmode --suite=editor --platform=Editor
+artifacts:
+    logs:
+        paths:
+            - "test-results/**/*"

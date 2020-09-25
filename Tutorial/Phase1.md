@@ -166,7 +166,7 @@ The Prefab contains a number of components, including a `Transform`, a `Mesh Fil
 Note that each object can have multiple labels assigned, and thus appear as different objects to labelers with different label configurations. For instance, you may want your semantic segmentation labeler to detect all cream cartons as as `dairy_product`, while your bounding box labeler still distinguishes between different types of dairy product. To achieve this, you can add a `dairy_product` label to all your dairy products, and then in your label configuration for semantic segmentation, only add the `dairy_product` label, and not any specific products or brand names. To add an additional a label to the cream carton, you can click on the _**+**_ button to the bottom right corner of the label list, in the `Labeling` component.
 
 
-### Step 5: Set-up Randomization
+### Step 5: Add and Set-up Randomizers
 
 As mentioned earlier, one of the core ingredients of the perception workflow is the randomization of various aspects of the simulation, in order to introduce sufficient variation into the generated data. 
 
@@ -195,12 +195,17 @@ Once the `Fixed Length Scenario` component is added, the inspector view for your
 
 There are a number settings and properties you can modify here, such as `Quit On Complete` or `Constants`. Just like the `Perception Camera` component, if you hover your mouse cursor over each of these properties, you will see a tooltip containing a relevant explanation. For now, we will leave all of these fields as they are. This is currently an empty `Scneario`. Let's add some `Randomizer`s.
 
+* **Action**: Click _**Add Randomizer**_, and from the list choose `BackgroundObjectPlacementRandomizer`.
 
-_To be added: Steps for adding basic Randomizers_
+This `Randomizer` uses Poisson-Disk sampling to select random positions from a given area, and spawn copies of randomly selected Prefabs (from the given list) at the chosen positions. We will use this component to generate a background that will act as a distraction for our eventual object-detection machine learning model.
 
-### Step 6: Run Your Simulation and Generate Synthetic Data
+* **Action**: Click _**Add Folder**_, and from the file explorer window that opnes, choose the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
 
-You are now ready to run your simulation and get your first batch of synthetic data.
+The beckground Prefabs are primitve shapes devoid of color or texture. Later `Randomizer`s will take care of those aspects. Set the rest of the properties (except for `Seed`) according to the image below. The `Seed` attribute is the seed used for the underlying random sampler, and does not need to match the image shown.
+
+<p align="center">
+<img src="Images/background_randomizer.png" width = "400"/>
+</p>
 
 * **Action**: Click on the **▷** (play) button located at top middle section of the editor to run your simulation.
 
@@ -208,13 +213,88 @@ You are now ready to run your simulation and get your first batch of synthetic d
 <img src="Images/play.png" width = "500"/>
 </p>
 
-When the simulation starts running, Unity Editor will switch to the _**Game**_ tab to show you the output of the active camera, which carries the `Perception Camera` component. In this view, you will also see the real-time visualizations we discussed before shown on top of the camera's view. In the top right corner of the window, you can see a visualization control panel, through which you can enable or disable visualizations for individual labelers, as seen below:
+When the simulation starts running, Unity Editor will switch to the _**Game**_ tab to show you the output of the active camera, which carries the `Perception Camera` component, as seen below:
 
-_To be added: Screenshot for running simulation and visualziation panel_
+<p align="center">
+<img src="Images/first_run.png" width = "700"/>
+</p>
+
+In this view, you will also see the real-time visualizations we discussed before shown on top of the camera's view. In the top right corner of the window, you can see a visualization control panel, through which you can enable or disable visualizations for individual labelers. That said, we currently have no foreground objects in the Scene yet, so no bounding boxes will be displayed.
 
 Note that disabling visualizations for a labeler does not affect your generated data. The annotations from all labelers that are active before running the simulation will continue to be recorded and will appear in the output data.
 
-To generate data as fast as possible, the simulation will churn through frames quickly, rearranging and randomizing the objects in each frame. To be able to check out individual frames and inspect the real-time visualizations, click on the pause button (next to play). To continue, just click play again. 
+To generate data as fast as possible, the simulation will churn through frames quickly, rearranging and randomizing the objects in each frame. To be able to check out individual frames and inspect the real-time visualizations, click on the pause button (next to play). You can also switch back to the Scene view to be able to inspect each object individually.
+
+As seen in the image above, what we have now is just a beige-colored wall of shapes. This is because so far we are only spawning them. To make this background more useful, let's add a couple more `Randomizers`. 
+
+* **Action**: Repeat the previous steps to add `TextureRandomizer`, `HueOffsetRandomizer`, and `RotationRandomizer`.
+
+`TextureRandomizer` and will have the task of attaching random textures to our colorless background objects at each `Iteration` of the `Scenario`. Simlarly, `HueOffsetRandomizer` will alter the color of the objects, and `RotationRandomizer` will give the objects a new random rotation each `Iteration`. 
+
+* **Action**: In the UI snippet for `TextureRandomizer`, click _**Add Folder**_ and choose `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Textures`. 
+
+* **Action**: In the UI snippet for `RotationRandomizer`, change the all the maximum values for the three ranges to `360`. 
+
+Your list of `Randomizer`s should now look like the screenshot below:
+
+<p align="center">
+<img src="Images/all_back_rands.png" width = "400"/>
+</p>
+
+Note that the `Seed` values do not need to match the image above.
+
+There is one more important thing left to do, in order to make sure all the above `Randomizer`s operate as expected. Since `BackgroundObjectPlacementRandomizer` spawns objects, it already knows which objects in the Scene it is dealing with; however, the rest of the `Randomizer`s  we added are not yet aware of what objects they should target because they don't spawn their own objects.
+
+To make sure each `Randomizer` knows which objects it should work with, we will use the tagging system that comes with the Perception package. Each `Randomizer` can query the Scene for objects that carry certain types of `RandomizerTag` components. For instance, the `TextureRandomizer` queries the Scene for objects that have a `TextureRandomizerTag` component (you can change this in code!). Therefore, in order to make sure our background Prefabs are affected by the `TextureRandomizer` we need to make sure they have `TextureRandomizerTag` attached to them.
+
+* **Action**: In the _**Project**_ tab, navigate to the `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
+* **Action**: Select all the files inside and from the _**Inspector**_ tab add a `TextureRandomizerTag` to them. This will add the component to all the selected files.
+* **Action**: Repeat the above step to add `HueOffsetRandomizerTag` and `RotationRandomizerTag` to all selected Prefabs.
+
+Once the above step is done, the _**Inspector**_ tab for a background Prefab should look like this:
+
+<p align="center">
+<img src="Images/back_prefab.png" width = "400"/>
+</p>
+
+If you run the simulation now you will see the generated backgrounds look much more colourful and distracting!
+
+<p align="center">
+<img src="Images/background_good.png" width = "700"/>
+</p>
+
+It is now time to spawn and randomize our foregournd objects. We are getting close to generating our first set of synthetic data!
+
+* **Action**: Add `ForegroundObjectPlacementRandomizer` to your list of `Randomizer`s. Click _**Add Folder**_ and select `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
+* **Action**: Set these values for the above `Randomizer`: `Depth = 3, Separation Distance = 1.5, Placement Area = (5,5)`.
+
+This `Randomizer` uses the same algorithm as the one we used for backgrounds; however, it is defined in a separate C# class because you can only have **one of each type of `Randomizer` added to your `Scenario`**. Therefore, this is our way of differentating between how background and foreground objects are treated.
+
+While the texture and color of the foreground objects will be constant during the simulation, we would like their rotation to be randomized similar to the background Prefabs. To achieve this:
+
+* **Action**: From the _**Project**_ tab select all the foreground Prefabs located in `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`, and add a `RotationRandomizerTag` component to them.
+
+The last step here is to make sure the order of randomizations is correct. `Randomizer`s execute according to their order within the list of `Randomizer`s added to your `Scenario`. If you look at the list now, you will notice that `ForegroundObjectPlacementRandomizer` is coming after `RotationRandomizer`, therefore, foreground objects will NOT be included in the rotation randomizations, even though they are carrying the proper tag. To fix that:
+
+* **Action**: Drag  `ForegroundObjectPlacementRandomizer` and drop it before `RotationRandomizer`.
+
+Since our `Scenario` includes `Iteration`s and each `Iteration` runs for one frame,  
+
+### Step 6: Run Your Simulation and Generate Synthetic Data
+
+You are now ready to run your simulation and get your first batch of synthetic data.
+
+* **Action**: Click on the **▷** (play) button located at top middle section of the editor to run your simulation.
+
+
+
+
+
+_To be added: Screenshot for running simulation and visualziation panel_
+
+
+
+
 
 The simulation will take about a minute to complete (depending on your computer's hardware). Once the run is complete, you will see a message in the _**Console**_ tab of the editor, with information on where the generated data has been saved. An example is shown below (Mac OS):
 

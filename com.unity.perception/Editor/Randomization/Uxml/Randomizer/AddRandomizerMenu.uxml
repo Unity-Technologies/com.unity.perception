@@ -1,8 +1,12 @@
-﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+﻿<UXML xmlns="UnityEngine.UIElements">
     <VisualElement name="container" style="width: 225px; height: 300px; background-color: #383838; border-width: 1px; border-color: #232323;">
         <Style src="../../Uss/AddRandomizerMenuStyles.uss"/>
         <TextField name="search-bar" style="padding: 3px;"/>
-        <TextElement name="directory-name" text="Randomizers" style="-unity-text-align: middle-center; -unity-font-style: bold; padding: 3px; background-color: #414141; border-bottom-width: 1px; border-top-width: 1px;border-color: #232323;"/>
+        <VisualElement name="directory-label" style="flex-direction: row; justify-content: space-between; align-items: center; background-color: #414141">
+            <VisualElement name="directory-chevron" class="chevron-left"/>
+            <TextElement name="directory-label-text" text="Randomizers" style="-unity-font-style: bold; padding: 3px;"/>
+            <VisualElement/>
+        </VisualElement>
         <VisualElement name="menu-options"/>
     </VisualElement>
 </UXML>

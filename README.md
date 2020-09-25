@@ -33,3 +33,13 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 
 ## License
 * [License](com.unity.perception/LICENSE.md)
+
+## Citation
+```
+@misc{com.unity.perception2020,
+    title={Unity {P}erception Package},
+    author={{Unity Technologies}},
+    howpublished={\url{https://github.com/Unity-Technologies/com.unity.perception}},
+    year={2020}
+}
+```

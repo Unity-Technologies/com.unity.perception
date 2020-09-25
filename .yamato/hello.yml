@@ -11,7 +11,7 @@ commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
     - unity-downloader-cli -u 2019.4.6f1 -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
-    - utr/utr --testproject=./TestProjects/PerceptionURP --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-utr-arg="--category=Performance" --extra-editor-arg="--force-d3d11" --suite=playmode --suite=editor --platform=Editor
+    - utr/utr --testproject=./TestProjects/PerceptionURP --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --category="Performance" --extra-editor-arg="--force-d3d11" --suite=playmode --suite=editor --platform=Editor
 artifacts:
     logs:
         paths:

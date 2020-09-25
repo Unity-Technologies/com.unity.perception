@@ -16,7 +16,7 @@ This phase will cover essential tasks and skills such as:
  * Finding the synthetic data generated from your simulation and understanding its various pieces
  * Generating common statistics and visualizations for your synthetic data (e.g. number of objects in each frame, presence of each object in the whole data, etc.)
  
- ## Phase 2: Custom and Complex Randomizations
+ ## Phase 2: Custom Randomizations
  
 In order to get the best out of most perception-oriented machine learning models, the training data needs to contain a large-degree of variation. As a general rule of thumb, the more varied data you can feed to a model while training, the better it performs. This is achieved through randomizing various aspects of your simulation between frames. While you will use basic randomizations in Phase 1, **Phase 2** of the tutorial will help you learn how to randomize your simulations in more complex ways by guiding you through writing your first customized randomizer in C#. This phase is called **Custom and Complex Randomizations**, and once you complete it, you will know how to:
  * Create custom randomizers by extending our provided samples

@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     /// Creates a 2D layer of of evenly spaced GameObjects from a given list of prefabs
     /// </summary>
     [Serializable]
+    [AddRandomizerMenu("Perception/Foreground Object Placement Randomizer")]
     public class ForegroundObjectPlacementRandomizer : Randomizer
     {
         List<GameObject> m_SpawnedObjects = new List<GameObject>();

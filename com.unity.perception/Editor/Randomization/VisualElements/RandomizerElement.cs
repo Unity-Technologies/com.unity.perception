@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             set
             {
                 m_Collapsed.boolValue = value;
-                m_Property.serializedObject.ApplyModifiedProperties();
+                m_Property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
                 if (value)
                     AddToClassList(k_CollapsedParameterClass);
                 else
@@ -40,8 +40,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             m_Property = property;
             this.randomizerList = randomizerList;
             m_Collapsed = property.FindPropertyRelative("collapsed");
+            collapsed = m_Collapsed.boolValue;
+
             AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                $"{StaticData.uxmlDir}/RandomizerElement.uxml").CloneTree(this);
+                $"{StaticData.uxmlDir}/Randomizer/RandomizerElement.uxml").CloneTree(this);
 
             var classNameLabel = this.Q<TextElement>("class-name");
             var splitType = property.managedReferenceFullTypename.Split(' ', '.');

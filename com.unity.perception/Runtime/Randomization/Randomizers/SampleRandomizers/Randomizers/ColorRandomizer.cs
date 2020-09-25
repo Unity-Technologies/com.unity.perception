@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     /// Randomizes the material color of objects tagged with a ColorRandomizerTag
     /// </summary>
     [Serializable]
+    [AddRandomizerMenu("Perception/Color Randomizer")]
     public class ColorRandomizer : Randomizer
     {
         static readonly int k_BaseColor = Shader.PropertyToID("_BaseColor");

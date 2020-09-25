@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     /// Creates multiple layers of evenly distributed but randomly placed objects
     /// </summary>
     [Serializable]
+    [AddRandomizerMenu("Perception/Background Object Placement Randomizer")]
     public class BackgroundObjectPlacementRandomizer : Randomizer
     {
         List<GameObject> m_SpawnedObjects = new List<GameObject>();

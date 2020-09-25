@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Experimental.Perception.Randomization.Editor;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using UnityEngine.UIElements;
 
@@ -14,17 +13,34 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
         SerializedProperty m_Property;
         VisualElement m_Container;
         ToolbarMenu m_AddRandomizerMenu;
+        public HashSet<Type> randomizerTypeSet = new HashSet<Type>();
 
         ScenarioBase scenario => (ScenarioBase)m_Property.serializedObject.targetObject;
+
+        VisualElement inspectorContainer
+        {
+            get
+            {
+                var viewport = parent;
+                while (!viewport.ClassListContains("unity-inspector-main-container"))
+                    viewport = viewport.parent;
+                return viewport;
+            }
+        }
 
         public RandomizerList(SerializedProperty property)
         {
             m_Property = property;
             AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                $"{StaticData.uxmlDir}/RandomizerList.uxml").CloneTree(this);
+                $"{StaticData.uxmlDir}/Randomizer/RandomizerList.uxml").CloneTree(this);
 
             m_Container = this.Q<VisualElement>("randomizers-container");
-            m_AddRandomizerMenu = this.Q<ToolbarMenu>("add-randomizer");
+
+            var addRandomizerButton = this.Q<Button>("add-randomizer-button");
+            addRandomizerButton.clicked += () =>
+            {
+                inspectorContainer.Add(new AddRandomizerMenu(inspectorContainer, addRandomizerButton, this));
+            };
 
             var expandAllButton = this.Q<Button>("expand-all");
             expandAllButton.clicked += () => CollapseRandomizers(false);
@@ -40,26 +56,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             m_Container.Clear();
             for (var i = 0; i < m_Property.arraySize; i++)
                 m_Container.Add(new RandomizerElement(m_Property.GetArrayElementAtIndex(i), this));
-            SetMenuOptions();
-        }
-
-        void SetMenuOptions()
-        {
-            m_AddRandomizerMenu.menu.MenuItems().Clear();
-            var typeSet = new HashSet<Type>();
+            randomizerTypeSet.Clear();
             foreach (var randomizer in scenario.randomizers)
-                typeSet.Add(randomizer.GetType());
-            foreach (var randomizerType in StaticData.randomizerTypes)
-            {
-                if (typeSet.Contains(randomizerType))
-                    continue;
-                m_AddRandomizerMenu.menu.AppendAction(
-                    Parameter.GetDisplayName(randomizerType),
-                    a => { AddRandomizer(randomizerType); });
-            }
+                randomizerTypeSet.Add(randomizer.GetType());
         }
 
-        void AddRandomizer(Type randomizerType)
+        public void AddRandomizer(Type randomizerType)
         {
             var newRandomizer = scenario.CreateRandomizer(randomizerType);
             newRandomizer.RandomizeParameterSeeds();

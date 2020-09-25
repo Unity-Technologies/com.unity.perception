@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     /// Randomizes the rotation of objects tagged with a RotationRandomizerTag
     /// </summary>
     [Serializable]
+    [AddRandomizerMenu("Perception/Rotation Randomizer")]
     public class RotationRandomizer : Randomizer
     {
         /// <summary>

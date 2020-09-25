@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     /// Randomly offsets the hue of objects tagged with a ColorRandomizerTag
     /// </summary>
     [Serializable]
+    [AddRandomizerMenu("Perception/Hue Offset Randomizer")]
     public class HueOffsetRandomizer : Randomizer
     {
         static readonly int k_HueOffsetShaderProperty = Shader.PropertyToID("_HueOffset");

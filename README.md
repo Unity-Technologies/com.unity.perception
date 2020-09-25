@@ -35,6 +35,7 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 * [License](com.unity.perception/LICENSE.md)
 
 ## Citation
+If you find this package useful, consider citing it using:
 ```
 @misc{com.unity.perception2020,
     title={Unity {P}erception Package},

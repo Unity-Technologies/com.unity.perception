@@ -11,6 +11,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
 {
     class AddRandomizerMenu : VisualElement
     {
+        const string k_DefaultDirectoryText = "Randomizers";
         string m_CurrentPath = string.Empty;
         string currentPath
         {
@@ -27,7 +28,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             get
             {
                 if (m_CurrentPath == string.Empty)
-                    return "Randomizers";
+                    return k_DefaultDirectoryText;
                 var pathItems = m_CurrentPath.Split('/');
                 return pathItems[pathItems.Length - 1];
             }
@@ -47,9 +48,21 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             }
         }
 
+        string directoryText
+        {
+            set
+            {
+                m_DirectoryLabelText.text = value;
+                m_DirectoryChevron.style.visibility = value == k_DefaultDirectoryText
+                    ? new StyleEnum<Visibility>(Visibility.Hidden)
+                    : new StyleEnum<Visibility>(Visibility.Visible);
+            }
+        }
+
         RandomizerList m_RandomizerList;
         VisualElement m_MenuElements;
-        TextElement m_DirectoryName;
+        TextElement m_DirectoryLabelText;
+        VisualElement m_DirectoryChevron;
         Dictionary<string, List<MenuItem>> m_MenuItemsMap = new Dictionary<string, List<MenuItem>>();
         Dictionary<string, HashSet<string>> m_MenuDirectories = new Dictionary<string, HashSet<string>>();
         List<MenuItem> m_MenuItems = new List<MenuItem>();
@@ -108,8 +121,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
                     ExitMenu();
             });
 
-            m_DirectoryName = this.Q<TextElement>("directory-name");
-            m_DirectoryName.RegisterCallback<MouseUpEvent>(evt => { AscendDirectory(); });
+            var directoryLabel = this.Q<VisualElement>("directory-label");
+            directoryLabel.RegisterCallback<MouseUpEvent>(evt => { AscendDirectory(); });
+            m_DirectoryLabelText = this.Q<TextElement>("directory-label-text");
+            m_DirectoryChevron = this.Q<VisualElement>("directory-chevron");
 
             var searchBar = this.Q<TextField>("search-bar");
             searchBar.schedule.Execute(() => searchBar.ElementAt(0).Focus());
@@ -143,7 +158,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
 
         void DrawDirectoryItems()
         {
-            m_DirectoryName.text = currentPathName;
+            directoryText = currentPathName;
             m_MenuElements.Clear();
 
             if (m_MenuDirectories.ContainsKey(currentPath))
@@ -163,7 +178,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
 
         void DrawSearchItems()
         {
-            m_DirectoryName.text = "Randomizers";
+            directoryText = k_DefaultDirectoryText;
             m_MenuElements.Clear();
 
             var upperSearchString = searchString.ToUpper();

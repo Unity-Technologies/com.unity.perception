@@ -5,7 +5,13 @@
 .chevron-right {
     height: 12px;
     width: 12px;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutClosed.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/ChevronRight.png");
+}
+
+.chevron-left {
+    height: 12px;
+    width: 12px;
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/ChevronLeft.png");
 }
 
 .menu-element:hover {

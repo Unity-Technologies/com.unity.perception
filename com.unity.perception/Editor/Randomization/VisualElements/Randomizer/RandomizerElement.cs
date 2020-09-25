@@ -2,7 +2,6 @@
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Experimental.Perception.Randomization.Editor;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 using UnityEngine.UIElements;
 
 namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
@@ -13,7 +12,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
         SerializedProperty m_Property;
         VisualElement m_PropertiesContainer;
 
-        Randomizer randomizer => (Randomizer)StaticData.GetManagedReferenceValue(m_Property);
+        Randomizers.Randomizer randomizer => (Randomizers.Randomizer)StaticData.GetManagedReferenceValue(m_Property);
 
         public Type randomizerType => randomizer.GetType();
 

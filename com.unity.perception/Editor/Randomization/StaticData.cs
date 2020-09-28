@@ -17,13 +17,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
 
         internal static readonly string samplerSerializedFieldType;
 
-        internal static Type[] parameterTypes;
         internal static Type[] randomizerTypes;
         internal static Type[] samplerTypes;
 
         static StaticData()
         {
-            parameterTypes = GetConstructableDerivedTypes<Parameter>();
             randomizerTypes = GetConstructableDerivedTypes<Randomizer>();
             samplerTypes = GetConstructableDerivedTypes<ISampler>();
             var samplerType = typeof(ISampler);
@@ -87,6 +85,17 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             while (index-- >= 0)
                 enumerator.MoveNext();
             return enumerator.Current;
+        }
+
+        public static bool IsSubclassOfRawGeneric(Type generic, Type toCheck) {
+            while (toCheck != null && toCheck != typeof(object)) {
+                var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+                if (generic == cur) {
+                    return true;
+                }
+                toCheck = toCheck.BaseType;
+            }
+            return false;
         }
     }
 }

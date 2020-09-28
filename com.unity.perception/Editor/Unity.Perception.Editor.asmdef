@@ -1,5 +1,6 @@
 {
     "name": "Unity.Perception.Editor",
+    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime",
@@ -10,7 +11,8 @@
         "Unity.Perception.Runtime",
         "PathCreatorEditor",
         "PathCreator",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "Unity.Simulation.Client.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -19,7 +21,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "Newtonsoft.Json.dll"
+        "Newtonsoft.Json.dll",
+        "ZipUtility.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

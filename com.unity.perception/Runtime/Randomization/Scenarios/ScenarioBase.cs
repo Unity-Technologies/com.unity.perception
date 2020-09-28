@@ -79,6 +79,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public string serializedConstantsFilePath =>
             Application.dataPath + "/StreamingAssets/" + serializedConstantsFileName + ".json";
 
+        public abstract object genericConstants { get; }
+
         /// <summary>
         /// The number of frames that have elapsed since the current scenario iteration was Setup
         /// </summary>
@@ -103,6 +105,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// Returns whether the entire scenario has completed
         /// </summary>
         public abstract bool isScenarioComplete { get; }
+
+        /// <summary>
+        /// Progresses the current scenario iteration.
+        /// </summary>
+        protected virtual void IncrementIteration()
+        {
+            currentIteration++;
+        }
 
         /// <summary>
         /// Serializes the scenario's constants to a JSON file located at serializedConstantsFilePath
@@ -183,7 +193,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 framesSinceInitialization++;
                 if (isIterationComplete)
                 {
-                    currentIteration++;
+                    IncrementIteration();
                     currentIterationFrame = 0;
                     foreach (var randomizer in activeRandomizers)
                         randomizer.IterationEnd();

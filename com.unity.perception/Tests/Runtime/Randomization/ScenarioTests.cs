@@ -48,14 +48,12 @@ namespace RandomizationTests
             var constants = new FixedLengthScenario.Constants
             {
                 framesPerIteration = 2,
-                startingIteration = 2,
                 totalIterations = 2
             };
 
             var changedConstants = new FixedLengthScenario.Constants
             {
                 framesPerIteration = 0,
-                startingIteration = 0,
                 totalIterations = 0
             };
 
@@ -69,7 +67,6 @@ namespace RandomizationTests
 
             // Check if the values reverted correctly
             Assert.AreEqual(m_Scenario.constants.framesPerIteration, constants.framesPerIteration);
-            Assert.AreEqual(m_Scenario.constants.startingIteration, constants.startingIteration);
             Assert.AreEqual(m_Scenario.constants.totalIterations, constants.totalIterations);
 
             // Clean up serialized constants

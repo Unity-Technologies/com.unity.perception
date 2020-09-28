@@ -13,6 +13,7 @@ PerceptionHDRP_windows_2019.4.6f1_performance_hourly:
     image: package-ci/win10:stable 
     flavor: b1.large
   triggers:
+    recurring:
       - branch: performance_testing 
         frequency: 0/1 * * ?
         rerun: always

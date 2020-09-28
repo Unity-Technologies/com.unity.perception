@@ -131,7 +131,7 @@ all_tests:
     {% endfor %}
 
 all_tests_hourly_perf:
-  name: Complete Tests
+  name: Hourly Performance Tests
   agent:
     type: Unity::VM
     image: package-ci/win10:stable

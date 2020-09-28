@@ -130,30 +130,30 @@ all_tests:
     {% endfor %}
     {% endfor %}
 
-    all_tests_hourly_perf:
-      name: Complete Tests
-      agent:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.small
-      commands:
-        - dir
-      triggers:
-        recurring:
-          - branch: performance_testing
-            frequency: 0/1 * * ?
-        cancel_old_ci: true
-      artifacts:
-        logs:
-          paths:
-            - "upm-ci~/test-results/**/*"
-        packages:
-          paths:
-            - "upm-ci~/packages/**/*"
-      dependencies:
-        {% for editor in performance_editors %}
-        {% for project in projects %}
-        - .yamato/upm-ci-performance.yml#{{project.name}}_windows_standalone_{{editor.version}}
-        - .yamato/upm-ci-performance.yml#{{project.name}}_linux_standalone_{{editor.version}}
-        {% endfor %}
-        {% endfor %}
+all_tests_hourly_perf:
+  name: Complete Tests
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.small
+  commands:
+    - dir
+  triggers:
+    recurring:
+      - branch: performance_testing
+        frequency: 0/1 * * ?
+    cancel_old_ci: true
+  artifacts:
+    logs:
+      paths:
+        - "upm-ci~/test-results/**/*"
+    packages:
+      paths:
+        - "upm-ci~/packages/**/*"
+  dependencies:
+    {% for editor in performance_editors %}
+    {% for project in projects %}
+    - .yamato/upm-ci-performance.yml#{{project.name}}_windows_standalone_{{editor.version}}
+    - .yamato/upm-ci-performance.yml#{{project.name}}_linux_standalone_{{editor.version}}
+    {% endfor %}
+    {% endfor %}

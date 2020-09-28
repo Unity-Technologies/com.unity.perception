@@ -2,24 +2,32 @@
 
 ---
 
-{% for editor in complete_editors %}
-{% for project in projects %}
-{{project.name}}_windows_{{suite.name}}_{{editor.version}}_performance:    
-  name: {{project.name}} performance tests ({{editor.version}}, Windows)
+#{% for editor in complete_editors %}
+#{% for project in projects %}
+#{{project.name}}_windows_{{suite.name}}_{{editor.version}}_performance:
+PerceptionHDRP_windows_2019.4.6f1_performance_hourly:
+  #name: {{project.name}} performance tests ({{editor.version}}, Windows)
+  name: PerceptionHDRP hourly performance tests (2019.4.6f1, Windows)
   agent:
     type: Unity::VM
     image: package-ci/win10:stable 
     flavor: b1.large
+  triggers:
+      - branch: performance_testing 
+        frequency: 0/1 * * ?
+        rerun: always
   commands:
     - git submodule update --init --recursive
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
-    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --category="Performance" --extra-editor-arg="--force-d3d11" --suite=playmode --suite=editor --platform=Editor --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
+    #- unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    - unity-downloader-cli -u 2019.4.6f1 -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    # - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --category="Performance" --extra-editor-arg="--force-d3d11" --suite=playmode --suite=editor --platform=Editor --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
+    - utr/utr --testproject=./TestProjects/PerceptionHDRP --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --category="Performance" --extra-editor-arg="--force-d3d11" --suite=playmode --suite=editor --platform=Editor --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
   artifacts:
     logs:
       paths:
         - "test-results/**/*"
           
-{% endfor %}
-{% endfor %}
+#{% endfor %}
+#{% endfor %}

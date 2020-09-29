@@ -1,8 +1,7 @@
 # Perception Tutorial
 ## Phase 2: Custom Randomizations
 
-
-### Step 1: Build a Light Randomizer
+### Step 1: Build a Lighting Randomizer
 
 In Phase 1 of the tutorial, we learned how to use the Randomizers that are bundled with the Perception package to spawn background and foreground objects, and randomize their position, rotation, texture, and hue offset (color). In this phase, we will build a custom light Randomizer for the `Directional Light` object, affecting the light's intensity and color on each `Iteration`. We will also learn how to include certain data or logic inside a randomized object (such as the light) in order to more explicitly define and restrict its randomization behaviors.
 
@@ -119,7 +118,7 @@ The UI for `My Light Randomizer` should now look like this image:
 
 
 
-### Step 2: Bundle Data and Logic Inside Randomizer Tags
+### Step 2: Bundle Data and Logic Inside Randomization Tags
 
 You may sometimes need to bundle certain randomization-related data or logic within an object that are inherent to the object itself. For instance, you may have multiple lights in the Scene but would like each of them to have their own unique range of intensities. It would be quite tedious to add a new Parameter to your light Randomizer for each of your lights. Furthermore, this would make your light Randomizer excessively tailored to one use-case, limiting the Randomizer's reusability. 
 
@@ -133,6 +132,10 @@ Let's try this approach with our `Directional Light` object. We will create a du
 <p align="center">
 <img src="Images/light_rand_2.png" width="420"/>
 </p>
+
+* **Action**: Change the Y rotation of `Directional Light` to -60.
+
+This makes the two lights illuminate the scene from opposing sides, each having a 30 degree angle with the background and foreground planes.
 
 * **Action**: Open `MyLightRandomizerTag.cs` and modify it to match the code below:
 ```
@@ -209,5 +212,6 @@ Notice how we now fetch the `MyLightRandomizerTag` component from the tagged obj
 
 * **Action**: Run your simulation, then pause it. Go to the _**Scene**_ view and inspect the color and intensity of each of the lights. Try turning each on and off to see how it affects the current frame. 
 
+By this point in the tutorial, we have learned how to set-up a Perception Scene, randomize our simulation, and verify our generated datasets using Dataset Insights. That said, the size of the dataset we created was only 1000 captures, which is not sufficient for model-training purposes. It is now time to generate a large-scale synthetic dataset with hundreds of thousands of frames using Unity Simulation. 
 
-
+[Click here to continue to Phase 3: Cloud](Phase3.md)

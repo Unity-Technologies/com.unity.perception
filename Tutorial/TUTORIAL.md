@@ -14,7 +14,7 @@ This phase will cover essential tasks and skills such as:
  * Learning about essential components of the Perception package and creating a basic simulation with these essential elements.
  * Running your simulations on your computer and observing real-time visualizations of the Perception tools working.
  * Finding the synthetic data generated from your simulation and understanding its various pieces
- * Generating common statistics and visualizations for your synthetic data (e.g. number of objects in each frame, presence of each object in the whole data, etc.)
+ * Using Dataset Insight to generate statistics and visualizations for your synthetic data (e.g. number of objects in each frame, presence of each object in the whole data, etc.)
  
  ## Phase 2: Custom Randomizations
  
@@ -27,8 +27,8 @@ In order to get the best out of most perception-oriented machine learning models
  
 You will generally require a large amount of data to train your intended model. Generating data in these practical sizes will take incredible amounts of time to finish if performed on typical workstation computers. This is where the cloud comes in. In this phase, you will learn how to:
  * Generate large-scale synthetic datasets containing hundreds of thousands of frames by leveraging the power of **Unity Simulation**. 
- * Download the cloud-generated data
- * Generate both common and custom statistics and visualizations for your cloud-generated data.
+ * Download the cloud-generated data.
+ * Using Dataset Insights with your cloud-generated data.
 
 
 [Continue to Phase 1: Setup and Basic Simulations](Phase1.md)

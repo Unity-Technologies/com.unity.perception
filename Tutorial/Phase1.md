@@ -5,7 +5,13 @@
 In this phase of the Perception tutorial, you will start from downloading and installing Unity Editor and the Perception package. You will then use our sample assets and provided components to easily generate a synthetic dataset for training an object-detection model. Through-out the tutorial, lines starting with bullet points followed by **"Action:"** denote the individual actions you will need to take in order to progress through the tutorial. This is while non-bulleted lines will provide additional context and explanation around the actions. If in a hurry, you can just follow the bullets!
 
 ### Step 1: Download Unity Editor and Create a New Project
-* **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of Unity Editor 2019.4. 
+* **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of Unity Editor 2019.4.
+
+An alternative approach is to first install [_**Unity Hub**_](https://unity3d.com/get-unity/download), which will allow you to have multiple versions of Unity on your computer, and make it easier to manage your Unity projects and the versions of Unity they will use. 
+
+During the installation of Unity, you will be asked to choose which modules you would like to include. This will depend on the types of applications you eventually intend to build with your Unity installation; however, for the purposes of this tutorial, we need to make make sure _**Linux Build Support**_ is checked. In addition, if you do not already have _**Visual Studio**_ on your computer, the wizard will give you an option to install it. Go ahead and check this option, as we will need _**Visual Studio**_ for writing some simple scripts in Phase 2 of the tutorial. 
+
+* **Action**: Make sure the _**Linux Build Support**_ and _**Visual Studio**_ options are checked when selecting modules during installation.
 
 When you first run Unity, you will be asked to open an existing project, or create a new one. 
 
@@ -170,7 +176,7 @@ Note that each object can have multiple labels assigned, and thus appear as diff
 
 As mentioned earlier, one of the core ingredients of the perception workflow is the randomization of various aspects of the simulation, in order to introduce sufficient variation into the generated data. 
 
-To start randomizing your simulation you will first need to add a `Scenario` to your scene. Scenarios control the execution flow of your simulation by coordinating all `Randomizer` components added to them. The Perception package comes with a useful set of `Randomizer`s that let you quickly place your foreground objects in the Scene, generate varied backgrounds, as well as randomize various parameters of the simulation over time, including things such as positon, scale, and rotation of objects, number of objects within the camera's view, and so on. `Randomizer`s achieve this through coordinating a number of `Parameter`s, which essentially define the most granular randomization behaviors. For instance, for continuous variable types such as floats, vectors, and colors, `Parameter`s can define the range, sampling distribution, and a seed for randomization. This is while another class of `Paramter`s let you randomly select one of a number of categorical options.  
+To start randomizing your simulation you will first need to add a `Scenario` to your scene. Scenarios control the execution flow of your simulation by coordinating all `Randomizer` components added to them. The Perception package comes with a useful set of Randomizers that let you quickly place your foreground objects in the Scene, generate varied backgrounds, as well as randomize various parameters of the simulation over time, including things such as positon, scale, and rotation of objects, number of objects within the camera's view, and so on. Randomizers achieve this through coordinating a number of `Parameter`s, which essentially define the most granular randomization behaviors. For instance, for continuous variable types such as floats, vectors, and colors, `Parameter`s can define the range, sampling distribution, and a seed for randomization. This is while another class of `Paramter`s let you randomly select one of a number of categorical options.  
 
 To summarize, a sample `Scenario` could look like this:
 
@@ -193,15 +199,15 @@ Once the `Fixed Length Scenario` component is added, the inspector view for your
 <img src="Images/fixedscenarioempty.png" width = "400"/>
 </p>
 
-There are a number settings and properties you can modify here, such as `Quit On Complete` or `Constants`. Just like the `Perception Camera` component, if you hover your mouse cursor over each of these properties, you will see a tooltip containing a relevant explanation. For now, we will leave all of these fields as they are. This is currently an empty `Scneario`. Let's add some `Randomizer`s.
+There are a number settings and properties you can modify here, such as `Quit On Complete` or `Constants`. Just like the `Perception Camera` component, if you hover your mouse cursor over each of these properties, you will see a tooltip containing a relevant explanation. For now, we will leave all of these fields as they are. This is currently an empty `Scneario`. Let's add some Randomizers.
 
 * **Action**: Click _**Add Randomizer**_, and from the list choose `BackgroundObjectPlacementRandomizer`.
 
-This `Randomizer` uses Poisson-Disk sampling to select random positions from a given area, and spawn copies of randomly selected Prefabs (from the given list) at the chosen positions. We will use this component to generate a background that will act as a distraction for our eventual object-detection machine learning model.
+This Randomizer uses Poisson-Disk sampling to select random positions from a given area, and spawn copies of randomly selected Prefabs (from the given list) at the chosen positions. We will use this component to generate a background that will act as a distraction for our eventual object-detection machine learning model.
 
 * **Action**: Click _**Add Folder**_, and from the file explorer window that opnes, choose the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
 
-The beckground Prefabs are primitve shapes devoid of color or texture. Later `Randomizer`s will take care of those aspects. Set the rest of the properties (except for `Seed`) according to the image below. The `Seed` attribute is the seed used for the underlying random sampler, and does not need to match the image shown.
+The beckground Prefabs are primitve shapes devoid of color or texture. Later Randomizers will take care of those aspects. Set the rest of the properties (except for `Seed`) according to the image below. The `Seed` attribute is the seed used for the underlying random sampler, and does not need to match the image shown.
 
 <p align="center">
 <img src="Images/background_randomizer.png" width = "400"/>
@@ -235,7 +241,7 @@ As seen in the image above, what we have now is just a beige-colored wall of sha
 
 * **Action**: In the UI snippet for `RotationRandomizer`, change the all the maximum values for the three ranges to `360` and leave the minimums at `0`. 
 
-Your list of `Randomizer`s should now look like the screenshot below:
+Your list of Randomizers should now look like the screenshot below:
 
 <p align="center">
 <img src="Images/all_back_rands.png" width = "400"/>
@@ -243,9 +249,9 @@ Your list of `Randomizer`s should now look like the screenshot below:
 
 Note that the `Seed` values do not need to match the image above.
 
-There is one more important thing left to do, in order to make sure all the above `Randomizer`s operate as expected. Since `BackgroundObjectPlacementRandomizer` spawns objects, it already knows which objects in the Scene it is dealing with; however, the rest of the `Randomizer`s  we added are not yet aware of what objects they should target because they don't spawn their own objects.
+There is one more important thing left to do, in order to make sure all the above Randomizers operate as expected. Since `BackgroundObjectPlacementRandomizer` spawns objects, it already knows which objects in the Scene it is dealing with; however, the rest of the Randomizers  we added are not yet aware of what objects they should target because they don't spawn their own objects.
 
-To make sure each `Randomizer` knows which objects it should work with, we will use an object tagging and querying workflow that the bundled `Randomizer`s already use. Each `Randomizer` can query the Scene for objects that carry certain types of `RandomizerTag` components. For instance, the `TextureRandomizer` queries the Scene for objects that have a `TextureRandomizerTag` component (you can change this in code!). Therefore, in order to make sure our background Prefabs are affected by the `TextureRandomizer` we need to make sure they have `TextureRandomizerTag` attached to them.
+To make sure each Randomizer knows which objects it should work with, we will use an object tagging and querying workflow that the bundled Randomizers already use. Each Randomizer can query the Scene for objects that carry certain types of `RandomizerTag` components. For instance, the `TextureRandomizer` queries the Scene for objects that have a `TextureRandomizerTag` component (you can change this in code!). Therefore, in order to make sure our background Prefabs are affected by the `TextureRandomizer` we need to make sure they have `TextureRandomizerTag` attached to them.
 
 * **Action**: In the _**Project**_ tab, navigate to the `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
 * **Action**: Select all the files inside and from the _**Inspector**_ tab add a `TextureRandomizerTag` to them. This will add the component to all the selected files.
@@ -265,16 +271,16 @@ If you run the simulation now you will see the generated backgrounds look much m
 
 It is now time to spawn and randomize our foregournd objects. We are getting close to generating our first set of synthetic data!
 
-* **Action**: Add `ForegroundObjectPlacementRandomizer` to your list of `Randomizer`s. Click _**Add Folder**_ and select `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
-* **Action**: Set these values for the above `Randomizer`: `Depth = 3, Separation Distance = 1.5, Placement Area = (5,5)`.
+* **Action**: Add `ForegroundObjectPlacementRandomizer` to your list of Randomizers. Click _**Add Folder**_ and select `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
+* **Action**: Set these values for the above Randomizer: `Depth = 3, Separation Distance = 1.5, Placement Area = (5,5)`.
 
-This `Randomizer` uses the same algorithm as the one we used for backgrounds; however, it is defined in a separate C# class because you can only have **one of each type of `Randomizer` added to your `Scenario`**. Therefore, this is our way of differentating between how background and foreground objects are treated.
+This Randomizer uses the same algorithm as the one we used for backgrounds; however, it is defined in a separate C# class because you can only have **one of each type of Randomizer added to your `Scenario`**. Therefore, this is our way of differentating between how background and foreground objects are treated.
 
 While the texture and color of the foreground objects will be constant during the simulation, we would like their rotation to be randomized similar to the background Prefabs. To achieve this:
 
 * **Action**: From the _**Project**_ tab select all the foreground Prefabs located in `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`, and add a `RotationRandomizerTag` component to them.
 
-The last step here is to make sure the order of randomizations is correct. `Randomizer`s execute according to their order within the list of `Randomizer`s added to your `Scenario`. If you look at the list now, you will notice that `ForegroundObjectPlacementRandomizer` is coming after `RotationRandomizer`, therefore, foreground objects will NOT be included in the rotation randomizations, even though they are carrying the proper tag. To fix that:
+The last step here is to make sure the order of randomizations is correct. Randomizers execute according to their order within the list of Randomizers added to your `Scenario`. If you look at the list now, you will notice that `ForegroundObjectPlacementRandomizer` is coming after `RotationRandomizer`, therefore, foreground objects will NOT be included in the rotation randomizations, even though they are carrying the proper tag. To fix that:
 
 * **Action**: Drag  `ForegroundObjectPlacementRandomizer` and drop it above `RotationRandomizer`.
 
@@ -349,4 +355,4 @@ Below, you can see a sample plot generated by the Dataset Insights notebook, dep
 </p>
 
 
-This concludes Phase 1 of the Perception tutoial. In the next phase, you will dive a little bit into randomization code and learn how to build your own custom `Randomizer` quickly. [Click here to continue to Phase 2: Custom Randomizations](Phase2.md)
+This concludes Phase 1 of the Perception tutoial. In the next phase, you will dive a little bit into randomization code and learn how to build your own custom Randomizer quickly. [Click here to continue to Phase 2: Custom Randomizations](Phase2.md)

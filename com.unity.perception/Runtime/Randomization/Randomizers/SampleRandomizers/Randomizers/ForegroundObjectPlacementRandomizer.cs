@@ -38,6 +38,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationStart()
         {
+            if (m_SpawnedObjects == null)
+                m_SpawnedObjects = new List<GameObject>();
+
             var seed = scenario.GenerateRandomSeed();
             var placementSamples = PoissonDiskSampling.GenerateSamples(
                 placementArea.x, placementArea.y, separationDistance, seed);

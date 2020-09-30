@@ -8,14 +8,15 @@ namespace PerformanceTests
 {
     static class TestHelper
     {
-        public static (PerceptionCamera, IdLabelConfig, GameObject) CreateThreeBlockScene()
+        public static (PerceptionCamera, IdLabelConfig, SemanticSegmentationLabelConfig, GameObject) CreateThreeBlockScene()
         {
             var labels = new List<string> { "Crate", "Cube", "Box" };
-            var config = CreateDefaultLabelConfig();
+            var idConfig = CreateDefaultLabelConfig();
+            var ssConfig = CreateDefaultSemanticSegmentationLabelConfig();
             var camPos = new Vector3(198.0188f, 126.5455f, -267.4195f);
             var camRot = Quaternion.Euler(20.834f, -36.337f, 0);
             var camScale = new Vector3(36.24997f, 36.24997f, 36.24997f);
-            var cam = CreatePerceptionCamera(config, position: camPos, rotation: camRot, scale: camScale);
+            var cam = CreatePerceptionCamera(position: camPos, rotation: camRot, scale: camScale);
 
             const float scale = 36.24997f;
             const float y = 82.92603f;
@@ -29,10 +30,10 @@ namespace PerformanceTests
             cube.transform.parent = root.transform;
             box.transform.parent = root.transform;
 
-            return (cam, config, root);
+            return (cam, idConfig, ssConfig, root);
         }
 
-        public static IdLabelConfig CreateDefaultLabelConfig(List<string> labels = null)
+        static IdLabelConfig CreateDefaultLabelConfig(List<string> labels = null)
         {
             var entries = new List<IdLabelEntry>();
 
@@ -52,6 +53,21 @@ namespace PerformanceTests
             return config;
         }
 
+        static SemanticSegmentationLabelConfig CreateDefaultSemanticSegmentationLabelConfig()
+        {
+            var labelConfig = ScriptableObject.CreateInstance<SemanticSegmentationLabelConfig>();
+            labelConfig.Init(new List<SemanticSegmentationLabelEntry>()
+            {
+                new SemanticSegmentationLabelEntry()
+                {
+                    label = "label",
+                    color = new Color32(0, 0, 255, 255)
+                }
+            });
+
+            return labelConfig;
+        }
+        
         //public static GameObject CreateLabeledCube(float scale = 10, string label = "label", float x = 0, float y = 0, float z = 0, float roll = 0, float pitch = 0, float yaw = 0)
         public static GameObject CreateLabeledCube(string label = "label", Vector3? position = null, Quaternion? rotation = null, float scale = 10)
         {
@@ -63,7 +79,7 @@ namespace PerformanceTests
             return cube;
         }
 
-        public static PerceptionCamera CreatePerceptionCamera(IdLabelConfig config, Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null)
+        public static PerceptionCamera CreatePerceptionCamera(Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -81,26 +97,5 @@ namespace PerformanceTests
 
             return perceptionCamera;
         }
-
-        /*
-        static GameObject SetupCamera(IdLabelConfig config, Action<int, GameObject> computeListener)
-        {
-            var cameraObject = new GameObject();
-            cameraObject.SetActive(false);
-            var camera = cameraObject.AddComponent<Camera>();
-            camera.orthographic = true;
-            camera.orthographicSize = 1;
-
-            var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
-            perceptionCamera.captureRgbImages = false;
-            var bboxLabeler = new BoundingBox3DLabeler(config);
-            if (computeListener != null)
-                bboxLabeler.BoundingBoxComputed += computeListener;
-
-            perceptionCamera.AddLabeler(bboxLabeler);
-
-            return (cameraObject, bboxLabeler);
-        }
-        */
     }
 }

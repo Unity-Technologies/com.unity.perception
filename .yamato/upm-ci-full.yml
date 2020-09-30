@@ -131,7 +131,7 @@ all_tests:
     {% endfor %}
 
 all_tests_hourly_perf:
-  name: Hourly Performance Tests
+  name: Nightly Performance Tests
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -141,7 +141,7 @@ all_tests_hourly_perf:
   triggers:
     recurring:
       - branch: performance_testing
-        frequency: 0/1 * * ?
+        frequency: daily 
     cancel_old_ci: true
   artifacts:
     logs:

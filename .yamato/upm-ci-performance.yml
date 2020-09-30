@@ -3,7 +3,8 @@
 ---
 
 performance_args:
-  - args: --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
+  - name: performance args 
+    args: --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
 
 {% for editor in complete_editors %}
 {% for suite in performance_suites %}

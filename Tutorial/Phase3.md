@@ -1,6 +1,7 @@
 # Perception Tutorial
 ## Phase 3: Cloud
 
+### Step 1: Setup Unity Account, USim, and Cloud Project
 In this phase of the tutorial, we will learn how to run our Scene on _**Unity Simulation (USim)**_. This will allow us to generate a much larger dataset than what is typically plausible on a workstation computer.
 
 In order to use Unity Simulation you need to first create a Unity account or login with your existing one. Once logged in, you will also need to sign-up for Unity Simulation. 
@@ -38,18 +39,45 @@ If you have used Unity before, you might have set-up multiple organizations for 
 
 * **Action**: Click _**Create**_ to create a new cloud project and connect your local project to it.
 
+
+### Step 2: Run Project on USim
+
+
 The process of running a project on Unity Simulation involves building it for Linux and then uploading this build, along with a set of parameters, to Unity Simulation. The Perception package simplifies this process by including a dedicated _**Run in USim**_ window that accepts a small number of required parameters and handles everything else automatically.
 
 In order to make sure our builds are compatible with USim, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_. The latter is the default option for projects created with newer versions of Unity.
 
-* **Action**: From the top menu bar, select _**Edit -> Project Settings**_.
-* **Action**: In the window that opens, navigate to the _**Player**_ tab, find the _**Scripting Backend**_ settings and change it to _**Mono**_:
+* **Action**: From the top menu bar, open _**Edit -> Project Settings**_.
+* **Action**: In the window that opens, navigate to the _**Player**_ tab, find the _**Scripting Backend**_ setting (under _**Other Settings**_), and change it to _**Mono**_:
 
 <p align="center">
 <img src="Images/mono.png"/>
 </p>
 
-sudo spctl --master-disable
+* **Action**: Close _**Project Settings**_. From the top menu bar, open _**Window -> Run in USim**_.
+
+<p align="center">
+<img src="Images/runinusim.png" width="600"/>
+</p>
+
+* **Action**: Choose `TutorialScene` (which is the Scene we have been working in) as your _**Main Scene**_ and the `SimulationScenario` object as your _**Scenario**_.
+
+Here, you can also specify a name for the run, the number of iterations the Scenario will produce, and the number of concurrent _**Instances**_ for the run. 
+
+* **Action**: Name your run `First Run`, set the number of iterations to `20,000`, and instances to `1`. 
+* **Action**: Click _**Build and Run**_.
+
+Your project will now be built and then uploaded to USim. Depending on the upload speed of your internet connection, this might take anywhere from a few seconds to a couple of minutes.
 
 
-need to put in credit card
+### Step 3: Keep Track of USim Runs Using USim-CLI
+
+To keep track of the progress of your USim run, you will need to use USim's command-line interface (USim CLI). 
+
+* **Action**: Download `unity_simulation_bundle.zip` from [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/releases/download/v20200908/unity_simulation_bundle.zip)
+* **Action**: Unzip the file and navigate to the `USimCLI/<operating system>` folder. 
+
+To run the 
+
+
+

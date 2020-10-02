@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
         float m_Offset;
         RandomizerElement m_RandomizerElement;
         VisualElement m_DragHandle;
-        VisualElement m_DragBar;
+        VisualElement m_ReorderingIndicator;
         VisualElement m_ParameterContainer;
 
         protected override void RegisterCallbacksOnTarget()
@@ -37,12 +37,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             }
 
             m_ParameterContainer = target.parent;
-            m_DragBar = new ParameterDragBar();
-            m_DragBar.style.width = new StyleLength(m_ParameterContainer.resolvedStyle.width);
-            target.parent.Add(m_DragBar);
+            m_ReorderingIndicator = new RandomizerReorderingIndicator();
+            m_ReorderingIndicator.style.width = new StyleLength(m_ParameterContainer.resolvedStyle.width);
+            target.parent.Add(m_ReorderingIndicator);
 
             m_Offset = m_DragHandle.worldBound.position.y - m_ParameterContainer.worldBound.position.y;
-            m_DragBar.style.top = evt.localMousePosition.y + m_Offset;
+            m_ReorderingIndicator.style.top = evt.localMousePosition.y + m_Offset;
 
             m_Active = true;
             m_DragHandle.CaptureMouse();
@@ -54,7 +54,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             if (!m_Active || !m_DragHandle.HasMouseCapture())
                 return;
 
-            m_DragBar.style.top = evt.localMousePosition.y + m_Offset;
+            m_ReorderingIndicator.style.top = evt.localMousePosition.y + m_Offset;
 
             evt.StopPropagation();
         }
@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
                 return;
 
             var dragBarY = evt.localMousePosition.y + m_Offset;
-            m_DragBar.RemoveFromHierarchy();
+            m_ReorderingIndicator.RemoveFromHierarchy();
 
             m_Active = false;
             m_DragHandle.ReleaseMouse();

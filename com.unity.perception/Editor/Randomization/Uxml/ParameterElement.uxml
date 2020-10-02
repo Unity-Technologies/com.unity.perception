@@ -1,6 +1,0 @@
-<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <VisualElement>
-        <Style src="../Uss/ParameterStyles.uss"/>
-        <VisualElement name="properties"/>
-    </VisualElement>
-</UXML>

@@ -50,11 +50,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         [HideInInspector] public bool quitOnComplete = true;
 
         /// <summary>
-        /// When true, this scenario will deserializes constants from a Json file before it begins executing
-        /// </summary>
-        [HideInInspector] public bool deserializeOnStart;
-
-        /// <summary>
         /// The name of the Json file this scenario's constants are serialized to/from.
         /// </summary>
         [HideInInspector] public string serializedConstantsFileName = "constants";
@@ -154,8 +149,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 
         void Start()
         {
-            if (deserializeOnStart)
-                Deserialize();
+            Deserialize();
         }
 
         void Update()

@@ -64,7 +64,7 @@ In order to make sure our builds are compatible with USim, we need to set our pr
 
 Here, you can also specify a name for the run, the number of iterations the Scenario will produce, and the number of concurrent _**Instances**_ for the run. 
 
-* **Action**: Name your run `First Run`, set the number of iterations to `20,000`, and instances to `1`. 
+* **Action**: Name your run `FirstRun`, set the number of iterations to `20,000`, and instances to `1`. 
 * **Action**: Click _**Build and Run**_.
 
 Your project will now be built and then uploaded to USim. Depending on the upload speed of your internet connection, this might take anywhere from a few seconds to a couple of minutes. 
@@ -116,7 +116,13 @@ MacOS:
 Windows:
 `USimCLI\windows\usim login auth`
 
-This will open a browser for you to login to your Unity account. Once you have logged you will see this page:
+This command will ask you to press Enter to open a browser for you to login to your Unity account:
+
+`Press [ENTER] to open your browser to ...'
+
+* **Action**: Press Enter to open a browser window for logging in.
+
+Once you have logged you will see this page:
 
 <p align="center">
 <img src="Images/usim_login.png" width="400"/>
@@ -134,13 +140,52 @@ MacOS:
 Windows:
 `USimCLI\windows\usim get projects`
 
-This gives you a list of the cloud projects associated with your Unity account along with their project IDs. In case you have more than one cloud project, you will need to "activate" the one corresponding with your perception tutorial project here. If there is only one project, it is already activated and you will not need to execute the command below (note: replace `<project-id>` with the id of your desired project):
-
+This gives you a list of the cloud projects associated with your Unity account along with their project IDs. In case you have more than one cloud project, you will need to "activate" the one corresponding with your perception tutorial project here. If there is only one project, it is already activated and you will not need to execute the command below (note: replace `<project-id>` with the id of your desired project).
 * **Action** 
 MacOS:
 `USimCLI/mac/usim activate project <project-id>`
 Windows:
 `USimCLI\windows\usim get projects <project-id>`
+
+When asked if you are sure you want to change the active project, enter "y".
+
+Example output:
+
+```
+ name                  id                                       creation time             
+--------------------- ---------------------------------------- --------------------------- 
+ Perception Tutorial   acd31956-582b-4138-bec8-6670be150f09 *   2020-09-30T00:33:41+00:00 
+ SynthDet              9ec23417-73cd-becd-9dd6-556183946153     2020-08-12T19:46:20+00:00  
+ ```
+
+
+ Now that we have made sure the correct project is active, we can get a list of all the current and past runs for the project. 
+
+ * **Action**: Use the `usim get runs` command to obtain a list of current and past runs:
+ MacOS:
+`USimCLI/mac/usim get runs`
+Windows:
+`USimCLI\windows\usim get runs`
+
+An example output with 3 runs would look like this:
+
+```
+name        id        creation time         executions                                    
+----------- --------- --------------------- -----------------------------------------------
+ FirstRun    1tLbZxL   2020-10-01 23:17:50    id        status        created_at           
+                                             --------- ------------- --------------------- 
+                                              yegz4WN   In_Progress   2020-10-01 23:17:54  
+ Run2        klvfxgT   2020-10-01 21:46:39    id        status        created_at           
+                                             --------- ------------- --------------------- 
+                                              kML3i50   In_Progress   2020-10-01 21:46:42  
+ Test        4g9xmW7   2020-10-01 02:27:06    id        status      created_at             
+                                             --------- ----------- ---------------------   
+                                              xBv3arj   Completed   2020-10-01 02:27:11    
+```
+
+As seen above, each run has a name, an ID, a creation time, and a list of executions. Note that each "run" can have more than one "execution", as you can manually execute runs again using USimCLI. For now though, we will not concern ourselves with that.
+
+No
 
 
 

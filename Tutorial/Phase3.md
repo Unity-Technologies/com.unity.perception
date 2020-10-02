@@ -95,6 +95,7 @@ The `<URL-unity_simulation_bundle.zip>` address can be found at the same page li
 * **Action**: Open a command-line interface (Terminal on Mac OS, cmd on Windows, etc.) and navigate to the extracted folder.
 
 If you downloaded the zip archive in the default location in your downloads folder, you can use these commands to navigate to it from the command-line:
+
 MacOS:
 `cd ~/Downloads/unity_simulation_bundle`
 Windows:
@@ -133,19 +134,21 @@ Once you have logged you will see this page:
 
 This will ask for your MacOS account's password, and should help overcome the persmission issues.
 
+**Note : From this point on we will only include MacOS formatted commands in the tutorial, but all the USim commands we use will work in all operating systems.**
+
 * **Action**: Return to your command-line interface. Get a list of your cloud projects using the `usim get projects` command:
 
 MacOS:
 `USimCLI/mac/usim get projects`
-Windows:
-`USimCLI\windows\usim get projects`
+<!--Windows:
+`USimCLI\windows\usim get projects`-->
 
 This gives you a list of the cloud projects associated with your Unity account along with their project IDs. In case you have more than one cloud project, you will need to "activate" the one corresponding with your perception tutorial project here. If there is only one project, it is already activated and you will not need to execute the command below (note: replace `<project-id>` with the id of your desired project).
-* **Action** 
+* **Action**: Activate the relevant project:
 MacOS:
 `USimCLI/mac/usim activate project <project-id>`
-Windows:
-`USimCLI\windows\usim get projects <project-id>`
+<!--Windows:
+`USimCLI\windows\usim get projects <project-id>` -->
 
 When asked if you are sure you want to change the active project, enter "y".
 
@@ -164,8 +167,8 @@ Example output:
  * **Action**: Use the `usim get runs` command to obtain a list of current and past runs:
  MacOS:
 `USimCLI/mac/usim get runs`
-Windows:
-`USimCLI\windows\usim get runs`
+<!--Windows:
+`USimCLI\windows\usim get runs`-->
 
 An example output with 3 runs would look like this:
 
@@ -185,10 +188,18 @@ name        id        creation time         executions
 
 As seen above, each run has a name, an ID, a creation time, and a list of executions. Note that each "run" can have more than one "execution", as you can manually execute runs again using USimCLI. For now though, we will not concern ourselves with that.
 
-No
+You can also obtain a list of all the builds you have uploaded to USim using the `usim get builds` command.
 
+You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `yegz4WN`.
 
+USim runs execution on simulation nodes. If you enter a number larger than 1 for the number of instances in the _**Run in USim**_ window, your run will execute simultaneously on more than one simulation node. You can view the status of each execution node using the `usim summarize run-execution <execution-id>` command. This command will tell you how many nodes have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
 
+* **Action**: Use the `usim summarize run-execution <execution-id>` command to observe the status of your execution nodes:
+
+MacOS:
+`USimCLI/mac/usim get runs`
+<!--Windows:
+`USimCLI\windows\usim get runs`-->
 
 
 

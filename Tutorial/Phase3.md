@@ -67,17 +67,84 @@ Here, you can also specify a name for the run, the number of iterations the Scen
 * **Action**: Name your run `First Run`, set the number of iterations to `20,000`, and instances to `1`. 
 * **Action**: Click _**Build and Run**_.
 
-Your project will now be built and then uploaded to USim. Depending on the upload speed of your internet connection, this might take anywhere from a few seconds to a couple of minutes.
+Your project will now be built and then uploaded to USim. Depending on the upload speed of your internet connection, this might take anywhere from a few seconds to a couple of minutes. 
+
+* **Action**: Once the operation is complete, you can find the **Build ID**, **Run Definition ID**, and **Execution ID** of this USim run in the _**Console**_ tab:
+
+<p align="center">
+<img src="Images/build_uploaded.png"/>
+</p>
 
 
 ### Step 3: Keep Track of USim Runs Using USim-CLI
 
-To keep track of the progress of your USim run, you will need to use USim's command-line interface (USim CLI). 
+To keep track of the progress of your USim run, you will need to use USim's command-line interface (USim CLI). Detailed instructions for the USim CLI are provided [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/blob/master/doc/quickstart.md#download-unity-simulation-quickstart-materials). 
 
-* **Action**: Download `unity_simulation_bundle.zip` from [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/releases/download/v20200908/unity_simulation_bundle.zip)
-* **Action**: Unzip the file and navigate to the `USimCLI/<operating system>` folder. 
+For the purposes of this tutorial, we will only go through the most essential commands, which will help us know when our USim run is complete and where to find the produced dataset.
 
-To run the 
+* **Action**: Download the latest version of `unity_simulation_bundle.zip` from [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/releases)
+
+**Note**: If you are using a MacOS computer, we recommend using the _**curl**_ command from the Terminal to download the file, in order to avoid issues caused by the MacOS Gatekeeper when running the CLI. You can use these commands:
+```
+curl -Lo ~/Downloads/unity_simulation_bundle.zip <URL-unity_simulation_bundle.zip>
+unzip ~/Downloads/unity_simulation_bundle.zip -d ~/Downloads/unity_simulation_bundle
+```
+The `<URL-unity_simulation_bundle.zip>` address can be found at the same page linked above.
+
+* **Action**: Extract the zip archive you downloaded.
+* **Action**: Open a command-line interface (Terminal on Mac OS, cmd on Windows, etc.) and navigate to the extracted folder.
+
+If you downloaded the zip archive in the default location in your downloads folder, you can use these commands to navigate to it from the command-line:
+MacOS:
+`cd ~/Downloads/unity_simulation_bundle`
+Windows:
+`cd C:\Users\UserName\Downloads\unity_simulation_bundle`
+
+You will now be using the _**usim**_ executable to interact with Unity Simluation through commands. 
+
+* **Action** To see a list of available commands, simply run `usim` once:
+MacOS:
+`USimCLI/mac/usim`
+Windows:
+`USimCLI\windows\usim`
+
+The first step is to login.
+
+* **Action**: Login to USim using the `usim login auth` command.
+MacOS:
+`USimCLI/mac/usim login auth`
+Windows:
+`USimCLI\windows\usim login auth`
+
+This will open a browser for you to login to your Unity account. Once you have logged you will see this page:
+
+<p align="center">
+<img src="Images/usim_login.png" width="400"/>
+</p>
+
+**Note**: On MacOS, you might get errors related to permissions. In these cases, try running your commands with the `sudo` qualifier. For example:
+`sudo USimCLI/mac/usim login auth`
+
+This will ask for your MacOS account's password, and should help overcome the persmission issues.
+
+* **Action**: Return to your command-line interface. Get a list of your cloud projects using the `usim get projects` command:
+
+MacOS:
+`USimCLI/mac/usim get projects`
+Windows:
+`USimCLI\windows\usim get projects`
+
+This gives you a list of the cloud projects associated with your Unity account along with their project IDs. In case you have more than one cloud project, you will need to "activate" the one corresponding with your perception tutorial project here. If there is only one project, it is already activated and you will not need to execute the command below (note: replace `<project-id>` with the id of your desired project):
+
+* **Action** 
+MacOS:
+`USimCLI/mac/usim activate project <project-id>`
+Windows:
+`USimCLI\windows\usim get projects <project-id>`
+
+
+
+
 
 
 

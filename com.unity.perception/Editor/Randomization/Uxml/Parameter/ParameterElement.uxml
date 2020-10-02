@@ -1,0 +1,6 @@
+<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement>
+        <Style src="../../Uss/Styles.uss"/>
+        <VisualElement name="properties"/>
+    </VisualElement>
+</UXML>

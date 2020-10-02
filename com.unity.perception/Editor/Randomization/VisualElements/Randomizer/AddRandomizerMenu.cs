@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             public MenuItemElement(MenuItem menuItem, AddRandomizerMenu menu)
             {
                 text = menuItem.itemName;
-                AddToClassList("menu-element");
+                AddToClassList("randomizer__add-menu-directory-item");
                 RegisterCallback<MouseUpEvent>(evt => menu.AddRandomizer(menuItem.randomizerType));
             }
         }

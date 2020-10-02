@@ -19,7 +19,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         public ParameterElement(SerializedProperty property)
         {
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                $"{StaticData.uxmlDir}/ParameterElement.uxml");
+                $"{StaticData.uxmlDir}/Parameter/ParameterElement.uxml");
             template.CloneTree(this);
             m_SerializedProperty = property;
             m_PropertiesContainer = this.Q<VisualElement>("properties");
@@ -61,7 +61,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         void CreateCategoricalParameterFields()
         {
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                $"{StaticData.uxmlDir}/CategoricalParameterTemplate.uxml").CloneTree();
+                $"{StaticData.uxmlDir}/Parameter/CategoricalParameterTemplate.uxml").CloneTree();
 
             var optionsProperty = m_SerializedProperty.FindPropertyRelative("m_Categories");
             var probabilitiesProperty = m_SerializedProperty.FindPropertyRelative("probabilities");
@@ -165,9 +165,9 @@ namespace UnityEngine.Perception.Randomization.Editor
             void ToggleProbabilityFields(bool toggle)
             {
                 if (toggle)
-                    listView.AddToClassList("uniform-probability");
+                    listView.AddToClassList("collapsed");
                 else
-                    listView.RemoveFromClassList("uniform-probability");
+                    listView.RemoveFromClassList("collapsed");
             }
             ToggleProbabilityFields(uniformToggle.value);
             if (Application.isPlaying)

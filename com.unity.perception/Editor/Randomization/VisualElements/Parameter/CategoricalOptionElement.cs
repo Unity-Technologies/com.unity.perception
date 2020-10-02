@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             m_ProbabilitiesProperty = probabilitiesProperty;
 
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                $"{StaticData.uxmlDir}/CategoricalOptionElement.uxml");
+                $"{StaticData.uxmlDir}/Parameter/CategoricalOptionElement.uxml");
             template.CloneTree(this);
         }
 

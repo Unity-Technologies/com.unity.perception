@@ -9,7 +9,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
     {
         public FloatRangeElement(SerializedProperty property)
         {
-            var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{StaticData.uxmlDir}/FloatRangeElement.uxml");
+            var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                $"{StaticData.uxmlDir}/Sampler/FloatRangeElement.uxml");
             template.CloneTree(this);
 
             var minimumField = this.Q<FloatField>("minimum");

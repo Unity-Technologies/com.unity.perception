@@ -15,7 +15,7 @@ In order to use Unity Simulation you need to first create a Unity account or log
 If you have not logged in yet, the _**Services**_ tab will display a message noting that you are offline:
 
 <p align="center">
-<img src="Images/signin.png" width="400"/>
+<img src="Images/signin.jpg" width="400"/>
 </p>
 
 * **Action**: Click _**Sign in...**_ and follow the steps within the window that opens to sign in or create an account.

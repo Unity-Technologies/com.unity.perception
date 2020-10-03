@@ -98,6 +98,7 @@ If you downloaded the zip archive in the default location in your downloads fold
 
 MacOS:
 `cd ~/Downloads/unity_simulation_bundle`
+
 Windows:
 `cd C:\Users\UserName\Downloads\unity_simulation_bundle`
 
@@ -106,6 +107,7 @@ You will now be using the _**usim**_ executable to interact with Unity Simluatio
 * **Action** To see a list of available commands, simply run `usim` once:
 MacOS:
 `USimCLI/mac/usim`
+
 Windows:
 `USimCLI\windows\usim`
 
@@ -114,6 +116,7 @@ The first step is to login.
 * **Action**: Login to USim using the `usim login auth` command.
 MacOS:
 `USimCLI/mac/usim login auth`
+
 Windows:
 `USimCLI\windows\usim login auth`
 
@@ -167,12 +170,14 @@ Example output:
  * **Action**: Use the `usim get runs` command to obtain a list of current and past runs:
  MacOS:
 `USimCLI/mac/usim get runs`
+
 <!--Windows:
 `USimCLI\windows\usim get runs`-->
 
 An example output with 3 runs would look like this:
 
 ```
+Active Project ID: acd31956-582b-4138-bec8-6670be150f09
 name        id        creation time         executions                                    
 ----------- --------- --------------------- -----------------------------------------------
  FirstRun    1tLbZxL   2020-10-01 23:17:50    id        status        created_at           
@@ -197,9 +202,108 @@ USim runs execution on simulation nodes. If you enter a number larger than 1 for
 * **Action**: Use the `usim summarize run-execution <execution-id>` command to observe the status of your execution nodes:
 
 MacOS:
-`USimCLI/mac/usim get runs`
+`USimCLI/mac/usim summarize run-execution <execution-id>`
 <!--Windows:
-`USimCLI\windows\usim get runs`-->
+`USimCLI\windows\usim summarize run-execution <execution-id>`-->
+
+Here is an example output of this command, indiciating that there is only one node, and that the node is still in progress:
+
+```
+ state         count 
+------------- -------
+ Successes     0     
+ In Progress   1     
+ Failures      0     
+ Not Run       0    
+ ```
+
+ At this point, we will need to wait until the execution is complete. Check your run with the above command periodically until you see a 1 for `Successes` and 0 for `In Progress`.
+ Given the relatively small size of our Scenario (20,000 Iterations), this should take less than 10 minutes.
+
+ * **Action**: Use the `usim summarize run-execution <execution-id>` command periodically to check the progress of your run.
+ * **Action**: When execution is complete, use the `usim download manifest <execution-id>` command to download the execution's manifest:
+
+ MacOS:
+ `USimCLI/mac/usim download manifest <execution-id>`
+
+ The manifest is a `.csv` formatted file and will be downloaded to the same location from which you execute the above command, which is the `unity_simulation_bundle` folder.
+ This file does include actual data, rather, it includes links to the generated data, including the JSON files, the logs, the images, and so on.
+ 
+ * **Action**: Open the manifest file to check it. Make sure there are links to various types of output and check a few of the links to see if they work.
+
+ In order to to download the actual data from your run, we will now use Dataset Insights again. This time though, we will utilize some of the lines that were commented in our previous use with locally generated data.
+
+ * **Action**: Open the Dataset Insights Jupyter notebook again, using the command below:
+ 
+ `docker run -p 8888:8888 -v <download path>/data:/data -t unitytechnologies/datasetinsights:latest`
+
+In the above command, replace `<download path>` with the location on your computer in which you wish to download your data.
+
+Once the Docker image is running, the rest of the workflow is quite similar to what we did in Phase 1, with certain differences caused by the need to download the data from USim.
+
+* **Action**: Open a web browser and navigate to `http://localhost:8888` to open the Jupyter notebook.
+* **Action**: Navigate to the `datasetinsights/notebooks` folder and open `Perception_Statistics.ipynb`.
+* **Action**: In the `data_root = /data/<GUID>` line, the `<GUID>` part will be the location inside your `<download path>` where the data will be downloaded. Therefore, you can just remove it so as to have data downloaded directly to path you previously specified:
+
+<p align="center">
+<img src="Images/di_usim_1.png"/>
+</p>
+
+The next few lines of code pertain to setting up your notebook for downloading data from USim. 
+
+* **Action**: In the block of code titled "Unity Simulation [Optional]", uncomment the lines that assign values to variables, and insert the correct values, based on information from USim run. 
+
+We have previoulsy learned how to obtain the `run_execution_id` and `project_id`. You can remove the value already present in for `annotation_definition_id` and leave it blank. What's left is the `access_token`.
+
+* **Action**: Return to your command-line interface and run the `usim inspect auth` command.
+
+MacOS:
+ `USimCLI/mac/usim inspect auth`
+
+If you receive errors regarding your authentication, your token might have timed out. Repeat the login step (`usim login auth`) to login again and fix this issue.
+
+A sample output from `usim inspect auth` will like like below:
+
+```
+Protect your credentials. They may be used to impersonate your requests.
+access token: Bearer 0CfQbhJ6gjYIHjC6BaP5gkYn1x5xtAp7ZA9I003fTNT1sFp
+expires in: 2:00:05.236227
+expired: False
+refresh token: FW4c3YRD4IXi6qQHv3Y9W-rwg59K7k0Te9myKe7Zo6M003f.k4Dqo0tuoBdf-ncm003fX2RAHQ
+updated: 2020-10-02 14:50:11.412979
+```
+
+The `access_token` you need for your Dataset Insights notebook is the access token shown by the above command, minus the `Bearer ` part. So in this case, we should input `0CfQbhJ6gjYIHjC6BaP5gkYn1x5xtAp7ZA9I003fTNT1sFp` in the notebook. 
+
+* **Action**: Copy the access token minus the `Bearer ` part to the corresponding field in the Dataset Inisghts notebook.
+
+Once you have entered all the information, the block of code should look like the screenshot below:
+
+<p align="center">
+<img src="Images/di_usim_2.png"/>
+</p>
+
+
+* **Action**: Continue to the next code block and run it to download all the meta-data files from the generated dataset. This includes JSON files and logs, but does not include images (which will be downloaded later). 
+
+You will see a progress bar while the data downloads:
+
+<p align="center">
+<img src="Images/di_usim_3.png"/>
+</p>
+
+
+The next couple of code blocks (under "Load dataset metadata") analyze the downloaded meta-data and display a table containing annotation-id's for the various metrics defined in the dataset.
+
+* **Action** Once you reach the code block titled "Built-in Statistics", make sure the value assigned to the field `rendered_object_info_definition_id` matches the id displayed for this metric in the table output by the code block immediately before it. The screenshot below demonstrates this (note that your ids might differ from the ones here):
+
+<p align="center">
+<img src="Images/di_usim_4.png"/>
+</p>
+
+Follow the rest of the steps inside the notebook to generate a variety of plots and stats. Keep in mind that this notebook is provided just as an example, but you can modify and extend to your own needs, using the tools provided by the [Dataset Insights framework](https://datasetinsights.readthedocs.io/en/latest/).
+
+**Important note regarding data size**: In the "Annotation Visualization" section of the notebook, you will download all the files present in the dataset, including images. The example dataset we created here contains 20,000 images (one for each Iteration), and would be have a size of around 50 GB. Therefore, make sure you account for storage before you run the corresponding code block.
 
 
 

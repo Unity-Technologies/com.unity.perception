@@ -175,10 +175,11 @@ namespace UnityEngine.Perception.GroundTruth
             return cs;
 #endif
         }
+
+        Dictionary<string, GameObject> bbvizes;
         
         public GameObject boundingBoxVizPrefab = null;
-        GameObject bbViz = null;
-
+        
         Bounds TransformBounds(Vector3 pos, Matrix4x4 matrix, Bounds bounds)
         {
             var aMin = bounds.min;
@@ -214,10 +215,91 @@ namespace UnityEngine.Perception.GroundTruth
             var center = bMin + ext;
             return new Bounds(center, ext);
         }
+
+        GameObject badCar;
+        
+        static GameObject CreateTestReallyBadCar(Vector3 position, Quaternion rotation, bool underOneLabel = true)
+        {
+            var badCar = new GameObject("BadCar");
+            badCar.transform.position = position;
+            badCar.transform.rotation = rotation;
+            if (underOneLabel)
+            {
+                var labeling = badCar.AddComponent<Labeling>();
+                labeling.labels.Add("car");
+            }
+
+            var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            body.name = "body";
+            body.transform.parent = badCar.transform;
+            body.transform.localPosition = new Vector3(0, 0.7f, 0);
+            body.transform.localScale = new Vector3(2f, 1.4f, 4.8f);
+            if (!underOneLabel)
+            {
+                var labeling = body.AddComponent<Labeling>();
+                labeling.labels.Add("car");
+            }
+
+            var wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            wheel.name = "wheel1";
+            wheel.transform.parent = badCar.transform;
+            wheel.transform.localPosition = new Vector3(1f, 0, -1.4f);
+            wheel.transform.localRotation = Quaternion.Euler(0, 0, 90);
+            wheel.transform.localScale = new Vector3(0.7f, 1, 0.7f);
+            if (!underOneLabel)
+            {
+                var labeling = wheel.AddComponent<Labeling>();
+                labeling.labels.Add("wheel");
+            }
+
+            wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            wheel.name = "wheel2";
+            wheel.transform.parent = badCar.transform;
+            wheel.transform.localPosition = new Vector3(1f, 0, 1.45f);
+            wheel.transform.localRotation = Quaternion.Euler(0, 0, 90);
+            wheel.transform.localScale = new Vector3(0.7f, 1, 0.7f);
+            if (!underOneLabel)
+            {
+                var labeling = wheel.AddComponent<Labeling>();
+                labeling.labels.Add("wheel");
+            }
+
+            wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            wheel.name = "wheel3";
+            wheel.transform.parent = badCar.transform;
+            wheel.transform.localPosition = new Vector3(-1f, 0, -1.4f);
+            wheel.transform.localRotation = Quaternion.Euler(0, 0, 90);
+            wheel.transform.localScale = new Vector3(0.7f, 1, 0.7f);
+            if (!underOneLabel)
+            {
+                var labeling = wheel.AddComponent<Labeling>();
+                labeling.labels.Add("wheel");
+            }
+
+            wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            wheel.name = "wheel4";
+            wheel.transform.parent = badCar.transform;
+            wheel.transform.localPosition = new Vector3(-1f, 0, 1.45f);
+            wheel.transform.localRotation = Quaternion.Euler(0, 0, 90);
+            wheel.transform.localScale = new Vector3(0.7f, 1, 0.7f);
+            if (!underOneLabel)
+            {
+                var labeling = wheel.AddComponent<Labeling>();
+                labeling.labels.Add("wheel");
+            }
+
+            return badCar;
+        }
         
              /// <inheritdoc/>
         public void OnUpdateEntity(Labeling labeling, GroundTruthInfo groundTruthInfo)
         {
+            #if false
+            if (GameObject.Find("BadCar") == null)
+            {
+                badCar = CreateTestReallyBadCar(new Vector3(0, 0.35f, 20), Quaternion.identity);
+            }
+            #endif
             using (s_BoundingBoxCallback.Auto())
             {
                 // Grab all of the mesh filters that may be contained in the game object
@@ -274,6 +356,7 @@ namespace UnityEngine.Perception.GroundTruth
                             transformedBounds.center += currentTransform.localPosition;// currentTransform.localRotation * currentTransform.localPosition;// + transformedBounds.center;
                             //transformedBounds.extents = currentTransform.localRotation * transformedBounds.extents;
                             //transformedBounds.extents = Vector3.Scale(transformedBounds.extents, currentTransform.localScale);
+                            transformedBounds.extents = Vector3.Scale(transformedBounds.extents, currentTransform.localScale);
                             transformedRotation *= currentTransform.localRotation;
                             currentTransform = currentTransform.parent;
                         }
@@ -323,13 +406,17 @@ namespace UnityEngine.Perception.GroundTruth
                     bounds.center = labelTransform.TransformPoint(bounds.center);
                     bounds.extents = Vector3.Scale(bounds.extents,  labelTransform.localScale);
 
-                    #if true
-                    if (bbViz == null) bbViz = Object.Instantiate(boundingBoxVizPrefab);
-                    
+#if false
+                    if (bbvizes == null) bbvizes = new Dictionary<string, GameObject>();
+                    var name = labelTransform.name + "_viz";
+                    if (!bbvizes.ContainsKey(name)) bbvizes[name] = Object.Instantiate(boundingBoxVizPrefab);
+                    var bbViz = bbvizes[name];
+                    bbViz.name = name;
                     bbViz.transform.position = bounds.center ;
                     bbViz.transform.localRotation = localRotation;// * Quaternion.Inverse(rotTowards);
                     bbViz.transform.localScale = bounds.extents * 2;// * 2f;
-                    #endif
+                    bbvizes[bbViz.name] = bbViz;
+#endif
                    
 
                     // Now convert all points into camera's space

@@ -29,6 +29,10 @@ _example bounding box visualization from [SynthDet](https://github.com/Unity-Tec
 
 The Bounding Box 2D Labeler produces 2D bounding boxes for each visible object with a label resolved by the given ID Label Config. Bounding boxes are calculated using the rendered image, so only occluded or out-of-frame portions of the objects are not included.
 
+### Bounding Box 3D Ground Truth Labeler
+
+The Bounding Box 3D Ground Truth Labeler prouces 3D ground truth bounding boxes for each labeled game object in the scene. Unlike the 2D bounding boxes, 3D bounding boxes are calculated from the labeled meshes in the scene and all objects (independent of their occlusion state) are recorded.
+
 ### Object Count Labeler
 ```
 {

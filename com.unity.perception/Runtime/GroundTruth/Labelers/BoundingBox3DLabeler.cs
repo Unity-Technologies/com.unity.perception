@@ -138,477 +138,115 @@ namespace UnityEngine.Perception.GroundTruth
             };
         }
 
-        Dictionary<string, GameObject> boundsMap = new Dictionary<string, GameObject>();
-
-        Vector3[] GetBoxCorners(Bounds bounds, Quaternion q)
+        static Vector3[] GetBoxCorners(Bounds bounds, Quaternion rotation)
         {
-#if false
-            
-            
-            var c = bounds.center;
-            var ll = c - bounds.extents;
-            var ur = c + bounds.extents;
-#else
-            var c = bounds.center;
-            var r = Vector3.right * bounds.extents.x;
-            var u = Vector3.up * bounds.extents.y;
-            var f = Vector3.forward * bounds.extents.z;
+            var boundsCenter = bounds.center;
+            var right = Vector3.right * bounds.extents.x;
+            var up = Vector3.up * bounds.extents.y;
+            var forward = Vector3.forward * bounds.extents.z;
 
-            r = q * r;
-            u = q * u;
-            f = q * f;
+            right = rotation * right;
+            up = rotation * up;
+            forward = rotation * forward;
             
-            var r2 = r * 2;
-            var u2 = u * 2;
-            var f2 = f * 2;
+            var doubleRight = right * 2;
+            var doubleUp = up * 2;
+            var doubleForward = forward * 2;
             
-            var cs = new Vector3[8];
-            cs[0] = c - r - u - f;
-            cs[1] = cs[0] + u2;
-            cs[2] = cs[1] + r2;
-            cs[3] = cs[0] + r2; 
-            for (int i = 0; i < 4; i++)
+            var corners = new Vector3[8];
+            corners[0] = boundsCenter - right - up - forward;
+            corners[1] = corners[0] + doubleUp;
+            corners[2] = corners[1] + doubleRight;
+            corners[3] = corners[0] + doubleRight; 
+            for (var i = 0; i < 4; i++)
             {
-                cs[i + 4] = cs[i] + f2;
+                corners[i + 4] = corners[i] + doubleForward;
             }
 
-            return cs;
-#endif
+            return corners;
         }
 
-        Dictionary<string, GameObject> bbvizes;
-        
-        public GameObject boundingBoxVizPrefab = null;
-        
-        Bounds TransformBounds(Vector3 pos, Matrix4x4 matrix, Bounds bounds)
-        {
-            var aMin = bounds.min;
-            var aMax = bounds.max;
-
-            var bMin = bounds.center;
-            var bMax = bounds.center;
-            
-            float a, b;
-            
-            // Now find the extreme points by considering the product of the min and max with each component
-            for (var i = 0; i < 3; i++)
-            {
-                for (var j = 0; j < 3; j++)
-                {
-                    a = matrix[i, j] * aMin[j];
-                    b = matrix[i, j] * aMax[j];
-
-                    if (a < b)
-                    {
-                        bMin[i] += a;
-                        bMax[i] += b;
-                    }
-                    else
-                    {
-                        bMin[i] += b;
-                        bMax[i] += a;
-                    }
-                }
-            }
-
-            var ext = (bMax - bMin) * 0.5f;
-            var center = bMin + ext;
-            return new Bounds(center, ext);
-        }
-
-        GameObject badCar;
-        
-        static GameObject CreateTestReallyBadCar(Vector3 position, Quaternion rotation, bool underOneLabel = true)
-        {
-            var badCar = new GameObject("BadCar");
-            badCar.transform.position = position;
-            badCar.transform.rotation = rotation;
-            if (underOneLabel)
-            {
-                var labeling = badCar.AddComponent<Labeling>();
-                labeling.labels.Add("car");
-            }
-
-            var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            body.name = "body";
-            body.transform.parent = badCar.transform;
-            body.transform.localPosition = new Vector3(0, 0.7f, 0);
-            body.transform.localScale = new Vector3(2f, 1.4f, 4.8f);
-            if (!underOneLabel)
-            {
-                var labeling = body.AddComponent<Labeling>();
-                labeling.labels.Add("car");
-            }
-
-            var wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            wheel.name = "wheel1";
-            wheel.transform.parent = badCar.transform;
-            wheel.transform.localPosition = new Vector3(1f, 0, -1.4f);
-            wheel.transform.localRotation = Quaternion.Euler(0, 0, 90);
-            wheel.transform.localScale = new Vector3(0.7f, 1, 0.7f);
-            if (!underOneLabel)
-            {
-                var labeling = wheel.AddComponent<Labeling>();
-                labeling.labels.Add("wheel");
-            }
-
-            wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            wheel.name = "wheel2";
-            wheel.transform.parent = badCar.transform;
-            wheel.transform.localPosition = new Vector3(1f, 0, 1.45f);
-            wheel.transform.localRotation = Quaternion.Euler(0, 0, 90);
-            wheel.transform.localScale = new Vector3(0.7f, 1, 0.7f);
-            if (!underOneLabel)
-            {
-                var labeling = wheel.AddComponent<Labeling>();
-                labeling.labels.Add("wheel");
-            }
-
-            wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            wheel.name = "wheel3";
-            wheel.transform.parent = badCar.transform;
-            wheel.transform.localPosition = new Vector3(-1f, 0, -1.4f);
-            wheel.transform.localRotation = Quaternion.Euler(0, 0, 90);
-            wheel.transform.localScale = new Vector3(0.7f, 1, 0.7f);
-            if (!underOneLabel)
-            {
-                var labeling = wheel.AddComponent<Labeling>();
-                labeling.labels.Add("wheel");
-            }
-
-            wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            wheel.name = "wheel4";
-            wheel.transform.parent = badCar.transform;
-            wheel.transform.localPosition = new Vector3(-1f, 0, 1.45f);
-            wheel.transform.localRotation = Quaternion.Euler(0, 0, 90);
-            wheel.transform.localScale = new Vector3(0.7f, 1, 0.7f);
-            if (!underOneLabel)
-            {
-                var labeling = wheel.AddComponent<Labeling>();
-                labeling.labels.Add("wheel");
-            }
-
-            return badCar;
-        }
-        
-             /// <inheritdoc/>
-        public void OnUpdateEntity(Labeling labeling, GroundTruthInfo groundTruthInfo)
-        {
-            #if false
-            if (GameObject.Find("BadCar") == null)
-            {
-                badCar = CreateTestReallyBadCar(new Vector3(0, 0.35f, 20), Quaternion.identity);
-            }
-            #endif
-            using (s_BoundingBoxCallback.Auto())
-            {
-                // Grab all of the mesh filters that may be contained in the game object
-                var meshFilters = labeling.gameObject.GetComponentsInChildren<MeshFilter>();
-                if (meshFilters == null || meshFilters.Length == 0) return;
-
-                if (idLabelConfig.TryGetLabelEntryFromInstanceId(groundTruthInfo.instanceId, out var labelEntry))
-                {
-                    var camTrans = perceptionCamera.transform;
-                    var bounds = new Bounds(Vector3.zero, Vector3.zero);
-                    var boundsUnset = true;
-#if false
-                    // Set up my bound visuals
-                    foreach (var mesh in meshFilters)
-                    {
-                        var currentTransform = mesh.gameObject.transform;
-
-                        // Need to copy the bounds because we are going to move them, and do not want to change
-                        // the bounds of the mesh
-                        var meshBounds = mesh.mesh.bounds;
-                        
-                        if (boundsMap == null) boundsMap = new Dictionary<string, GameObject>();
-
-                        if (!boundsMap.ContainsKey(mesh.gameObject.name))
-                        {
-                            boundsMap[mesh.gameObject.name] = Object.Instantiate(boundingBoxVizPrefab);
-                            boundsMap[mesh.gameObject.name].name = mesh.gameObject.name + "_bounds";
-                        }
-                        var b = boundsMap[mesh.gameObject.name];
-                        
-                        b.transform.localPosition = mesh.transform.TransformPoint(meshBounds.center);
-                        //b.transform.localRotation = Quaternion.Inverse(mesh.transform.rotation);
-                        b.transform.localRotation = mesh.transform.rotation;
-                        b.transform.localScale = Vector3.Scale(meshBounds.extents, mesh.transform.localScale) * 2;
-                    }
-#endif           
-                    // Need to convert all bounds into labeling mesh space...
-                    foreach (var mesh in meshFilters)
-                    {
-                        var currentTransform = mesh.gameObject.transform;
-
-                        var meshBounds = mesh.mesh.bounds;
-                        
-                        // Need to copy the bounds because we are going to move them, and do not want to change
-                        // the bounds of the mesh
-                        
-                        //var transformedBounds = new Bounds(currentTransform.localPosition + meshBounds.center, meshBounds.size * 2);
-                        var transformedBounds = new Bounds(meshBounds.center, meshBounds.size);// * 2);
-                        var transformedRotation = Quaternion.identity;
-                        
-                        // Convert all sub-components bounds into top level component's space
-                        while (currentTransform != labeling.transform)
-                        {
-                            transformedBounds.center += currentTransform.localPosition;// currentTransform.localRotation * currentTransform.localPosition;// + transformedBounds.center;
-                            //transformedBounds.extents = currentTransform.localRotation * transformedBounds.extents;
-                            //transformedBounds.extents = Vector3.Scale(transformedBounds.extents, currentTransform.localScale);
-                            transformedBounds.extents = Vector3.Scale(transformedBounds.extents, currentTransform.localScale);
-                            transformedRotation *= currentTransform.localRotation;
-                            currentTransform = currentTransform.parent;
-                        }
-
-                        //transformedBounds.center += currentTransform.localPosition;
-                        
-                        //var center = currentTransform.TransformPoint(meshBounds.center);
-                        //var scale = Vector3.Scale(meshBounds.extents, currentTransform.localScale) * 2;
-#if true
-                        //var cs = GetBoxCorners(new Bounds(center, scale * 2), Quaternion.identity);
-                        var cs = GetBoxCorners(transformedBounds, transformedRotation);//Quaternion.identity);//
-                        
-                        // Merge the bounds of the current child with the the entire component's bounds
-                        if (boundsUnset)
-                        {
-                            bounds = new Bounds(cs[0], Vector3.zero);
-                            boundsUnset = false;
-                        }
-
-                        foreach (var c2 in cs)
-                        {
-                            bounds.Encapsulate(c2);
-                        }
-#else
-                        if (boundsUnset)
-                        {
-                            bounds = new Bounds(transformedBounds.center, transformedBounds.size);
-                            boundsUnset = false;
-                        }
-                        else
-                        {
-                            bounds.Encapsulate(transformedBounds);
-                            
-                        }
-#endif
-                    }
-
-                    var labelTransform = labeling.transform;
-
-                    var testBounds = new Bounds(Vector3.zero, Vector3.zero);
-
-                    var rotTowards = Quaternion.identity;
-
-                    // Convert the encapsulated model's bounds into world space
-                    var localRotation = Quaternion.Inverse(camTrans.rotation) * labelTransform.rotation;
-
-                    bounds.center = labelTransform.TransformPoint(bounds.center);
-                    bounds.extents = Vector3.Scale(bounds.extents,  labelTransform.localScale);
-
-#if false
-                    if (bbvizes == null) bbvizes = new Dictionary<string, GameObject>();
-                    var name = labelTransform.name + "_viz";
-                    if (!bbvizes.ContainsKey(name)) bbvizes[name] = Object.Instantiate(boundingBoxVizPrefab);
-                    var bbViz = bbvizes[name];
-                    bbViz.name = name;
-                    bbViz.transform.position = bounds.center ;
-                    bbViz.transform.localRotation = localRotation;// * Quaternion.Inverse(rotTowards);
-                    bbViz.transform.localScale = bounds.extents * 2;// * 2f;
-                    bbvizes[bbViz.name] = bbViz;
-#endif
-                   
-
-                    // Now convert all points into camera's space
-                   
-                    var localCenter = camTrans.InverseTransformPoint(bounds.center);
-                    localCenter = Vector3.Scale(camTrans.localScale, localCenter);
-                    
-                    var converted = ConvertToBoxData(labelEntry, groundTruthInfo.instanceId, localCenter, bounds.extents, localRotation);
-                    BoundingBoxComputed?.Invoke(m_CurrentFrame, converted);
-                    m_BoundingBoxValues.Add(converted);
-                }
-            }
-        }
-        
-        
-        
-        #if false
         /// <inheritdoc/>
         public void OnUpdateEntity(Labeling labeling, GroundTruthInfo groundTruthInfo)
         {
             using (s_BoundingBoxCallback.Auto())
             {
-                // Grab all of the mesh filters that may be contained in the game object
+                // Unfortunately to get the non-axis aligned bounding prism from a game object is not very
+                // straightforward. A game object's default bounding prism is always axis aligned. To find a "tight"
+                // fitting prism for a game object we must calculate the oriented bounds of all of the meshes in a
+                // game object. These meshes (in the object tree) may go through a series of transformations. We need
+                // to transform all of the children mesh bounds into the coordinate space of the "labeled" game object
+                // and then intersect all of those bounds together. We then need to apply the "labeled" game object's
+                // transform to the combined bounds to transform the bounds into world space. Finally, we then need
+                // to take the bounds in world space and transform it to camera space to record it to json...
                 var meshFilters = labeling.gameObject.GetComponentsInChildren<MeshFilter>();
                 if (meshFilters == null || meshFilters.Length == 0) return;
 
                 if (idLabelConfig.TryGetLabelEntryFromInstanceId(groundTruthInfo.instanceId, out var labelEntry))
                 {
-                    var camTrans = perceptionCamera.transform;
-                    var bounds = new Bounds(Vector3.zero, Vector3.zero);
-                    var boundsUnset = true;
+                    var labelTransform = labeling.transform;
+                    var cameraTransform = perceptionCamera.transform;
+                    var combinedBounds = new Bounds(Vector3.zero, Vector3.zero);
+                    var areBoundsUnset = true;
 
-                    // Go through each sub mesh and convert its bounds into the labeling meshes space
+                    // Need to convert all bounds into labeling mesh space...
                     foreach (var mesh in meshFilters)
                     {
                         var currentTransform = mesh.gameObject.transform;
-
-                        // Need to copy the bounds because we are going to move them, and do not want to change
-                        // the bounds of the mesh
+                        // Grab the bounds of the game object from the mesh, although these bounds are axis-aligned,
+                        // they are axis-aligned with respect to the current component's coordinate space. This, in theory
+                        // could still provide non-ideal fitting bounds (if the model is made strangely, but garbage in; garbage out)
                         var meshBounds = mesh.mesh.bounds;
+                        
                         var transformedBounds = new Bounds(meshBounds.center, meshBounds.size);
-
-                        if (boundsMap == null) boundsMap = new Dictionary<string, GameObject>();
-
-                        if (!boundsMap.ContainsKey(mesh.gameObject.name))
-                        {
-                            boundsMap[mesh.gameObject.name] = Object.Instantiate(boundingBoxVizPrefab);
-                            boundsMap[mesh.gameObject.name].name = mesh.gameObject.name + "_bounds";
-                        }
-                        var b = boundsMap[mesh.gameObject.name];
+                        var transformedRotation = Quaternion.identity;
                         
-                        b.transform.localPosition = mesh.transform.TransformPoint(meshBounds.center);
-                        //b.transform.localRotation = Quaternion.Inverse(mesh.transform.rotation);
-                        b.transform.localRotation = mesh.transform.rotation;
-                        b.transform.localScale = Vector3.Scale(meshBounds.extents, mesh.transform.localScale) * 2;
-                        
-                        // Convert all sub-components bounds into top level component's space
-                        while (currentTransform != labeling.transform)
+                        // Apply the transformations on this object until we reach the labeled transform
+                        while (currentTransform != labelTransform)
                         {
                             transformedBounds.center += currentTransform.localPosition;
-                            transformedBounds.extents = currentTransform.TransformVector(transformedBounds.extents);
+                            transformedBounds.extents = Vector3.Scale(transformedBounds.extents, currentTransform.localScale);
+                            transformedRotation *= currentTransform.localRotation;
                             currentTransform = currentTransform.parent;
                         }
 
-                        // Merge the bounds of the current child with the the entire component's bounds
-                        if (boundsUnset)
+                        // Due to rotations that may be applied, we cannot simply use the extents of the bounds, but
+                        // need to calculate all 8 corners of the bounds and combine them with the current combined
+                        // bounds
+                        var corners = GetBoxCorners(transformedBounds, transformedRotation);
+                        
+                        // If this is the first time, create a new bounds struct
+                        if (areBoundsUnset)
                         {
-                            bounds.center = currentTransform.localPosition;
-                            bounds.extents = transformedBounds.extents;
-                            boundsUnset = false;
+                            combinedBounds = new Bounds(corners[0], Vector3.zero);
+                            areBoundsUnset = false;
                         }
-                        else
-                            bounds.Encapsulate(transformedBounds);
-                    }
 
-
-                    var labelTransform = labeling.transform;
-
-                    var testBounds = new Bounds(Vector3.zero, Vector3.zero);
-
-                    var rotTowards = Quaternion.identity;
-
-                    bool firstTime = true;
-                    
-                    rotTowards.SetFromToRotation(labeling.transform.forward, Vector3.forward);
-                    var lookAt = Quaternion.Inverse(labeling.transform.rotation);
-                    foreach (var i in boundsMap.Values)
-                    {
-
-#if false
-                        // transform bounds in labeling coordinates space
-                        var c = labelTransform.InverseTransformPoint(i.transform.localPosition);
-                        var r = labelTransform.InverseTransformVector(i.transform.localScale);
-#else
-                        var c = i.transform.position;
-                        //var r = rotTowards * i.transform.localScale;
-                        var r = i.transform.localScale;// * 2;
-#endif
-                        if (firstTime)
+                        // Go through each corner add add it to the bounds
+                        foreach (var c2 in corners)
                         {
-                            testBounds = new Bounds(c, r);
-                            var cs = GetBoxCorners(testBounds, lookAt * i.transform.rotation);
-                            
-                            testBounds = new Bounds(cs[0], Vector3.zero);
-                            foreach (var c2 in cs)
-                            {
-                                testBounds.Encapsulate(c2);
-                            }
-                            
-                            firstTime = false;
-                        }
-                        else
-                        {
-                            //var tmp = TransformBounds(Vector3.zero, i.transform.localToWorldMatrix, new Bounds(c, r));
-                            //testBounds = CombineBounds(testBounds, new Bounds(c, r));
-                            //testBounds = CombineBounds(testBounds, tmp);
-                            
-                            var nb = new Bounds(c, r);
-                            var cs = GetBoxCorners(nb, lookAt * i.transform.rotation);
-                            foreach (var c2 in cs)
-                            {
-                                testBounds.Encapsulate(c2);
-                            }
-
-                            //#if false
-                            //if (!testBounds.Contains(c + r))
-                            //{
-                            //    testBounds.Encapsulate(c + r);
-                            //}
-                            //if (!testBounds.Contains(c - r))
-                            //{
-                            //    testBounds.Encapsulate(c - r);
-                            //}
-
-                            //testBounds.Encapsulate((c + testBounds.center) + r);
-
-                            //testBounds.Encapsulate((c + testBounds.center) - r);
-                            //testBounds.Encapsulate(c - r);
-//#endif
+                            combinedBounds.Encapsulate(c2);
                         }
                     }
                     
-                    
-                    
-                    // Convert the encapsulated model's bounds into world space
-                    
-                    bounds.center = labelTransform.TransformPoint(bounds.center);
-                    bounds.extents = Vector3.Scale(bounds.extents,  labelTransform.localScale);
+                    // Convert the combined bounds into world space
+                    combinedBounds.center = labelTransform.TransformPoint(combinedBounds.center);
+                    combinedBounds.extents = Vector3.Scale(combinedBounds.extents,  labelTransform.localScale);
 
-                    if (bbViz == null) bbViz = Object.Instantiate(boundingBoxVizPrefab);
-                    
                     // Now convert all points into camera's space
-                    var localRotation = Quaternion.Inverse(camTrans.rotation) * labelTransform.rotation;
-                    var localCenter = camTrans.InverseTransformPoint(bounds.center);
-                    localCenter = Vector3.Scale(camTrans.localScale, localCenter);
-
-                    // Visualize
+                    var cameraCenter = cameraTransform.InverseTransformPoint(combinedBounds.center);
+                    cameraCenter = Vector3.Scale(cameraTransform.localScale, cameraCenter);
                     
-                    // Convert viz components back into world space
+                    // Rotation to go from label space to camera space
+                    var cameraRotation = Quaternion.Inverse(cameraTransform.rotation) * labelTransform.rotation;
                     
-                    bbViz.transform.position = testBounds.center;
-                    bbViz.transform.localRotation = localRotation;// * Quaternion.Inverse(rotTowards);
-                    bbViz.transform.localScale = testBounds.extents * 2f;
-
-             //       foreach (var i in boundsMap)
-             //       {
-             //           var t = i.Value.transform;
-             //           t.localPosition = camTrans.InverseTransformPoint(t.localPosition);
-             //           t.localRotation = Qu
-             //       }
-                    
-                    
-                    var converted = ConvertToBoxData(labelEntry, groundTruthInfo.instanceId, localCenter, bounds.extents, localRotation);
+                    var converted = ConvertToBoxData(labelEntry, groundTruthInfo.instanceId, cameraCenter, combinedBounds.extents, cameraRotation);
                     BoundingBoxComputed?.Invoke(m_CurrentFrame, converted);
                     m_BoundingBoxValues.Add(converted);
                 }
             }
         }
-#endif
-        Bounds CombineBounds(Bounds a, Bounds b)
-        {
-            var minx = Math.Min(a.min.x, b.min.x);
-            var miny = Math.Min(a.min.y, b.min.y);
-            var minz = Math.Min(a.min.z, b.min.z);
-            var maxx = Math.Max(a.max.x, b.max.x);
-            var maxy = Math.Max(a.max.y, b.max.y);
-            var maxz = Math.Max(a.max.z, b.max.z);
-            var ret = new Bounds();
-            ret.SetMinMax(new Vector3(minx, miny, minz), new Vector3(maxx,maxy, maxz) );
-            return ret;
-        }
-        
+
         /// <inheritdoc/>
         public void OnEndUpdate()
         {

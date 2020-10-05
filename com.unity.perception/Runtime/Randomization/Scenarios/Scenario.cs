@@ -13,6 +13,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// </summary>
         public T constants = new T();
 
+        /// <summary>
+        /// Returns this scenario's non-typed serialized constants
+        /// </summary>
         public override object genericConstants => constants;
 
         /// <summary>

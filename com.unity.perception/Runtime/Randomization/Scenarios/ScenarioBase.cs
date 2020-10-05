@@ -74,6 +74,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public string serializedConstantsFilePath =>
             Application.dataPath + "/StreamingAssets/" + serializedConstantsFileName + ".json";
 
+        /// <summary>
+        /// Returns this scenario's non-typed serialized constants
+        /// </summary>
         public abstract object genericConstants { get; }
 
         /// <summary>
@@ -102,7 +105,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public abstract bool isScenarioComplete { get; }
 
         /// <summary>
-        /// Progresses the current scenario iteration.
+        /// Progresses the current scenario iteration
         /// </summary>
         protected virtual void IncrementIteration()
         {

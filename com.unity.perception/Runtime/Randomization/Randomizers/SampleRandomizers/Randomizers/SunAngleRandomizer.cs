@@ -12,8 +12,19 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     [AddRandomizerMenu("Perception/Sun Angle Randomizer")]
     public class SunAngleRandomizer : Randomizer
     {
+        /// <summary>
+        /// The hour of the day (0 to 24)
+        /// </summary>
         public FloatParameter hour = new FloatParameter { value = new UniformSampler(0, 24)};
+
+        /// <summary>
+        /// The time of the year (0 being Jan 1st and 1 being December 31st)
+        /// </summary>
         public FloatParameter timeOfYear = new FloatParameter { value = new UniformSampler(0, 1)};
+
+        /// <summary>
+        /// The earth's latitude (-90 is the south pole, 0 is the equator, and +90 is the north pole)
+        /// </summary>
         public FloatParameter latitude = new FloatParameter { value = new UniformSampler(-90, 90)};
 
         /// <summary>

@@ -7,7 +7,8 @@ In this phase of the Perception tutorial, you will start from downloading and in
 Through-out the tutorial, lines starting with bullet points followed by **"Action:"** denote the individual actions you will need to perform in order to progress through the tutorial. This is while non-bulleted lines will provide additional context and explanation around the actions. If in a hurry, you can just follow the actions!
 
 Steps included this phase of the tutorial:
-* [Download Unity Editor and Create a New Project](#phase-1-setup-and-basic-randomizations)
+- [Download Unity Editor and Create a New Project](#step-1)
+- [Download the Perception Package and Import Samples](#step-2)
 
 ### Step 1: Download Unity Editor and Create a New Project
 * **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of Unity Editor 2020.1.x. (The tutorial has not yet been tested on newer versions.)
@@ -26,7 +27,7 @@ When you first run Unity, you will be asked to open an existing project, or crea
 <img src="Images/create_new_project.png" align="center" width="800"/>
 </p>
 
-### Step 2: Download the Perception Package and Import 
+### Step 2: Download the Perception Package and Import Samples
 
 Once your new project is created and loaded, you will be presented with the Unity Editor interface. From this point, whenever we refer to _the editor_, we mean Unity Editor.
 * **Action**: From the top menu bar, open _**Window**_ -> _**Package Manager**_. 

@@ -32,7 +32,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_Collapsed = property.FindPropertyRelative("collapsed");
 
             AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                $"{StaticData.uxmlDir}/ParameterDrawer.uxml").CloneTree(this);
+                $"{StaticData.uxmlDir}/Parameter/ParameterDrawer.uxml").CloneTree(this);
 
             var collapseToggle = this.Q<VisualElement>("collapse");
             collapseToggle.RegisterCallback<MouseUpEvent>(evt => collapsed = !collapsed);

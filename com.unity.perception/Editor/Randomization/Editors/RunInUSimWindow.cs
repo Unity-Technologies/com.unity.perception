@@ -136,10 +136,6 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         void CreateLinuxBuildAndZip()
         {
-            // Ensure that scenario serialization is enabled
-            var scenario = (ScenarioBase)m_ScenarioField.value;
-            scenario.deserializeOnStart = true;
-
             // Create build directory
             var pathToProjectBuild = Application.dataPath + "/../" + "Build/";
             if (!Directory.Exists(pathToProjectBuild + m_RunNameField.value))

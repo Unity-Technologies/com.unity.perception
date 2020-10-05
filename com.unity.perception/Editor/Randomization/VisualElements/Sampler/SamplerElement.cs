@@ -19,7 +19,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
         public SamplerElement(SerializedProperty property, Parameter parameter)
         {
             m_Property = property;
-            var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{StaticData.uxmlDir}/SamplerElement.uxml");
+            var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                $"{StaticData.uxmlDir}/Sampler/SamplerElement.uxml");
             template.CloneTree(this);
 
             m_Parameter = parameter;

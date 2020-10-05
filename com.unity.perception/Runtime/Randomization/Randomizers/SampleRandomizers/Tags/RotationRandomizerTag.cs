@@ -3,6 +3,6 @@
     /// <summary>
     /// Used in conjunction with a RotationRandomizer to vary the rotation of GameObjects
     /// </summary>
-    [AddComponentMenu("Perception/RandomizerTags/RotationRandomizerTag")]
+    [AddComponentMenu("Perception/RandomizerTags/Rotation Randomizer Tag")]
     public class RotationRandomizerTag : RandomizerTag { }
 }

@@ -31,10 +31,19 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <exception cref="ScenarioException"></exception>
         public override void Deserialize()
         {
-            if (!File.Exists(serializedConstantsFilePath))
-                throw new ScenarioException($"JSON scenario constants file does not exist at path {serializedConstantsFilePath}");
-            var jsonText = File.ReadAllText(serializedConstantsFilePath);
-            constants = JsonUtility.FromJson<T>(jsonText);
+            if (string.IsNullOrEmpty(serializedConstantsFilePath))
+            {
+                Debug.Log("No constants file specified. Running scenario with built in constants.");
+            }
+            else if (File.Exists(serializedConstantsFilePath))
+            {
+                var jsonText = File.ReadAllText(serializedConstantsFilePath);
+                constants = JsonUtility.FromJson<T>(jsonText);
+            }
+            else
+            {
+                Debug.LogWarning($"JSON scenario constants file does not exist at path {serializedConstantsFilePath}");
+            }
         }
     }
 }

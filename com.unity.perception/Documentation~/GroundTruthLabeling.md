@@ -15,13 +15,14 @@ The Labeling component associates a list of string-based labels with a GameObjec
 Many labelers require require a Label Config asset. This asset specifies a list of all labels to be captured in the dataset along with extra information used by the various labelers.
 
 ## Best practices
-Generally algorithm testing and training requires a single label on an asset for proper identification such as “chair”, “table”, or “door". To maximize asset reuse, however, it is useful to give each object multiple labels in a hierarchy.
+Generally algorithm testing and training requires a single label on an asset for proper identification such as "chair", "table" or "door". To maximize asset reuse, however, it is useful to give each object multiple labels in a hierarchy.
 
 For example, you could label an asset representing a box of Rice Krispies as `food\cereal\kellogs\ricekrispies`
 
-* “food”: type
-* “cereal”: subtype
-* “kellogs”: main descriptor
-* “ricekrispies”: sub descriptor
+* "food": type
+* "cereal": subtype
+* "kellogs": main descriptor
+* "ricekrispies": sub descriptor
 
-If the goal of the algorithm is to identify all objects in a Scene that are “food”, that label is available and can be used. Conversely if the goal is to identify only Rice Krispies cereal within a Scene that label is also available. Depending on the goal of the algorithm, you can use any mix of labels in the hierarchy.
+If the goal of the algorithm is to identify all objects in a Scene that are "food", that label is available and can be used. Conversely if the goal is to identify only Rice Krispies cereal within a Scene that label is also available. Depending on the goal of the algorithm, you can use any mix of labels in the hierarchy.
+

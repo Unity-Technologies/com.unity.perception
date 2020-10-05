@@ -10,7 +10,7 @@ Steps included this phase of the tutorial:
 - [Download Unity Editor and Create a New Project](#step-1)
 - [Download the Perception Package and Import Samples](#step-2)
 
-### Step 1: Download Unity Editor and Create a New Project
+### Step 1: Download Unity Editor and Create a New Project {#step-1}
 * **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of Unity Editor 2020.1.x. (The tutorial has not yet been tested on newer versions.)
 
 An alternative approach is to first install [_**Unity Hub**_](https://unity3d.com/get-unity/download), which will allow you to have multiple versions of Unity on your computer, and make it easier to manage your Unity projects and the versions of Unity they will use. 

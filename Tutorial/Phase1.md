@@ -1,11 +1,16 @@
 
 # Perception Tutorial
-## Phase 1: Setup and Basic Simulations
+## Phase 1: Setup and Basic Randomizations
 
-In this phase of the Perception tutorial, you will start from downloading and installing Unity Editor and the Perception package. You will then use our sample assets and provided components to easily generate a synthetic dataset for training an object-detection model. Through-out the tutorial, lines starting with bullet points followed by **"Action:"** denote the individual actions you will need to take in order to progress through the tutorial. This is while non-bulleted lines will provide additional context and explanation around the actions. If in a hurry, you can just follow the bullets!
+In this phase of the Perception tutorial, you will start from downloading and installing Unity Editor and the Perception package. You will then use our sample assets and provided components to easily generate a synthetic dataset for training an object-detection model. 
+
+Through-out the tutorial, lines starting with bullet points followed by **"Action:"** denote the individual actions you will need to perform in order to progress through the tutorial. This is while non-bulleted lines will provide additional context and explanation around the actions. If in a hurry, you can just follow the actions!
+
+Steps included this phase of the tutorial:
+* [Download Unity Editor and Create a New Project](#phase-1-setup-and-basic-randomizations)
 
 ### Step 1: Download Unity Editor and Create a New Project
-* **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of Unity Editor 2019.4.
+* **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of Unity Editor 2020.1.x. (The tutorial has not yet been tested on newer versions.)
 
 An alternative approach is to first install [_**Unity Hub**_](https://unity3d.com/get-unity/download), which will allow you to have multiple versions of Unity on your computer, and make it easier to manage your Unity projects and the versions of Unity they will use. 
 
@@ -29,7 +34,9 @@ Once your new project is created and loaded, you will be presented with the Unit
 As the name suggests, the _**Package Manager**_ is where you can download new packages, update or remove existing ones, and access a variety of information and additional actions for each package.
 
 * **Action**: Click on the _**+**_ sign at the top-left corner of the _**Package Manager**_ window and then choose the option _**Add package frim git URL...**_. 
-* **Action**: Enter the address `com.unity.perception` and click _**Add**_
+* **Action**: Enter the address `com.unity.perception` and click _**Add**_.
+
+**Note:** If you would like a specific version of the package, you can append the version to the end of the url. For example `com.unity.perception@0.1.0-preview.5`. For this tutorial, **we do not need to add a version**. You can also install packages from a local clone of the Perception repository. For inofrmation on installing local pacakges is available [here](ttps://docs.unity3d.com/Manual/upm-ui-local.html).
 
 It will take some time for the manager to download and import the package. Once the operation finishes, you will see the newly download Perception package automatically selected in the _**Package Manager**_, as depicted below:
 
@@ -229,7 +236,7 @@ In this view, you will also see the real-time visualizations we discussed before
 
 Note that disabling visualizations for a labeler does not affect your generated data. The annotations from all labelers that are active before running the simulation will continue to be recorded and will appear in the output data.
 
-To generate data as fast as possible, the simulation will churn through frames quickly, rearranging and randomizing the objects in each frame. To be able to check out individual frames and inspect the real-time visualizations, click on the pause button (next to play). You can also switch back to the Scene view to be able to inspect each object individually.
+To generate data as fast as possible, the simulation utilizes asynchronous processing to churn through frames quickly, rearranging and randomizing the objects in each frame. To be able to check out individual frames and inspect the real-time visualizations, click on the pause button (next to play). You can also switch back to the Scene view to be able to inspect each object individually. For performance reasons, it is recommended to disable visualizations altogether (from the _**Inspector**_ view of `Perception Camera` once you are ready to generate a large dataset)
 
 As seen in the image above, what we have now is just a beige-colored wall of shapes. This is because so far we are only spawning them. To make this background more useful, let's add a couple more `Randomizers`. 
 
@@ -344,6 +351,8 @@ This will download a Docker image from Unity. If you get an error regarding the 
 </p>
 
 This notebook contains a variety of functions for generating plots, tables, and bounding box images that help you analyze your generated dataset. Certain parts of this notebook are currently not of use to us, such as the code meant for downloading data generated through Unity Simulation (coming later in this tutorial), or parts that deal with output from the semantic segmentation labeler (which we did not include in our `PerceptionCamera`). 
+
+Each of the code blocks in this notebook can be executed by clicking on them to select them, and the clicking the _**Run**_  button at the top. When you run a code block, an **asterisk (\*)** will be shonw next to the code block on the left side, until the code finishes executing.
 
 * **Action**: Follow the instructions laid out in the notebook and run each code block to view its outputs. Not how parts of the code that are relevant to Unity Simulation are commented.
 

@@ -27,7 +27,7 @@ When you first run Unity, you will be asked to open an existing project, or crea
 <img src="Images/create_new_project.png" align="center" width="800"/>
 </p>
 
-### Step 2: Download the Perception Package and Import Samples {#step-2}
+### <a name="step-2">Step 2: Download the Perception Package and Import Samples</a> 
 
 Once your new project is created and loaded, you will be presented with the Unity Editor interface. From this point, whenever we refer to _the editor_, we mean Unity Editor.
 * **Action**: From the top menu bar, open _**Window**_ -> _**Package Manager**_. 

@@ -12,7 +12,7 @@ Unity uses the resolved Label Entry from the Label Config to produce the final o
 The Labeling component associates a list of string-based labels with a GameObject and its descendants. A Labeling component on a descendant overrides its parent's labels.
 
 ## Label Config
-Many labelers require require a Label Config asset. This asset specifies a list of all labels to be captured in the dataset along with extra information used by the various labelers.
+Many labelers require a Label Config asset. This asset specifies a list of all labels to be captured in the dataset along with extra information used by the various labelers.
 
 ## Best practices
 Generally algorithm testing and training requires a single label on an asset for proper identification such as "chair", "table" or "door". To maximize asset reuse, however, it is useful to give each object multiple labels in a hierarchy.

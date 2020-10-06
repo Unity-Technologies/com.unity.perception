@@ -122,7 +122,7 @@ If you hover your mouse pointer over each of the fields shown (e.g. `Capture Int
 
 As seen in the UI for `Perception Camera`, the list of `Camera Lebelers` is currently empty. For each type of ground-truth you wish to generate along-side your captured frames (e.g. 2D bounding boxes around objects), you will need to add a corresponding `Camera Labeler` to this list. 
 
-To speed-up your perception workflow, the Perception comes pre-packaged with four useful and common labelers for object-detection tasks; however, if you are comfortable with code, you can easily add your own custom labelers. The labelers that come with the Perception package cover **2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**. In this tutorial, we will be working with the first three. 
+To speed-up your perception workflow, the Perception package comes with four common labelers for object-detection tasks; however, if you are comfortable with code, you can easily add your own custom labelers. The labelers that come with the Perception package cover **2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**. In this tutorial, we will be working with the first three. 
 
 * **Action**: Click on the _**+**_ button to the bottom right corner of the empty labeler list, and select `BoundingBox2DLabeler`.
 * **Action**: Repeat the above step to add `ObjectCountLabeler` and `RenderedObjectInfoLabeler`. 

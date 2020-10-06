@@ -16,7 +16,7 @@
     {
       "displayName": "Tutorial Files",
       "description": "These files accompamy the tutorial for the Perception Package, found at https://github.com/Unity-Technologies/com.unity.perception/blob/tutorial_sample_project/Tutorial/TUTORIAL.md",
-      "path" : "Samples/Tutorial Files"
+      "path" : "Samples~/Tutorial Files"
     }
   ]
 }

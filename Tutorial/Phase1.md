@@ -153,17 +153,28 @@ Then, click on this asset to bring up its _**Inspector**_ view. In there, you ca
 In this tutorial, we will generate synthetic data intended for detecting 10 everyday grocery items. Thus, in this step, you will add labels for each of these 10 items to the list of labels for `TutorialIdLabelConfig`. 
 
 * **Action**: Select `TutorialIdLabelConfig` and in the _**Inspector**_ tab, click on the _**+**_ button to add 10 new label entries. Use the following exact names for these entries:
-  1 `candy_minipralines_lindt`
-  2 `cereal_cheerios_honeynut`
-  3 `cleaning_snuggle_henkel`
-  4 `craft_yarn_caron`
-  5 `drink_greentea_itoen`
-  6 `drink_whippingcream_lucerne`
-  7 `lotion_essentially_nivea`
-  8 `pasta_lasagne_barilla`
-  9 `snack_biscotti_ghiott`
-  10 `snack_granolabar_naturevalley`
 
+1 `candy_minipralines_lindt`
+
+2 `cereal_cheerios_honeynut`
+
+3 `cleaning_snuggle_henkel`
+
+4 `craft_yarn_caron`
+
+5 `drink_greentea_itoen`
+
+6 `drink_whippingcream_lucerne`
+
+7 `lotion_essentially_nivea`
+
+8 `pasta_lasagne_barilla`
+
+9 `snack_biscotti_ghiott`
+
+10 `snack_granolabar_naturevalley`
+  
+  
 Once done, the _**Inspector**_ window for `TutorialIdLabelConfig` will look like this:
 
 <p align="center">

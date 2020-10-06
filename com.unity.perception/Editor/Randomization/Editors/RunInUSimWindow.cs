@@ -14,7 +14,7 @@ using ZipUtility;
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    public class RunInUSimWindow : EditorWindow
+    class RunInUSimWindow : EditorWindow
     {
         string m_BuildZipPath;
         SysParamDefinition m_SysParam;
@@ -27,7 +27,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         Button m_RunButton;
 
         [MenuItem("Window/Run in USim")]
-        public static void ShowWindow()
+        static void ShowWindow()
         {
             var window = GetWindow<RunInUSimWindow>();
             window.titleContent = new GUIContent("Run In Unity Simulation");

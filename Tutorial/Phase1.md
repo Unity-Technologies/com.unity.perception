@@ -16,17 +16,17 @@ Steps included this phase of the tutorial:
 
 
 ### <a name="step-1">Step 1: Download Unity Editor and Create a New Project</a> 
-<font color="green">* **Action**:</font> Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of Unity Editor 2020.1.x. (The tutorial has not yet been tested on newer versions.)
+* **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of Unity Editor 2020.1.x. (The tutorial has not yet been tested on newer versions.)
 
 An alternative approach is to first install [_**Unity Hub**_](https://unity3d.com/get-unity/download), which will allow you to have multiple versions of Unity on your computer, and make it easier to manage your Unity projects and the versions of Unity they will use. 
 
 During the installation of Unity, you will be asked to choose which modules you would like to include. This will depend on the types of applications you eventually intend to build with your Unity installation; however, for the purposes of this tutorial, we need to make make sure _**Linux Build Support**_ is checked. In addition, if you do not already have _**Visual Studio**_ on your computer, the wizard will give you an option to install it. Go ahead and check this option, as we will need _**Visual Studio**_ for writing some simple scripts in Phase 2 of the tutorial. 
 
-<font color="green">* **Action**:</font> Make sure the _**Linux Build Support**_ and _**Visual Studio**_ installation options are checked when selecting modules during installation.
+* **Action**: Make sure the _**Linux Build Support**_ and _**Visual Studio**_ installation options are checked when selecting modules during installation.
 
 When you first run Unity, you will be asked to open an existing project, or create a new one. 
 
-<font color="green">* **Action**:</font> Open Unity and create a new project using the Universal Render Pipeline. Name your new project _**Perception Tutorial**_, and specify a desired location as shown below. 
+* **Action**: Open Unity and create a new project using the Universal Render Pipeline. Name your new project _**Perception Tutorial**_, and specify a desired location as shown below. 
 
 <p align="center">
 <img src="Images/create_new_project.png" align="center" width="800"/>
@@ -35,12 +35,12 @@ When you first run Unity, you will be asked to open an existing project, or crea
 ### <a name="step-2">Step 2: Download the Perception Package and Import Samples</a> 
 
 Once your new project is created and loaded, you will be presented with the Unity Editor interface. From this point on, whenever we refer to _**the editor**_, we mean Unity Editor.
-<font color="green">* **Action**:</font> From the top menu bar, open _**Window**_ -> _**Package Manager**_. 
+* **Action**: From the top menu bar, open _**Window**_ -> _**Package Manager**_. 
 
 As the name suggests, the _**Package Manager**_ is where you can download new packages, update or remove existing ones, and access a variety of information and additional actions for each package.
 
-<font color="green">* **Action**:</font> Click on the _**+**_ sign at the top-left corner of the _**Package Manager**_ window and then choose the option _**Add package frim git URL...**_. 
-<font color="green">* **Action**:</font> Enter the address `com.unity.perception` and click _**Add**_.
+* **Action**: Click on the _**+**_ sign at the top-left corner of the _**Package Manager**_ window and then choose the option _**Add package frim git URL...**_. 
+* **Action**: Enter the address `com.unity.perception` and click _**Add**_.
 
 **Note:** If you would like a specific version of the package, you can append the version to the end of the url. For example `com.unity.perception@0.1.0-preview.5`. For this tutorial, **we do not need to add a version**. You can also install the package from a local clone of the Perception repository. More inofrmation on installing local pacakges is available [here](https://docs.unity3d.com/Manual/upm-ui-local.html).
 
@@ -53,7 +53,7 @@ It will take some time for the manager to download and import the package. Once 
 
 Each package can come with a set of samples. As seen in the righthand panel, the Perception package includes a sample named _**Tutorial Files**_, which will be required for completing this tutorial. The sample files consist of example foreground and background objects, randomizers, shaders, and other useful elements to work with during this tutorial. **Foreground** objects are those thatthe eventual machine learning model will try to detect, and **background** objects will be placed in the background as distractors for the model.
 
-<font color="green">* **Action**:</font> In the _**Package Manager**_ window, from the list of _**Samples**_ for the Perception package, click on the _**Import into Project**_ button for the sample named _**Tutorial Files**_.
+* **Action**: In the _**Package Manager**_ window, from the list of _**Samples**_ for the Perception package, click on the _**Import into Project**_ button for the sample named _**Tutorial Files**_.
 
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project. You can view your project's folder structure and access your files from the _**Project**_ tab of the editor, as seen in the image below:
 
@@ -61,13 +61,13 @@ Once the sample files are imported, they will be placed inside the `Assets/Sampl
 <img src="Images/project_folders_samples.png" width="600"/>
 </p>
 
-<font color="green">* **Action**:</font> The _**Project**_ tab contains a search bar; use it to find the file named `ForwardRenderer.asset`, as shown below:
+* **Action**: The _**Project**_ tab contains a search bar; use it to find the file named `ForwardRenderer.asset`, as shown below:
 
 <p align="center">
 <img src="Images/forward_renderer.png"/>
 </p>
 
-<font color="green">* **Action**:</font> Click on the found file to select it. Then, from the _**Inspector**_ tab of the editor, click on the _**Add Renderer Feature**_ button, and select _**Ground Truth Renderer Feature**_ from the dropdown menu:
+* **Action**: Click on the found file to select it. Then, from the _**Inspector**_ tab of the editor, click on the _**Add Renderer Feature**_ button, and select _**Ground Truth Renderer Feature**_ from the dropdown menu:
 
 <p align="center">
 <img src="Images/forward_renderer_inspector.png" width="400"/>
@@ -78,7 +78,7 @@ This step prepares your project to render tailor-made images that will be later 
 ### <a name="step-3">Step 3: Setup a Scene for Your Perception Simulation</a> 
 Simply put, in Unity, Scenes contain any object that exists in the world. This world can be a game, or in this case, a perception-oriented simulation. Every new project contains a Scene named `SampleScene`, which is automatically openned when the project is created. This Scenes comes with several objects and settings that we do not need, so let's create a new one. 
 
-<font color="green">* **Action**:</font> In the _**Project**_ tab, right-click on the `Assets/Scenes` folder and click _**Create -> Scene**_. Name this new Scene `TutorialScene` and double-click on it to open it. 
+* **Action**: In the _**Project**_ tab, right-click on the `Assets/Scenes` folder and click _**Create -> Scene**_. Name this new Scene `TutorialScene` and double-click on it to open it. 
 
 The _**Hierarchy**_ tab of the editor displays all the Scenes currently loaded, and all the objects currently present in each loaded Scene, as shown below:
 <p align="center">
@@ -87,7 +87,7 @@ The _**Hierarchy**_ tab of the editor displays all the Scenes currently loaded, 
 
 As seen above, the new Scene already contains a camera (`Main Camera`) and a light (`Directional Light`). We will now modify the camera's field of view and position to prepare it for the tutorial. 
 
-<font color="green">* **Action**:</font> Click on `Main Camera` and in the _**Inspector**_ tab, modify the camera's `Position`, `Rotation`, `Projection` and `Size` to match the screenshot below. (Note that `Size` only becomes available once you set `Projection` to `Orthographic`)
+* **Action**: Click on `Main Camera` and in the _**Inspector**_ tab, modify the camera's `Position`, `Rotation`, `Projection` and `Size` to match the screenshot below. (Note that `Size` only becomes available once you set `Projection` to `Orthographic`)
 
 <p align="center">
 <img src="Images/camera_prep.png"/>
@@ -96,18 +96,18 @@ As seen above, the new Scene already contains a camera (`Main Camera`) and a lig
 
 For this tutorial, we prefer our light to not cast any shadows, therefore:
 
-<font color="green">* **Action**:</font> Click on `Directional Light` and in the _**Inspector**_ tab, set `Shadow Type` to `No Shadows`.
+* **Action**: Click on `Directional Light` and in the _**Inspector**_ tab, set `Shadow Type` to `No Shadows`.
 
 We will now add the necessary components to the camera in order to equip it for the perception workflow. To do this, we need to add a `PerceptionCamera` component to it, and then define which types of ground-truth we wish to generate using this camera.
 
-<font color="green">* **Action**:</font> Select `Main Camera` again and in the _**Inspector**_ tab, click on the _**Add Component**_ button.
-<font color="green">* **Action**:</font> Start typing `Perception Camera` in the search bar that appears, until the `Perception Camera` script is found, with a **#** icon to the left:
+* **Action**: Select `Main Camera` again and in the _**Inspector**_ tab, click on the _**Add Component**_ button.
+* **Action**: Start typing `Perception Camera` in the search bar that appears, until the `Perception Camera` script is found, with a **#** icon to the left:
 
 <p align="center">
 <img src="Images/add_comp_perc.png" width="400"/>
 </p>
 
-<font color="green">* **Action**:</font> Click on this script to add it as a component. Your camera is now a `Perception` camera.
+* **Action**: Click on this script to add it as a component. Your camera is now a `Perception` camera.
 
 Adding components is the standard way in which objects can have various kinds of logic and data attached to them in Unity. This includes objects placed within the Scene (called GameObjects), such as the camera above, or objects outside of a Scene, in your project folders (called Prefabs).
 
@@ -124,8 +124,8 @@ As seen in the UI for `Perception Camera`, the list of `Camera Lebelers` is curr
 
 To speed-up your perception workflow, the Perception package comes with four common labelers for object-detection tasks; however, if you are comfortable with code, you can also add your own custom labelers. The labelers that come with the Perception package cover **2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**.
 
-<font color="green">* **Action**:</font> Click on the _**+**_ button to the bottom right corner of the empty labeler list, and select `BoundingBox2DLabeler`.
-<font color="green">* **Action**:</font> Repeat the above step to add `ObjectCountLabeler`, `RenderedObjectInfoLabeler`, `SemanticSegmentationLabeler`. 
+* **Action**: Click on the _**+**_ button to the bottom right corner of the empty labeler list, and select `BoundingBox2DLabeler`.
+* **Action**: Repeat the above step to add `ObjectCountLabeler`, `RenderedObjectInfoLabeler`, `SemanticSegmentationLabeler`. 
 
 Once you add the labelers, the _**Inspector**_ view of the `Perception Camera` component will look like this:
 
@@ -142,17 +142,17 @@ It is now time to tell each labeler added to the `Perception Camera` which objec
 
 You will notice each added labeler has a field named `Id Label Config`. By adding a label configuration here you can instruct the labeler to look for certain labels within the scene and ignore the rest. To do that, we should first create label configurations.
 
-<font color="green">* **Action**:</font> In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Id Label Config**_.
+* **Action**: In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Id Label Config**_.
 
 This will create a new asset file named `IdLabelConfig` inside the `Assets` folder. 
 
-<font color="green">* **Action**:</font> Rename the newly created `IdLabelConfig` asset to `TutorialIdLabelConfig`.
+* **Action**: Rename the newly created `IdLabelConfig` asset to `TutorialIdLabelConfig`.
 
 Then, click on this asset to bring up its _**Inspector**_ view. In there, you can specify the labels that this config will keep track of. A new label config like this one contains an empty list of labels. 
 
 In this tutorial, we will generate synthetic data intended for detecting 10 everyday grocery items. Thus, in this step, you will add labels for each of these 10 items to the list of labels for `TutorialIdLabelConfig`. 
 
-<font color="green">* **Action**:</font> Select `TutorialIdLabelConfig` and in the _**Inspector**_ tab, click on the _**+**_ button to add 10 new label entries. Use the following exact names for these entries:
+* **Action**: Select `TutorialIdLabelConfig` and in the _**Inspector**_ tab, click on the _**+**_ button to add 10 new label entries. Use the following exact names for these entries:
   1 `candy_minipralines_lindt`
   2 `cereal_cheerios_honeynut`
   3 `cleaning_snuggle_henkel`
@@ -176,8 +176,8 @@ Notice that each of the labels you entered automatically has a numerical ID assi
 
 The label configuration we have created is compatible with three of the four labelers we plan to attach to our `Perception Camera`. However, `SemanticSegmentationLabeler` requires a different kind of label configuration which includes unique colors for each label instead of numerical IDs. This is because the output of this labeler are images in which each visibile foreground object is painted in a unique color.
 
-<font color="green">* **Action**:</font> In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Semantic Segmentation Label Config**_. Name this asset `TutorialSemanticSegmentationLabelConfig`.
-<font color="green">* **Action**:</font> Add the same 10 labels from the above list to this new label configuration. Note how this time they each get a new unique color instead of a number:
+* **Action**: In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Semantic Segmentation Label Config**_. Name this asset `TutorialSemanticSegmentationLabelConfig`.
+* **Action**: Add the same 10 labels from the above list to this new label configuration. Note how this time they each get a new unique color instead of a number:
 
 <p align="center">
 <img src="Images/semseglabelconfig.png" width="400"/>
@@ -185,7 +185,7 @@ The label configuration we have created is compatible with three of the four lab
 
 Now that you have created your label configurations, we need to assign them to labelers that you previously added to your `Perception Camera` component. 
 
-<font color="green">* **Action**:</font> Select the `Main Camera` object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to the first three labelers. To do so, you can either drag and drop the former into the corresponding fields for each labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. Assign `TutorialSemanticSegmentationLabelConfig` to the fourth labeler. The `Perception Camera` component will now look like the image below:
+* **Action**: Select the `Main Camera` object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to the first three labelers. To do so, you can either drag and drop the former into the corresponding fields for each labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. Assign `TutorialSemanticSegmentationLabelConfig` to the fourth labeler. The `Perception Camera` component will now look like the image below:
 
 <p align="center">
 <img src="Images/pclabelconfigsadded.png" width="400"/>
@@ -195,8 +195,8 @@ The final piece of the label set-up workflow is to assign the same 10 labels to 
 
 In Unity, Prefabs are essentially reusable GameObjects that are stored to disk, along with all their child GameObjects, components, and property values. Let's see what our sample prefabs include.
 
-<font color="green">* **Action**:</font> In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1/Prefbas`
-<font color="green">* **Action**:</font> Double click the file named `drink_whippingcream_lucerne.prefab` to open the Prefab asset. 
+* **Action**: In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1/Prefbas`
+* **Action**: Double click the file named `drink_whippingcream_lucerne.prefab` to open the Prefab asset. 
 
 When you open the Prefab asset, you will see the object shown in the Scene tab and its components shown on the right side of the editor, in the _**Inspector**_ tab:
 
@@ -223,9 +223,9 @@ To summarize, a sample `Scenario` could look like this:
 
 In this tutorial, you will learn how to use the provided Randomizers, as well as how to create new ones that are custom-fitted to your randomization needs.
 
-<font color="green">* **Action**:</font> Create a new GameObject in your Scene by right-clicking in the _**Hierarchy**_ tab and clicking `Create Empty`.
-<font color="green">* **Action**:</font> Rename your new GameObject to `Simulation Scenario`.
-<font color="green">* **Action**:</font> In the _**Inspector**_ view of this new object, add a new `Fixed Length Scenario` component. 
+* **Action**: Create a new GameObject in your Scene by right-clicking in the _**Hierarchy**_ tab and clicking `Create Empty`.
+* **Action**: Rename your new GameObject to `Simulation Scenario`.
+* **Action**: In the _**Inspector**_ view of this new object, add a new `Fixed Length Scenario` component. 
 
 Each `Scenario` executes a number of `Iteration`s, and each Iteration carries on for a number of frames. These are timing elements you can leverage in order to customize your Scenarios and the timing of your randomizations. You will learn how to use Iteartions and frames in Phase 2 of this tutorial. For now, we will use the `Fixed Length Scenario`, which is a special kind of Scenario that runs for a fixed number of frames during each Iteration, and is sufficient for many common use-cases. Note that at any given time, you can have only one Scenario active in your Scene. 
 
@@ -237,21 +237,21 @@ The _**Inspector**_ view of `Fixed Length Scenario` looks like below:
 
 There are a number settings and properties you can modify here. `Quit On Complete` instructs the simulation to quit once this Scenario has completed executing. We can see here that the Scenario has been set to run for 100 Iterations, and that each Iteration will run for one frame. But this is currently an empty `Scneario`, so let's add some Randomizers.
 
-<font color="green">* **Action**:</font> Click _**Add Randomizer**_, and from the list choose `BackgroundObjectPlacementRandomizer`.
+* **Action**: Click _**Add Randomizer**_, and from the list choose `BackgroundObjectPlacementRandomizer`.
 
 This Randomizer uses Poisson-Disk sampling to select random positions from a given area, and spawn copies of randomly selected Prefabs (from a given list) at the chosen positions. We will use this component to generate a background that will act as a distraction for our eventual object-detection machine learning model.
 
-<font color="green">* **Action**:</font> Click _**Add Folder**_, and from the file explorer window that opnes, choose the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
+* **Action**: Click _**Add Folder**_, and from the file explorer window that opnes, choose the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
 
 The beckground Prefabs are primitve shapes devoid of color or texture. Later Randomizers will take care of those aspects. 
 
-<font color="green">* **Action**:</font> Set the rest of the properties (except for `Seed`) according to the image below. The `Seed` attribute is the seed used for the underlying random sampler, and does not need to match the image shown.
+* **Action**: Set the rest of the properties (except for `Seed`) according to the image below. The `Seed` attribute is the seed used for the underlying random sampler, and does not need to match the image shown.
 
 <p align="center">
 <img src="Images/background_randomizer.png" width = "400"/>
 </p>
 
-<font color="green">* **Action**:</font> Click on the **▷** (play) button located at top middle section of the editor to run your simulation.
+* **Action**: Click on the **▷** (play) button located at top middle section of the editor to run your simulation.
 
 <p align="center">
 <img src="Images/play.png" width = "500"/>
@@ -271,13 +271,13 @@ To generate data as fast as possible, the simulation utilizes asynchronous proce
 
 As seen in the image above, what we have now is just a beige-colored wall of shapes. This is because so far we are only spawning them, and the beige color of our light is what gives them their current look. To make this background more useful, let's add a couple more `Randomizers`. 
 
-<font color="green">* **Action**:</font> Repeat the previous steps to add `TextureRandomizer`, `HueOffsetRandomizer`, and `RotationRandomizer`.
+* **Action**: Repeat the previous steps to add `TextureRandomizer`, `HueOffsetRandomizer`, and `RotationRandomizer`.
 
 `TextureRandomizer` will have the task of attaching random textures to our colorless background objects at each Iteration of the Scenario. Simlarly, `HueOffsetRandomizer` will alter the color of the objects, and `RotationRandomizer` will give the objects a new random rotation each Iteration. 
 
-<font color="green">* **Action**:</font> In the UI snippet for `TextureRandomizer`, click _**Add Folder**_ and choose `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Textures`. 
+* **Action**: In the UI snippet for `TextureRandomizer`, click _**Add Folder**_ and choose `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Textures`. 
 
-<font color="green">* **Action**:</font> In the UI snippet for `RotationRandomizer`, change all the maximum values for the three ranges to `360` and leave the minimums at `0`. 
+* **Action**: In the UI snippet for `RotationRandomizer`, change all the maximum values for the three ranges to `360` and leave the minimums at `0`. 
 
 Your list of Randomizers should now look like the screenshot below:
 
@@ -291,9 +291,9 @@ There is one more important thing left to do, in order to make sure all the abov
 
 To make sure each Randomizer knows which objects it should work with, we will use an object tagging and querying workflow that the bundled Randomizers already use. Each Randomizer can query the Scene for objects that carry certain types of `RandomizerTag` components. For instance, the `TextureRandomizer` queries the Scene for objects that have a `TextureRandomizerTag` component (you can change this in code!). Therefore, in order to make sure our background Prefabs are affected by the `TextureRandomizer` we need to make sure they have `TextureRandomizerTag` attached to them.
 
-<font color="green">* **Action**:</font> In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
-<font color="green">* **Action**:</font> Select all the files inside and from the _**Inspector**_ tab add a `TextureRandomizerTag` to them. This will add the component to all the selected files.
-<font color="green">* **Action**:</font> Repeat the above step to add `HueOffsetRandomizerTag` and `RotationRandomizerTag` to all selected Prefabs.
+* **Action**: In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
+* **Action**: Select all the files inside and from the _**Inspector**_ tab add a `TextureRandomizerTag` to them. This will add the component to all the selected files.
+* **Action**: Repeat the above step to add `HueOffsetRandomizerTag` and `RotationRandomizerTag` to all selected Prefabs.
 
 Once the above step is done, the _**Inspector**_ tab for a background Prefab should look like this:
 
@@ -309,18 +309,18 @@ If you run the simulation now you will see the generated backgrounds look much m
 
 It is now time to spawn and randomize our foregournd objects. We are getting close to generating our first set of synthetic data!
 
-<font color="green">* **Action**:</font> Add `ForegroundObjectPlacementRandomizer` to your list of Randomizers. Click _**Add Folder**_ and select `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
-<font color="green">* **Action**:</font> Set these values for the above Randomizer: `Depth = 3, Separation Distance = 1.5, Placement Area = (5,5)`.
+* **Action**: Add `ForegroundObjectPlacementRandomizer` to your list of Randomizers. Click _**Add Folder**_ and select `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
+* **Action**: Set these values for the above Randomizer: `Depth = 3, Separation Distance = 1.5, Placement Area = (5,5)`.
 
 This Randomizer uses the same algorithm as the one we used for backgrounds; however, it is defined in a separate C# class because you can only have **one of each type of Randomizer added to your Scenario**. Therefore, this is our way of differentating between how background and foreground objects are treated.
 
 While the texture and color of the foreground objects will be constant during the simulation, we would like their rotation to be randomized similar to the background Prefabs. To achieve this:
 
-<font color="green">* **Action**:</font> From the _**Project**_ tab select all the foreground Prefabs located in `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`, and add a `RotationRandomizerTag` component to them.
+* **Action**: From the _**Project**_ tab select all the foreground Prefabs located in `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`, and add a `RotationRandomizerTag` component to them.
 
 The last step here is to make sure the order of randomizations is correct. Randomizers execute according to their order within the list of Randomizers added to your Scenario. If you look at the list now, you will notice that `ForegroundObjectPlacementRandomizer` is coming after `RotationRandomizer`, therefore, foreground objects will NOT be included in the rotation randomizations, even though they are carrying the proper tag. To fix that:
 
-<font color="green">* **Action**:</font> Drag  `ForegroundObjectPlacementRandomizer` and drop it above `RotationRandomizer`.
+* **Action**: Drag  `ForegroundObjectPlacementRandomizer` and drop it above `RotationRandomizer`.
 
 ### <a name="step-6">Step 6: Generate and Verify Synthetic Data</a> 
 
@@ -341,7 +341,7 @@ Once the run is complete, you will see a message in the _**Console**_ tab of the
 <img src="Images/dataset_written.png"/>
 </p>
 
-<font color="green">* **Action**:</font> Navigate to the dataset path addressed in the _**Console**_. 
+* **Action**: Navigate to the dataset path addressed in the _**Console**_. 
 
 In this folder, you will find a few types of data, depending on your `Perception Camera` settings. These can include:
 - Logs
@@ -351,7 +351,7 @@ In this folder, you will find a few types of data, depending on your `Perception
 
 The output dataset includes a variety of information about different aspects of the active sensors in the Scene (currently only one), as well as the ground-truth generated by all active labelers. [This page](https://github.com/Unity-Technologies/com.unity.perception/blob/master/com.unity.perception/Documentation%7E/Schema/Synthetic_Dataset_Schema.md) provides a comprehensive explanation on the schema of this dataset. We strongly recommend having a look at the page once you have completed this tutorial.
 
-<font color="green">* **Action**:</font> To get a quick feel of how the data is stored, open the folder whose name starts with `Dataset`, then open the file named `captures_000.json`. This file contains the output from `BoundingBox2DLabeler`. The `captures` array contains the position and rotation of the sensor (camera), the position and rotation of the ego (sensor group, currently only one), and the annotations made by `BoundingBox2DLabeler` for all visible objects defined in its label configuration. For each visibile object, the annotations include:
+* **Action**: To get a quick feel of how the data is stored, open the folder whose name starts with `Dataset`, then open the file named `captures_000.json`. This file contains the output from `BoundingBox2DLabeler`. The `captures` array contains the position and rotation of the sensor (camera), the position and rotation of the ego (sensor group, currently only one), and the annotations made by `BoundingBox2DLabeler` for all visible objects defined in its label configuration. For each visibile object, the annotations include:
 * `label_id`: The numerical id assigned to this object's label in the labeler's label configuration
 * `label_name`: The object's label, e.g. `candy_minipralines_lindt`
 * `instance_id`: Unique instance id of the object
@@ -361,21 +361,21 @@ The output dataset includes a variety of information about different aspects of 
 
 To verify and analyze a variety of metrics for the generated data, such as number of foreground objects in each frame and degree of representation for each foreground object (label), we will now use Unity's Dataset Insights framework. This will involve running a Jupyter notebook which is conveniently packaged within a Docker file that you can download from Unity. 
 
-<font color="green">* **Action**:</font> Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop)
-<font color="green">* **Action**:</font> Open a command line interface (Command Prompt on Windows, Terminal on Mac OS, etc.) and type the following command to run the Dataset Insights Docker image: 
+* **Action**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop)
+* **Action**: Open a command line interface (Command Prompt on Windows, Terminal on Mac OS, etc.) and type the following command to run the Dataset Insights Docker image: 
 `docker run -p 8888:8888 -v <path to synthetic data>:/data -t unitytechnologies/datasetinsights:latest`, where the path to data is what we earlier found in Unity's console messages.
 
 This will download a Docker image from Unity. If you get an error regarding the path to your dataset, make sure you have not included the enclosing `<` and `>` in the path and that the spaces are properly escaped.
 
-<font color="green">* **Action**:</font> The image is now running on your computer. Open a web browser and navigate to `http://localhost:8888` to open the Jupyter notebook:
+* **Action**: The image is now running on your computer. Open a web browser and navigate to `http://localhost:8888` to open the Jupyter notebook:
 
 <p align="center">
 <img src="Images/jupyter1.png"/>
 </p>
 
-<font color="green">* **Action**:</font> To make sure your data is properly mounted, navigate to the `data` folder. If you see the dataset's folders there, we are good to go.
-<font color="green">* **Action**:</font> Navigate to the `datasetinsights/notebooks` folder and open `Perception_Statistics.ipynb`.
-<font color="green">* **Action**:</font> Once in the notebook, replace the `<GUID>` in the `data_root = /data/<GUID>` line with the name of the dataset folder inside your generated data. For example `data_root = /data/Dataseta26351bc-1b72-46c5-9e0c-d7afd6df2974`.
+* **Action**: To make sure your data is properly mounted, navigate to the `data` folder. If you see the dataset's folders there, we are good to go.
+* **Action**: Navigate to the `datasetinsights/notebooks` folder and open `Perception_Statistics.ipynb`.
+* **Action**: Once in the notebook, replace the `<GUID>` in the `data_root = /data/<GUID>` line with the name of the dataset folder inside your generated data. For example `data_root = /data/Dataseta26351bc-1b72-46c5-9e0c-d7afd6df2974`.
 
 <p align="center">
 <img src="Images/jupyter2.png"/>
@@ -393,6 +393,6 @@ Below, you can see a sample plot generated by the Dataset Insights notebook, dep
 </p>
 
 
-<font color="green">* **Action**:</font> Follow the instructions laid out in the notebook and run each code block to view its outputs.
+* **Action**: Follow the instructions laid out in the notebook and run each code block to view its outputs.
 
 This concludes Phase 1 of the Perception tutoial. In the next phase, you will dive a little bit into randomization code and learn how to build your own custom Randomizer. [Click here to continue to Phase 2: Custom Randomizations](Phase2.md)

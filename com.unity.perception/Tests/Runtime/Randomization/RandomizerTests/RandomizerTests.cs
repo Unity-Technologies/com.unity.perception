@@ -38,6 +38,7 @@ namespace RandomizationTests.RandomizerTests
         public void OneRandomizerInstancePerTypeTest()
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
+            m_Scenario.quitOnComplete = false;
             m_Scenario.CreateRandomizer<ExampleTransformRandomizer>();
             Assert.Throws<ScenarioException>(() => m_Scenario.CreateRandomizer<ExampleTransformRandomizer>());
         }

@@ -165,16 +165,15 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             }
 
             // Wait for any final uploads before exiting quitting
-            if (m_WaitingForFinalUploads)
+            if (m_WaitingForFinalUploads && quitOnComplete)
             {
+                Manager.Instance.Shutdown();
                 if (!Manager.FinalUploadsDone)
                     return;
-
-                if (quitOnComplete)
 #if UNITY_EDITOR
-                    UnityEditor.EditorApplication.ExitPlaymode();
+                UnityEditor.EditorApplication.ExitPlaymode();
 #else
-                    Application.Quit();
+                Application.Quit();
 #endif
                 return;
             }
@@ -202,7 +201,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             {
                 foreach (var randomizer in activeRandomizers)
                     randomizer.ScenarioComplete();
-                Manager.Instance.Shutdown();
                 DatasetCapture.ResetSimulation();
                 m_WaitingForFinalUploads = true;
                 return;

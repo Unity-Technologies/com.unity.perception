@@ -16,6 +16,7 @@ namespace RandomizationTests.RandomizerTests
         {
             m_TestObject = new GameObject();
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
+            m_Scenario.quitOnComplete = false;
         }
 
         [TearDown]

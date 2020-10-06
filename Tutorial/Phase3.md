@@ -317,5 +317,8 @@ Follow the rest of the steps inside the notebook to generate a variety of plots 
 **Important note regarding data size**: In the "Annotation Visualization" section of the notebook, you will download all the files present in the dataset, including images. The example dataset we created here contains 20,000 images (one for each Iteration), and would have a size of around 50 GB. Therefore, it is best to account for storage needs before you run the corresponding code block.
 
 
+This concludes the Perception tutorial. The next step in this workflow would be to train an object-detection model using a USim-generated dataset. It is important to note that the 20,000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the run would complete in a fairly short period of time, allowing us to move on to learning how to analyze the dataset's statistics. In order to generate data for training, we recommend a dataset of about 400,000 captures. 
 
+The grocery objects we used in the foreground are a subset of objects from the [SynthDet](https://github.com/Unity-Technologies/SynthDet) project, which is a custom project based on the Perception package. Instructions for training a [Faster-RCNN](https://arxiv.org/abs/1506.01497) object-detection model based on data generated with the SynthDet project are provided [here](https://github.com/Unity-Technologies/datasetinsights/blob/master/docs/source/Evaluation_Tutorial.md). Although the instructions are tailored to SynthDet, the principles will be the same for training a model. 
 
+In the near future, we will expand this tutorial to Phase 4, which will inclde model training instructions which are tailor-made for the project we built together here. 

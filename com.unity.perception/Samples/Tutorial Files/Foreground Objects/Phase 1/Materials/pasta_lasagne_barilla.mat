@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: pasta_lasagne_barilla
-  m_Shader: {fileID: -6465566751694194690, guid: 08aab06f5554242cabe92f17a5e33a4e,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 90ad3a47f8ccd406eab0fbf0c7a64d88, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -34,7 +33,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: ead0fced43d2cae4e914bb48f720247c, type: 3}
+        m_Texture: {fileID: 2800000, guid: ae0b56efeb8b144b3beea7cdd5006bf9, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMap:
@@ -290,6 +289,7 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
 --- !u!114 &4867803111913572926
 MonoBehaviour:
   m_ObjectHideFlags: 11

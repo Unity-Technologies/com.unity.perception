@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: snack_biscotti_ghiott_01
-  m_Shader: {fileID: -6465566751694194690, guid: 08aab06f5554242cabe92f17a5e33a4e,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 90ad3a47f8ccd406eab0fbf0c7a64d88, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -21,7 +20,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 880143783acc0bc4fb42fbe8b4e15e0f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 472b4b1a8ee9b48f0b78e65db8b862e3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -83,6 +82,7 @@ Material:
     - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+  m_BuildTextureStacks: []
 --- !u!114 &1173228143069387366
 MonoBehaviour:
   m_ObjectHideFlags: 11

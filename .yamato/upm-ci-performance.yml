@@ -19,9 +19,9 @@
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
     - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}
-    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}}StandaloneLinux64 --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
+    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}}StandaloneLinux64 --category="Performance" --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
     {% else %}
-    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}} --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
+    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}} --category="Performance" --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
     {% endif %}
   artifacts:
     logs:
@@ -46,9 +46,9 @@
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
     - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}
-    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64 --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64 --category="Performance" --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
     {% else %}
-    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}} --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}} --category="Performance" --report-performance-data --performance-project-id=com.unity.perception --zero-tests-are-ok=1
     {% endif %}
   artifacts:
     logs:

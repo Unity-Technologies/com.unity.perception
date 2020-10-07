@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
@@ -213,8 +214,8 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator MovingBoxTest()
         {
-            var pos = new Vector3(-40, 0, 10);
-            var movement = new Vector3(10, 0, 0);
+            var pos = new Vector3(-20, 0, 80);
+            var movement = new Vector3(5, 0, 0);
             var expectedPosition = new[]
             {
                 pos + movement * 2,
@@ -227,13 +228,28 @@ namespace GroundTruthTests
             var expectedScale = new[] { scale, scale, scale, scale, scale };
             var rot = Quaternion.identity;
             var expectedRot = new[] { rot, rot, rot, rot, rot };
-            var target = CreateDynamicBox(moving: true);
+            var target = CreateDynamicBox(moving: true, translation: movement);
             target.transform.localPosition = pos;
             var cameraPosition = new Vector3(0, 0, 0);
             var cameraRotation = Quaternion.identity;
             return ExecuteTest(target, cameraPosition, cameraRotation, expectedPosition, expectedScale, expectedRot);
         }
 
+        [UnityTest]
+        public IEnumerator TestOcclusion_Seen()
+        {
+            var target = TestHelper.CreateLabeledCube(scale: 15f, z: 50f);
+            return ExecuteSeenUnseenTest(target, Vector3.zero, quaternion.identity, 1);
+        }
+
+        [UnityTest]
+        public IEnumerator TestOcclusion_Unseen()
+        {
+            var target = TestHelper.CreateLabeledCube(scale: 15f, z: -50f);
+            return ExecuteSeenUnseenTest(target, Vector3.zero, quaternion.identity, 0);
+        }
+        
+        
         struct ExpectedResult
         {
             public int labelId;
@@ -244,6 +260,32 @@ namespace GroundTruthTests
             public Quaternion rotation;
         }
 
+        IEnumerator ExecuteSeenUnseenTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, int expectedSeen)
+        {
+            var receivedResults = new List<(int, BoundingBox3DLabeler.BoxData)>();
+            var gameObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
+            {
+                receivedResults.Add((frame, data));
+            });
+
+            gameObject.transform.position = cameraPos;
+            gameObject.transform.rotation = cameraRotation;
+
+            AddTestObjectForCleanup(gameObject);
+
+            gameObject.SetActive(false);
+            receivedResults.Clear();
+            gameObject.SetActive(true);
+
+            yield return null;
+            yield return null;
+
+            Assert.AreEqual(expectedSeen, receivedResults.Count);
+
+            DestroyTestObject(gameObject);
+            UnityEngine.Object.DestroyImmediate(target);
+        }
+        
         IEnumerator ExecuteTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, IList<ExpectedResult> expectations)
         {
             var receivedResults = new List<(int, BoundingBox3DLabeler.BoxData)>();
@@ -266,11 +308,9 @@ namespace GroundTruthTests
 
             Assert.AreEqual(expectations.Count, receivedResults.Count);
 
-            for (var i = 0; i < expectations.Count; i++)
+            for (var i = 0; i < receivedResults.Count; i++)
             {
                 var b = receivedResults[i].Item2;
-
-                Debug.Log(PrintBox(b));
 
                 Assert.AreEqual(expectations[i].labelId, b.label_id);
                 Assert.AreEqual(expectations[i].labelName, b.label_name);
@@ -287,19 +327,19 @@ namespace GroundTruthTests
         IEnumerator ExecuteTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, Vector3[] expectedPosition, Vector3[] expectedScale, Quaternion[] expectedRotation)
         {
             var receivedResults = new List<(int, BoundingBox3DLabeler.BoxData)>();
-            var gameObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
+            var cameraObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
             {
                 receivedResults.Add((frame, data));
             });
 
-            gameObject.transform.position = cameraPos;
-            gameObject.transform.rotation = cameraRotation;
+            cameraObject.transform.localPosition = cameraPos;
+            cameraObject.transform.localRotation = cameraRotation;
 
-            AddTestObjectForCleanup(gameObject);
+            AddTestObjectForCleanup(cameraObject);
 
-            gameObject.SetActive(false);
+            cameraObject.SetActive(false);
             receivedResults.Clear();
-            gameObject.SetActive(true);
+            cameraObject.SetActive(true);
 
             yield return null;
 
@@ -325,7 +365,7 @@ namespace GroundTruthTests
                 TestResults(b, expected);
             }
 
-            DestroyTestObject(gameObject);
+            DestroyTestObject(cameraObject);
             UnityEngine.Object.DestroyImmediate(target);
         }
 
@@ -360,8 +400,10 @@ namespace GroundTruthTests
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
             var camera = cameraObject.AddComponent<Camera>();
-            camera.orthographic = true;
-            camera.orthographicSize = 1;
+            camera.orthographic = false;
+            camera.fieldOfView = 60;
+            camera.nearClipPlane = 0.3f;
+            camera.farClipPlane = 1000;
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
             perceptionCamera.captureRgbImages = false;
@@ -503,7 +545,7 @@ namespace GroundTruthTests
 
         class CubeMover : MonoBehaviour
         {
-            public Vector3 distancePerFrame = new Vector3(10, 0 , 0);
+            public Vector3 distancePerFrame = new Vector3(5, 0 , 0);
 
             void Update()
             {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using Unity.Entities;
 using Unity.Entities.UniversalDelegates;
@@ -112,6 +113,8 @@ namespace UnityEngine.Perception.GroundTruth
             updater?.Deactivate(this);
         }
 
+        Plane[] m_PerceptionCameraFrustumFrames;
+        
         /// <inheritdoc/>
         public void OnBeginUpdate()
         {
@@ -120,6 +123,7 @@ namespace UnityEngine.Perception.GroundTruth
             else
                 m_BoundingBoxValues.Clear();
 
+            m_PerceptionCameraFrustumFrames = GeometryUtility.CalculateFrustumPlanes(perceptionCamera.attachedCamera);
             m_CurrentFrame = Time.frameCount;
         }
 
@@ -166,6 +170,18 @@ namespace UnityEngine.Perception.GroundTruth
             return corners;
         }
 
+        bool IsInCameraView(GameObject target)
+        {
+            // Need to check against all of the meshes in the labeled object, if at least one is visible, then
+            // the object will be considered in the camera's view. The built in Unity geometry methods are optimized to
+            // work with AABB bounds, so we will use those from the mesh renderer, as opposed to the non-axis aligned
+            // bounding boxes retrieved from the mesh filter. There is a chance that this method can report false
+            // positives, but it is (at least right now) probably worth the trade off for performance
+
+            var renderers = target.GetComponentsInChildren<Renderer>();
+            return renderers.Any(r => GeometryUtility.TestPlanesAABB(m_PerceptionCameraFrustumFrames, r.bounds));
+        }
+
         /// <inheritdoc/>
         public void OnUpdateEntity(Labeling labeling, GroundTruthInfo groundTruthInfo)
         {
@@ -179,11 +195,17 @@ namespace UnityEngine.Perception.GroundTruth
                 // and then intersect all of those bounds together. We then need to apply the "labeled" game object's
                 // transform to the combined bounds to transform the bounds into world space. Finally, we then need
                 // to take the bounds in world space and transform it to camera space to record it to json...
-                var meshFilters = labeling.gameObject.GetComponentsInChildren<MeshFilter>();
-                if (meshFilters == null || meshFilters.Length == 0) return;
-
+                //
+                // Currently we are only reporting objects that are a) labeled and b) are inside of the view camera's
+                // frustum. In the future we plan on supporting to report how much of the object can be seen, including
+                // none if it is off camera
                 if (idLabelConfig.TryGetLabelEntryFromInstanceId(groundTruthInfo.instanceId, out var labelEntry))
                 {
+                    if (!IsInCameraView(labeling.gameObject)) return;
+                    
+                    var meshFilters = labeling.gameObject.GetComponentsInChildren<MeshFilter>();
+                    if (meshFilters == null || meshFilters.Length == 0) return;
+                    
                     var labelTransform = labeling.transform;
                     var cameraTransform = perceptionCamera.transform;
                     var combinedBounds = new Bounds(Vector3.zero, Vector3.zero);

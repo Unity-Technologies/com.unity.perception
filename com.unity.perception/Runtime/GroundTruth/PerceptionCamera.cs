@@ -43,6 +43,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// Whether camera output should be captured to disk
         /// </summary>
         public bool captureRgbImages = true;
+
+        Camera m_AttachedCamera = null;
+        /// <summary>
+        /// Caches access to the camera attached to the perception camera
+        /// </summary>
+        public Camera attachedCamera => m_AttachedCamera;
+
         /// <summary>
         /// Event invoked after the camera finishes rendering during a frame.
         /// </summary>
@@ -123,9 +130,9 @@ namespace UnityEngine.Perception.GroundTruth
             AsyncRequest.maxAsyncRequestFrameAge = 4; // Ensure that readbacks happen before Allocator.TempJob allocations get stale
 
             SetupInstanceSegmentation();
-            var cam = GetComponent<Camera>();
+            m_AttachedCamera = GetComponent<Camera>();
 
-            SetupVisualizationCamera(cam);
+            SetupVisualizationCamera(m_AttachedCamera);
 
 
             DatasetCapture.SimulationEnding += OnSimulationEnding;
@@ -175,7 +182,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)
         {
-            if (camera == GetComponent<Camera>())
+            if (camera == m_AttachedCamera)
             {
 #if URP_PRESENT
                 if (!m_GroundTruthRendererFeatureRun)
@@ -194,8 +201,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!SensorHandle.IsValid)
                 return;
 
-            var cam = GetComponent<Camera>(); // TODO I don't like this... Get the camera handle, we should have it
-            cam.enabled = SensorHandle.ShouldCaptureThisFrame;
+            m_AttachedCamera.enabled = SensorHandle.ShouldCaptureThisFrame;
 
             bool anyVisualizing = false;
             foreach (var labeler in m_Labelers)
@@ -391,7 +397,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         void OnBeginCameraRendering(ScriptableRenderContext _, Camera cam)
         {
-            if (cam != GetComponent<Camera>())
+            if (cam != m_AttachedCamera)
                 return;
             if (!SensorHandle.ShouldCaptureThisFrame)
                 return;

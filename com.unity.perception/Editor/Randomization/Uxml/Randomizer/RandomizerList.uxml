@@ -1,0 +1,8 @@
+﻿<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement name="randomizers-container" class="scenario__dark-viewport" style="margin-top: 6px; min-height: 100px;"/>
+    <VisualElement style="flex-direction: row; align-items: center; justify-content: center; margin-top: 4px;">
+        <Button name="add-randomizer-button" text="Add Randomizer"/>
+        <Button name="expand-all" text="Expand All"/>
+        <Button name="collapse-all" text="Collapse All"/>
+    </VisualElement>
+</UXML>

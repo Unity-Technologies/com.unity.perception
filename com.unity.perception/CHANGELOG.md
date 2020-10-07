@@ -9,11 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+Added Randomizers and RandomizerTags
+
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+Removed ParameterConfigurations (replaced with Randomizers)
 
 ### Fixed
 

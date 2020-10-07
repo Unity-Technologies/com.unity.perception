@@ -14,9 +14,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public T constants = new T();
 
         /// <summary>
+        /// Returns this scenario's non-typed serialized constants
+        /// </summary>
+        public override object genericConstants => constants;
+
+        /// <summary>
         /// Serializes this scenario's constants to a json file in the Unity StreamingAssets folder
         /// </summary>
-        public sealed override void Serialize()
+        public override void Serialize()
         {
             Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
             using (var writer = new StreamWriter(serializedConstantsFilePath, false))
@@ -27,12 +32,21 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// Deserializes this scenario's constants from a json file in the Unity StreamingAssets folder
         /// </summary>
         /// <exception cref="ScenarioException"></exception>
-        public sealed override void Deserialize()
+        public override void Deserialize()
         {
-            if (!File.Exists(serializedConstantsFilePath))
-                throw new ScenarioException($"JSON scenario constants file does not exist at path {serializedConstantsFilePath}");
-            var jsonText = File.ReadAllText(serializedConstantsFilePath);
-            constants = JsonUtility.FromJson<T>(jsonText);
+            if (string.IsNullOrEmpty(serializedConstantsFilePath))
+            {
+                Debug.Log("No constants file specified. Running scenario with built in constants.");
+            }
+            else if (File.Exists(serializedConstantsFilePath))
+            {
+                var jsonText = File.ReadAllText(serializedConstantsFilePath);
+                constants = JsonUtility.FromJson<T>(jsonText);
+            }
+            else
+            {
+                Debug.LogWarning($"JSON scenario constants file does not exist at path {serializedConstantsFilePath}");
+            }
         }
     }
 }

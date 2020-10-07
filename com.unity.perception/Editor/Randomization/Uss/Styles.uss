@@ -1,164 +1,127 @@
-.dark-viewport {
+﻿/* General randomization classes */
+.randomization__remove-item-button {
+    width: 12px;
+    height: 14px;
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/X.png");
+}
+
+.randomization__collapse-toggle {
+    flex-shrink: 0;
+    margin-right: 3px;
+    margin-left: 3px;
+    width: 10px;
+    height: 10px;
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutOpen.png");
+}
+
+.collapsed .randomization__collapse-toggle {
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutClosed.png");
+}
+
+.randomization__collapse-toggle:hover {
+    -unity-background-image-tint-color: cornflowerblue;
+}
+
+.collapsed .randomization__collapsible-container {
+    display: none;
+}
+
+.randomization__chevron-left {
+    height: 12px;
+    width: 12px;
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/ChevronLeft.png");
+}
+
+.randomization__chevron-right {
+    height: 12px;
+    width: 12px;
+    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/ChevronRight.png");
+}
+
+
+/* Scenario classes */
+.scenario__info-box {
+    border-width: 1px;
+    border-color: #191919;
+    padding: 2px 4px 2px 4px;
+    white-space: normal;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.scenario__dark-viewport {
     border-radius: 5px;
     background-color: #191919;
     padding: 2px;
 }
 
-.parameter-container {
+
+/* Randomizer classes */
+.randomizer__drag-bar {
+    width: 100px;
+    height: 6px;
+    background-color: rgba(100,149,237,0.4);
+    position: absolute;
+}
+
+.randomizer__element {
     border-width: 2px;
     border-radius: 5px;
-    flex-direction: row;
     margin: 2px 1px;
-}
-
-.parameter-type-menu {
-    margin: 1px 3px;
-    border-width: 1px;
-    border-radius: 3px;
-    background-color: #585858;
-}
-
-#parameter-type-menu .unity-toolbar-menu__text {
-    font-size: 13px;
-    padding: 3px;
-}
-
-.sampler-type-menu {
-    flex-grow: 1.5;
-    border-radius: 3px;
-    border-width: 1px;
-    margin-top: 2px;
-    margin-right: 3px;
-}
-
-.sampler-name {
-    /*color: lightgreen;*/
-    -unity-font-style: bold;
-}
-
-.parameter-type-label-container {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1px;
-}
-
-.parameter-type-label-box {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    flex-grow: 0;
-    -unity-text-align: middle-center;
-    border-width: 0;
-    padding: 1px;
-    font-size: 13px;
-    -unity-font-style: bold;
-}
-
-.parameter-type-label {
-    color: cornflowerblue;
-    /*min-width: 120px;*/
-    -unity-text-align: middle-left;
-}
-
-.parameter-type-label-box .unity-base-text-field__input {
-    padding-left: 6px;
-    padding-right: 6px;
-}
-
-.unity-toggle {
-    margin-left: 0;
-}
-
-.property-selection-container {
+    background-color: #383838;
     flex-direction: row;
 }
 
-.property-select-menu {
-    flex-grow: 1;
-    border-width: 1px;
-    padding-bottom: 1px;
-    border-radius: 3px;
-    margin-right: 1px;
-}
-
-.remove-parameter-button {
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/X.png");
+.randomizer__drag-handle {
+    flex-shrink: 0;
     width: 16px;
-    height: 16px;
-}
-
-.move-buttons-container {
-    width: auto;
-    margin-right: 6px;
-    border-color: black;
-    border-top-left-radius: 3px;
-    border-bottom-left-radius: 3px;
-    background-color: #2A2A2A;
-    padding: 3px 2px;
-    justify-content: center;
-}
-
-.drag-handle {
-    width: 16px;
-    height: 70%;
+    height: 100%;
     min-height: 20px;
     background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/DragHandle.png");
 }
 
-.move-button {
-    border-width: 0;
-    width: 42px;
-    height: 16px;
-    padding: 9px;
-    -unity-background-scale-mode: scale-to-fit;
+.randomizer__drag-handle:hover {
+    -unity-background-image-tint-color: black;
 }
 
-.unity-imgui-container {
-    margin-left: 1px;
-    margin-right: 3px;
+.randomizer__add-menu-directory-item {
+    padding: 2px 10px 2px 20px;
 }
 
-.search-icon {
-    width: 16px;
-    height: 16px;
-    margin-top: 2px;
-    flex-shrink: 0;
+.randomizer__add-menu-directory-item:hover {
+    background-color: #3E5F96;
+}
+
+.randomizer__reordering-hover-indicator {
+    width: 100px;
+    height: 6px;
+    background-color: rgba(100,149,237,0.4);
+    position: absolute;
+}
+
+.randomizer__menu-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 9px;
+    width: 10px;
+    height: 10px;
     background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/Search.png");
 }
 
-.collapse-parameter-toggle {
-    flex-shrink: 0;
-    margin-right: 2px;
-    width: 12px;
-    height: 12px;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutOpen.png");
+.randomizer__menu-search-bar .unity-base-text-field__input {
+    padding-left: 15px;
 }
 
-.collapsed-parameter .collapse-parameter-toggle {
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutClosed.png");
-}
 
-.collapsed-parameter .parameter-properties-container {
-    display: none;
-}
-
-.collapsed-parameter .move-buttons-container {
-    flex-direction: row;
-}
-
-.collapsed-parameter .move-button {
-    width: 16px;
-}
-
-.categorical-option {
+/* Parameter classes */
+.parameter__categorical-option {
     flex-direction: row;
     background-color: #3F3F3F;
     margin: 1px;
     border-radius: 4px;
 }
 
-.options-list-view {
+.parameter__categorical-options-list {
     background-color: #191919;
     border-radius: 4px;
     margin-right: 2px;
@@ -166,17 +129,13 @@
     border-bottom-right-radius: 0;
 }
 
-.option-property-field {
+.parameter__categorical-option-property-field {
     width: 0;
     flex-grow: 1;
     flex-shrink: 0;
 }
 
-.uniform-probability .hide-when-uniform {
-    display: none;
-}
-
-.add-option-button {
+.parameter__categorical-options-list-button {
     align-self: flex-end;
     border-width: 0;
     border-top-right-radius: 0;
@@ -186,28 +145,25 @@
     margin-right: 2px;
 }
 
-.add-option-button:hover {
+.parameter__categorical-options-list-button:hover {
     background-color: #2A2A2A;
 }
 
-.add-option-button:active {
+.parameter__categorical-options-list-button:active {
     color: cornflowerblue;
 }
 
-.remove-option-button {
-    width: 12px;
-    height: 14px;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/X.png");
+
+/* Sampler classes */
+.sampler__type-menu {
+    flex-grow: 1.5;
+    border-radius: 3px;
+    border-width: 1px;
+    margin-top: 2px;
+    margin-right: 3px;
 }
 
-.parameter-drag-bar {
-    width: 100px;
-    height: 6px;
-    background-color: rgba(100,149,237,0.4);
-    position: absolute;
-}
-
-.float-range .unity-base-field__label {
+.sampler__float-range .unity-base-field__label {
     min-width: auto;
     margin-right: 4px;
 }

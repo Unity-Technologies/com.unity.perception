@@ -1,0 +1,14 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <TextField name="run-name" label="Run Name"/>
+    <editor:IntegerField name="total-iterations" label="Total Iterations"/>
+    <editor:IntegerField name="instance-count" label="Instance Count" max-value="10000"/>
+    <editor:ObjectField name="main-scene" label="Main Scene" allow-scene-objects="false"/>
+    <editor:ObjectField name="scenario" label="Scenario"/>
+    <VisualElement class="unity-base-field">
+        <Label text="USim worker config" class="unity-base-field__label"/>
+        <editor:ToolbarMenu name="sys-param" class="unity-base-field__input" style="border-width: 1px;"/>
+    </VisualElement>
+    <VisualElement style="align-items: center;">
+        <Button name="run-button" text="Build and Run" style="margin: 10px; padding: 2 20; font-size: 13px;"/>
+    </VisualElement>
+</UXML>

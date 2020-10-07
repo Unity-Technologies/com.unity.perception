@@ -52,13 +52,19 @@ For performance reasons, it is best to disable real-time visualizations before c
 
 * **Action**: From the _**Inspector**_ view of `Perception Camera`, disable real-time visualizations.
 
-In order to make sure our builds are compatible with USim, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_. The latter is the default option for projects created with newer versions of Unity, so we need to change it.
+In order to make sure our builds are compatible with USim, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_. The latter is the default option for projects created with newer versions of Unity, so we need to change it. We will also need to switch to _**Windowed**_ mode.
 
 * **Action**: From the top menu bar, open _**Edit -> Project Settings**_.
 * **Action**: In the window that opens, navigate to the _**Player**_ tab, find the _**Scripting Backend**_ setting (under _**Other Settings**_), and change it to _**Mono**_:
 
 <p align="center">
 <img src="Images/mono.png"/>
+</p>
+
+* **Action**: Change _**Fullscreen Mode**_ to _**Windowed**_ and set a width and height of 800 by 600.
+
+<p align="center">
+<img src="Images/windowed.png" width="600"/>
 </p>
 
 * **Action**: Close _**Project Settings**_. 

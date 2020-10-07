@@ -35,14 +35,14 @@ You can skip this step for HDRP projects.
 3. Change the names of the cubes to Cube, Box, and Crate
 4. Position the cubes in front of the Main Camera
 
-![Position of the cubes in front of the Main Camera](images/CompletedScene.png)
+![Position of the cubes in front of the Main Camera](images/CompletedScene.PNG)
 <br/>_Position of the cubes in front of the Main Camera_
 
 5. On each cube, in the Inspector window, add a Labeling component 
 	1. Select **Add (+)**
 	2. In the text field add the name of the object, for example Crate. Unity uses this label in the semantic segmentation images. 
 
-![A labeling component, for example "Crate"](images/LabeledObject.png)
+![A labeling component, for example "Crate"](images/LabeledObject.PNG)
 <br/>_A labeling component, for example "Crate"_
 
 6. Create and set up an IdLabelConfig
@@ -51,7 +51,7 @@ You can skip this step for HDRP projects.
    3. In the Inspector, select **Add to list (+)** three times
    4. In the three label text fields, add the text (Crate, Cube and Box) from the Labeling script on the objects you created in the Scene
 
-![IdLabelConfig with three labels](images/IDLabelingConfigurationFinished.png)
+![IdLabelConfig with three labels](images/IDLabelingConfigurationFinished.PNG)
 <br/>_IdLabelConfig with three labels_
 
 7. Create and set up a SemanticSegmentationLabelingConfiguration
@@ -76,7 +76,7 @@ You can skip this step for HDRP projects.
     1. In the Perception Camera script, find the SemanticSegmentationLabeler Camera Labeler. In its Label Config field, select the circle button. 
     2. In the Select SemanticSegmentationLabelConfig window, select the **SemanticSegmentationLabelConfig** you created. 
 
-![Perception Camera Labelers](images/MainCameraLabelConfig.png)
+![Perception Camera Labelers](images/MainCameraLabelConfig.PNG)
 <br/>_Perception Camera Labelers_
 
 

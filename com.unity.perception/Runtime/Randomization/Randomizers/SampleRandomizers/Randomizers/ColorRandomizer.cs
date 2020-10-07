@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
             var taggedObjects = tagManager.Query<ColorRandomizerTag>();
             foreach (var taggedObject in taggedObjects)
             {
-                var renderer = taggedObject.GetComponent<MeshRenderer>();
+                var renderer = taggedObject.GetComponent<Renderer>();
                 renderer.material.SetColor(k_BaseColor, colorParameter.Sample());
             }
         }

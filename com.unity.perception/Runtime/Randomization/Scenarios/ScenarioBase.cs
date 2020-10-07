@@ -138,6 +138,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             }
             foreach (var randomizer in m_Randomizers)
                 randomizer.Create();
+            ValidateParameters();
         }
 
         void OnEnable()

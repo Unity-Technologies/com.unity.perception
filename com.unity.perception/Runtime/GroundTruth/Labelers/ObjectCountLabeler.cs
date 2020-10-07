@@ -134,8 +134,14 @@ namespace UnityEngine.Perception.GroundTruth
                 if (m_ClassCountValues == null || m_ClassCountValues.Length != entries.Count)
                     m_ClassCountValues = new ClassCountValue[entries.Count];
 
-                bool visualize = visualizationEnabled;
+                var visualize = visualizationEnabled;
 
+                if (visualize)
+                {
+                    // Clear out all of the old entries...
+                    hudPanel.RemoveEntries(this);
+                }
+                
                 for (var i = 0; i < entries.Count; i++)
                 {
                     m_ClassCountValues[i] = new ClassCountValue()
@@ -145,12 +151,11 @@ namespace UnityEngine.Perception.GroundTruth
                         count = counts[i]
                     };
 
-                    if (visualize)
+                    // Only display entries with a count greater than 0
+                    if (visualize && counts[i] > 0)
                     {
                         var label = entries[i].label + " Counts";
                         hudPanel.UpdateEntry(this, label, counts[i].ToString());
-
-
                     }
                 }
 

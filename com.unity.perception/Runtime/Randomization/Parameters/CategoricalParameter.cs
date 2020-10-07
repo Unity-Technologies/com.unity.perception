@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         /// <summary>
         /// Returns an IEnumerable that iterates over each sampler field in this parameter
         /// </summary>
-        public override IEnumerable<ISampler> samplers
+        internal override IEnumerable<ISampler> samplers
         {
             get { yield return m_Sampler; }
         }

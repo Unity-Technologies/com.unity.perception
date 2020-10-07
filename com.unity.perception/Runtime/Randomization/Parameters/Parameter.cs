@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         /// <summary>
         /// Returns an IEnumerable that iterates over each sampler field in this parameter
         /// </summary>
-        public abstract IEnumerable<ISampler> samplers { get; }
+        internal abstract IEnumerable<ISampler> samplers { get; }
 
         /// <summary>
         /// Constructs a new parameter

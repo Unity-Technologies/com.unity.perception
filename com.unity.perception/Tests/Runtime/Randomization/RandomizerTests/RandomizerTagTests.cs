@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Linq;
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using Assert = Unity.Assertions.Assert;
@@ -34,7 +35,7 @@ namespace RandomizationTests.RandomizerTests
             for (var i = 0; i < copyCount - 1; i++)
                 Object.Instantiate(gameObject);
 
-            var queriedObjects = m_Scenario.tagManager.Query<ExampleTag>();
+            var queriedObjects = m_Scenario.tagManager.Query<ExampleTag>().ToArray();
             Assert.AreEqual(queriedObjects.Length, copyCount);
         }
     }

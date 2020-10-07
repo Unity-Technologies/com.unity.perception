@@ -44,8 +44,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationStart()
         {
-            if (m_SpawnedObjects == null)
-                m_SpawnedObjects = new List<GameObject>();
+            m_SpawnedObjects ??= new List<GameObject>();
 
             for (var i = 0; i < layerCount; i++)
             {

@@ -78,7 +78,7 @@ In order to make sure our builds are compatible with USim, we need to set our pr
 
 Here, you can also specify a name for the run, the number of iterations the Scenario will execute for, and the number of concurrent _**Instances**_ for the run. 
 
-* **Action**: Name your run `FirstRun`, set the number of iterations to `20,000`, and instances to `1`. 
+* **Action**: Name your run `FirstRun`, set the number of iterations to `1000`, and instances to `1`. 
 * **Action**: Click _**Build and Run**_.
 
 Your project will now be built and then uploaded to USim. Depending on the upload speed of your internet connection, this might take anywhere from a few seconds to a couple of minutes. 
@@ -232,7 +232,7 @@ Here is an example output of this command, indiciating that there is only one no
  ```
 
  At this point, we will need to wait until the execution is complete. Check your run with the above command periodically until you see a 1 for `Successes` and 0 for `In Progress`.
- Given the relatively small size of our Scenario (20,000 Iterations), this should take less than 10 minutes.
+ Given the relatively small size of our Scenario (1,000 Iterations), this should take less than 5 minutes.
 
  * **Action**: Use the `usim summarize run-execution <execution-id>` command periodically to check the progress of your run.
  * **Action**: When execution is complete, use the `usim download manifest <execution-id>` command to download the execution's manifest:
@@ -320,10 +320,7 @@ The next couple of code blocks (under "Load dataset metadata") analyze the downl
 
 Follow the rest of the steps inside the notebook to generate a variety of plots and stats. Keep in mind that this notebook is provided just as an example, and you can modify and extend it according to your own needs using the tools provided by the [Dataset Insights framework](https://datasetinsights.readthedocs.io/en/latest/).
 
-**Important note regarding data size**: In the "Annotation Visualization" section of the notebook, you will download all the files present in the dataset, including images. The example dataset we created here contains 20,000 images (one for each Iteration), and would have a size of around 50 GB. Therefore, it is best to account for storage needs before you run the corresponding code block.
-
-
-This concludes the Perception tutorial. The next step in this workflow would be to train an object-detection model using a USim-generated dataset. It is important to note that the 20,000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the run would complete in a fairly short period of time, allowing us to move on to learning how to analyze the dataset's statistics. In order to generate data for training, we recommend a dataset of about 400,000 captures. 
+This concludes the Perception tutorial. The next step in this workflow would be to train an object-detection model using a USim-generated dataset. It is important to note that the 1000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the run would complete in a fairly short period of time, allowing us to move on to learning how to analyze the dataset's statistics. In order to generate data for training, we recommend a dataset of about 400,000 captures. 
 
 The grocery objects we used in the foreground are a subset of objects from the [SynthDet](https://github.com/Unity-Technologies/SynthDet) project, which is a custom project based on the Perception package. Instructions for training a [Faster-RCNN](https://arxiv.org/abs/1506.01497) object-detection model based on data generated with the SynthDet project are provided [here](https://github.com/Unity-Technologies/datasetinsights/blob/master/docs/source/Evaluation_Tutorial.md). Although the instructions are tailored to SynthDet, the principles will be the same for training a model. 
 

@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using Unity.Simulation.Client;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
+using UnityEditor.SceneManagement;
 using UnityEditor.UIElements;
 using UnityEngine.Experimental.Perception.Randomization.Editor;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using ZipUtility;
 
@@ -16,6 +18,8 @@ namespace UnityEngine.Perception.Randomization.Editor
 {
     class RunInUSimWindow : EditorWindow
     {
+        string m_BuildDirectory;
+
         string m_BuildZipPath;
         SysParamDefinition m_SysParam;
 
@@ -37,6 +41,7 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         void OnEnable()
         {
+            m_BuildDirectory = Application.dataPath + "/../Build";
             Project.Activate();
             Project.clientReadyStateChanged += CreateEstablishingConnectionUI;
             CreateEstablishingConnectionUI(Project.projectIdState);
@@ -77,6 +82,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         /// <summary>
         /// Enables a visual element to remember values between editor sessions
         /// </summary>
+        /// <param name="element">The visual element to enable view data for</param>
         static void SetViewDataKey(VisualElement element)
         {
             element.viewDataKey = $"RunInUSim_{element.name}";
@@ -99,14 +105,29 @@ namespace UnityEngine.Perception.Randomization.Editor
 
             m_MainSceneField = root.Q<ObjectField>("main-scene");
             m_MainSceneField.objectType = typeof(SceneAsset);
+            if (SceneManager.sceneCount > 0)
+            {
+                var path = SceneManager.GetSceneAt(0).path;
+                var asset = AssetDatabase.LoadAssetAtPath<SceneAsset>(path);
+                m_MainSceneField.value = asset;
+            }
 
             m_ScenarioField = root.Q<ObjectField>("scenario");
             m_ScenarioField.objectType = typeof(ScenarioBase);
+            m_ScenarioField.value = FindObjectOfType<ScenarioBase>();
 
             var sysParamDefinitions = API.GetSysParams();
             var sysParamMenu = root.Q<ToolbarMenu>("sys-param");
             foreach (var definition in sysParamDefinitions)
-                sysParamMenu.menu.AppendAction(definition.description, action => m_SysParam = definition);
+            {
+                sysParamMenu.menu.AppendAction(
+                    definition.description,
+                    action =>
+                    {
+                        m_SysParam = definition;
+                        sysParamMenu.text = definition.description;
+                    });
+            }
             sysParamMenu.text = sysParamDefinitions[0].description;
             m_SysParam = sysParamDefinitions[0];
 
@@ -137,18 +158,16 @@ namespace UnityEngine.Perception.Randomization.Editor
         void CreateLinuxBuildAndZip()
         {
             // Create build directory
-            var pathToProjectBuild = Application.dataPath + "/../" + "Build/";
-            if (!Directory.Exists(pathToProjectBuild + m_RunNameField.value))
-                Directory.CreateDirectory(pathToProjectBuild + m_RunNameField.value);
-
-            pathToProjectBuild = pathToProjectBuild + m_RunNameField.value + "/";
+            var projectBuildDirectory = $"{m_BuildDirectory}/{m_RunNameField.value}";
+            if (!Directory.Exists(projectBuildDirectory))
+                Directory.CreateDirectory(projectBuildDirectory);
 
             // Create Linux build
             Debug.Log("Creating Linux build...");
             var buildPlayerOptions = new BuildPlayerOptions
             {
                 scenes = new[] { AssetDatabase.GetAssetPath(m_MainSceneField.value) },
-                locationPathName = Path.Combine(pathToProjectBuild, m_RunNameField.value + ".x86_64"),
+                locationPathName = Path.Combine(projectBuildDirectory, $"{m_RunNameField.value}.x86_64"),
                 target = BuildTarget.StandaloneLinux64
             };
             var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
@@ -159,9 +178,8 @@ namespace UnityEngine.Perception.Randomization.Editor
 
             // Zip the build
             Debug.Log("Starting to zip...");
-            var buildFolder = Application.dataPath + "/../" + "Build/" + m_RunNameField.value;
-            Zip.DirectoryContents(buildFolder, m_RunNameField.value);
-            m_BuildZipPath = buildFolder + ".zip";
+            Zip.DirectoryContents(projectBuildDirectory, m_RunNameField.value);
+            m_BuildZipPath = projectBuildDirectory + ".zip";
             Debug.Log("Created build zip");
         }
 

@@ -27,8 +27,6 @@ The repository includes two projects for local development in `TestProjects` fol
 ### Suggested IDE Setup
 For closest standards conformity and best experience overall, JetBrains Rider or Visual Studio w/ JetBrains Resharper are suggested. For optimal experience, perform the following additional steps:
 * To allow navigating to code in all packages included in your project, in your Unity Editor, navigate to `Edit -> Preferences... -> External Tools` and check `Generate all .csproj files.` 
-* To get automatic feedback and fixups on formatting and naming convention violations, set up Rider/JetBrains with our Unity standard .dotsettings file by following [these instructions](https://github.cds.internal.unity3d.com/unity/com.unity.coding/tree/master/UnityCoding/Packages/com.unity.coding/Coding~/Configs/JetBrains).
-* If you use VS Code, install the Editorconfig extension to get automatic code formatting according to our convention
 
 ## License
 * [License](com.unity.perception/LICENSE.md)

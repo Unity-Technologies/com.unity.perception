@@ -17,7 +17,7 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 [Quick Installation Instructions](com.unity.perception/Documentation~/SetupSteps.md)
 
-[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md): Detailed instructions covering all the important step from installing Unity Editor, to creating your first Perception project and generating large-scale synthetic datasets by leveraging the power of Unity Simulation. 
+[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md): Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation. 
 
 [Perception Manual](com.unity.perception/Documentation~/index.md): Sample projects and documentation of the SDK.
 

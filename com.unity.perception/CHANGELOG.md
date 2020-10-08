@@ -21,6 +21,9 @@ Removed ParameterConfigurations (replaced with Randomizers)
 
 ### Fixed
 
+Fixed visualization issue where object count and pixel count labelers were shown stale values
+Fixed visualization issue where HUD entry labels could be too long and take up the entire panel
+
 ## [0.4.0-preview.1] - 2020-08-07
 
 ### Added
@@ -46,6 +49,7 @@ Switched to latest versions of com.unity.simulation.core and com.unity.simulatio
 ### Removed
 
 ### Fixed
+
 Fixed 2d bounding boxes being reported for objects that do not match the label config.
 
 Fixed a categorical parameter UI error in which deleting an individual option would successfully remove the option from the UI but only serialize the option to null during serialization instead of removing it
@@ -85,6 +89,7 @@ Updated to com.unity.simulation.capture version 0.0.10-preview.10 and com.unity.
 Changed minimum Unity Editor version to 2019.4
 
 ### Fixed
+
 Fixed compilation warnings with latest com.unity.simulation.core package.
 
 Fixed errors in example script when exiting play mode

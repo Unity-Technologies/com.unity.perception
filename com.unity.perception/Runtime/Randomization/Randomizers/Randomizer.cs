@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 
@@ -17,9 +18,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
     {
         bool m_PreviouslyEnabled;
         // ReSharper disable once InconsistentNaming
-        internal ScenarioBase m_Scenario;
+        ScenarioBase m_Scenario;
         // ReSharper disable once InconsistentNaming
-        internal RandomizerTagManager m_TagManager;
+        RandomizerTagManager m_TagManager;
 
         [HideInInspector, SerializeField] internal bool collapsed;
 
@@ -92,6 +93,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         /// OnUpdate is executed every frame for enabled Randomizers
         /// </summary>
         protected virtual void OnUpdate() { }
+
+        internal void Initialize(ScenarioBase parentScenario, RandomizerTagManager parentTagManager)
+        {
+            m_Scenario = parentScenario;
+            m_TagManager = parentTagManager;
+        }
 
         internal virtual void Create()
         {

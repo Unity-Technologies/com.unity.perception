@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers
 {
@@ -14,7 +15,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// <summary>
         /// Defines the range of random rotations that can be assigned to tagged objects
         /// </summary>
-        public Vector3Parameter rotation = new Vector3Parameter();
+        public Vector3Parameter rotation = new Vector3Parameter
+        {
+            x = new UniformSampler(0, 360),
+            y = new UniformSampler(0, 360),
+            z = new UniformSampler(0, 360)
+        };
 
         /// <summary>
         /// Randomizes the rotation of tagged objects at the start of each scenario iteration

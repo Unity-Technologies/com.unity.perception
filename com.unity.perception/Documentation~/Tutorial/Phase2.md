@@ -37,11 +37,8 @@ public class MyLightRandomizer : Randomizer
 
         foreach (var taggedObject in taggedObjects)
         {
-            var light = taggedObject.GetComponent<Light>();
-            if (light)
-            {
-                light.intensity = lightIntensityParameter.Sample();
-            }
+            var light = taggedObject.GetComponent<Light>();            
+            light.intensity = lightIntensityParameter.Sample();            
         }
     }
 }
@@ -66,9 +63,7 @@ This range of intensities is arbitrary but will give us a typically nice lightin
 
 The `MyLightRandomizer` class extends `Randomizer`, which is the base class for all Randomizers that can be added to a Scenario. This base class provides a plethora of useful functions and properties that can help catalyze the process of creating new Randomziers.
 
-The `OnIterationStart()` function is used for telling the Randomizer what actions to perform at the start of each Iteration of the Scenario. As seen in the code block, at the start of each Iteration, this class queries the `tagManager` object for all objects that carry the `MyLightRandomizerTag` component. Then, for each object inside the queried list, it first tries to get the `Light` component, and if this component exists, the code sets its intensity to a new random float sampled from `lightIntensityParamter`. 
-
-Note that the `if (light)` line is not a requirement if you only add the `MyLightRandomizerTag` component to objects that have a `Light` component; however, it is good practice to guard against possible mistakes by always making sure a component exists and is not null before try to use it.
+The `OnIterationStart()` function is used for telling the Randomizer what actions to perform at the start of each Iteration of the Scenario. As seen in the code block, at the start of each Iteration, this class queries the `tagManager` object for all objects that carry the `MyLightRandomizerTag` component. Then, for each object inside the queried list, it first retrieves the `Light` component, and then sets its intensity to a new random float sampled from `lightIntensityParamter`. 
 
 * **Action**: Open `MyLightRandomizerTag.cs` and replace its contents with the code below:
 
@@ -77,6 +72,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 
 [AddComponentMenu("Perception/RandomizerTags/MyLightRandomizerTag")]
+[RequireComponent(typeof(Light))]
 public class MyLightRandomizerTag : RandomizerTag
 {    
 }
@@ -84,6 +80,8 @@ public class MyLightRandomizerTag : RandomizerTag
 ```
 
 Yes, a RandomizerTag can be this simple if you just need it for helping Randomizers query for target objects. Later, you will learn how to add code here to encapsulate more data and logic within the randomized objects. 
+
+Notice there is a `RequireComponent(typeof(Light))` line at the top. This line makes it so that you can only add the `MyLightRandomizerTag` component to an object that already has a `Light` component attached. This way, the Randomizers that query for this tag can be confident that the found objects have a `Light` component, and can thus be Randomized.
 
 * **Action**: Select `Directional Light` in the Scene's _**Hierarchy**_, and in the _**Inspector**_ tab, add a `Light Randomizer Tag` component.
 * **Action**: Run the simulation again and inspect how `Directional Light` now switches between different intensities. You can pause the simulation and then use the step button (to the right of the pause button) to move the simulation one frame forward and clearly see the varying light intensity
@@ -97,10 +95,11 @@ Let's now add more variation to our light by randomizing its color as well.
 * **Action**: Inside the code block that intensity was previously applied, add code for sampling color from the above Parameter and applying it:
 
 ```
-if (light)
+foreach (var taggedObject in taggedObjects)
 {
-    light.intensity = lightIntensityParameter.Sample();
-    light.color = lightColorParameter.Sample();
+    var light = taggedObject.GetComponent<Light>();            
+    light.intensity = lightIntensityParameter.Sample(); 
+    light.color = lightColorParameter.Sample();           
 }
 ```            
 
@@ -148,6 +147,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 
 [AddComponentMenu("Perception/RandomizerTags/MyLightRandomizerTag")]
+[RequireComponent(typeof(Light))]
 public class MyLightRandomizerTag : RandomizerTag
 {
     public float minIntensity;
@@ -155,14 +155,12 @@ public class MyLightRandomizerTag : RandomizerTag
 
     public void SetIntensity(float rawIntensity)
     {
-        var light = gameObject.GetComponent<Light>();
-        if (light)
-        {
-            var scaledIntensity = rawIntensity * (maxIntensity - minIntensity) + minIntensity;
-            light.intensity = scaledIntensity;
-        }
+        var light = gameObject.GetComponent<Light>();        
+        var scaledIntensity = rawIntensity * (maxIntensity - minIntensity) + minIntensity;
+        light.intensity = scaledIntensity;        
     }
 }
+
 ```
 In the above code, we have created a new `SetIntensity` function that first scales the incoming intensity (assumed to be between 0 and 1) to our desired range and then assigns it to the light's intensity. The `Light` component is now fetched from the GameObject that this Randomizer tag is attached to. This works because both this tag component and the `Light` component are attached to the same object in the Scene (which is one of the lights). 
 
@@ -197,17 +195,11 @@ public class MyLightRandomizer : Randomizer
         var taggedObjects = tagManager.Query<MyLightRandomizerTag>();
         foreach (var taggedObject in taggedObjects)
         {
-            var light = taggedObject.GetComponent<Light>();
-            if (light)
-            {                
-                light.color = lightColorParameter.Sample();
-            }
+            var light = taggedObject.GetComponent<Light>();                      
+            light.color = lightColorParameter.Sample();            
 
-            var tag = taggedObject.GetComponent<MyLightRandomizerTag>();
-            if (tag)
-            {
-                tag.SetIntensity(lightIntensityParameter.Sample());
-            }
+            var tag = taggedObject.GetComponent<MyLightRandomizerTag>();            
+            tag.SetIntensity(lightIntensityParameter.Sample());
         }
     }
 }

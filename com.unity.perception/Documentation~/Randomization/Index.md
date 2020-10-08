@@ -80,4 +80,4 @@ Take a look at the [samplers doc](Samplers.md) to learn more about implementing 
 
 ## Getting Started
 
-Visit our [randomization tutorial doc](../Tutorial/TUTORIAL.md) to get started using the perception package's randomization tools in an example project.
+Visit the [Perception Tutorial](../Tutorial/TUTORIAL.md) to get started using the perception package's randomization tools in an example project.

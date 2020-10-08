@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Numerics;
+using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.UniversalDelegates;
-using Unity.Mathematics;
 using Unity.Profiling;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -15,8 +13,10 @@ namespace UnityEngine.Perception.GroundTruth
     /// <summary>
     /// Produces 3d bounding box ground truth for all visible and <see cref="Labeling"/> objects each frame.
     /// </summary>
-    public class BoundingBox3DLabeler : CameraLabeler, IGroundTruthUpdater
+    public class BoundingBox3DLabeler : CameraLabeler
     {
+        EntityQuery m_EntityQuery;
+        
         ///<inheritdoc/>
         public override string description
         {
@@ -99,32 +99,10 @@ namespace UnityEngine.Perception.GroundTruth
             if (idLabelConfig == null)
                 throw new InvalidOperationException("BoundingBox2DLabeler's idLabelConfig field must be assigned");
 
-            var updater = World.DefaultGameObjectInjectionWorld?.GetOrCreateSystem<GroundTruthUpdateSystem>();
-            updater?.Activate(this);
-
             m_AnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("bounding box 3D", idLabelConfig.GetAnnotationSpecification(),
                 "Bounding box for each labeled object visible to the sensor", id: new Guid(annotationId));
-        }
 
-        /// <inheritdoc/>
-        protected override void Cleanup()
-        {
-            var updater = World.DefaultGameObjectInjectionWorld?.GetExistingSystem<GroundTruthUpdateSystem>();
-            updater?.Deactivate(this);
-        }
-
-        Plane[] m_PerceptionCameraFrustumFrames;
-        
-        /// <inheritdoc/>
-        public void OnBeginUpdate()
-        {
-            if (m_BoundingBoxValues == null)
-                m_BoundingBoxValues = new List<BoxData>();
-            else
-                m_BoundingBoxValues.Clear();
-
-            m_PerceptionCameraFrustumFrames = GeometryUtility.CalculateFrustumPlanes(perceptionCamera.attachedCamera);
-            m_CurrentFrame = Time.frameCount;
+            m_EntityQuery = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(Labeling), typeof(GroundTruthInfo));
         }
 
         static BoxData ConvertToBoxData(IdLabelEntry label, uint instanceId, Vector3 center, Vector3 extents, Quaternion rotation)
@@ -170,6 +148,30 @@ namespace UnityEngine.Perception.GroundTruth
             return corners;
         }
 
+        /// <inheritdoc/>
+        protected override void OnBeginRendering()
+        {
+            if (m_BoundingBoxValues == null)
+                m_BoundingBoxValues = new List<BoxData>();
+            else
+                m_BoundingBoxValues.Clear();
+
+            m_PerceptionCameraFrustumFrames = GeometryUtility.CalculateFrustumPlanes(perceptionCamera.attachedCamera);
+            m_CurrentFrame = Time.frameCount;
+
+            var entities = m_EntityQuery.ToEntityArray(Allocator.TempJob);
+            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            
+            foreach (var entity in entities)
+            {
+                ProcessEntity(entityManager.GetComponentObject<Labeling>(entity));
+            }
+
+            entities.Dispose();
+            
+            perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition).ReportValues(m_BoundingBoxValues);
+        }
+
         bool IsInCameraView(GameObject target)
         {
             // Need to check against all of the meshes in the labeled object, if at least one is visible, then
@@ -182,8 +184,9 @@ namespace UnityEngine.Perception.GroundTruth
             return renderers.Any(r => GeometryUtility.TestPlanesAABB(m_PerceptionCameraFrustumFrames, r.bounds));
         }
 
-        /// <inheritdoc/>
-        public void OnUpdateEntity(Labeling labeling, GroundTruthInfo groundTruthInfo)
+        Plane[] m_PerceptionCameraFrustumFrames;
+
+        void ProcessEntity(Labeling labeledEntity)
         {
             using (s_BoundingBoxCallback.Auto())
             {
@@ -199,14 +202,16 @@ namespace UnityEngine.Perception.GroundTruth
                 // Currently we are only reporting objects that are a) labeled and b) are inside of the view camera's
                 // frustum. In the future we plan on supporting to report how much of the object can be seen, including
                 // none if it is off camera
-                if (idLabelConfig.TryGetLabelEntryFromInstanceId(groundTruthInfo.instanceId, out var labelEntry))
+                if (idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
                 {
-                    if (!IsInCameraView(labeling.gameObject)) return;
+                    var entityGameObject = labeledEntity.gameObject;
                     
-                    var meshFilters = labeling.gameObject.GetComponentsInChildren<MeshFilter>();
+                    if (!IsInCameraView(entityGameObject)) return;
+                    
+                    var meshFilters = entityGameObject.GetComponentsInChildren<MeshFilter>();
                     if (meshFilters == null || meshFilters.Length == 0) return;
                     
-                    var labelTransform = labeling.transform;
+                    var labelTransform = entityGameObject.transform;
                     var cameraTransform = perceptionCamera.transform;
                     var combinedBounds = new Bounds(Vector3.zero, Vector3.zero);
                     var areBoundsUnset = true;
@@ -262,17 +267,11 @@ namespace UnityEngine.Perception.GroundTruth
                     // Rotation to go from label space to camera space
                     var cameraRotation = Quaternion.Inverse(cameraTransform.rotation) * labelTransform.rotation;
                     
-                    var converted = ConvertToBoxData(labelEntry, groundTruthInfo.instanceId, cameraCenter, combinedBounds.extents, cameraRotation);
+                    var converted = ConvertToBoxData(labelEntry, labeledEntity.instanceId, cameraCenter, combinedBounds.extents, cameraRotation);
                     BoundingBoxComputed?.Invoke(m_CurrentFrame, converted);
                     m_BoundingBoxValues.Add(converted);
                 }
             }
-        }
-
-        /// <inheritdoc/>
-        public void OnEndUpdate()
-        {
-            perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition).ReportValues(m_BoundingBoxValues);
         }
     }
 }

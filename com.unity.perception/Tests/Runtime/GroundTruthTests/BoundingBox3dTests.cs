@@ -197,7 +197,7 @@ namespace GroundTruthTests
             var spinner = Quaternion.Euler(0, 15, 0);
             for (var i = 0; i < 5; i++)
             {
-                rot[0] = Quaternion.Euler(0, 30, 0);
+                rot[0] = spinner;
                 rot[1] = rot[0] * spinner;
                 rot[2] = rot[1] * spinner;
                 rot[3] = rot[2] * spinner;
@@ -218,11 +218,11 @@ namespace GroundTruthTests
             var movement = new Vector3(5, 0, 0);
             var expectedPosition = new[]
             {
+                pos + movement,
                 pos + movement * 2,
                 pos + movement * 3,
                 pos + movement * 4,
-                pos + movement * 5,
-                pos + movement * 6
+                pos + movement * 5
             };
             var scale = new Vector3(15, 15, 15);
             var expectedScale = new[] { scale, scale, scale, scale, scale };
@@ -278,8 +278,7 @@ namespace GroundTruthTests
             gameObject.SetActive(true);
 
             yield return null;
-            yield return null;
-
+            
             Assert.AreEqual(expectedSeen, receivedResults.Count);
 
             DestroyTestObject(gameObject);
@@ -304,8 +303,7 @@ namespace GroundTruthTests
             gameObject.SetActive(true);
 
             yield return null;
-            yield return null;
-
+            
             Assert.AreEqual(expectations.Count, receivedResults.Count);
 
             for (var i = 0; i < receivedResults.Count; i++)
@@ -321,8 +319,6 @@ namespace GroundTruthTests
             DestroyTestObject(gameObject);
             UnityEngine.Object.DestroyImmediate(target);
         }
-
-
 
         IEnumerator ExecuteTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, Vector3[] expectedPosition, Vector3[] expectedScale, Quaternion[] expectedRotation)
         {
@@ -340,8 +336,6 @@ namespace GroundTruthTests
             cameraObject.SetActive(false);
             receivedResults.Clear();
             cameraObject.SetActive(true);
-
-            yield return null;
 
             for (var i = 0; i < expectedPosition.Length; i++)
             {

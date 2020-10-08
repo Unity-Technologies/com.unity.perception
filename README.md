@@ -14,13 +14,12 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 
 ## Documentation 
-[Installation instructions](com.unity.perception/Documentation~/SetupSteps.md)
 
-[Setting up your first perception scene](com.unity.perception/Documentation~/GettingStarted.md)
+[Quick Installation Instructions](com.unity.perception/Documentation~/SetupSteps.md)
 
-[Perception manual](com.unity.perception/Documentation~/index.md)
+[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md): Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation. 
 
-[Randomizing your simulation](com.unity.perception/Documentation~/Randomization/Index.md)
+[Perception Manual](com.unity.perception/Documentation~/index.md): Sample projects and documentation of the SDK.
 
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.
@@ -28,8 +27,6 @@ The repository includes two projects for local development in `TestProjects` fol
 ### Suggested IDE Setup
 For closest standards conformity and best experience overall, JetBrains Rider or Visual Studio w/ JetBrains Resharper are suggested. For optimal experience, perform the following additional steps:
 * To allow navigating to code in all packages included in your project, in your Unity Editor, navigate to `Edit -> Preferences... -> External Tools` and check `Generate all .csproj files.` 
-* To get automatic feedback and fixups on formatting and naming convention violations, set up Rider/JetBrains with our Unity standard .dotsettings file by following [these instructions](https://github.cds.internal.unity3d.com/unity/com.unity.coding/tree/master/UnityCoding/Packages/com.unity.coding/Coding~/Configs/JetBrains).
-* If you use VS Code, install the Editorconfig extension to get automatic code formatting according to our convention
 
 ## License
 * [License](com.unity.perception/LICENSE.md)

@@ -25,5 +25,5 @@ public class ColorRandomizer : Randomizer
 }
 ```
 
-RandomizerTags can also be used to customize how randomizers apply their randomizations to a particular GameObject. Visit [part two of the randomization tutorial]() to explore an in depth example of implementing a LightRandomizer that does exactly this.
+RandomizerTags can also be used to customize how randomizers apply their randomizations to a particular GameObject. Visit [Phase 2 of the Perception Tutorial](../Tutorial/TUTORIAL.md) to explore an in depth example of implementing a LightRandomizer that does exactly this.
 

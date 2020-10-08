@@ -14,13 +14,12 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 
 ## Documentation 
-[Installation instructions](com.unity.perception/Documentation~/SetupSteps.md)
 
-[Setting up your first perception scene](com.unity.perception/Documentation~/GettingStarted.md)
+[Quick Installation Instructions](com.unity.perception/Documentation~/SetupSteps.md)
 
-[Perception manual](com.unity.perception/Documentation~/index.md)
+[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md): Detailed instructions covering every step from installing Unity Editor, to creating your first Perception project and generating large-scale synthetic datasets by leveraging the power of Unity Simulation. 
 
-[Randomizing your simulation](com.unity.perception/Documentation~/Randomization/Index.md)
+[Perception Manual](com.unity.perception/Documentation~/index.md): Sample projects and documentation of the SDK.
 
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.

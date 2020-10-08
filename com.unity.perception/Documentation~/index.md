@@ -5,11 +5,9 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 > The Perception package is in active development. Its features and API are subject to significant change as development progresses.
 
-[Installation instructions](SetupSteps.md)
+[Quick Installation Instructions](SetupSteps.md)
 
-[Setting up your first perception scene](GettingStarted.md)
-
-[Randomizing your simulation (Experimental)](Randomization/Index.md)
+[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)
 
 ## Example projects using Perception
 

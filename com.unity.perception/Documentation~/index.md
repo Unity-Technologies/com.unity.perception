@@ -7,7 +7,7 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 [Quick Installation Instructions](SetupSteps.md)
 
-[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)
+[Perception Tutorial](Tutorial/TUTORIAL.md)
 
 ## Example projects using Perception
 

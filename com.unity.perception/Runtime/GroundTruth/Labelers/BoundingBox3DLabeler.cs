@@ -5,6 +5,7 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -67,8 +68,11 @@ namespace UnityEngine.Perception.GroundTruth
 
         static ProfilerMarker s_BoundingBoxCallback = new ProfilerMarker("OnBoundingBoxes3DReceived");
         AnnotationDefinition m_AnnotationDefinition;
-        List<BoxData> m_BoundingBoxValues;
-
+        
+        Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
+        Dictionary<int, Dictionary<uint, BoxData>> m_BoundingBoxValues;
+        List<BoxData> m_ToReport;
+        
         int m_CurrentFrame;
 
         /// <inheritdoc/>
@@ -77,7 +81,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Fired when the bounding boxes are computed for a frame.
         /// </summary>
-        public event Action<int, BoxData> BoundingBoxComputed;
+        public event Action<int, List<BoxData>> BoundingBoxComputed;
 
         /// <summary>
         /// Creates a new BoundingBox3DLabeler. Be sure to assign <see cref="idLabelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
@@ -102,7 +106,13 @@ namespace UnityEngine.Perception.GroundTruth
             m_AnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("bounding box 3D", idLabelConfig.GetAnnotationSpecification(),
                 "Bounding box for each labeled object visible to the sensor", id: new Guid(annotationId));
 
+            perceptionCamera.RenderedObjectInfosCalculated += OnRenderObjectInfosCalculated;
+            
             m_EntityQuery = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(Labeling), typeof(GroundTruthInfo));
+            
+            m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
+            m_BoundingBoxValues = new Dictionary<int, Dictionary<uint, BoxData>>();
+            m_ToReport = new List<BoxData>();
         }
 
         static BoxData ConvertToBoxData(IdLabelEntry label, uint instanceId, Vector3 center, Vector3 extents, Quaternion rotation)
@@ -151,14 +161,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override void OnBeginRendering()
         {
-            if (m_BoundingBoxValues == null)
-                m_BoundingBoxValues = new List<BoxData>();
-            else
-                m_BoundingBoxValues.Clear();
-
-            m_PerceptionCameraFrustumFrames = GeometryUtility.CalculateFrustumPlanes(perceptionCamera.attachedCamera);
             m_CurrentFrame = Time.frameCount;
+            var bbValues = new List<BoxData>();
 
+            m_BoundingBoxValues[m_CurrentFrame] = new Dictionary<uint, BoxData>();
+            
+            m_AsyncAnnotations[m_CurrentFrame] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
+            
             var entities = m_EntityQuery.ToEntityArray(Allocator.TempJob);
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
             
@@ -168,23 +177,37 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             entities.Dispose();
-            
-            perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition).ReportValues(m_BoundingBoxValues);
         }
 
-        bool IsInCameraView(GameObject target)
+        void OnRenderObjectInfosCalculated(int frameCount, NativeArray<RenderedObjectInfo> renderedObjectInfos)
         {
-            // Need to check against all of the meshes in the labeled object, if at least one is visible, then
-            // the object will be considered in the camera's view. The built in Unity geometry methods are optimized to
-            // work with AABB bounds, so we will use those from the mesh renderer, as opposed to the non-axis aligned
-            // bounding boxes retrieved from the mesh filter. There is a chance that this method can report false
-            // positives, but it is (at least right now) probably worth the trade off for performance
+            if (!m_AsyncAnnotations.TryGetValue(frameCount, out var asyncAnnotation))
+                return;
 
-            var renderers = target.GetComponentsInChildren<Renderer>();
-            return renderers.Any(r => GeometryUtility.TestPlanesAABB(m_PerceptionCameraFrustumFrames, r.bounds));
+            if (!m_BoundingBoxValues.TryGetValue(frameCount, out var boxes))
+                return;
+            
+            m_AsyncAnnotations.Remove(frameCount);
+            m_BoundingBoxValues.Remove(frameCount);
+
+            using (s_BoundingBoxCallback.Auto())
+            {
+                m_ToReport.Clear();
+                
+                for (var i = 0; i < renderedObjectInfos.Length; i++)
+                {
+                    var objectInfo = renderedObjectInfos[i];
+
+                    if (boxes.TryGetValue(objectInfo.instanceId, out var box))
+                    {
+                        m_ToReport.Add(box);
+                    }
+                }
+                
+                BoundingBoxComputed?.Invoke(frameCount, m_ToReport);
+                asyncAnnotation.ReportValues(m_ToReport);
+            }
         }
-
-        Plane[] m_PerceptionCameraFrustumFrames;
 
         void ProcessEntity(Labeling labeledEntity)
         {
@@ -199,14 +222,12 @@ namespace UnityEngine.Perception.GroundTruth
                 // transform to the combined bounds to transform the bounds into world space. Finally, we then need
                 // to take the bounds in world space and transform it to camera space to record it to json...
                 //
-                // Currently we are only reporting objects that are a) labeled and b) are inside of the view camera's
-                // frustum. In the future we plan on supporting to report how much of the object can be seen, including
+                // Currently we are only reporting objects that are a) labeled and b) are visible based on the perception
+                // camera's rendered object info. In the future we plan on reporting how much of the object can be seen, including
                 // none if it is off camera
                 if (idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
                 {
                     var entityGameObject = labeledEntity.gameObject;
-                    
-                    if (!IsInCameraView(entityGameObject)) return;
                     
                     var meshFilters = entityGameObject.GetComponentsInChildren<MeshFilter>();
                     if (meshFilters == null || meshFilters.Length == 0) return;
@@ -268,8 +289,8 @@ namespace UnityEngine.Perception.GroundTruth
                     var cameraRotation = Quaternion.Inverse(cameraTransform.rotation) * labelTransform.rotation;
                     
                     var converted = ConvertToBoxData(labelEntry, labeledEntity.instanceId, cameraCenter, combinedBounds.extents, cameraRotation);
-                    BoundingBoxComputed?.Invoke(m_CurrentFrame, converted);
-                    m_BoundingBoxValues.Add(converted);
+                    
+                    m_BoundingBoxValues[m_CurrentFrame][labeledEntity.instanceId] = converted;
                 }
             }
         }

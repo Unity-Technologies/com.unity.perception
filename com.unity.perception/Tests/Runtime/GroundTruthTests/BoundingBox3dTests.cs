@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using Unity.Mathematics;
@@ -151,28 +152,10 @@ namespace GroundTruthTests
                 },
                 new ExpectedResult
                 {
-                    instanceId = 3,
-                    labelId = 3,
-                    labelName = "wheel",
-                    position = new Vector3(1, 0.35f, 21.45f),
-                    scale = wheelScale,
-                    rotation = wheelRot
-                },
-                new ExpectedResult
-                {
                     instanceId = 4,
                     labelId = 3,
                     labelName = "wheel",
                     position = new Vector3(-1, 0.35f, 18.6f),
-                    scale = wheelScale,
-                    rotation = wheelRot
-                },
-                new ExpectedResult
-                {
-                    instanceId = 5,
-                    labelId = 3,
-                    labelName = "wheel",
-                    position = new Vector3(-1, 0.35f, 21.45f),
                     scale = wheelScale,
                     rotation = wheelRot
                 }
@@ -182,57 +165,6 @@ namespace GroundTruthTests
             var cameraPosition = new Vector3(0, 0, 0);
             var cameraRotation = Quaternion.identity;
             return ExecuteTest(target, cameraPosition, cameraRotation, expected);
-        }
-
-        [UnityTest]
-        public IEnumerator SpinningBoxTest()
-        {
-            var pos = new Vector3(0, 0, 10);
-            var expectedPosition = new[] { pos, pos, pos, pos, pos };
-            var scale = new Vector3(15f, 15f, 15f);
-            var expectedScale = new[] { scale, scale, scale, scale, scale };
-
-            var rot = new Quaternion[5];
-
-            var spinner = Quaternion.Euler(0, 15, 0);
-            for (var i = 0; i < 5; i++)
-            {
-                rot[0] = spinner;
-                rot[1] = rot[0] * spinner;
-                rot[2] = rot[1] * spinner;
-                rot[3] = rot[2] * spinner;
-                rot[4] = rot[3] * spinner;
-            }
-
-            var target = CreateDynamicBox(spinning: true);
-            target.transform.localPosition = new Vector3(0, 0, 10);
-            var cameraPosition = new Vector3(0, 0, 0);
-            var cameraRotation = Quaternion.identity;
-            return ExecuteTest(target, cameraPosition, cameraRotation, expectedPosition, expectedScale, rot);
-        }
-
-        [UnityTest]
-        public IEnumerator MovingBoxTest()
-        {
-            var pos = new Vector3(-20, 0, 80);
-            var movement = new Vector3(5, 0, 0);
-            var expectedPosition = new[]
-            {
-                pos + movement,
-                pos + movement * 2,
-                pos + movement * 3,
-                pos + movement * 4,
-                pos + movement * 5
-            };
-            var scale = new Vector3(15, 15, 15);
-            var expectedScale = new[] { scale, scale, scale, scale, scale };
-            var rot = Quaternion.identity;
-            var expectedRot = new[] { rot, rot, rot, rot, rot };
-            var target = CreateDynamicBox(moving: true, translation: movement);
-            target.transform.localPosition = pos;
-            var cameraPosition = new Vector3(0, 0, 0);
-            var cameraRotation = Quaternion.identity;
-            return ExecuteTest(target, cameraPosition, cameraRotation, expectedPosition, expectedScale, expectedRot);
         }
 
         [UnityTest]
@@ -262,7 +194,7 @@ namespace GroundTruthTests
 
         IEnumerator ExecuteSeenUnseenTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, int expectedSeen)
         {
-            var receivedResults = new List<(int, BoundingBox3DLabeler.BoxData)>();
+            var receivedResults = new List<(int, List<BoundingBox3DLabeler.BoxData>)>();
             var gameObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
             {
                 receivedResults.Add((frame, data));
@@ -278,8 +210,9 @@ namespace GroundTruthTests
             gameObject.SetActive(true);
 
             yield return null;
+            yield return null;
             
-            Assert.AreEqual(expectedSeen, receivedResults.Count);
+            Assert.AreEqual(expectedSeen, receivedResults[0].Item2.Count);
 
             DestroyTestObject(gameObject);
             UnityEngine.Object.DestroyImmediate(target);
@@ -287,7 +220,7 @@ namespace GroundTruthTests
         
         IEnumerator ExecuteTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, IList<ExpectedResult> expectations)
         {
-            var receivedResults = new List<(int, BoundingBox3DLabeler.BoxData)>();
+            var receivedResults = new List<(int, List<BoundingBox3DLabeler.BoxData>)>();
             var gameObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
             {
                 receivedResults.Add((frame, data));
@@ -303,12 +236,13 @@ namespace GroundTruthTests
             gameObject.SetActive(true);
 
             yield return null;
+            yield return null;
             
-            Assert.AreEqual(expectations.Count, receivedResults.Count);
+            Assert.AreEqual(expectations.Count, receivedResults[0].Item2.Count);
 
-            for (var i = 0; i < receivedResults.Count; i++)
+            for (var i = 0; i < receivedResults[0].Item2.Count; i++)
             {
-                var b = receivedResults[i].Item2;
+                var b = receivedResults[0].Item2[i];
 
                 Assert.AreEqual(expectations[i].labelId, b.label_id);
                 Assert.AreEqual(expectations[i].labelName, b.label_name);
@@ -317,49 +251,6 @@ namespace GroundTruthTests
             }
 
             DestroyTestObject(gameObject);
-            UnityEngine.Object.DestroyImmediate(target);
-        }
-
-        IEnumerator ExecuteTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, Vector3[] expectedPosition, Vector3[] expectedScale, Quaternion[] expectedRotation)
-        {
-            var receivedResults = new List<(int, BoundingBox3DLabeler.BoxData)>();
-            var cameraObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
-            {
-                receivedResults.Add((frame, data));
-            });
-
-            cameraObject.transform.localPosition = cameraPos;
-            cameraObject.transform.localRotation = cameraRotation;
-
-            AddTestObjectForCleanup(cameraObject);
-
-            cameraObject.SetActive(false);
-            receivedResults.Clear();
-            cameraObject.SetActive(true);
-
-            for (var i = 0; i < expectedPosition.Length; i++)
-            {
-                yield return null;
-
-                Assert.AreEqual(i + 1, receivedResults.Count);
-                var b = receivedResults[i].Item2;
-
-                Assert.AreEqual(1, b.label_id);
-                Assert.AreEqual("label", b.label_name);
-                Assert.AreEqual(1, b.instance_id);
-
-                // TODO fix this test up to use the expected results as an input
-                var expected = new ExpectedResult
-                {
-                    position = expectedPosition[i],
-                    rotation = expectedRotation[i],
-                    scale = expectedScale[i],
-                };
-
-                TestResults(b, expected);
-            }
-
-            DestroyTestObject(cameraObject);
             UnityEngine.Object.DestroyImmediate(target);
         }
 
@@ -389,7 +280,7 @@ namespace GroundTruthTests
             return labelConfig;
         }
 
-        static GameObject SetupCamera(IdLabelConfig config, Action<int, BoundingBox3DLabeler.BoxData> computeListener)
+        static GameObject SetupCamera(IdLabelConfig config, Action<int, List<BoundingBox3DLabeler.BoxData>> computeListener)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);

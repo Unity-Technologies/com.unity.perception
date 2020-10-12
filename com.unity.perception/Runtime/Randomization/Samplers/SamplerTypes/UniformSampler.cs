@@ -56,26 +56,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         }
 
         /// <summary>
-        /// Resets a sampler's state to its base random seed and then offsets said seed using an index value
-        /// </summary>
-        /// <param name="index">Often a the active scenario's currentIteration</param>
-        public void ResetState(int index)
-        {
-            ResetState();
-            IterateState(index);
-        }
-
-        /// <summary>
-        /// Set the base seed value of this sampler
-        /// </summary>
-        /// <param name="seed">The seed that will replace the sampler's current seed</param>
-        public void Rebase(uint seed)
-        {
-            baseSeed = seed;
-        }
-
-        /// <summary>
-        /// Deterministically offsets a sampler's state when generating values within a batched job
+        /// Deterministically offsets a sampler's state
         /// </summary>
         /// <param name="offsetIndex">
         /// The index used to offset the sampler's state.

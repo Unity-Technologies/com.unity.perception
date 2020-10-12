@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +25,7 @@ namespace UnityEngine.Perception.GroundTruth
         const int k_YPadding = 10;
         const int k_BoxWidth = 200;
         const int k_YLineSpacing = 4;
-
+        const int k_MaxKeyLength = 20;
 
         /// <summary>
         /// The number of labelers currently displaying real-time information on the visualization HUD
@@ -73,6 +74,8 @@ namespace UnityEngine.Perception.GroundTruth
             GUI.skin.label.font = Resources.Load<Font>("Inter-Light");
             GUI.skin.label.padding = new RectOffset(0, 0, 1, 1);
             GUI.skin.label.margin = new RectOffset(0, 0, 1, 1);
+            GUI.skin.label.wordWrap = false;
+            GUI.skin.label.clipping = TextClipping.Clip;
             GUI.skin.box.padding = new RectOffset(5, 5, 5, 5);
             GUI.skin.toggle.margin = new RectOffset(0, 0, 0, 0);
             GUI.skin.horizontalSlider.margin = new RectOffset(0, 0, 0, 0);
@@ -110,7 +113,10 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Space(5);
-                    GUILayout.Label(entry.Key);
+                    var k = new StringBuilder(entry.Key.Substring(0, Math.Min(entry.Key.Length, k_MaxKeyLength)));
+                    if (k.Length != entry.Key.Length) 
+                        k.Append("...");
+                    GUILayout.Label(k.ToString());
                     GUILayout.FlexibleSpace();
                     GUILayout.Label(entry.Value);
                     GUILayout.EndHorizontal();

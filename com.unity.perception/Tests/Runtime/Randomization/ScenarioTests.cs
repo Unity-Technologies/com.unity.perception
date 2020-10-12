@@ -4,9 +4,6 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
-using UnityEngine.Experimental.Perception.Randomization.Configuration;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
@@ -51,14 +48,12 @@ namespace RandomizationTests
             var constants = new FixedLengthScenario.Constants
             {
                 framesPerIteration = 2,
-                startingIteration = 2,
                 totalIterations = 2
             };
 
             var changedConstants = new FixedLengthScenario.Constants
             {
                 framesPerIteration = 0,
-                startingIteration = 0,
                 totalIterations = 0
             };
 
@@ -72,7 +67,6 @@ namespace RandomizationTests
 
             // Check if the values reverted correctly
             Assert.AreEqual(m_Scenario.constants.framesPerIteration, constants.framesPerIteration);
-            Assert.AreEqual(m_Scenario.constants.startingIteration, constants.startingIteration);
             Assert.AreEqual(m_Scenario.constants.totalIterations, constants.totalIterations);
 
             // Clean up serialized constants
@@ -105,63 +99,6 @@ namespace RandomizationTests
                 yield return null;
             }
             Assert.True(m_Scenario.isScenarioComplete);
-        }
-
-        [UnityTest]
-        public IEnumerator AppliesParametersEveryFrame()
-        {
-            var config = m_TestObject.AddComponent<ParameterConfiguration>();
-            var parameter = config.AddParameter<Vector3Parameter>();
-            parameter.x = new UniformSampler(1, 2);
-            parameter.y = new UniformSampler(1, 2);
-            parameter.z = new UniformSampler(1, 2);
-            parameter.target.AssignNewTarget(
-                m_TestObject, m_TestObject.transform, "position", ParameterApplicationFrequency.EveryFrame);
-
-            var initialPosition = Vector3.zero;
-            yield return CreateNewScenario(1, 5);
-
-            // ReSharper disable once Unity.InefficientPropertyAccess
-            Assert.AreNotEqual(initialPosition, m_TestObject.transform.position);
-            // ReSharper disable once Unity.InefficientPropertyAccess
-            initialPosition = m_TestObject.transform.position;
-
-            yield return null;
-            // ReSharper disable once Unity.InefficientPropertyAccess
-            Assert.AreNotEqual(initialPosition, m_TestObject.transform.position);
-        }
-
-        [UnityTest]
-        public IEnumerator AppliesParametersEveryIteration()
-        {
-            var config = m_TestObject.AddComponent<ParameterConfiguration>();
-            var parameter = config.AddParameter<Vector3Parameter>();
-            parameter.x = new UniformSampler(1, 2);
-            parameter.y = new UniformSampler(1, 2);
-            parameter.z = new UniformSampler(1, 2);
-
-            var transform = m_TestObject.transform;
-            var prevPosition = new Vector3();
-            transform.position = prevPosition;
-            parameter.target.AssignNewTarget(
-                m_TestObject, transform, "position", ParameterApplicationFrequency.OnIterationSetup);
-
-
-            yield return CreateNewScenario(2, 2);
-
-            Assert.AreNotEqual(prevPosition, transform.position);
-            // ReSharper disable once Unity.InefficientPropertyAccess
-            prevPosition = transform.position;
-
-            yield return null;
-            // ReSharper disable once Unity.InefficientPropertyAccess
-            Assert.AreEqual(prevPosition, transform.position);
-            // ReSharper disable once Unity.InefficientPropertyAccess
-            prevPosition = transform.position;
-
-            yield return null;
-            // ReSharper disable once Unity.InefficientPropertyAccess
-            Assert.AreNotEqual(prevPosition, transform.position);
         }
 
         [UnityTest]

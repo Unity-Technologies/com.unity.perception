@@ -1,6 +1,0 @@
-﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <VisualElement style="flex-direction: row;">
-        <Label style="width: 150px;"/>
-        <editor:ToolbarMenu style="flex-grow: 1; margin-left: 3px; margin-right: 2px; border-top-width: 1px; border-bottom-width: 1px; border-radius: 3px;"/>
-    </VisualElement>
-</UXML>

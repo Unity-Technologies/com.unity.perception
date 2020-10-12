@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Unity.Collections;
-using Unity.Mathematics;
 using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -50,6 +51,8 @@ namespace UnityEngine.Perception.GroundTruth
         readonly string m_OutputDirectoryName;
         string m_OutputDirectoryPath;
 
+        JsonSerializer m_AnnotationSerializer;
+        
         public bool IsRunning { get; private set; }
 
         public string OutputDirectory
@@ -71,6 +74,10 @@ namespace UnityEngine.Perception.GroundTruth
 
         public SimulationState(string outputDirectory)
         {
+            m_AnnotationSerializer = JsonSerializer.CreateDefault();
+            m_AnnotationSerializer.Converters.Add(new Vector3Converter());
+            m_AnnotationSerializer.Converters.Add(new QuaternionConverter());
+            
             m_OutputDirectoryName = outputDirectory;
             IsRunning = true;
         }
@@ -615,10 +622,61 @@ namespace UnityEngine.Perception.GroundTruth
             ReportAsyncAnnotationResult<T>(asyncAnnotation, filename, jArray);
         }
 
+        [SuppressMessage("ReSharper", "PossibleInvalidOperationException")]
+        public class QuaternionConverter : JsonConverter<Quaternion>
+        {
+            public override void WriteJson(JsonWriter writer, Quaternion quaternion, JsonSerializer serializer)
+            {
+                writer.WriteStartArray();
+                writer.WriteValue(quaternion.x);
+                writer.WriteValue(quaternion.y);
+                writer.WriteValue(quaternion.z);
+                writer.WriteValue(quaternion.w);
+                writer.WriteEndArray();
+            }
+
+            public override Quaternion ReadJson(JsonReader reader, Type objectType, Quaternion existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                var q = Quaternion.identity;
+                reader.Read(); // open [ token
+                q.x = (float)reader.ReadAsDecimal(); 
+                q.y = (float)reader.ReadAsDecimal();
+                q.z = (float)reader.ReadAsDecimal();
+                q.w = (float)reader.ReadAsDecimal();
+                reader.Read(); // close ] token
+                return q;
+            }
+        }
+        
+        
+        [SuppressMessage("ReSharper", "PossibleInvalidOperationException")]
+        public class Vector3Converter : JsonConverter<Vector3>
+        {
+            public override void WriteJson(JsonWriter writer, Vector3 value, JsonSerializer serializer)
+            {
+                writer.WriteStartArray();
+                writer.WriteValue(value.x);
+                writer.WriteValue(value.y);
+                writer.WriteValue(value.z);
+                writer.WriteEndArray();
+            }
+
+            public override Vector3 ReadJson(JsonReader reader, Type objectType, Vector3 existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                var outVector = new Vector3();
+                reader.Read(); // open array token
+                outVector.x = (float)reader.ReadAsDecimal();
+                outVector.y = (float)reader.ReadAsDecimal();
+                outVector.z = (float)reader.ReadAsDecimal();
+                reader.Read(); // close array token
+                return outVector;
+            }
+        }
+        
         public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, IEnumerable<T> values = null)
         {
-            var jArray = values == null ? null : JArray.FromObject(values);
-
+            var jArray = values == null ? null : JArray.FromObject(values, m_AnnotationSerializer);
+            
             ReportAsyncAnnotationResult<T>(asyncAnnotation, filename, jArray);
         }
 

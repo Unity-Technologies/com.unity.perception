@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Simulation;
 using UnityEngine;
@@ -42,6 +43,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// Whether camera output should be captured to disk
         /// </summary>
         public bool captureRgbImages = true;
+
+        Camera m_AttachedCamera = null;
+        /// <summary>
+        /// Caches access to the camera attached to the perception camera
+        /// </summary>
+        public Camera attachedCamera => m_AttachedCamera;
+
         /// <summary>
         /// Event invoked after the camera finishes rendering during a frame.
         /// </summary>
@@ -122,9 +130,9 @@ namespace UnityEngine.Perception.GroundTruth
             AsyncRequest.maxAsyncRequestFrameAge = 4; // Ensure that readbacks happen before Allocator.TempJob allocations get stale
 
             SetupInstanceSegmentation();
-            var cam = GetComponent<Camera>();
+            m_AttachedCamera = GetComponent<Camera>();
 
-            SetupVisualizationCamera(cam);
+            SetupVisualizationCamera(m_AttachedCamera);
 
 
             DatasetCapture.SimulationEnding += OnSimulationEnding;
@@ -174,7 +182,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)
         {
-            if (camera == GetComponent<Camera>())
+            if (camera == m_AttachedCamera)
             {
 #if URP_PRESENT
                 if (!m_GroundTruthRendererFeatureRun)
@@ -193,8 +201,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!SensorHandle.IsValid)
                 return;
 
-            var cam = GetComponent<Camera>(); // TODO I don't like this... Get the camera handle, we should have it
-            cam.enabled = SensorHandle.ShouldCaptureThisFrame;
+            m_AttachedCamera.enabled = SensorHandle.ShouldCaptureThisFrame;
 
             bool anyVisualizing = false;
             foreach (var labeler in m_Labelers)
@@ -312,11 +319,24 @@ namespace UnityEngine.Perception.GroundTruth
                 m_Labelers = new List<CameraLabeler>();
         }
 
+        // Convert the Unity 4x4 projection matrix to a 3x3 matrix
+        // ReSharper disable once InconsistentNaming
+        static float3x3 ToProjectionMatrix3x3(Matrix4x4 inMatrix)
+        {
+            return new float3x3(
+                inMatrix[0,0], inMatrix[0,1], inMatrix[0,2],
+                inMatrix[1,0], inMatrix[1,1], inMatrix[1,2],
+                inMatrix[2,0],inMatrix[2,1], inMatrix[2,2]);
+        }
+
         void CaptureRgbData(Camera cam)
         {
             Profiler.BeginSample("CaptureDataFromLastFrame");
             if (!captureRgbImages)
                 return;
+
+            // Record the camera's projection matrix
+            SetPersistentSensorData("camera_intrinsic", ToProjectionMatrix3x3(cam.projectionMatrix));
 
             var captureFilename = $"{Manager.Instance.GetDirectoryFor(RgbDirectory)}/{s_RgbFilePrefix}{Time.frameCount}.png";
             var dxRootPath = $"{RgbDirectory}/{s_RgbFilePrefix}{Time.frameCount}.png";
@@ -377,7 +397,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         void OnBeginCameraRendering(ScriptableRenderContext _, Camera cam)
         {
-            if (cam != GetComponent<Camera>())
+            if (cam != m_AttachedCamera)
                 return;
             if (!SensorHandle.ShouldCaptureThisFrame)
                 return;

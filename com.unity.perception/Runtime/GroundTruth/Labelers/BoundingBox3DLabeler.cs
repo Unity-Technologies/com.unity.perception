@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
-using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -54,16 +52,17 @@ namespace UnityEngine.Perception.GroundTruth
         /// Currently not supporting exporting velocity and acceleration. Both values will be null.
         /// </remarks>
         [SuppressMessage("ReSharper", "InconsistentNaming")]
-        public class BoxData
+        [Serializable]
+        public struct BoxData
         {
             public int label_id;
             public string label_name;
             public uint instance_id;
-            public float[] translation;
-            public float[] size;
-            public float[] rotation;
-            public float[] velocity; // TODO
-            public float[] acceleration; // TODO
+            public Vector3 translation;
+            public Vector3 size;
+            public Quaternion rotation;
+            public Vector3 velocity;
+            public Vector3 acceleration;
         }
 
         static ProfilerMarker s_BoundingBoxCallback = new ProfilerMarker("OnBoundingBoxes3DReceived");
@@ -115,18 +114,18 @@ namespace UnityEngine.Perception.GroundTruth
             m_ToReport = new List<BoxData>();
         }
 
-        static BoxData ConvertToBoxData(IdLabelEntry label, uint instanceId, Vector3 center, Vector3 extents, Quaternion rotation)
+        static BoxData ConvertToBoxData(IdLabelEntry label, uint instanceId, Vector3 center, Vector3 extents, Quaternion rot)
         {
             return new BoxData
             {
                 label_id = label.id,
                 label_name = label.label,
                 instance_id = instanceId,
-                translation = new[] { center.x, center.y, center.z },
-                size = new[] { extents.x * 2, extents.y * 2, extents.z * 2 },
-                rotation = new[] { rotation.x, rotation.y, rotation.z, rotation.w },
-                velocity = null,
-                acceleration = null
+                translation = center,
+                size = extents * 2,
+                rotation = rot,
+                acceleration = Vector3.zero,
+                velocity = Vector3.zero
             };
         }
 
@@ -162,8 +161,7 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void OnBeginRendering()
         {
             m_CurrentFrame = Time.frameCount;
-            var bbValues = new List<BoxData>();
-
+            
             m_BoundingBoxValues[m_CurrentFrame] = new Dictionary<uint, BoxData>();
             
             m_AsyncAnnotations[m_CurrentFrame] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);

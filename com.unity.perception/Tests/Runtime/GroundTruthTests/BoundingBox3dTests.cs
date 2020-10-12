@@ -25,14 +25,8 @@ namespace GroundTruthTests
             sb.Append("translation: (" + box.translation[0] + ", " + box.translation[1] + ", " + box.translation[2] + ") ");
             sb.Append("size: (" + box.size[0] + ", " + box.size[1] + ", " + box.size[2] + ") ");
             sb.Append("rotation: " + box.rotation[0] + ", " + box.rotation[1] + ", " + box.rotation[2] + ", " + box.rotation[3] + ") ");
-            if (box.velocity == null)
-                sb.Append("velocity: null ");
-            else
-                sb.Append("velocity: (" + box.velocity[0] + ", " + box.velocity[1] + ", " + box.velocity[2] + ") ");
-            if (box.acceleration == null)
-                sb.Append("acceleration: null");
-            else
-                sb.Append("acceleration: (" + box.acceleration[0] + ", " + box.acceleration[1] + ", " + box.acceleration[2] + ")");
+            sb.Append("velocity: " + box.velocity[0] + ", " + box.velocity[1] + ", " + box.velocity[2]);
+            sb.Append("acceleration: (" + box.acceleration[0] + ", " + box.acceleration[1] + ", " + box.acceleration[2] + ")");
 
             return sb.ToString();
         }
@@ -316,8 +310,8 @@ namespace GroundTruthTests
             Assert.AreEqual(e.rotation[1], data.rotation[1], k_Delta);
             Assert.AreEqual(e.rotation[2], data.rotation[2], k_Delta);
             Assert.AreEqual(e.rotation[3], data.rotation[3], k_Delta);
-            Assert.IsNull(data.velocity);
-            Assert.IsNull(data.acceleration);
+            Assert.AreEqual(Vector3.zero, data.velocity);
+            Assert.AreEqual(Vector3.zero, data.acceleration);
         }
 
         static GameObject CreateTestReallyBadCar(Vector3 position, Quaternion rotation, bool underOneLabel = true)

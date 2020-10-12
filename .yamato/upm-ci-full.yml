@@ -130,7 +130,7 @@ all_tests:
     {% endfor %}
     {% endfor %}
 
-all_tests_hourly_perf:
+all_tests_nightly_perf:
   name: Nightly Performance Tests
   agent:
     type: Unity::VM

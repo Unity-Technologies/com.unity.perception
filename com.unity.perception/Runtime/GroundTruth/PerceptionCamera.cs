@@ -238,6 +238,7 @@ namespace UnityEngine.Perception.GroundTruth
             GUI.skin.label.font = Resources.Load<Font>("Inter-Light");
             GUI.skin.label.padding = new RectOffset(0, 0, 1, 1);
             GUI.skin.label.margin = new RectOffset(0, 0, 1, 1);
+            GUI.skin.label.wordWrap = true;
             GUI.skin.box.padding = new RectOffset(5, 5, 5, 5);
             GUI.skin.toggle.margin = new RectOffset(0, 0, 0, 0);
             GUI.skin.horizontalSlider.margin = new RectOffset(0, 0, 0, 0);

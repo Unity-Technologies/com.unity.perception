@@ -11,11 +11,11 @@
   "displayName": "Perception",
   "name": "com.unity.perception",
   "unity": "2019.4",
-  "version": "0.4.0-preview.1",  
+  "version": "0.5.0-preview.1",
   "samples":[
     {
       "displayName": "Tutorial Files",
-      "description": "These files accompamy the tutorial for the Perception Package, found at https://github.com/Unity-Technologies/com.unity.perception/blob/tutorial_sample_project/Tutorial/TUTORIAL.md",
+      "description": "These files accompany the tutorial for the Perception Package, found at https://github.com/Unity-Technologies/com.unity.perception/blob/tutorial_sample_project/Tutorial/TUTORIAL.md",
       "path" : "Samples~/Tutorial Files"
     }
   ]

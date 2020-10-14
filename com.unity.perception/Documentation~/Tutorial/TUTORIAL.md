@@ -31,4 +31,4 @@ You will generally require a large amount of data to train your computer vision 
  * Use Dataset Insights to download and analyze your cloud-generated data.
 
 
-[Continue to Phase 1: Setup and Basic Randomizations](Phase1.md)
+**[Continue to Phase 1: Setup and Basic Randomizations](Phase1.md)**

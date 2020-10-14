@@ -76,9 +76,9 @@ In order to make sure our builds are compatible with USim, we need to set our pr
 
 * **Action**: Choose `TutorialScene` (which is the Scene we have been working in) as your _**Main Scene**_ and the `SimulationScenario` object as your _**Scenario**_.
 
-Here, you can also specify a name for the run, the number of iterations the Scenario will execute for, and the number of concurrent _**Instances**_ for the run. 
+Here, you can also specify a name for the run, the number of iterations the Scenario will execute for, and the number of _**Instances**_ (number of nodes the work will be distributed across) for the run. 
 
-* **Action**: Name your run `FirstRun`, set the number of iterations to `1000`, and instances to `1`. 
+* **Action**: Name your run `FirstRun`, set the number of iterations to `1000`, and instances to `20`. 
 * **Action**: Click _**Build and Run**_.
 
 Your project will now be built and then uploaded to USim. Depending on the upload speed of your internet connection, this might take anywhere from a few seconds to a couple of minutes. 

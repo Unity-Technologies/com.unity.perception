@@ -42,7 +42,7 @@ As the name suggests, the _**Package Manager**_ is where you can download new pa
 * **Action**: Click on the _**+**_ sign at the top-left corner of the _**Package Manager**_ window and then choose the option _**Add package frim git URL...**_. 
 * **Action**: Enter the address `com.unity.perception` and click _**Add**_.
 
-**Note:** If you would like a specific version of the package, you can append the version to the end of the url. For example `com.unity.perception@0.1.0-preview.5`. For this tutorial, **we do not need to add a version**. You can also install the package from a local clone of the Perception repository. More inofrmation on installing local pacakges is available [here](https://docs.unity3d.com/Manual/upm-ui-local.html).
+**Note:** If you would like a specific version of the package, you can append the version to the end of the url. For example `com.unity.perception@0.1.0-preview.5`. For this tutorial, **we do not need to add a version**. You can also install the package from a local clone of the Perception repository. More information on installing local pacakges is available [here](https://docs.unity3d.com/Manual/upm-ui-local.html).
 
 It will take some time for the manager to download and import the package. Once the operation finishes, you will see the newly download Perception package automatically selected in the _**Package Manager**_, as depicted below:
 

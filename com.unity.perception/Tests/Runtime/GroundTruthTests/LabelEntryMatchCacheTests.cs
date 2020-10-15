@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
 
@@ -11,7 +12,7 @@ namespace GroundTruthTests
         [Test]
         public void TryGet_ReturnsFalse_ForInvalidInstanceId()
         {
-            var config = new IdLabelConfig();
+            var config = ScriptableObject.CreateInstance<IdLabelConfig>();
             using (var cache = new LabelEntryMatchCache(config))
             {
                 Assert.IsFalse(cache.TryGetLabelEntryFromInstanceId(100, out var labelEntry, out var index));
@@ -25,7 +26,7 @@ namespace GroundTruthTests
             var label = "label";
             var labeledPlane = TestHelper.CreateLabeledPlane(label: label);
             AddTestObjectForCleanup(labeledPlane);
-            var config = new IdLabelConfig();
+            var config = ScriptableObject.CreateInstance<IdLabelConfig>();
             config.Init(new[]
             {
                 new IdLabelEntry()
@@ -49,7 +50,7 @@ namespace GroundTruthTests
             var label = "label";
             var labeledPlane = TestHelper.CreateLabeledPlane(label: label);
             AddTestObjectForCleanup(labeledPlane);
-            var config = new IdLabelConfig();
+            var config = ScriptableObject.CreateInstance<IdLabelConfig>();
             using (var cache = new LabelEntryMatchCache(config))
             {
                 //allow label to be registered
@@ -70,7 +71,7 @@ namespace GroundTruthTests
             yield return null;
             var labeledPlane2 = TestHelper.CreateLabeledPlane(label: label);
             AddTestObjectForCleanup(labeledPlane2);
-            var config = new IdLabelConfig();
+            var config = ScriptableObject.CreateInstance<IdLabelConfig>();
             config.Init(new[]
             {
                 new IdLabelEntry()

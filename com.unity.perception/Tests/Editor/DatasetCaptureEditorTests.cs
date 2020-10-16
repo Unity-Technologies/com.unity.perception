@@ -33,6 +33,7 @@ namespace GroundTruthTests
         public IEnumerator SimpleData_GeneratesFullDataset_OnExitPlaymode()
         {
             yield return new EnterPlayMode();
+            DatasetCapture.ResetSimulation();
             var ego = DatasetCapture.RegisterEgo("ego");
             var sensor = DatasetCapture.RegisterSensor(ego, "camera", "", 0.1f, 0);
             sensor.ReportCapture("file.txt", new SensorSpatialData());

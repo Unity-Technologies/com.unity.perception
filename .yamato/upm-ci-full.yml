@@ -73,13 +73,12 @@ test_trigger:
     {% for editor in coverage_editors %}
     - .yamato/upm-ci-testprojects.yml#codecoverage_windows_editmode_{{editor.version}}
     {% endfor %}
-    {% for editor in per_commit_editors %}
+
     {% for project in projects %}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{editor.version}}
-    {% endfor %}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{project.editor-version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{project.editor-version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{project.editor-version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{project.editor-version}}
     {% endfor %}
 
 all_tests:
@@ -114,11 +113,10 @@ all_tests:
     {% for editor in coverage_editors %}
     - .yamato/upm-ci-testprojects.yml#codecoverage_windows_editmode_{{editor.version}}
     {% endfor %}
-    {% for editor in complete_editors %}
+
     {% for project in projects %}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{editor.version}}
-    {% endfor %}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{project.editor-version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{project.editor-version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{project.editor-version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{project.editor-version}}
     {% endfor %}

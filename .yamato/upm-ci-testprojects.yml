@@ -31,7 +31,7 @@
 
 {% for suite in suites %}
 {% for project in projects %}
-codecoverage_windows_{{suite.name}}_{{project.editor_version}}:
+codecoverage_windows_{{suite.name}}_{{project.name}}:
   name : CodeCoverage {{ suite.display_name }} tests ({{ project.editor_version }}, Windows)
   agent:
     type: Unity::VM

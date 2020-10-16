@@ -38,7 +38,6 @@ promotion_test_trigger:
     {% endfor %}
     {% endfor %}
     {% endfor %}
-    {% endfor %}
 
 
 promote:

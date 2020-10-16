@@ -27,7 +27,6 @@
 
 {% endfor %}
 {% endfor %}
-{% endfor %}
 
 
 {% for suite in suites %}
@@ -79,7 +78,6 @@ codecoverage_windows_{{suite.name}}_{{project.editor_version}}:
     logs:
       paths:
         - "test-results/**/*"
-{% endfor %}
 {% endfor %}
 {% endfor %}
 

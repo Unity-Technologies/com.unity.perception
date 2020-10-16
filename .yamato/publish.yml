@@ -29,5 +29,4 @@ publish:
     {% endfor %}
     {% endfor %}
     {% endfor %}
-    {% endfor %}
 

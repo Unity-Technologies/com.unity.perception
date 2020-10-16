@@ -75,10 +75,10 @@ test_trigger:
     {% endfor %}
 
     {% for project in projects %}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{project.editor-version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{project.editor-version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{project.editor-version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{project.editor-version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{project.editor_version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{project.editor_version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{project.editor_version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{project.editor_version}}
     {% endfor %}
 
 all_tests:
@@ -115,8 +115,8 @@ all_tests:
     {% endfor %}
 
     {% for project in projects %}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{project.editor-version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{project.editor-version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{project.editor-version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{project.editor-version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{project.editor_version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{project.editor_version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{project.editor_version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{project.editor_version}}
     {% endfor %}

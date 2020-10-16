@@ -24,8 +24,8 @@ publish:
     {% for platform in publish_platforms %}
     {% for suite in suites %}
     {% for project in projects %}
-    - .yamato/upm-ci-full.yml#pkg_test_Perception_{{platform.name}}_{{project.editor-version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_{{suite.name}}_{{project.editor-version}}
+    - .yamato/upm-ci-full.yml#pkg_test_Perception_{{platform.name}}_{{project.editor_version}}
+    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_{{suite.name}}_{{project.editor_version}}
     {% endfor %}
     {% endfor %}
     {% endfor %}

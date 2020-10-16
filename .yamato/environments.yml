@@ -65,10 +65,10 @@ package_variants:
 
 projects:
   - name: PerceptionHDRP_2019.4
-    editor-version: 2019.4.6f1
+    editor_version: 2019.4.6f1
   - name: PerceptionURP_2019.4
-    editor-version: 2019.4.6f1
+    editor_version: 2019.4.6f1
   - name: PerceptionHDRP_2020.1
-    editor-version: 2020.1.9f1
+    editor_version: 2020.1.9f1
   - name: PerceptionURP_2020.1
-    editor-version: 2020.1.9f1
+    editor_version: 2020.1.9f1

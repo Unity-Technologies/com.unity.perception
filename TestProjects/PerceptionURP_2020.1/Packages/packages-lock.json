@@ -98,7 +98,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.perception": {
-      "version": "file:C:/repos/com.unity.perception/com.unity.perception",
+      "version": "file:../../../com.unity.perception",
       "depth": 0,
       "source": "local",
       "dependencies": {

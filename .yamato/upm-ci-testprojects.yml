@@ -2,11 +2,10 @@
 
 ---
 
-{% for editor in complete_editors %}
 {% for suite in suites %}
 {% for project in projects %}
-{{project.name}}_windows_{{suite.name}}_{{editor.version}}:
-  name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Windows)
+{{project.name}}_windows_{{suite.name}}_{{project.editor-version}}:
+  name : {{project.name}} {{ suite.display_name }} tests ({{ project.editor-version }}, Windows)
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -15,7 +14,7 @@
     - git submodule update --init --recursive
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    - unity-downloader-cli -u {{ project.editor-version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}
     - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64
     {% else %}
@@ -30,35 +29,36 @@
 {% endfor %}
 {% endfor %}
 
-{% for editor in coverage_editors %}
+
 {% for suite in suites %}
-codecoverage_windows_{{suite.name}}_{{editor.version}}:
-  name : CodeCoverage {{ suite.display_name }} tests ({{ editor.version }}, Windows)
+{% for project in projects %}
+codecoverage_windows_{{suite.name}}_{{project.editor-version}}:
+  name : CodeCoverage {{ suite.display_name }} tests ({{ project.editor-version }}, Windows)
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
     - git submodule update --init --recursive
-    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
-    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
-    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform playmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
+    - unity-downloader-cli -u {{ project.editor-version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    - .\.Editor\Unity.exe -projectPath ./TestProjects/{{project.name}} -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
+    - .\.Editor\Unity.exe -projectPath ./TestProjects/{{project.name}} -testPlatform playmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
   #  - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;
   artifacts:
     logs:
       paths:
         - "test-results/**/*"
-        - "TestProjects/PerceptionHDRP/test-results/**/*"
+        - "TestProjects/{{project.name}}/test-results/**/*"
   dependencies:
     - .yamato/upm-ci-full.yml#pack_Perception
 {% endfor %}
 {% endfor %}
 
-{% for editor in complete_editors %}
+
 {% for suite in suites %}
 {% for project in projects %}
-{{project.name}}_linux_{{suite.name}}_{{editor.version}}:
-  name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Linux)
+{{project.name}}_linux_{{suite.name}}_{{project.editor-version}}:
+  name : {{project.name}} {{ suite.display_name }} tests ({{ project.editor-version }}, Linux)
   agent:
     type: Unity::VM::GPU
     image: cds-ops/ubuntu-18.04-base:latest
@@ -69,7 +69,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
     - git submodule update --init --recursive
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    - unity-downloader-cli -u {{ project.editor-version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}
     - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}}StandaloneLinux64
     {% else %}

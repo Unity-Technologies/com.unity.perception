@@ -6,7 +6,7 @@ In this phase of the tutorial, we will learn how to run our Scene on _**Unity Si
 Steps included this phase of the tutorial:
 - [Step 1: Setup Unity Account, Unity Simulation, and Cloud Project](#step-1)
 - [Step 2: Run Project on Unity Simulation](#step-2)
-- [Step 3: Keep Track of Unity Simulation Runs Using USimCLI](#step-3)
+- [Step 3: Keep Track of Unity Simulation Runs Using a Command-Line Interface](#step-3)
 - [Step 4: Analyze the Dataset using Dataset Insights](#step-4)
 
 ### <a name="step-1">Step 1: Setup Unity Account, Unity Simulation, and Cloud Project</a> 
@@ -90,9 +90,9 @@ Your project will now be built and then uploaded to Unity Simulation. Depending 
 </p>
 
 
-### <a name="step-3">Step 3: Keep Track of Unity Simulation Runs Using USimCLI</a> 
+### <a name="step-3">Step 3: Keep Track of Unity Simulation Runs Using a Command-Line Interface</a> 
 
-To keep track of the progress of your Unity Simulation run, you will need to use Unity Simulation's command-line interface (USimCLI). Detailed instructions for USimCLI are provided [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/blob/master/doc/quickstart.md#download-unity-simulation-quickstart-materials). For the purposes of this tutorial, we will only go through the most essential commands, which will help us know when our Unity Simulation run is complete and where to find the produced dataset.
+To keep track of the progress of your Unity Simulation run, you will need to use Unity Simulation's command-line interface (CLI). Detailed instructions for this CLI are provided [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/blob/master/doc/quickstart.md#download-unity-simulation-quickstart-materials). For the purposes of this tutorial, we will only go through the most essential commands, which will help us know when our Unity Simulation run is complete and where to find the produced dataset.
 
 * **Action**: Download the latest version of `unity_simulation_bundle.zip` from [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/releases).
 
@@ -205,7 +205,7 @@ name        id        creation time         executions
                                               xBv3arj   Completed   2020-10-01 02:27:11    
 ```
 
-As seen above, each run has a name, an ID, a creation time, and a list of executions. Note that each "run" can have more than one "execution", as you can manually execute runs again using USimCLI.
+As seen above, each run has a name, an ID, a creation time, and a list of executions. Note that each "run" can have more than one "execution", as you can manually execute runs again using the CLI.
 
 You can also obtain a list of all the builds you have uploaded to Unity Simulation using the `usim get builds` command.
 

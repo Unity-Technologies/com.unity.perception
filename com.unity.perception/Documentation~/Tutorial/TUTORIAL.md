@@ -27,7 +27,7 @@ In order to get the best out of comptuer vision models, the training data needs 
  
 You will generally require a large amount of data to train your computer vision model. Generating data in these practical sizes will take incredible amounts of time to finish if performed on typical workstation computers. This is where the cloud comes in. In this phase, you will learn how to:
  * Generate large-scale synthetic datasets containing hundreds of thousands of frames by leveraging the power of **Unity Simulation**. 
- * Keep track of your Unity Simulation runs using the Unity Simulation command-line interface (USimCLI).
+ * Keep track of your Unity Simulation runs using the Unity Simulation command-line interface.
  * Use Dataset Insights to download and analyze your cloud-generated data.
 
 

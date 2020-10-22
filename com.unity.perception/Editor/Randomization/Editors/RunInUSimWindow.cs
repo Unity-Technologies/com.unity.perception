@@ -30,7 +30,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         ObjectField m_ScenarioField;
         Button m_RunButton;
 
-        [MenuItem("Window/Run in USim")]
+        [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
         {
             var window = GetWindow<RunInUSimWindow>();

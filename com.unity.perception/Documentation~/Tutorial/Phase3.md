@@ -6,7 +6,7 @@ In this phase of the tutorial, we will learn how to run our Scene on _**Unity Si
 Steps included this phase of the tutorial:
 - [Step 1: Setup Unity Account, Unity Simulation, and Cloud Project](#step-1)
 - [Step 2: Run Project on Unity Simulation](#step-2)
-- [Step 3: Keep Track of Unity Simulation Runs Using a Command-Line Interface](#step-3)
+- [Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface](#step-3)
 - [Step 4: Analyze the Dataset using Dataset Insights](#step-4)
 
 ### <a name="step-1">Step 1: Setup Unity Account, Unity Simulation, and Cloud Project</a> 
@@ -46,7 +46,7 @@ If you have used Unity before, you might have set-up multiple organizations for 
 
 ### <a name="step-2">Step 2: Run Project on Unity Simulation</a> 
 
-The process of running a project on Unity Simulation involves building it for Linux and then uploading this build, along with a set of parameters, to Unity Simulation. The Perception package simplifies this process by including a dedicated _**Run in USim**_ window that accepts a small number of required parameters and handles everything else automatically.
+The process of running a project on Unity Simulation involves building it for Linux and then uploading this build, along with a set of parameters, to Unity Simulation. The Perception package simplifies this process by including a dedicated _**Run in Unity Simulation**_ window that accepts a small number of required parameters and handles everything else automatically.
 
 For performance reasons, it is best to disable real-time visualizations before carrying on with the Unity Simulation run. 
 
@@ -68,7 +68,7 @@ In order to make sure our builds are compatible with Unity Simulation, we need t
 </p>
 
 * **Action**: Close _**Project Settings**_. 
-* **Action**: From the top menu bar, open _**Window -> Run in USim**_.
+* **Action**: From the top menu bar, open _**Window -> Run in Unity Simulation**_.
 
 <p align="center">
 <img src="Images/runinusim.png" width="600"/>
@@ -90,7 +90,7 @@ Your project will now be built and then uploaded to Unity Simulation. Depending 
 </p>
 
 
-### <a name="step-3">Step 3: Keep Track of Unity Simulation Runs Using a Command-Line Interface</a> 
+### <a name="step-3">Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface</a> 
 
 To keep track of the progress of your Unity Simulation run, you will need to use Unity Simulation's command-line interface (CLI). Detailed instructions for this CLI are provided [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/blob/master/doc/quickstart.md#download-unity-simulation-quickstart-materials). For the purposes of this tutorial, we will only go through the most essential commands, which will help us know when our Unity Simulation run is complete and where to find the produced dataset.
 
@@ -149,7 +149,7 @@ Once you have logged you will see this page:
 **Note**: On MacOS, you might get errors related to permissions. In these cases, try running your commands with the `sudo` qualifier. For example:
 `sudo USimCLI/mac/usim login auth`. This will ask for your MacOS account's password, and should help overcome the persmission issues.
 
-**Note : From this point on we will only include MacOS formatted commands in the tutorial, but all the usim commands we use will work in all supported operating systems.**
+**Note : From this point on we will only include MacOS formatted commands in the tutorial, but all the `usim` commands we use will work in all supported operating systems.**
 
 * **Action**: Return to your command-line interface. Get a list of cloud projects associated with your Unity account using the `usim get projects` command:
 
@@ -211,7 +211,7 @@ You can also obtain a list of all the builds you have uploaded to Unity Simulati
 
 You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `yegz4WN`.
 
-Unity Simulation runs executions on simulation nodes. If you enter a number larger than 1 for the number of instances in the _**Run in USim**_ window, your run will execute simultaneously on more than one node. You can view the status of each execution node using the `usim summarize run-execution <execution-id>` command. This command will tell you how many nodes have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
+Unity Simulation runs executions on simulation nodes. If you enter a number larger than 1 for the number of instances in the _**Run in Unity Simulation**_ window, your run will execute simultaneously on more than one node. You can view the status of each execution node using the `usim summarize run-execution <execution-id>` command. This command will tell you how many nodes have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
 
 * **Action**: Use the `usim summarize run-execution <execution-id>` command to observe the status of your execution nodes:
 

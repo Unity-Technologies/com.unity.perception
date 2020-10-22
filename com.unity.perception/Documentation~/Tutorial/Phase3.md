@@ -1,15 +1,15 @@
 # Perception Tutorial
 ## Phase 3: Cloud
 
-In this phase of the tutorial, we will learn how to run our Scene on _**Unity Simulation (USim)**_ and analyze the generated dataset using _**Dataset Insights**_. USim will allow us to generate a much larger dataset than what is typically plausible on a workstation computer.
+In this phase of the tutorial, we will learn how to run our Scene on _**Unity Simulation**_ and analyze the generated dataset using _**Dataset Insights**_. Unity Simulation will allow us to generate a much larger dataset than what is typically plausible on a workstation computer.
 
 Steps included this phase of the tutorial:
-- [Step 1: Setup Unity Account, USim, and Cloud Project](#step-1)
-- [Step 2: Run Project on USim](#step-2)
-- [Step 3: Keep Track of USim Runs Using USim-CLI](#step-3)
+- [Step 1: Setup Unity Account, Unity Simulation, and Cloud Project](#step-1)
+- [Step 2: Run Project on Unity Simulation](#step-2)
+- [Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface](#step-3)
 - [Step 4: Analyze the Dataset using Dataset Insights](#step-4)
 
-### <a name="step-1">Step 1: Setup Unity Account, USim, and Cloud Project</a> 
+### <a name="step-1">Step 1: Setup Unity Account, Unity Simulation, and Cloud Project</a> 
 
 In order to use Unity Simulation you need to first create a Unity account or login with your existing one. Once logged in, you will also need to sign-up for Unity Simulation. 
 
@@ -28,9 +28,9 @@ If you have not logged in yet, the _**Services**_ tab will display a message not
 * **Action**: Click _**Sign in...**_ and follow the steps in the window that opens to sign in or create an account.
 * **Action**: Sign up for a free trial of Unity Simulation [here](https://unity.com/products/unity-simulation).
 
-Unity Simulation is a cloud-based service that makes it possible for you run thousands of instances of Unity builds in order to generate massive amounts of data. The USim service is billed on a per-usage basis, and the free trial offers up to $100 of free credit per month. In order to access the free trial, you will need to provide credit card information. **This information will be used to charge your account if you exceed the $100 monthly credit.** A list of hourly and daily rates for various computational resources is available in the page where you first register for USim.
+Unity Simulation is a cloud-based service that makes it possible for you run thousands of instances of Unity builds in order to generate massive amounts of data. The Unity Simulation service is billed on a per-usage basis, and the free trial offers up to $100 of free credit per month. In order to access the free trial, you will need to provide credit card information. **This information will be used to charge your account if you exceed the $100 monthly credit.** A list of hourly and daily rates for various computational resources is available in the page where you first register for Unity Simulation.
 
-Once you have registered for a free trial, you will be taken to your USim dashboard, where you will be able to observe your usage and billing invoices.
+Once you have registered for a free trial, you will be taken to your Unity Simulation dashboard, where you will be able to observe your usage and billing invoices.
 
 It is now time to connect your local Unity project to a cloud project.
 
@@ -44,15 +44,15 @@ If you have used Unity before, you might have set-up multiple organizations for 
 
 * **Action**: Click _**Create**_ to create a new cloud project and connect your local project to it.
 
-### <a name="step-2">Step 2: Run Project on USim</a> 
+### <a name="step-2">Step 2: Run Project on Unity Simulation</a> 
 
-The process of running a project on Unity Simulation involves building it for Linux and then uploading this build, along with a set of parameters, to Unity Simulation. The Perception package simplifies this process by including a dedicated _**Run in USim**_ window that accepts a small number of required parameters and handles everything else automatically.
+The process of running a project on Unity Simulation involves building it for Linux and then uploading this build, along with a set of parameters, to Unity Simulation. The Perception package simplifies this process by including a dedicated _**Run in Unity Simulation**_ window that accepts a small number of required parameters and handles everything else automatically.
 
-For performance reasons, it is best to disable real-time visualizations before carrying on with the USim run. 
+For performance reasons, it is best to disable real-time visualizations before carrying on with the Unity Simulation run. 
 
 * **Action**: From the _**Inspector**_ view of `Perception Camera`, disable real-time visualizations.
 
-In order to make sure our builds are compatible with USim, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_. The latter is the default option for projects created with newer versions of Unity, so we need to change it. We will also need to switch to _**Windowed**_ mode.
+In order to make sure our builds are compatible with Unity Simulation, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_. The latter is the default option for projects created with newer versions of Unity, so we need to change it. We will also need to switch to _**Windowed**_ mode.
 
 * **Action**: From the top menu bar, open _**Edit -> Project Settings**_.
 * **Action**: In the window that opens, navigate to the _**Player**_ tab, find the _**Scripting Backend**_ setting (under _**Other Settings**_), and change it to _**Mono**_:
@@ -68,7 +68,7 @@ In order to make sure our builds are compatible with USim, we need to set our pr
 </p>
 
 * **Action**: Close _**Project Settings**_. 
-* **Action**: From the top menu bar, open _**Window -> Run in USim**_.
+* **Action**: From the top menu bar, open _**Window -> Run in Unity Simulation**_.
 
 <p align="center">
 <img src="Images/runinusim.png" width="600"/>
@@ -81,18 +81,18 @@ Here, you can also specify a name for the run, the number of iterations the Scen
 * **Action**: Name your run `FirstRun`, set the number of iterations to `1000`, and instances to `20`. 
 * **Action**: Click _**Build and Run**_.
 
-Your project will now be built and then uploaded to USim. Depending on the upload speed of your internet connection, this might take anywhere from a few seconds to a couple of minutes. 
+Your project will now be built and then uploaded to Unity Simulation. Depending on the upload speed of your internet connection, this might take anywhere from a few seconds to a couple of minutes. 
 
-* **Action**: Once the operation is complete, you can find the **Build ID**, **Run Definition ID**, and **Execution ID** of this USim run in the _**Console**_ tab:
+* **Action**: Once the operation is complete, you can find the **Build ID**, **Run Definition ID**, and **Execution ID** of this Unity Simulation run in the _**Console**_ tab:
 
 <p align="center">
 <img src="Images/build_uploaded.png"/>
 </p>
 
 
-### <a name="step-3">Step 3: Keep Track of USim Runs Using USim-CLI</a> 
+### <a name="step-3">Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface</a> 
 
-To keep track of the progress of your USim run, you will need to use USim's command-line interface (USim-CLI). Detailed instructions for USim-CLI are provided [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/blob/master/doc/quickstart.md#download-unity-simulation-quickstart-materials). For the purposes of this tutorial, we will only go through the most essential commands, which will help us know when our USim run is complete and where to find the produced dataset.
+To keep track of the progress of your Unity Simulation run, you will need to use Unity Simulation's command-line interface (CLI). Detailed instructions for this CLI are provided [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/blob/master/doc/quickstart.md#download-unity-simulation-quickstart-materials). For the purposes of this tutorial, we will only go through the most essential commands, which will help us know when our Unity Simulation run is complete and where to find the produced dataset.
 
 * **Action**: Download the latest version of `unity_simulation_bundle.zip` from [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/releases).
 
@@ -126,7 +126,7 @@ Windows:
 
 The first step is to login.
 
-* **Action**: Login to USim using the `usim login auth` command.
+* **Action**: Login to Unity Simulation using the `usim login auth` command.
 
 MacOS:
 `USimCLI/mac/usim login auth`
@@ -149,7 +149,7 @@ Once you have logged you will see this page:
 **Note**: On MacOS, you might get errors related to permissions. In these cases, try running your commands with the `sudo` qualifier. For example:
 `sudo USimCLI/mac/usim login auth`. This will ask for your MacOS account's password, and should help overcome the persmission issues.
 
-**Note : From this point on we will only include MacOS formatted commands in the tutorial, but all the USim commands we use will work in all supported operating systems.**
+**Note : From this point on we will only include MacOS formatted commands in the tutorial, but all the `usim` commands we use will work in all supported operating systems.**
 
 * **Action**: Return to your command-line interface. Get a list of cloud projects associated with your Unity account using the `usim get projects` command:
 
@@ -205,13 +205,13 @@ name        id        creation time         executions
                                               xBv3arj   Completed   2020-10-01 02:27:11    
 ```
 
-As seen above, each run has a name, an ID, a creation time, and a list of executions. Note that each "run" can have more than one "execution", as you can manually execute runs again using USim-CLI.
+As seen above, each run has a name, an ID, a creation time, and a list of executions. Note that each "run" can have more than one "execution", as you can manually execute runs again using the CLI.
 
-You can also obtain a list of all the builds you have uploaded to USim using the `usim get builds` command.
+You can also obtain a list of all the builds you have uploaded to Unity Simulation using the `usim get builds` command.
 
 You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `yegz4WN`.
 
-USim runs executions on simulation nodes. If you enter a number larger than 1 for the number of instances in the _**Run in USim**_ window, your run will execute simultaneously on more than one node. You can view the status of each execution node using the `usim summarize run-execution <execution-id>` command. This command will tell you how many nodes have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
+Unity Simulation runs executions on simulation nodes. If you enter a number larger than 1 for the number of instances in the _**Run in Unity Simulation**_ window, your run will execute simultaneously on more than one node. You can view the status of each execution node using the `usim summarize run-execution <execution-id>` command. This command will tell you how many nodes have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
 
 * **Action**: Use the `usim summarize run-execution <execution-id>` command to observe the status of your execution nodes:
 
@@ -256,7 +256,7 @@ Here is an example output of this command, indiciating that there is only one no
 
 In the above command, replace `<download path>` with the location on your computer in which you wish to download your data.
 
-Once the Docker image is running, the rest of the workflow is quite similar to what we did in Phase 1, with certain differences caused by the need to download the data from USim.
+Once the Docker image is running, the rest of the workflow is quite similar to what we did in Phase 1, with certain differences caused by the need to download the data from Unity Simulation.
 
 * **Action**: Open a web browser and navigate to `http://localhost:8888` to open the Jupyter notebook.
 * **Action**: Navigate to the `datasetinsights/notebooks` folder and open `Perception_Statistics.ipynb`.
@@ -266,9 +266,9 @@ Once the Docker image is running, the rest of the workflow is quite similar to w
 <img src="Images/di_usim_1.png"/>
 </p>
 
-The next few lines of code pertain to setting up your notebook for downloading data from USim. 
+The next few lines of code pertain to setting up your notebook for downloading data from Unity Simulation. 
 
-* **Action**: In the block of code titled "Unity Simulation [Optional]", uncomment the lines that assign values to variables, and insert the correct values, based on information from your USim run. 
+* **Action**: In the block of code titled "Unity Simulation [Optional]", uncomment the lines that assign values to variables, and insert the correct values, based on information from your Unity Simulation run. 
 
 We have previoulsy learned how to obtain the `run_execution_id` and `project_id`. You can remove the value already present for `annotation_definition_id` and leave it blank. What's left is the `access_token`.
 
@@ -320,8 +320,6 @@ The next couple of code blocks (under "Load dataset metadata") analyze the downl
 
 Follow the rest of the steps inside the notebook to generate a variety of plots and stats. Keep in mind that this notebook is provided just as an example, and you can modify and extend it according to your own needs using the tools provided by the [Dataset Insights framework](https://datasetinsights.readthedocs.io/en/latest/).
 
-This concludes the Perception tutorial. The next step in this workflow would be to train an object-detection model using a USim-generated dataset. It is important to note that the 1000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the run would complete in a fairly short period of time, allowing us to move on to learning how to analyze the dataset's statistics. In order to generate data for training, we recommend a dataset of about 400,000 captures. 
+This concludes the Perception tutorial. The next step in this workflow would be to train an object-detection model using a dataset generated on Unity Simulation. It is important to note that the 1000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the run would complete in a fairly short period of time, allowing us to move on to learning how to analyze the dataset's statistics. In order to generate data for training, we recommend a dataset of about 400,000 captures. 
 
-The grocery objects we used in the foreground are a subset of objects from the [SynthDet](https://github.com/Unity-Technologies/SynthDet) project, which is a custom project based on the Perception package. Instructions for training a [Faster-RCNN](https://arxiv.org/abs/1506.01497) object-detection model based on data generated with the SynthDet project are provided [here](https://github.com/Unity-Technologies/datasetinsights/blob/master/docs/source/Evaluation_Tutorial.md). Although the instructions are tailored to SynthDet, the principles will be the same for training a model. 
-
-In the near future, we will expand this tutorial to Phase 4, which will inclde model training instructions which are tailor-made for the project we built together here. 
+In the near future, we will expand this tutorial to Phase 4, which will inclde instructions on how to train a Faster R-CNN object-detection model using a dataset that can be generated by following this tutorial.

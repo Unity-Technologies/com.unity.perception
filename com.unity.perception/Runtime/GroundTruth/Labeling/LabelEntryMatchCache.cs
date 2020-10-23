@@ -50,7 +50,7 @@ namespace UnityEngine.Perception.GroundTruth
                 }
                 m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] = (ushort)index;
             }
-            else
+            else if (m_InstanceIdToLabelEntryIndexLookup.Length > (int)instanceId)
             {
                 m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] = m_DefaultValue;
             }

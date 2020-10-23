@@ -211,7 +211,7 @@ You can also obtain a list of all the builds you have uploaded to Unity Simulati
 
 You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `yegz4WN`.
 
-Unity Simulation runs executions on simulation nodes. If you enter a number larger than 1 for the number of instances in the _**Run in Unity Simulation**_ window, your run will execute simultaneously on more than one node. You can view the status of each execution node using the `usim summarize run-execution <execution-id>` command. This command will tell you how many nodes have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
+Unity Simulation utilizes the ability to run simulation instances in parallel. If you enter a number larger than 1 for the number of instances in the _**Run in Unity Simulation**_ window, your run will be parallelized and multiple simulation instances will simultaneously execute. You can view the status of all simulation instances using the `usim summarize run-execution <execution-id>` command. This command will tell you how many instances have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
 
 * **Action**: Use the `usim summarize run-execution <execution-id>` command to observe the status of your execution nodes:
 

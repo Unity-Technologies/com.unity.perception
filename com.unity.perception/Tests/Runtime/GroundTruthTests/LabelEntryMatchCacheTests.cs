@@ -118,6 +118,7 @@ namespace GroundTruthTests
 
                 yield return null;
 
+                //this new object has a label that is not included in our label config
                 var labeledPlane2 = TestHelper.CreateLabeledPlane(label: "bar");
                 AddTestObjectForCleanup(labeledPlane2);
 

@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+USimScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation
+
 ## [0.5.0-preview.1] - 2020-10-14
 
 ### Known Issues

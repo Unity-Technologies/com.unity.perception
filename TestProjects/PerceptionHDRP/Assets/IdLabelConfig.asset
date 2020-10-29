@@ -19,5 +19,7 @@ MonoBehaviour:
     id: 2
   - label: Box
     id: 3
+  - label: Terrain
+    id: 4
   autoAssignIds: 1
   startingLabelId: 1

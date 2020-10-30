@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -50,6 +51,12 @@ namespace UnityEngine.Perception.GroundTruth
         {
             return TryGetMatchingConfigurationEntry(labeling, out labelEntry, out int _);
         }
+
+        public bool DoesLabelMatchAnyEntries(string label)
+        {
+            return m_LabelEntries.Any(entry => string.Equals(entry.label, label));
+        }
+
 
         /// <summary>
         /// Initialize the list of LabelEntries on this LabelingConfiguration. Should only be called immediately after instantiation.

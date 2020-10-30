@@ -63,6 +63,11 @@ namespace UnityEngine.Perception.GroundTruth {
             m_LabelEntryMatchCache = null;
         }
 
+        public void ClearLabelEntryMatchCache()
+        {
+            m_LabelEntryMatchCache?.ClearCache();
+        }
+
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         internal struct LabelEntrySpec
         {

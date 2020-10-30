@@ -1,0 +1,11 @@
+<UXML xmlns="UnityEngine.UIElements">
+    <BindableElement class="outer-container" name="outer-container">
+        <Style src="../Uss/Styles.uss"/>
+        <Label name="title" class="title-label"/>
+        <Label text="Currently Present In:"/>
+        <ListView name="current-configs-listview" class="labeling__configs-listview" style="height:150px"/>
+        <Label text="Other Label Configs in Project:"/>
+        <ListView name="other-configs-listview" class="labeling__configs-listview"/>
+    </BindableElement>
+</UXML>
+

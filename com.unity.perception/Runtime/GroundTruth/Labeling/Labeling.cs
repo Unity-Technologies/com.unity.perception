@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -40,6 +41,16 @@ namespace UnityEngine.Perception.GroundTruth
             if (World.DefaultGameObjectInjectionWorld != null)
                 World.DefaultGameObjectInjectionWorld.EntityManager.DestroyEntity(m_Entity);
         }
+
+        void Reset()
+        {
+            labels.Clear();
+            labels.Add(gameObject.name);
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(gameObject);
+#endif
+        }
+
 
         /// <summary>
         /// Refresh ground truth generation for the labeling of the attached GameObject. This is necessary when the

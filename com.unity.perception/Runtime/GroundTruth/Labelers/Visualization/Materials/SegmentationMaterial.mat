@@ -86,7 +86,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _AlphaClip: 1
-    - _BackTransparency: 0
+    - _BackTransparency: 1
     - _Blend: 2
     - _BlendOp: 0
     - _BumpScale: 1
@@ -118,7 +118,7 @@ Material:
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _SampleGI: 0
-    - _SegmentTransparency: 0.8
+    - _SegmentTransparency: 1
     - _Shininess: 0
     - _Smoothness: 0.5
     - _SmoothnessSource: 0

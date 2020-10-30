@@ -15,22 +15,27 @@
     margin: 3px 6px 3px 6px;
     flex-direction: row;
     align-content: center;
-    border-color: grey;
-    border-width: 1px;
     padding: 2px;
     padding-left: 5px;
     border-radius: 4px;
+    background-color: #272727;
 }
 
 .labeling__added-label-value {
     width: auto;
     flex-grow: 1;
+    color: black
+}
+
+.labeling__added-label-value > .unity-base-field__label {
+    color:black;
 }
 
 .labeling__suggested-label-value {
     width: auto;
     flex-grow: 1;
     align-self: center;
+    color: #999999;
 }
 
 .labeling__label-listview {
@@ -42,9 +47,7 @@
     padding: 6px;
     padding-top: 6px;
     border-bottom-right-radius: 0;
-    border-width: 1px;
-    border-color: gray;
-    background-color: ButtonHighlight;
+    background-color: #191919;
 }
 
 .labeling__configs-listview {
@@ -63,7 +66,7 @@
     border-width: 0;
     border-top-right-radius: 0;
     border-top-left-radius: 0;
-    background-color: rgb(32, 32, 32);
+    background-color: #191919;
     margin-right: 2px;
     margin-top: 2px;
 }
@@ -76,8 +79,8 @@
     margin-top: 10px;
     border-radius: 10px;
     border-width: 1px;
-    border-color: gray;
     padding: 10px;
+    background-color: #272727;
 }
 
 .labeling__add-to-list-button {
@@ -86,6 +89,8 @@
 
 .labeling__add-to-config-button {
     padding: 6px;
+    flex-shrink: 1;
+    -unity-text-align: middle-left;
 }
 
 .title-label {

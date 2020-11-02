@@ -203,7 +203,6 @@ namespace UnityEditor.Perception.GroundTruth
     {
         private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
         private string m_UxmlPath;
-        private VisualElement m_Root;
         private Button m_RemoveButton;
         private Button m_AddToConfigButton;
         public TextField m_LabelTextField;
@@ -237,7 +236,6 @@ namespace UnityEditor.Perception.GroundTruth
     {
         private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
         private string m_UxmlPath;
-        private VisualElement m_Root;
         private Button m_AddButton;
         public Label m_Label;
 

@@ -1,7 +1,9 @@
+
 .labeling__remove-item-button {
     width: 16px;
     height: 16px;
     background-image: resource('Packages/com.unity.perception/Editor/Icons/X.png');
+    background-color: #505050;
     align-self: center;
 }
 
@@ -18,24 +20,26 @@
     padding: 2px;
     padding-left: 5px;
     border-radius: 4px;
-    background-color: #272727;
+    background-color: #313131;
 }
 
 .labeling__added-label-value {
     width: auto;
     flex-grow: 1;
-    color: black
+    color: black;
 }
 
-.labeling__added-label-value > .unity-base-field__label {
-    color:black;
+.labeling__added-label-value > .unity-text-field__input {
+    color: rgb(195, 195, 195);
+    background-color: #313131;
+    border-width: 0px;
 }
 
 .labeling__suggested-label-value {
     width: auto;
     flex-grow: 1;
     align-self: center;
-    color: #999999;
+    color: rgb(180, 180, 180);
 }
 
 .labeling__label-listview {
@@ -47,7 +51,7 @@
     padding: 6px;
     padding-top: 6px;
     border-bottom-right-radius: 0;
-    background-color: #191919;
+    background-color: #272727;
 }
 
 .labeling__configs-listview {
@@ -66,9 +70,10 @@
     border-width: 0;
     border-top-right-radius: 0;
     border-top-left-radius: 0;
-    background-color: #191919;
+    background-color: rgb(25, 25, 25);
     margin-right: 2px;
     margin-top: 2px;
+    color: #CACACA;
 }
 
 .outer-container {
@@ -80,19 +85,30 @@
     border-radius: 10px;
     border-width: 1px;
     padding: 10px;
-    background-color: #272727;
+    background-color: rgb(75, 75, 75);
 }
 
 .labeling__add-to-list-button {
     align-self: flex-end;
+    background-color: #505050;
+    border-width: 0px;
+    color: #EEEEEE;
 }
 
 .labeling__add-to-config-button {
     padding: 6px;
     flex-shrink: 1;
     -unity-text-align: middle-left;
+    background-color: #505050;
+    border-width: 0px;
+    color: #EEEEEE;
 }
 
 .title-label {
     -unity-font-style: bold;
+    color: #CACACA;
+}
+
+.subtitle-label {
+    color: #CACACA;
 }

@@ -31,7 +31,7 @@ namespace UnityEngine.Perception.GroundTruth
         [FormerlySerializedAs("LabelEntries")]
         [FormerlySerializedAs("LabelingConfigurations")]
         [SerializeField]
-        List<T> m_LabelEntries = new List<T>();
+        protected List<T> m_LabelEntries = new List<T>();
 
         /// <summary>
         /// A sequence of <see cref="ILabelEntry"/> which defines the labels relevant for this configuration and their values.
@@ -57,6 +57,11 @@ namespace UnityEngine.Perception.GroundTruth
             return m_LabelEntries.Any(entry => string.Equals(entry.label, label));
         }
 
+
+        public virtual void RemoveLabel(string label)
+        {
+            m_LabelEntries.RemoveAll(entry => String.Equals(entry.label, label));
+        }
 
         /// <summary>
         /// Initialize the list of LabelEntries on this LabelingConfiguration. Should only be called immediately after instantiation.

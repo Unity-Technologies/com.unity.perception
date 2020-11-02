@@ -1,8 +1,7 @@
 <UXML xmlns="UnityEngine.UIElements">
     <VisualElement class="added-label">
         <Style src="../Uss/Styles.uss"/>
-        <Button name="remove-button" class="labeling__remove-item-button"/>
-        <TextField name="label-value" class="labeling__added-label-value"/>
-        <Button name="add-to-config-button" class="labeling__add-to-config-button" text="Add to Label Config..."/>
+        <Label name="config-name" class="labeling__config-name-label"/>
+        <Button name="add-to-config-button" class="labeling__addremove-config-button"/>
     </VisualElement>
 </UXML>

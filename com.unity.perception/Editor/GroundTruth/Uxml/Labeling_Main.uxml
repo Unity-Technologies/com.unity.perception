@@ -9,15 +9,15 @@
         <VisualElement name="suggested-labels" class="inner-container">
             <Label text="Suggested Labels" class="title-label"/>
             <VisualElement name="suggested-labels-from-name" style="padding-top: 10px;">
-                <Label text="Based on asset name"/>
+                <Label text="Based on asset name" class="subtitle-label"/>
                 <ListView name="suggested-labels-name-listview" class="labeling__label-listview" style="min-height: 100px;"/>
             </VisualElement><VisualElement/>
             <VisualElement name="suggested-labels-from-path" style="padding-top: 10px;">
-                <Label text="Based on asset path"/>
+                <Label text="Based on asset path" class="subtitle-label"/>
                 <ListView name="suggested-labels-path-listview" class="labeling__label-listview" style="min-height: 97px;"/>
             </VisualElement><VisualElement/>
             <VisualElement name="suggested-labels-from-db">
-                <Label text="From Perception asset database" style="padding-top: 10px;"/>
+                <Label text="From Perception asset database" class="subtitle-label" style="padding-top: 10px;"/>
                 <ListView name="suggested-labels-db-listview" class="labeling__label-listview" style="min-height: 97px;"/>
             </VisualElement><VisualElement/>
         </VisualElement>

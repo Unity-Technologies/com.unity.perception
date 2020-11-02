@@ -33,6 +33,29 @@ namespace UnityEngine.Perception.GroundTruth {
             return TryGetLabelEntryFromInstanceId(instanceId, out labelEntry, out var _);
         }
 
+        public override void RemoveLabel(string label)
+        {
+            base.RemoveLabel(label);
+            if (autoAssignIds)
+            {
+
+            }
+        }
+
+        void AutoAssignIds()
+        {
+            var size = base.labelEntries.Count;
+            if (size == 0)
+                return;
+
+            var nextId = startingLabelId == StartingLabelId.One ? 1 : 0;
+            for (int i = 0; i < size; i++)
+            {
+                //m_LabelEntries[i].id = nextId;
+                nextId++;
+            }
+        }
+
         /// <summary>
         /// Attempts to find the label id for the given instance id.
         /// </summary>
@@ -61,11 +84,6 @@ namespace UnityEngine.Perception.GroundTruth {
         {
             m_LabelEntryMatchCache?.Dispose();
             m_LabelEntryMatchCache = null;
-        }
-
-        public void ClearLabelEntryMatchCache()
-        {
-            m_LabelEntryMatchCache?.ClearCache();
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]

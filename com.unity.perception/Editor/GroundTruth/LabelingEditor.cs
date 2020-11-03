@@ -1,5 +1,8 @@
+#define ENABLED
+#if ENABLED
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using Unity.Entities;
 using UnityEditor.UIElements;
@@ -12,7 +15,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.Perception.GroundTruth
 {
-    [CustomEditor(typeof(Labeling))]
+    [CustomEditor(typeof(Labeling)), CanEditMultipleObjects]
     class LabelingEditor : Editor
     {
         class MyBinding : IBinding
@@ -58,19 +61,23 @@ namespace UnityEditor.Perception.GroundTruth
         public List<string> suggestedLabelsBasedOnName = new List<string>();
         public List<string> suggestedLabelsBasedOnPath = new List<string>();
 
+        private Dictionary<int, int> m_CommonsIndexToLabelsIndex = new Dictionary<int, int>();
+        private List<string> m_CommonLabels = new List<string>(); //labels that are common between all selected Labeling objects (for multi editing)
         private void OnEnable()
         {
-            m_SerializedLabelsArray = serializedObject.FindProperty("labels");
+            var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
+            m_SerializedLabelsArray = mySerializedObject.FindProperty("labels");
 
-            m_Labeling = (Labeling) target;
+            m_Labeling = mySerializedObject.targetObject as Labeling;
 
             m_UxmlPath = m_UxmlDir + "Labeling_Main.uxml";
 
             m_Root = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree();
 
-            m_OuterElement = m_Root.Q<BindableElement>("outer-container");
-            m_OuterElement.binding = new MyBinding(this);
-            m_OuterElement.bindingPath = "labels";
+            //m_OuterElement = m_Root.Q<BindableElement>("outer-container");
+            //m_OuterElement.binding = new MyBinding(this);
+            //m_OuterElement.bindingPath = "labels";
+
 
             m_CurrentLabelsListView = m_Root.Q<ListView>("current-labels-listview");
             m_SuggestLabelsListView_FromName = m_Root.Q<ListView>("suggested-labels-name-listview");
@@ -79,42 +86,98 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_AddButton = m_Root.Q<Button>("add-label");
 
+            if (serializedObject.targetObjects.Length > 1)
+            {
+                var addedTitle = m_Root.Q<Label>("added-labels-title");
+                addedTitle.text = "Common Labels of Selected Items";
+
+                var suggestedOnNamePanel = m_Root.Q<VisualElement>("suggested-labels-from-name");
+                suggestedOnNamePanel.RemoveFromHierarchy();
+            }
+
             m_AddButton.clicked += () =>
             {
-                m_SerializedLabelsArray.InsertArrayElementAtIndex(m_SerializedLabelsArray.arraySize);
-                m_SerializedLabelsArray.GetArrayElementAtIndex(m_SerializedLabelsArray.arraySize - 1).stringValue =
-                    "<New Label>";
-                serializedObject.ApplyModifiedProperties();
-                m_CurrentLabelsListView.Refresh();
+                var labelsUnion = CreateUnionOfAllLabels();
+                string newLabel = FindNewLabelValue(labelsUnion);
+                foreach (var targetObject in targets)
+                {
+                    if (targetObject is Labeling labeling)
+                    {
+                        var serializedLabelingObject2 = new SerializedObject(labeling);
+                        var serializedLabelArray2 = serializedLabelingObject2.FindProperty("labels");
+                        serializedLabelArray2.InsertArrayElementAtIndex(serializedLabelArray2.arraySize);
+                        serializedLabelArray2.GetArrayElementAtIndex(serializedLabelArray2.arraySize-1).stringValue = newLabel;
+                        serializedLabelingObject2.ApplyModifiedProperties();
+                        serializedLabelingObject2.SetIsDifferentCacheDirty();
+                        serializedObject.SetIsDifferentCacheDirty();
+                    }
+                }
+                RefreshData();
+                RefreshUi();
             };
+        }
 
-            SetupListViews();
-            UpdateSuggestedLabelLists();
+        HashSet<string> CreateUnionOfAllLabels()
+        {
+            HashSet<String> result = new HashSet<string>();
+            foreach (var obj in targets)
+            {
+                if (obj is Labeling labeling)
+                {
+                    result.UnionWith(labeling.labels);
+                }
+            }
+
+            return result;
+        }
+        string FindNewLabelValue(HashSet<string> labels)
+        {
+            string baseLabel = "New Label";
+            string label = baseLabel;
+            int count = 1;
+            while (labels.Contains(label))
+            {
+                label = baseLabel + "_" + count++;
+            }
+            return label;
         }
 
         public override VisualElement CreateInspectorGUI()
         {
             serializedObject.Update();
+            var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
+            m_Labeling = serializedObject.targetObject as Labeling;
+            m_SerializedLabelsArray = mySerializedObject.FindProperty("labels");
+            RefreshCommonLabels();
+            UpdateSuggestedLabelLists();
+            SetupListViews();
             return m_Root;
         }
 
         public void RemoveAddedLabelsFromSuggestedLists()
         {
-            suggestedLabelsBasedOnName.RemoveAll(s => m_Labeling.labels.Contains(s));
-            suggestedLabelsBasedOnPath.RemoveAll(s => m_Labeling.labels.Contains(s));
+            suggestedLabelsBasedOnName.RemoveAll(s => m_CommonLabels.Contains(s));
+            suggestedLabelsBasedOnPath.RemoveAll(s => m_CommonLabels.Contains(s));
         }
 
         public void UpdateSuggestedLabelLists()
         {
-            //based on name
             suggestedLabelsBasedOnName.Clear();
-            string assetName = m_Labeling.gameObject.name;
-            suggestedLabelsBasedOnName.Add(assetName);
-            suggestedLabelsBasedOnName.AddRange(assetName.Split(nameSeparators, StringSplitOptions.RemoveEmptyEntries).ToList());
-            RemoveAddedLabelsFromSuggestedLists();
+            suggestedLabelsBasedOnPath.Clear();
+
+            //based on name
+            if (serializedObject.targetObjects.Length == 1)
+            {
+                string assetName = serializedObject.targetObject.name;
+                suggestedLabelsBasedOnName.Add(assetName);
+                suggestedLabelsBasedOnName.AddRange(assetName.Split(nameSeparators, StringSplitOptions.RemoveEmptyEntries).ToList());
+            }
+
+
+
 
             //based on path
-            suggestedLabelsBasedOnPath.Clear();
+
             var prefabObject = PrefabUtility.GetCorrespondingObjectFromSource(m_Labeling.gameObject);
             if (prefabObject)
             {
@@ -122,10 +185,36 @@ namespace UnityEditor.Perception.GroundTruth
                 var stringList = assetPath.Split(pathSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
                 stringList.Reverse();
                 suggestedLabelsBasedOnPath.AddRange(stringList);
-                RemoveAddedLabelsFromSuggestedLists();
             }
+
+            foreach (var targetObject in targets)
+            {
+                if (targetObject == target)
+                    continue; //we have already taken care of this one above
+
+                prefabObject = PrefabUtility.GetCorrespondingObjectFromSource(((Labeling)targetObject).gameObject);
+                if (prefabObject)
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(prefabObject);
+                    var stringList = assetPath.Split(pathSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    suggestedLabelsBasedOnPath = suggestedLabelsBasedOnPath.Intersect(stringList).ToList();
+                }
+            }
+
+
+            RemoveAddedLabelsFromSuggestedLists();
         }
 
+        public void RefreshData()
+        {
+            serializedObject.SetIsDifferentCacheDirty();
+            serializedObject.Update();
+            var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
+            m_SerializedLabelsArray = mySerializedObject.FindProperty("labels");
+            //m_Labeling = serializedObject.targetObject as Labeling;
+            RefreshCommonLabels();
+            SetupCurrentLabelsListView();
+        }
         public void RefreshUi()
         {
             m_CurrentLabelsListView.Refresh();
@@ -142,17 +231,57 @@ namespace UnityEditor.Perception.GroundTruth
             SetupSuggestedLabelsListViews();
         }
 
+        void RefreshCommonLabels()
+        {
+            m_CommonLabels.Clear();
+            m_CommonLabels.AddRange(((Labeling)serializedObject.targetObjects[0]).labels);
+
+            foreach (var obj in serializedObject.targetObjects)
+            {
+                m_CommonLabels = m_CommonLabels.Intersect(((Labeling) obj).labels).ToList();
+            }
+            Debug.Log("-----------------------------");
+            Debug.Log("common labels count: " + m_CommonLabels.Count);
+            m_CommonsIndexToLabelsIndex.Clear();
+            for (int i = 0; i < m_Labeling.labels.Count; i++)
+            {
+                string label = m_Labeling.labels[i];
+
+                for (int j = 0; j < m_CommonLabels.Count; j++)
+                {
+                    string label2 = m_CommonLabels[j];
+
+                    if (String.Equals(label, label2) && !m_CommonsIndexToLabelsIndex.ContainsKey(j))
+                    {
+                        m_CommonsIndexToLabelsIndex.Add(j, i);
+                    }
+                }
+            }
+            Debug.Log("dict labels count: " + m_CommonsIndexToLabelsIndex.Count);
+
+            // if (m_CommonLabels.Count > 0 && serializedObject.targetObjects.Length > 1)
+            // {
+            //     foreach (var VARIABLE in m_CommonLabels)
+            //     {
+            //         Debug.Log(VARIABLE);
+            //     }
+            // }
+        }
+
         void SetupCurrentLabelsListView()
         {
+            m_CurrentLabelsListView.itemsSource = m_CommonLabels;
+            var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
+
             VisualElement MakeItem() =>
-                new AddedLabelEditor(this, m_CurrentLabelsListView, serializedObject, m_SerializedLabelsArray);
+                new AddedLabelEditor(this, m_CurrentLabelsListView, mySerializedObject, m_SerializedLabelsArray);
 
             void BindItem(VisualElement e, int i)
             {
                 if (e is AddedLabelEditor addedLabel)
                 {
                     addedLabel.m_IndexInList = i;
-                    addedLabel.m_LabelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i));
+                    addedLabel.m_LabelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(m_CommonsIndexToLabelsIndex[i]));
                 }
             }
 
@@ -161,7 +290,9 @@ namespace UnityEditor.Perception.GroundTruth
             m_CurrentLabelsListView.bindItem = BindItem;
             m_CurrentLabelsListView.makeItem = MakeItem;
             m_CurrentLabelsListView.itemHeight = itemHeight;
-            m_CurrentLabelsListView.itemsSource = m_Labeling.labels;
+
+            m_CurrentLabelsListView.itemsSource = m_CommonLabels;
+
 
             //m_CurrentLabelsListView.reorderable = true;
             //m_CurrentLabelsListView.selectionType = SelectionType.Multiple;
@@ -176,9 +307,10 @@ namespace UnityEditor.Perception.GroundTruth
 
         void SetupSuggestedLabelsBasedOnFlatList(ListView labelsListView, List<string> stringList)
         {
+            var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
+
             VisualElement MakeItem() => new SuggestedLabelElement(this, labelsListView,
-                m_CurrentLabelsListView,
-                m_SerializedLabelsArray, serializedObject);
+                m_CurrentLabelsListView, m_SerializedLabelsArray, mySerializedObject);
 
             void BindItem(VisualElement e, int i)
             {
@@ -205,6 +337,7 @@ namespace UnityEditor.Perception.GroundTruth
         private string m_UxmlPath;
         private Button m_RemoveButton;
         private Button m_AddToConfigButton;
+
         public TextField m_LabelTextField;
         public int m_IndexInList;
 
@@ -216,6 +349,58 @@ namespace UnityEditor.Perception.GroundTruth
             m_RemoveButton = this.Q<Button>("remove-button");
             m_AddToConfigButton = this.Q<Button>("add-to-config-button");
 
+
+            m_LabelTextField.isDelayed = true;
+
+
+            //The listview of added labels in the editor is only bound to the top target object, se we need to apply label modifications to other selected objects too
+            m_LabelTextField.RegisterValueChangedCallback<string>((cEvent) =>
+            {
+                List<string> m_CommonLabels = new List<string>();
+
+                m_CommonLabels.Clear();
+                var firstTarget = editor.targets[0] as Labeling;
+                m_CommonLabels.AddRange(firstTarget.labels);
+
+                foreach (var obj in editor.targets)
+                {
+                    m_CommonLabels = m_CommonLabels.Intersect(((Labeling) obj).labels).ToList();
+                }
+
+
+                foreach (var targetObject in editor.targets)
+                {
+                    if (targetObject != editor.targets[0] && targetObject is Labeling labeling)
+                    {
+                        Dictionary<int, int>  commonsIndexToLabelsIndex = new Dictionary<int, int>();
+
+                        for (int i = 0; i < labeling.labels.Count; i++)
+                        {
+                            string label = labeling.labels[i];
+
+                            for (int j = 0; j < m_CommonLabels.Count; j++)
+                            {
+                                string label2 = m_CommonLabels[j];
+
+                                if (String.Equals(label, label2) && !commonsIndexToLabelsIndex.ContainsKey(j))
+                                {
+                                    commonsIndexToLabelsIndex.Add(j, i);
+                                }
+                            }
+                        }
+
+
+                        var serializedLabelingObject2 = new SerializedObject(labeling);
+                        var serializedLabelArray2 = serializedLabelingObject2.FindProperty("labels");
+                        serializedLabelArray2.GetArrayElementAtIndex(commonsIndexToLabelsIndex[m_IndexInList]).stringValue = cEvent.newValue;
+                        serializedLabelingObject2.ApplyModifiedProperties();
+                        serializedLabelingObject2.SetIsDifferentCacheDirty();
+
+                    }
+                }
+
+            });
+
             m_AddToConfigButton.clicked += () =>
             {
                 AddToConfigWindow.ShowWindow(m_LabelTextField.value);
@@ -223,12 +408,60 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_RemoveButton.clicked += () =>
             {
-                labelsArrayProperty.DeleteArrayElementAtIndex(m_IndexInList);
-                serializedLabelingObject.ApplyModifiedProperties();
-                editor.UpdateSuggestedLabelLists();
+                // labelsArrayProperty.DeleteArrayElementAtIndex(m_IndexInList);
+                // serializedLabelingObject.ApplyModifiedProperties();
+                // editor.UpdateSuggestedLabelLists();
+                // editor.RefreshUi();
+                // listView.Refresh();
+                List<string> m_CommonLabels = new List<string>();
+
+                m_CommonLabels.Clear();
+                var firstTarget = editor.targets[0] as Labeling;
+                m_CommonLabels.AddRange(firstTarget.labels);
+
+                foreach (var obj in editor.targets)
+                {
+                    m_CommonLabels = m_CommonLabels.Intersect(((Labeling) obj).labels).ToList();
+                }
+
+                foreach (var targetObject in editor.targets)
+                {
+                    if (targetObject is Labeling labeling)
+                    {
+                        RemoveLabelFromLabelingSerObj(labeling, m_CommonLabels);
+                    }
+                }
+                editor.serializedObject.SetIsDifferentCacheDirty();
+                editor.RemoveAddedLabelsFromSuggestedLists();
+                editor.RefreshData();
                 editor.RefreshUi();
-                listView.Refresh();
             };
+        }
+
+        void RemoveLabelFromLabelingSerObj(Labeling labeling, List<string> commonLabels)
+        {
+            Dictionary<int, int>  commonsIndexToLabelsIndex = new Dictionary<int, int>();
+
+            for (int i = 0; i < labeling.labels.Count; i++)
+            {
+                string label = labeling.labels[i];
+
+                for (int j = 0; j < commonLabels.Count; j++)
+                {
+                    string label2 = commonLabels[j];
+
+                    if (String.Equals(label, label2) && !commonsIndexToLabelsIndex.ContainsKey(j))
+                    {
+                        commonsIndexToLabelsIndex.Add(j, i);
+                    }
+                }
+            }
+
+            var serializedLabelingObject2 = new SerializedObject(labeling);
+            var serializedLabelArray2 = serializedLabelingObject2.FindProperty("labels");
+            serializedLabelArray2.DeleteArrayElementAtIndex(commonsIndexToLabelsIndex[m_IndexInList]);
+            serializedLabelingObject2.ApplyModifiedProperties();
+            serializedLabelingObject2.SetIsDifferentCacheDirty();
         }
     }
 
@@ -248,14 +481,26 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_AddButton.clicked += () =>
             {
-                serializedLabelArray.InsertArrayElementAtIndex(serializedLabelArray.arraySize);
-                serializedLabelArray.GetArrayElementAtIndex(serializedLabelArray.arraySize-1).stringValue = m_Label.text;
-                serializedLabelingObject.ApplyModifiedProperties();
+                foreach (var targetObject in editor.serializedObject.targetObjects)
+                {
+                    if (targetObject is Labeling labeling)
+                    {
+                        //if (labeling.labels.Contains(m_Label.text))
+                        //    continue; //Do not allow duplicate labels in one asset. Duplicate labels have no use and cause other operations (especially mutlt asset editing) to get messed up
+                        var serializedLabelingObject2 = new SerializedObject(targetObject);
+                        var serializedLabelArray2 = serializedLabelingObject2.FindProperty("labels");
+                        serializedLabelArray2.InsertArrayElementAtIndex(serializedLabelArray2.arraySize);
+                        serializedLabelArray2.GetArrayElementAtIndex(serializedLabelArray2.arraySize-1).stringValue = m_Label.text;
+                        serializedLabelingObject2.ApplyModifiedProperties();
+                        serializedLabelingObject2.SetIsDifferentCacheDirty();
+                        editor.serializedObject.SetIsDifferentCacheDirty();
+                    }
+                }
                 editor.RemoveAddedLabelsFromSuggestedLists();
+                editor.RefreshData();
                 editor.RefreshUi();
             };
         }
     }
-
-
 }
+#endif

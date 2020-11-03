@@ -86,6 +86,7 @@
     border-width: 1px;
     padding: 10px;
     background-color: rgb(75, 75, 75);
+    align-content: flex-start;
 }
 
 .labeling__add-to-list-button {

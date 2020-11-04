@@ -11,7 +11,7 @@ Steps included this phase of the tutorial:
 
 ### <a name="step-1">Step 1: Setup Unity Account, Unity Simulation, and Cloud Project</a> 
 
-In order to use Unity Simulation you need to first create a Unity account or login with your existing one. Once logged in, you will also need to sign-up for Unity Simulation. 
+In order to use Unity Simulation, you need to first create a Unity account or login with your existing one. Once logged in, you will also need to sign-up for Unity Simulation. 
 
 * **Action** Click on the _**Cloud**_ button at the top-right corner of Unity Editor to open the _**Services**_ tab. 
 
@@ -114,7 +114,7 @@ MacOS:
 Windows:
 `cd C:\Users\UserName\Downloads\unity_simulation_bundle`
 
-You will now be using the _**usim**_ executable to interact with Unity Simluation through commands. 
+You will now be using the _**usim**_ executable to interact with Unity Simulation through commands. 
 
 * **Action** To see a list of available commands, simply run `usim` once:
 
@@ -147,7 +147,7 @@ Once you have logged you will see this page:
 </p>
 
 **Note**: On MacOS, you might get errors related to permissions. In these cases, try running your commands with the `sudo` qualifier. For example:
-`sudo USimCLI/mac/usim login auth`. This will ask for your MacOS account's password, and should help overcome the persmission issues.
+`sudo USimCLI/mac/usim login auth`. This will ask for your MacOS account's password and should help overcome the permission issues.
 
 **Note : From this point on we will only include MacOS formatted commands in the tutorial, but all the `usim` commands we use will work in all supported operating systems.**
 
@@ -167,7 +167,7 @@ Example output:
  SynthDet              9ec23417-73cd-becd-9dd6-556183946153     2020-08-12T19:46:20+00:00  
  ```
 
-In case you have more than one cloud project, you will need to "activate" the one corresponding with your perception tutorial project. If there is only one project, it is already activated and you will not need to execute the command below (note: replace `<project-id>` with the id of your desired project).
+In case you have more than one cloud project, you will need to "activate" the one corresponding with your perception tutorial project. If there is only one project, it is already activated, and you will not need to execute the command below (note: replace `<project-id>` with the id of your desired project).
 
 * **Action**: Activate the relevant project:
 
@@ -211,7 +211,7 @@ You can also obtain a list of all the builds you have uploaded to Unity Simulati
 
 You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `yegz4WN`.
 
-Unity Simulation utilizes the ability to run simulation instances in parallel. If you enter a number larger than 1 for the number of instances in the _**Run in Unity Simulation**_ window, your run will be parallelized and multiple simulation instances will simultaneously execute. You can view the status of all simulation instances using the `usim summarize run-execution <execution-id>` command. This command will tell you how many instances have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
+Unity Simulation utilizes the ability to run simulation instances in parallel. If you enter a number larger than 1 for the number of instances in the _**Run in Unity Simulation**_ window, your run will be parallelized, and multiple simulation instances will simultaneously execute. You can view the status of all simulation instances using the `usim summarize run-execution <execution-id>` command. This command will tell you how many instances have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
 
 * **Action**: Use the `usim summarize run-execution <execution-id>` command to observe the status of your execution nodes:
 
@@ -220,7 +220,7 @@ MacOS:
 <!--Windows:
 `USimCLI\windows\usim summarize run-execution <execution-id>`-->
 
-Here is an example output of this command, indiciating that there is only one node, and that the node is still in progress:
+Here is an example output of this command, indicating that there is only one node, and that the node is still in progress:
 
 ```
  state         count 
@@ -270,7 +270,7 @@ The next few lines of code pertain to setting up your notebook for downloading d
 
 * **Action**: In the block of code titled "Unity Simulation [Optional]", uncomment the lines that assign values to variables, and insert the correct values, based on information from your Unity Simulation run. 
 
-We have previoulsy learned how to obtain the `run_execution_id` and `project_id`. You can remove the value already present for `annotation_definition_id` and leave it blank. What's left is the `access_token`.
+We have previously learned how to obtain the `run_execution_id` and `project_id`. You can remove the value already present for `annotation_definition_id` and leave it blank. What's left is the `access_token`.
 
 * **Action**: Return to your command-line interface and run the `usim inspect auth` command.
 
@@ -279,7 +279,7 @@ MacOS:
 
 If you receive errors regarding authentication, your token might have timed out. Repeat the login step (`usim login auth`) to login again and fix this issue.
 
-A sample output from `usim inspect auth` will like like below:
+A sample output from `usim inspect auth` will look like below:
 
 ```
 Protect your credentials. They may be used to impersonate your requests.
@@ -290,9 +290,9 @@ refresh token: FW4c3YRD4IXi6qQHv3Y9W-rwg59K7k0Te9myKe7Zo6M003f.k4Dqo0tuoBdf-ncm0
 updated: 2020-10-02 14:50:11.412979
 ```
 
-The `access_token` you need for your Dataset Insights notebook is the access token shown by the above command, minus the `'Bearer '` part. So in this case, we should input `0CfQbhJ6gjYIHjC6BaP5gkYn1x5xtAp7ZA9I003fTNT1sFp` in the notebook. 
+The `access_token` you need for your Dataset Insights notebook is the access token shown by the above command, minus the `'Bearer '` part. So, in this case, we should input `0CfQbhJ6gjYIHjC6BaP5gkYn1x5xtAp7ZA9I003fTNT1sFp` in the notebook. 
 
-* **Action**: Copy the access token excluding the `'Bearer '` part to the corresponding field in the Dataset Inisghts notebook.
+* **Action**: Copy the access token excluding the `'Bearer '` part to the corresponding field in the Dataset Insights notebook.
 
 Once you have entered all the information, the block of code should look like the screenshot below (the actual values you input will be different):
 
@@ -301,7 +301,7 @@ Once you have entered all the information, the block of code should look like th
 </p>
 
 
-* **Action**: Continue to the next code block and run it to download all the meta-data files from the generated dataset. This includes JSON files and logs, but does not include images (which will be downloaded later). 
+* **Action**: Continue to the next code block and run it to download all the meta-data files from the generated dataset. This includes JSON files and logs but does not include images (which will be downloaded later). 
 
 You will see a progress bar while the data downloads:
 
@@ -310,7 +310,7 @@ You will see a progress bar while the data downloads:
 </p>
 
 
-The next couple of code blocks (under "Load dataset metadata") analyze the downloaded meta-data and display a table containing annotation-id's for the various metrics defined in the dataset.
+The next couple of code blocks (under "Load dataset metadata") analyze the downloaded meta-data and display a table containing annotation-ids for the various metrics defined in the dataset.
 
 * **Action**: Once you reach the code block titled "Built-in Statistics", make sure the value assigned to the field `rendered_object_info_definition_id` matches the id displayed for this metric in the table output by the code block immediately before it. The screenshot below demonstrates this (note that your ids might differ from the ones here):
 
@@ -322,4 +322,4 @@ Follow the rest of the steps inside the notebook to generate a variety of plots 
 
 This concludes the Perception tutorial. The next step in this workflow would be to train an object-detection model using a dataset generated on Unity Simulation. It is important to note that the 1000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the run would complete in a fairly short period of time, allowing us to move on to learning how to analyze the dataset's statistics. In order to generate data for training, we recommend a dataset of about 400,000 captures. 
 
-In the near future, we will expand this tutorial to Phase 4, which will inclde instructions on how to train a Faster R-CNN object-detection model using a dataset that can be generated by following this tutorial.
+In the near future, we will expand this tutorial to Phase 4, which will include instructions on how to train a Faster R-CNN object-detection model using a dataset that can be generated by following this tutorial.

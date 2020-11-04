@@ -301,7 +301,7 @@ Once you have entered all the information, the block of code should look like th
 </p>
 
 
-* **Action**: Continue to the next code block and run it to download all the meta-data files from the generated dataset. This includes JSON files and logs but does not include images (which will be downloaded later). 
+* **Action**: Continue to the next code block and run it to download all the metadata files from the generated dataset. This includes JSON files and logs but does not include images (which will be downloaded later). 
 
 You will see a progress bar while the data downloads:
 
@@ -310,7 +310,7 @@ You will see a progress bar while the data downloads:
 </p>
 
 
-The next couple of code blocks (under "Load dataset metadata") analyze the downloaded meta-data and display a table containing annotation-ids for the various metrics defined in the dataset.
+The next couple of code blocks (under "Load dataset metadata") analyze the downloaded metadata and display a table containing annotation-definition-ids for the various metrics defined in the dataset.
 
 * **Action**: Once you reach the code block titled "Built-in Statistics", make sure the value assigned to the field `rendered_object_info_definition_id` matches the id displayed for this metric in the table output by the code block immediately before it. The screenshot below demonstrates this (note that your ids might differ from the ones here):
 

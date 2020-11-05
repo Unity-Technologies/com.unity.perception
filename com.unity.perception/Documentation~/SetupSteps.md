@@ -5,7 +5,7 @@
 This page provides brief instructions on installing the Perception package. Head over to the [Perception Tutorial](Tutorial/TUTORIAL.md) for more detailed instructions and steps for building a sample project.
 
 
-1. Install the latest version of 2020.1.x Unity Editor from [here](https://unity3d.com/get-unity/download/archive). (Perception has not been tested on Unity versions newer than 2020.1)
+1. Install the latest version of 2019.4.x or 2020.1.x Unity Editor from [here](https://unity3d.com/get-unity/download/archive). (Perception has not been tested on Unity versions newer than 2020.1)
 1. Create a new HDRP or URP project, or open an existing project.
 1. Open `Window` ->  `Package Manager`
 	1. In the Package Manager window find and click the ***+*** button in the upper lefthand corner of the window

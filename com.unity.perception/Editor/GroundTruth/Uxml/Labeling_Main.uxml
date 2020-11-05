@@ -6,20 +6,27 @@
             <ListView name="current-labels-listview" class="labeling__label-listview"/>
             <Button name="add-label" text="Add New Label" class="labeling__add-label-button"/>
         </VisualElement>
-        <VisualElement name="suggested-labels" class="inner-container">
-            <Label text="Suggested Labels" class="title-label"/>
-            <VisualElement name="suggested-labels-from-name" style="padding-top: 10px;">
-                <Label text="Based on asset name" class="subtitle-label"/>
-                <ListView name="suggested-labels-name-listview" class="labeling__label-listview" style="min-height: 100px;"/>
-            </VisualElement><VisualElement/>
-            <VisualElement name="suggested-labels-from-path" style="padding-top: 10px;">
-                <Label text="Based on asset path" class="subtitle-label"/>
-                <ListView name="suggested-labels-path-listview" class="labeling__label-listview" style="min-height: 97px;"/>
-            </VisualElement><VisualElement/>
-            <VisualElement name="suggested-labels-from-db">
-                <Label text="From Perception asset database" class="subtitle-label" style="padding-top: 10px;"/>
-                <ListView name="suggested-labels-db-listview" class="labeling__label-listview" style="min-height: 97px;"/>
-            </VisualElement><VisualElement/>
+        <VisualElement name="add-more-labels" class="inner-container">
+            <Label text="Add Labels" class="title-label"/>
+            <VisualElement name="from-label-configs" class="inner-container">
+                <Label text="From Existing Label Configs" class="title-label"/>
+                <VisualElement name="add-from-label-configs" style="padding-top: 10px;">
+                    <ScrollView name="label-configs-scrollview" class="labeling__label-configs-scrollview" style="min-height: 100px;"/>
+                    <VisualElement name="collapse" class="collapse-toggle collapsed"/>
+                    <Toggle name="enabled"/>
+                </VisualElement>
+            </VisualElement>
+            <VisualElement name="suggested-labels" class="inner-container">
+                <Label text="Other Suggested Labels" class="title-label"/>
+                <VisualElement name="suggested-labels-from-name" style="padding-top: 10px;">
+                    <Label text="Based on asset name" class="subtitle-label"/>
+                    <ListView name="suggested-labels-name-listview" class="labeling__label-listview" style="min-height: 100px;"/>
+                </VisualElement>
+                <VisualElement name="suggested-labels-from-path" style="padding-top: 10px;">
+                    <Label text="Based on asset path" class="subtitle-label"/>
+                    <ListView name="suggested-labels-path-listview" class="labeling__label-listview" style="min-height: 97px;"/>
+                </VisualElement>
+            </VisualElement>
         </VisualElement>
 
     </BindableElement>

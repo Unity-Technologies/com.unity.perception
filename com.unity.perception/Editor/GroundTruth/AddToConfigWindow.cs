@@ -176,7 +176,7 @@ namespace UnityEditor.Perception.GroundTruth
             m_Label = this.Q<Label>("config-name");
             m_RemoveButton = this.Q<Button>("remove-from-config-button");
             m_ConfigObjectField = this.Q<ObjectField>("config-object");
-            m_ConfigObjectField.value = m_LabelConfig;
+            m_ConfigObjectField.v\alue = m_LabelConfig;
             m_ConfigObjectField.objectType = typeof(ScriptableObject);
             this.MarkDirtyRepaint();
 

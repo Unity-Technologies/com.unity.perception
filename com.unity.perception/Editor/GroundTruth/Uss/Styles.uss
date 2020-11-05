@@ -113,3 +113,20 @@
 .subtitle-label {
     color: #CACACA;
 }
+
+.collapse-toggle {
+    flex-shrink: 0;
+    margin-right: 3px;
+    margin-left: 3px;
+    width: 10px;
+    height: 10px;
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/FoldoutOpen.png");
+}
+
+.collapsed .collapse-toggle {
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/FoldoutClosed.png");
+}
+
+.randomization__collapse-toggle:hover {
+    -unity-background-image-tint-color: cornflowerblue;
+}

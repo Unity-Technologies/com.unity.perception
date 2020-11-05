@@ -1,5 +1,5 @@
 <UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <VisualElement class="added-label">
+    <VisualElement>
         <Style src="../Uss/Styles.uss"/>
         <editor:ObjectField name="config-object"/>
         <Label name="config-name" class="labeling__config-name-label"/>

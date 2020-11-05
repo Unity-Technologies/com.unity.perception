@@ -134,7 +134,7 @@ Let's try this approach with our `Directional Light` object. We will create a du
 * **Action**: Change the Y rotation of `Directional Light (1)` to 60, as shown below:
 
 <p align="center">
-<img src="Images/light_rand_2.png" width="420"/>
+<img src="Images/light_2.png" width="420"/>
 </p>
 
 * **Action**: Change the Y rotation of `Directional Light` to -60.

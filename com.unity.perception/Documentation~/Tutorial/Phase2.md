@@ -139,7 +139,7 @@ Let's try this approach with our `Directional Light` object. We will create a du
 
 * **Action**: Change the Y rotation of `Directional Light` to -60.
 
-This makes the two lights illuminate the scene from opposing sides, each having a 30-degree angle with the background and foreground planes.
+This makes the two lights illuminate the scene from opposing angles, each having a 30-degree angle with the background and foreground planes. Note that the position of Directional Lights in Unity does not affect how they illuminate the scene, so you do not need to use the same position as the screenshot above.
 
 * **Action**: Open `MyLightRandomizerTag.cs` and modify it to match the code below:
 ```

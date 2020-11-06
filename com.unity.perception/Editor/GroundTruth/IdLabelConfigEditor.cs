@@ -20,6 +20,14 @@ namespace UnityEditor.Perception.GroundTruth
             m_LabelsList.onAddCallback += OnAdd;
             m_LabelsList.onRemoveCallback += OnRemove;
             m_LabelsList.onReorderCallbackWithDetails += OnReorder;
+
+            if (autoAssign)
+            {
+                AutoAssignIds();
+                serializedObject.ApplyModifiedProperties();
+                EditorUtility.SetDirty(target);
+            }
+
         }
 
         void OnReorder(ReorderableList list, int oldIndex, int newIndex)

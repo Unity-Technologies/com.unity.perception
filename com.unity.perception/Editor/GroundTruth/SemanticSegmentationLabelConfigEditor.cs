@@ -14,16 +14,6 @@ namespace UnityEditor.Perception.GroundTruth
         ReorderableList m_LabelsList;
         const float k_Margin = 5f;
 
-        static List<Color> s_StandardColors = new List<Color>()
-        {
-            Color.blue,
-            Color.green,
-            Color.red,
-            Color.white,
-            Color.yellow,
-            Color.gray
-        };
-
         public void OnEnable()
         {
             m_LabelsList = new ReorderableList(this.serializedObject, this.serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName), true, false, true, true);
@@ -34,7 +24,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         void OnAdd(ReorderableList list)
         {
-            var standardColorList = new List<Color>(s_StandardColors);
+            var standardColorList = new List<Color>(SemanticSegmentationLabelConfig.s_StandardColors);
             for (int i = 0; i < list.serializedProperty.arraySize; i++)
             {
                 var item = list.serializedProperty.GetArrayElementAtIndex(i);

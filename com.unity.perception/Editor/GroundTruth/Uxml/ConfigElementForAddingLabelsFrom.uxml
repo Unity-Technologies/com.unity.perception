@@ -1,7 +1,11 @@
 <UXML xmlns="UnityEngine.UIElements">
-    <VisualElement class="added-label">
+    <Toggle name="collapsed-state" style="display:none"/>
+    <VisualElement class="label-config-add-from">
         <Style src="../Uss/Styles.uss"/>
-        <Label name="config-name" class="labeling__config-name-label"/>
-        <ListView name="label-config-contents-listview"/>
+        <VisualElement class="label-config-header">
+            <VisualElement name="collapse-toggle" class="collapse-toggle"/>
+            <Label name="config-name" class="labeling__config-name-label"/>
+        </VisualElement>
+        <ListView name="label-config-contents-listview" class="labeling__label-listview" style="height: 300px"/>
     </VisualElement>
 </UXML>

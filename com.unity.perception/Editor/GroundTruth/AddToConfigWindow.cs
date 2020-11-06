@@ -25,16 +25,21 @@ namespace UnityEditor.Perception.GroundTruth
         private static string m_LabelValue;
         private static Label m_TitleLabel;
 
+        private List<string> m_AllLabelConfigGuids = new List<string>();
         private List<ScriptableObject> m_ConfigsContainingLabel = new List<ScriptableObject>();
         private List<ScriptableObject> m_ConfigsNotContainingLabel = new List<ScriptableObject>();
 
         private ListView m_PresentConfigsListview;
         private ListView m_NonPresentConfigsListview;
+
+        private List<Type> m_LabelConfigTypes = new List<Type>();
         public static void ShowWindow(string labelValue)
         {
             m_LabelValue = labelValue;
             var window = GetWindow<AddToConfigWindow>();
-            window.minSize = new Vector2(400, 500);
+            window.minSize = new Vector2(350, 385);
+            window.maxSize = new Vector2(350, 385);
+            window.titleContent = new GUIContent("Manage Label");
             window.Init();
             window.Show();
         }
@@ -44,28 +49,33 @@ namespace UnityEditor.Perception.GroundTruth
             m_ConfigsContainingLabel.Clear();
 
             if(m_TitleLabel != null)
-                m_TitleLabel.text = "Add " + m_LabelValue + "to Label Configurations";
+                m_TitleLabel.text = "Label: \"" + m_LabelValue + "\"";
 
-            Refresh();
+            m_LabelConfigTypes = FindAllSubTypes(typeof(LabelConfig<>));
+
+            RefreshConfigAssets();
+            CheckInclusionInConfigs(m_AllLabelConfigGuids, m_LabelConfigTypes, m_LabelValue, this);
+            SetupListViews();
         }
 
-        void Refresh()
+        void RefreshConfigAssets()
         {
-            var types = FindAllRelevant();
-
             AssetDatabase.Refresh();
 
-            List<string> labelConfigGuids = new List<string>();
-            foreach (var type in types)
+            m_AllLabelConfigGuids.Clear();
+            foreach (var type in m_LabelConfigTypes)
             {
-                labelConfigGuids.AddRange(AssetDatabase.FindAssets("t:"+type.Name));
+                m_AllLabelConfigGuids.AddRange(AssetDatabase.FindAssets("t:"+type.Name));
             }
+        }
 
-            CheckInclusionInConfigs(labelConfigGuids, types, m_LabelValue, this);
+        void SetupListViews()
+        {
+            //configs containing label
+            m_PresentConfigsListview.itemsSource = m_ConfigsContainingLabel;
+            VisualElement MakeItem1() => new ConfigElementLabelPresent(this, m_LabelValue);
 
-            Func<VisualElement> makeItem = () => new ConfigElementLabelPresent(m_LabelValue);
-
-            void BindItem(VisualElement e, int i)
+            void BindItem1(VisualElement e, int i)
             {
                 if (e is ConfigElementLabelPresent element)
                 {
@@ -75,22 +85,35 @@ namespace UnityEditor.Perception.GroundTruth
             }
 
             m_PresentConfigsListview.itemHeight = 30;
-            m_PresentConfigsListview.itemsSource = m_ConfigsContainingLabel;
+            m_PresentConfigsListview.bindItem = BindItem1;
+            m_PresentConfigsListview.makeItem = MakeItem1;
+            m_PresentConfigsListview.selectionType = SelectionType.None;
 
-            m_PresentConfigsListview.bindItem = BindItem;
-            m_PresentConfigsListview.makeItem = makeItem;
+            //Configs not containing label
+            m_NonPresentConfigsListview.itemsSource = m_ConfigsNotContainingLabel;
+            VisualElement MakeItem2() => new ConfigElementLabelNotPresent(this, m_LabelValue);
 
+            void BindItem2(VisualElement e, int i)
+            {
+                if (e is ConfigElementLabelNotPresent element)
+                {
+                    element.m_Label.text = m_ConfigsNotContainingLabel[i].name;
+                    element.m_LabelConfig = m_ConfigsNotContainingLabel[i];
+                }
+            }
 
-            // Func<VisualElement> makeItem1 = () => new Label();
-            // Action<VisualElement, int> bindItem1 = (e, i) => (e as Label).text = m_ConfigsNotContainingLabel[i];
-            //
-            // m_NonPresentConfigsListview.itemHeight = 30;
-            // m_NonPresentConfigsListview.itemsSource = m_ConfigsNotContainingLabel;
-            //
-            // m_NonPresentConfigsListview.bindItem = bindItem1;
-            // m_NonPresentConfigsListview.makeItem = makeItem1;
+            m_NonPresentConfigsListview.itemHeight = 30;
+            m_NonPresentConfigsListview.bindItem = BindItem2;
+            m_NonPresentConfigsListview.makeItem = MakeItem2;
+            m_NonPresentConfigsListview.selectionType = SelectionType.None;
         }
 
+        public void RefreshLists()
+        {
+            CheckInclusionInConfigs(m_AllLabelConfigGuids, m_LabelConfigTypes, m_LabelValue, this);
+            m_PresentConfigsListview.Refresh();
+            m_NonPresentConfigsListview.Refresh();
+        }
         void OnEnable()
         {
             m_UxmlPath = m_UxmlDir + "AddToConfigWindow.uxml";
@@ -107,10 +130,13 @@ namespace UnityEditor.Perception.GroundTruth
 
         void CheckInclusionInConfigs(List<string> configGuids, List<Type> configTypes, string label, AddToConfigWindow window)
         {
+            m_ConfigsContainingLabel.Clear();
+            m_ConfigsNotContainingLabel.Clear();
+
             foreach (var configGuid in configGuids)
             {
                 var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(configGuid));
-                var methodInfo = asset.GetType().GetMethod("DoesLabelMatchAnyEntries");
+                var methodInfo = asset.GetType().GetMethod(IdLabelConfig.DoesLabelMatchAnEntryName);
 
                 if (methodInfo == null)
                     continue;
@@ -131,31 +157,24 @@ namespace UnityEditor.Perception.GroundTruth
             }
         }
 
-        public T Cast<T>(object o)
+        public static List<Type> FindAllSubTypes(Type superType)
         {
-            return (T) o;
-        }
-
-        List<Type> FindAllRelevant()
-        {
-            Type superType = typeof(LabelConfig<>);
             Assembly assembly = Assembly.GetAssembly(superType);
             Type[] types = assembly.GetTypes();
             List<Type> subclasses = types.Where(t => IsSubclassOfRawGeneric(superType, t)).ToList();
-
             return subclasses;
 
-        }
 
-        bool IsSubclassOfRawGeneric(Type generic, Type toCheck) {
-            while (toCheck != null && toCheck != typeof(object)) {
-                var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
-                if (generic == cur) {
-                    return true;
+            bool IsSubclassOfRawGeneric(Type generic, Type toCheck) {
+                while (toCheck != null && toCheck != typeof(object)) {
+                    var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+                    if (generic == cur) {
+                        return true;
+                    }
+                    toCheck = toCheck.BaseType;
                 }
-                toCheck = toCheck.BaseType;
+                return false;
             }
-            return false;
         }
     }
 
@@ -166,37 +185,67 @@ namespace UnityEditor.Perception.GroundTruth
         private VisualElement m_Root;
         private Button m_RemoveButton;
         private ObjectField m_ConfigObjectField;
+
         public Label m_Label;
         public ScriptableObject m_LabelConfig;
 
-        public ConfigElementLabelPresent(string targetLabel)
+        public ConfigElementLabelPresent(AddToConfigWindow window, string targetLabel)
         {
             m_UxmlPath = m_UxmlDir + "ConfigElementLabelPresent.uxml";
             AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree(this);
             m_Label = this.Q<Label>("config-name");
             m_RemoveButton = this.Q<Button>("remove-from-config-button");
-            m_ConfigObjectField = this.Q<ObjectField>("config-object");
-            m_ConfigObjectField.v\alue = m_LabelConfig;
-            m_ConfigObjectField.objectType = typeof(ScriptableObject);
-            this.MarkDirtyRepaint();
+            m_RemoveButton.text = "Remove Label";
+
 
             m_RemoveButton.clicked += () =>
             {
-                //var methodInfo = m_LabelConfig.GetType().GetMethod("DoesLabelMatchAnyEntries");
-                if (m_LabelConfig is IdLabelConfig idLabelConfig)
+                var methodInfo = m_LabelConfig.GetType().GetMethod(IdLabelConfig.RemoveLabelName);
+                if (methodInfo != null)
                 {
-                    idLabelConfig.RemoveLabel(targetLabel);
+                    object[] parametersArray = new object[1];
+                    parametersArray[0] = targetLabel;
+
+                    methodInfo.Invoke(m_LabelConfig, parametersArray);
+                    EditorUtility.SetDirty(m_LabelConfig);
+                    window.RefreshLists();
                 }
             };
-
-
-
         }
     }
 
 
     class ConfigElementLabelNotPresent : VisualElement
     {
+        private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
+        private string m_UxmlPath;
+        private VisualElement m_Root;
+        private Button m_AddButton;
+        private ObjectField m_ConfigObjectField;
+        public Label m_Label;
+        public ScriptableObject m_LabelConfig;
 
+        public ConfigElementLabelNotPresent(AddToConfigWindow window, string targetLabel)
+        {
+            m_UxmlPath = m_UxmlDir + "ConfigElementLabelPresent.uxml";
+            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree(this);
+            m_Label = this.Q<Label>("config-name");
+            m_AddButton = this.Q<Button>("remove-from-config-button");
+            m_AddButton.text = "Add Label";
+
+            m_AddButton.clicked += () =>
+            {
+                var methodInfo = m_LabelConfig.GetType().GetMethod(IdLabelConfig.AddLabelName);
+                if (methodInfo != null)
+                {
+                    object[] parametersArray = new object[1];
+                    parametersArray[0] = targetLabel;
+
+                    methodInfo.Invoke(m_LabelConfig, parametersArray);
+                    EditorUtility.SetDirty(m_LabelConfig);
+                    window.RefreshLists();
+                }
+            };
+        }
     }
 }

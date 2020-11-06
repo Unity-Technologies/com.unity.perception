@@ -13,16 +13,6 @@
     align-content: center;
 }
 
-.suggested-label {
-    margin: 3px 6px 3px 6px;
-    flex-direction: row;
-    align-content: center;
-    padding: 2px;
-    padding-left: 5px;
-    border-radius: 4px;
-    background-color: #313131;
-}
-
 .labeling__added-label-value {
     width: auto;
     flex-grow: 1;
@@ -33,6 +23,17 @@
     color: rgb(195, 195, 195);
     background-color: #313131;
     border-width: 0px;
+}
+
+
+.suggested-label {
+    flex-direction: row;
+    align-content: center;
+    margin: 4px 6px 0 6px;
+    padding: 2px;
+    padding-left: 5px;
+    border-radius: 4px;
+    background-color: #313131;
 }
 
 .labeling__suggested-label-value {
@@ -61,7 +62,6 @@
     border-radius: 4px;
     margin: 6px;
     padding: 6px;
-    padding-top: 6px;
     border-bottom-right-radius: 0;
 }
 
@@ -80,6 +80,10 @@
     padding-top: 5px;
 }
 
+.outer-container-in-window{
+    padding: 7px;
+}
+
 .inner-container {
     margin-top: 10px;
     border-radius: 10px;
@@ -87,6 +91,10 @@
     padding: 10px;
     background-color: rgb(75, 75, 75);
     align-content: flex-start;
+}
+
+.inner-container .depth2{
+    background-color: rgb(60, 60, 60);
 }
 
 .labeling__add-to-list-button {
@@ -120,13 +128,50 @@
     margin-left: 3px;
     width: 10px;
     height: 10px;
+    align-self: center;
     background-image: resource("Packages/com.unity.perception/Editor/Icons/FoldoutOpen.png");
 }
 
-.collapsed .collapse-toggle {
+.collapsed-toggle-state{
     background-image: resource("Packages/com.unity.perception/Editor/Icons/FoldoutClosed.png");
 }
 
-.randomization__collapse-toggle:hover {
+.collapse-toggle:hover {
     -unity-background-image-tint-color: cornflowerblue;
+}
+
+.label-config-header{
+    background-color: #272727;
+    flex-direction: row;
+}
+
+.suggested-label.label_add_from_config{
+    margin: 3px 3px 3px 3px;
+}
+
+.label-config-add-from{
+    border-radius: 4px;
+    margin: 2px 0 2px 0;
+    background-color: #272727;
+    padding: 3px 1px 3px 1px;
+}
+
+.labeling__config-name-label {
+    color: rgb(220, 220, 220);
+    width: auto;
+    flex-grow: 1;
+    align-self: center;
+    padding: 4px;
+}
+
+.collapsed {
+    display: none;
+}
+
+.config-label-present{
+    flex-direction: row;
+    align-content: center;
+    border-radius: 4px;
+    margin: 3px;
+    background-color: #272727;
 }

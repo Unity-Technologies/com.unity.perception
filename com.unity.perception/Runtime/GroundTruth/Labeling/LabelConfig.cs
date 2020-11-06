@@ -33,6 +33,12 @@ namespace UnityEngine.Perception.GroundTruth
         [SerializeField]
         protected List<T> m_LabelEntries = new List<T>();
 
+
+
+        /// <summary>
+        /// Name of the public accessor for the list of label entries, used for reflection purposes.
+        /// </summary>
+        public const string publicLabelEntriesFieldName = nameof(labelEntries);
         /// <summary>
         /// A sequence of <see cref="ILabelEntry"/> which defines the labels relevant for this configuration and their values.
         /// </summary>
@@ -52,15 +58,39 @@ namespace UnityEngine.Perception.GroundTruth
             return TryGetMatchingConfigurationEntry(labeling, out labelEntry, out int _);
         }
 
-        public bool DoesLabelMatchAnyEntries(string label)
+        /// <summary>
+        /// Name of the function that checks whether a string label is included in the config, used for reflection purposes.
+        /// </summary>
+        public const string DoesLabelMatchAnEntryName = nameof(DoesLabelMatchAnEntry);
+        public bool DoesLabelMatchAnEntry(string label)
         {
             return m_LabelEntries.Any(entry => string.Equals(entry.label, label));
         }
 
-
+        /// <summary>
+        /// Name of label removal function with string argument, used for reflection purposes
+        /// </summary>
+        public const string RemoveLabelName = nameof(RemoveLabel);
+        /// <summary>
+        /// Remove the label entries matching the given string
+        /// </summary>
+        /// <param name="label"></param>
         public virtual void RemoveLabel(string label)
         {
             m_LabelEntries.RemoveAll(entry => String.Equals(entry.label, label));
+        }
+
+
+        /// <summary>
+        /// Name of label adding function with string argument, used for reflection purposes
+        /// </summary>
+        public const string AddLabelName = nameof(AddLabel);
+        /// <summary>
+        /// To add a label carrying the given string
+        /// </summary>
+        /// <param name="label"></param>
+        public virtual void AddLabel(string label)
+        {
         }
 
         /// <summary>

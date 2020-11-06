@@ -1,7 +1,0 @@
-<UXML xmlns="UnityEngine.UIElements">
-    <VisualElement class="added-config">
-        <Style src="../Uss/Styles.uss"/>
-        <Label name="config-name" class="labeling__config-name"/>
-        <Button name="remove-from-config-button" class="labeling__config-addremove-button"/>
-    </VisualElement>
-</UXML>

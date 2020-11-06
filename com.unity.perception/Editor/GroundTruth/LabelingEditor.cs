@@ -1,6 +1,7 @@
 #define ENABLED
 #if ENABLED
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace UnityEditor.Perception.GroundTruth
         private ListView m_CurrentLabelsListView;
         private ListView m_SuggestLabelsListView_FromName;
         private ListView m_SuggestLabelsListView_FromPath;
-        private ListView m_SuggestLabelsListView_FromDB;
+        private ScrollView m_LabelConfigsScrollView;
 
         private Button m_AddButton;
 
@@ -42,10 +43,14 @@ namespace UnityEditor.Perception.GroundTruth
         private List<string> m_CommonLabels = new List<string>(); //labels that are common between all selected Labeling objects (for multi editing)
 
         public List<string> CommonLabels => m_CommonLabels;
-        public Dictionary<int, int> CommonsIndexToLabelsIndex => m_CommonsIndexToLabelsIndex;
+
+        private List<Type> m_LabelConfigTypes = new List<Type>();
+        private List<ScriptableObject> m_AllLabelConfigsInProject = new List<ScriptableObject>();
 
         private void OnEnable()
         {
+            m_LabelConfigTypes = AddToConfigWindow.FindAllSubTypes(typeof(LabelConfig<>));
+
             var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
             m_SerializedLabelsArray = mySerializedObject.FindProperty("labels");
 
@@ -58,7 +63,7 @@ namespace UnityEditor.Perception.GroundTruth
             m_CurrentLabelsListView = m_Root.Q<ListView>("current-labels-listview");
             m_SuggestLabelsListView_FromName = m_Root.Q<ListView>("suggested-labels-name-listview");
             m_SuggestLabelsListView_FromPath = m_Root.Q<ListView>("suggested-labels-path-listview");
-            m_SuggestLabelsListView_FromDB = m_Root.Q<ListView>("suggested-labels-db-listview");
+            m_LabelConfigsScrollView = m_Root.Q<ScrollView>("label-configs-scrollview");
 
             m_AddButton = m_Root.Q<Button>("add-label");
 
@@ -89,7 +94,6 @@ namespace UnityEditor.Perception.GroundTruth
                     }
                 }
                 RefreshData();
-                //RefreshUi();
             };
         }
 
@@ -103,7 +107,6 @@ namespace UnityEditor.Perception.GroundTruth
                     result.UnionWith(labeling.labels);
                 }
             }
-
             return result;
         }
         string FindNewLabelValue(HashSet<string> labels)
@@ -126,9 +129,27 @@ namespace UnityEditor.Perception.GroundTruth
             m_SerializedLabelsArray = mySerializedObject.FindProperty("labels");
             RefreshCommonLabels();
             RefreshSuggestedLabelLists();
-            SetupListViews();
+            RefreshLabelConfigsList();
+            SetupListsAndScrollers();
             return m_Root;
         }
+
+        void RefreshLabelConfigsList()
+        {
+            List<string> labelConfigGuids = new List<string>();
+            foreach (var type in m_LabelConfigTypes)
+            {
+                labelConfigGuids.AddRange(AssetDatabase.FindAssets("t:"+type.Name));
+            }
+
+            m_AllLabelConfigsInProject.Clear();
+            foreach (var configGuid in labelConfigGuids)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(configGuid));
+                m_AllLabelConfigsInProject.Add(asset);
+            }
+        }
+
 
         public void RemoveAddedLabelsFromSuggestedLists()
         {
@@ -175,7 +196,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             RemoveAddedLabelsFromSuggestedLists();
 
-            Debug.Log("list update, source list count is:" + m_SuggestedLabelsBasedOnPath.Count);
+            //Debug.Log("list update, source list count is:" + m_SuggestedLabelsBasedOnPath.Count);
         }
 
         public void RefreshData()
@@ -190,12 +211,14 @@ namespace UnityEditor.Perception.GroundTruth
             SetupCurrentLabelsListView();
         }
 
-        void SetupListViews()
+        void SetupListsAndScrollers()
         {
             //Labels that have already been added to the target Labeling component
             SetupCurrentLabelsListView();
             //Labels suggested by the system, which the user can add
             SetupSuggestedLabelsListViews();
+            //Add labels from Label Configs present in project
+            SetupLabelConfigsScrollView();
         }
 
         void RefreshCommonLabels()
@@ -268,7 +291,7 @@ namespace UnityEditor.Perception.GroundTruth
             m_CurrentLabelsListView.itemHeight = itemHeight;
 
             m_CurrentLabelsListView.itemsSource = m_CommonLabels;
-
+            m_CurrentLabelsListView.selectionType = SelectionType.None;
 
             //m_CurrentLabelsListView.reorderable = true;
             //m_CurrentLabelsListView.selectionType = SelectionType.Multiple;
@@ -303,50 +326,15 @@ namespace UnityEditor.Perception.GroundTruth
             labelsListView.itemHeight = itemHeight;
             labelsListView.selectionType = SelectionType.None;
         }
-
-        // void SetupSuggestedBasedOnPathLabelsListView()
-        // {
-        //     m_SuggestLabelsListView_FromPath.itemsSource = m_SuggestedLabelsBasedOnPath;
-        //
-        //     VisualElement MakeItem() => new SuggestedLabelElement(this);
-        //
-        //     void BindItem(VisualElement e, int i)
-        //     {
-        //         if (e is SuggestedLabelElement suggestedLabel)
-        //         {
-        //             Debug.Log("bind, source list count is:" + m_SuggestedLabelsBasedOnPath.Count);
-        //             suggestedLabel.m_Label.text = m_SuggestedLabelsBasedOnPath[i];
-        //         }
-        //     }
-        //
-        //     const int itemHeight = 32;
-        //
-        //     m_SuggestLabelsListView_FromPath.bindItem = BindItem;
-        //     m_SuggestLabelsListView_FromPath.makeItem = MakeItem;
-        //     m_SuggestLabelsListView_FromPath.itemHeight = itemHeight;
-        //     m_SuggestLabelsListView_FromPath.selectionType = SelectionType.None;
-        // }
-        //
-        // void SetupSuggestedBasedOnNameLabelsListView()
-        // {
-        //     VisualElement MakeItem() => new SuggestedLabelElement(this);
-        //
-        //     void BindItem(VisualElement e, int i)
-        //     {
-        //         if (e is SuggestedLabelElement suggestedLabel)
-        //         {
-        //             suggestedLabel.m_Label.text = m_SuggestedLabelsBasedOnName[i];
-        //         }
-        //     }
-        //
-        //     const int itemHeight = 32;
-        //
-        //     m_SuggestLabelsListView_FromName.bindItem = BindItem;
-        //     m_SuggestLabelsListView_FromName.makeItem = MakeItem;
-        //     m_SuggestLabelsListView_FromName.itemHeight = itemHeight;
-        //     m_SuggestLabelsListView_FromName.itemsSource = m_SuggestedLabelsBasedOnName;
-        //     m_SuggestLabelsListView_FromName.selectionType = SelectionType.None;
-        // }
+        void SetupLabelConfigsScrollView()
+        {
+            m_LabelConfigsScrollView.Clear();
+            foreach (var config in m_AllLabelConfigsInProject)
+            {
+                VisualElement configElement = new LabelConfigElement(this, config);
+                m_LabelConfigsScrollView.Add(configElement);
+            }
+        }
     }
 
 
@@ -368,46 +356,15 @@ namespace UnityEditor.Perception.GroundTruth
             m_RemoveButton = this.Q<Button>("remove-button");
             m_AddToConfigButton = this.Q<Button>("add-to-config-button");
 
-
             m_LabelTextField.isDelayed = true;
-
 
             //The listview of added labels in the editor is only bound to the top target object, se we need to apply label modifications to other selected objects too
             m_LabelTextField.RegisterValueChangedCallback<string>((cEvent) =>
             {
-                // List<string> m_CommonLabels = new List<string>();
-                //
-                // m_CommonLabels.Clear();
-                // var firstTarget = editor.targets[0] as Labeling;
-                // m_CommonLabels.AddRange(firstTarget.labels);
-                //
-                // foreach (var obj in editor.targets)
-                // {
-                //     m_CommonLabels = m_CommonLabels.Intersect(((Labeling) obj).labels).ToList();
-                // }
-
-
                 foreach (var targetObject in editor.targets)
                 {
                     if (targetObject is Labeling labeling)
                     {
-                        // Dictionary<int, int>  commonsIndexToLabelsIndex = new Dictionary<int, int>();
-                        //
-                        // for (int i = 0; i < labeling.labels.Count; i++)
-                        // {
-                        //     string label = labeling.labels[i];
-                        //
-                        //     for (int j = 0; j < editor.CommonLabels.Count; j++)
-                        //     {
-                        //         string label2 = editor.CommonLabels[j];
-                        //
-                        //         if (String.Equals(label, label2) && !commonsIndexToLabelsIndex.ContainsKey(j))
-                        //         {
-                        //             commonsIndexToLabelsIndex.Add(j, i);
-                        //         }
-                        //     }
-                        // }
-
                         var indexToModifyInTargetLabelList =
                             labeling.labels.IndexOf(editor.CommonLabels[m_IndexInList]);
 
@@ -430,11 +387,6 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_RemoveButton.clicked += () =>
             {
-                // labelsArrayProperty.DeleteArrayElementAtIndex(m_IndexInList);
-                // serializedLabelingObject.ApplyModifiedProperties();
-                // editor.UpdateSuggestedLabelLists();
-                // editor.RefreshUi();
-                // listView.Refresh();
                 List<string> m_CommonLabels = new List<string>();
 
                 m_CommonLabels.Clear();
@@ -455,7 +407,6 @@ namespace UnityEditor.Perception.GroundTruth
                 }
                 editor.serializedObject.SetIsDifferentCacheDirty();
                 editor.RefreshData();
-                //editor.RefreshUi();
             };
         }
 
@@ -520,6 +471,82 @@ namespace UnityEditor.Perception.GroundTruth
                 editor.RefreshData();
                 //editor.RefreshUi();
             };
+        }
+    }
+
+    class LabelConfigElement : VisualElement
+    {
+        private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
+        private string m_UxmlPath;
+        private bool m_Collapsed = true;
+
+        private ListView m_LabelsListView;
+        private Label m_ConfigName;
+        private VisualElement m_CollapseToggle;
+        //private Toggle m_HiddenCollapsedToggle;
+
+        public LabelConfigElement(LabelingEditor editor, ScriptableObject config)
+        {
+            m_UxmlPath = m_UxmlDir + "ConfigElementForAddingLabelsFrom.uxml";
+            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree(this);
+            m_LabelsListView = this.Q<ListView>("label-config-contents-listview");
+            m_ConfigName = this.Q<Label>("config-name");
+            m_ConfigName.text = config.name;
+            m_CollapseToggle = this.Q<VisualElement>("collapse-toggle");
+
+            var propertyInfo = config.GetType().GetProperty(IdLabelConfig.publicLabelEntriesFieldName);
+            if (propertyInfo != null)
+            {
+                var objectList = (IEnumerable) propertyInfo.GetValue(config);
+                var labelEntryList = objectList.Cast<ILabelEntry>().ToList();
+                var labelList = labelEntryList.Select(entry => entry.label).ToList();
+
+                m_LabelsListView.itemsSource = labelList;
+
+                VisualElement MakeItem()
+                {
+                    var element = new SuggestedLabelElement(editor);
+                    element.AddToClassList("label_add_from_config");
+                    return element;
+                }
+
+                void BindItem(VisualElement e, int i)
+                {
+                    if (e is SuggestedLabelElement suggestedLabel)
+                    {
+                        suggestedLabel.m_Label.text = labelList[i];
+                    }
+                }
+
+                const int itemHeight = 27;
+
+                m_LabelsListView.bindItem = BindItem;
+                m_LabelsListView.makeItem = MakeItem;
+                m_LabelsListView.itemHeight = itemHeight;
+                m_LabelsListView.selectionType = SelectionType.None;
+            }
+
+            m_CollapseToggle.RegisterCallback<MouseUpEvent>(evt =>
+            {
+                m_Collapsed = !m_Collapsed;
+                ApplyCollapseState();
+            });
+
+            ApplyCollapseState();
+        }
+
+        void ApplyCollapseState()
+        {
+            if (m_Collapsed)
+            {
+                m_CollapseToggle.AddToClassList("collapsed-toggle-state");
+                m_LabelsListView.AddToClassList("collapsed");
+            }
+            else
+            {
+                m_CollapseToggle.RemoveFromClassList("collapsed-toggle-state");
+                m_LabelsListView.RemoveFromClassList("collapsed");
+            }
         }
     }
 }

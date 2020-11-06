@@ -1,7 +1,6 @@
 <UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <VisualElement>
+    <VisualElement class="config-label-present">
         <Style src="../Uss/Styles.uss"/>
-        <editor:ObjectField name="config-object"/>
         <Label name="config-name" class="labeling__config-name-label"/>
         <Button name="remove-from-config-button" class="labeling__addremove-config-button"/>
     </VisualElement>

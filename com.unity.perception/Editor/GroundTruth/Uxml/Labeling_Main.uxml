@@ -3,20 +3,18 @@
         <Style src="../Uss/Styles.uss"/>
         <VisualElement name="added-labels" class="inner-container" style="margin-top:0px">
             <Label text="Added Labels" name="added-labels-title" class="title-label"/>
-            <ListView name="current-labels-listview" class="labeling__label-listview"/>
+            <ListView name="current-labels-listview" class="labeling__label-listview" style="margin-top: 5px"/>
             <Button name="add-label" text="Add New Label" class="labeling__add-label-button"/>
         </VisualElement>
         <VisualElement name="add-more-labels" class="inner-container">
             <Label text="Add Labels" class="title-label"/>
-            <VisualElement name="from-label-configs" class="inner-container">
+            <VisualElement name="from-label-configs" class="inner-container depth2">
                 <Label text="From Existing Label Configs" class="title-label"/>
                 <VisualElement name="add-from-label-configs" style="padding-top: 10px;">
                     <ScrollView name="label-configs-scrollview" class="labeling__label-configs-scrollview" style="min-height: 100px;"/>
-                    <VisualElement name="collapse" class="collapse-toggle collapsed"/>
-                    <Toggle name="enabled"/>
                 </VisualElement>
             </VisualElement>
-            <VisualElement name="suggested-labels" class="inner-container">
+            <VisualElement name="suggested-labels" class="inner-container depth2">
                 <Label text="Other Suggested Labels" class="title-label"/>
                 <VisualElement name="suggested-labels-from-name" style="padding-top: 10px;">
                     <Label text="Based on asset name" class="subtitle-label"/>
@@ -28,7 +26,6 @@
                 </VisualElement>
             </VisualElement>
         </VisualElement>
-
     </BindableElement>
 </UXML>
 

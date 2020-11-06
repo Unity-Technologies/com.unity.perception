@@ -33,25 +33,41 @@ namespace UnityEngine.Perception.GroundTruth {
             return TryGetLabelEntryFromInstanceId(instanceId, out labelEntry, out var _);
         }
 
+
+        public override void AddLabel(string labelToAdd)
+        {
+            m_LabelEntries.Add(new IdLabelEntry
+            {
+                label = labelToAdd
+            });
+
+            if (autoAssignIds)
+            {
+                AutoAssignIds();
+            }
+        }
+
         public override void RemoveLabel(string label)
         {
             base.RemoveLabel(label);
             if (autoAssignIds)
             {
-
+                AutoAssignIds();
             }
         }
 
         void AutoAssignIds()
         {
-            var size = base.labelEntries.Count;
+            var size = m_LabelEntries.Count;
             if (size == 0)
                 return;
 
             var nextId = startingLabelId == StartingLabelId.One ? 1 : 0;
             for (int i = 0; i < size; i++)
             {
-                //m_LabelEntries[i].id = nextId;
+                var labelEntry = m_LabelEntries[i];
+                labelEntry.id = nextId;
+                m_LabelEntries[i] = labelEntry;
                 nextId++;
             }
         }

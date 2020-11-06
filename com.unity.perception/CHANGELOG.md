@@ -21,6 +21,8 @@ USimScenario now correctly deserializes app-params before offsetting the current
 
 Fixed Unity Simulation nodes generating one extra empty image before generating their share of the randomization scenario iterations
 
+Fixed enumeration in the CategoricalParameter.categories property
+
 ## [0.5.0-preview.1] - 2020-10-14
 
 ### Known Issues

@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
             get
             {
                 var catOptions = new List<(T, float)>(m_Categories.Count);
-                for (var i = 0; i < catOptions.Count; i++)
+                for (var i = 0; i < m_Categories.Count; i++)
                     catOptions.Add((m_Categories[i], probabilities[i]));
                 return catOptions;
             }

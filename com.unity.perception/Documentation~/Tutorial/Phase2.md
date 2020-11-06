@@ -83,7 +83,7 @@ Yes, a RandomizerTag can be this simple if you just need it for helping Randomiz
 
 Notice there is a `RequireComponent(typeof(Light))` line at the top. This line makes it so that you can only add the `MyLightRandomizerTag` component to an object that already has a `Light` component attached. This way, the Randomizers that query for this tag can be confident that the found objects have a `Light` component and can thus be Randomized.
 
-* **Action**: Select `Directional Light` in the Scene's _**Hierarchy**_, and in the _**Inspector**_ tab, add a `Light Randomizer Tag` component.
+* **Action**: Select `Directional Light` in the Scene's _**Hierarchy**_, and in the _**Inspector**_ tab, add a `My Light Randomizer Tag` component.
 * **Action**: Run the simulation again and inspect how `Directional Light` now switches between different intensities. You can pause the simulation and then use the step button (to the right of the pause button) to move the simulation one frame forward and clearly see the varying light intensity
 
 Let's now add more variation to our light by randomizing its color as well. 
@@ -134,12 +134,12 @@ Let's try this approach with our `Directional Light` object. We will create a du
 * **Action**: Change the Y rotation of `Directional Light (1)` to 60, as shown below:
 
 <p align="center">
-<img src="Images/light_rand_2.png" width="420"/>
+<img src="Images/light_2.png" width="420"/>
 </p>
 
 * **Action**: Change the Y rotation of `Directional Light` to -60.
 
-This makes the two lights illuminate the scene from opposing sides, each having a 30-degree angle with the background and foreground planes.
+This makes the two lights illuminate the scene from opposing angles, each having a 30-degree angle with the background and foreground planes. Note that the position of Directional Lights in Unity does not affect how they illuminate the scene, so you do not need to use the same position as the screenshot above.
 
 * **Action**: Open `MyLightRandomizerTag.cs` and modify it to match the code below:
 ```
@@ -166,7 +166,7 @@ In the above code, we have created a new `SetIntensity` function that first scal
 
 This component is already added to both our lights. We now need to set our desired minimum and maximum intensities, and this can be done through the _**Inspector**_ view.
 
-* **Action**: Select `Directional Light` and from the _**Inspector** UI for the `MyLightRandomizerTag` component, set `Min Intensity` to 0.5 and `Max Intensity` to 3.
+* **Action**: Select `Directional Light` and from the **Inspector** UI for the `MyLightRandomizerTag` component, set `Min Intensity` to 0.5 and `Max Intensity` to 3.
 * **Action**: Repeat the above step for `Directional Light (1)` and set `Min Intensity` to 0 and `Max Intensity` to 0.4.
 
 Note that with this change, we fully transfer the responsibility for the light's intensity range to `MyLightRandomizerTag.cs` and assume the intensity value coming from `My Light Randomizer` is always between 0 and 1. Therefore, we now need to change the range for the corresponding Parameter in `My Light Randomizer` to (0,1). 

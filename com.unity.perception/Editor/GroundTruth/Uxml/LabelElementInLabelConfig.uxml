@@ -1,0 +1,14 @@
+<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement class="added-label">
+        <Button name="remove-button" class="labeling__remove-item-button" />
+        <VisualElement style = "flex-direction: row; padding: 3px; margin-left: 3px; margin-right: 3px; border-width: 1px; border-color: dimgray; border-radius: 4px;">
+            <Label name="label-id-title" text = "id = " style="align-self:center; color: #CACACA;"/>
+            <Label name="label-id-value" style="-unity-font-style: bold; color: #CACACA; min-width : 25px; align-self:center;"/>
+        </VisualElement>
+        <TextField name="label-value" class="labeling__added-label-value"/>
+        <VisualElement style="min-width:20px; flex-direction: row;">
+            <Button name="move-up-button" class="move-label-in-config-button move-up" style="margin-right:-2px"/>
+            <Button name="move-down-button" class="move-label-in-config-button move-down"/>
+        </VisualElement>
+    </VisualElement>
+</UXML>

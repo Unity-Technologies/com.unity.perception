@@ -39,7 +39,6 @@ namespace UnityEditor.Perception.GroundTruth
         private List<string> m_SuggestedLabelsBasedOnName = new List<string>();
         private List<string> m_SuggestedLabelsBasedOnPath = new List<string>();
 
-        private Dictionary<int, int> m_CommonsIndexToLabelsIndex = new Dictionary<int, int>();
         private List<string> m_CommonLabels = new List<string>(); //labels that are common between all selected Labeling objects (for multi editing)
 
         public List<string> CommonLabels => m_CommonLabels;
@@ -195,7 +194,6 @@ namespace UnityEditor.Perception.GroundTruth
             }
 
             RemoveAddedLabelsFromSuggestedLists();
-
             //Debug.Log("list update, source list count is:" + m_SuggestedLabelsBasedOnPath.Count);
         }
 
@@ -230,41 +228,6 @@ namespace UnityEditor.Perception.GroundTruth
             {
                 m_CommonLabels = m_CommonLabels.Intersect(((Labeling) obj).labels).ToList();
             }
-            Debug.Log("-----------------------------");
-            Debug.Log("common labels count: " + m_CommonLabels.Count);
-
-
-
-            m_CommonsIndexToLabelsIndex.Clear();
-            for (int i = 0; i < m_Labeling.labels.Count; i++)
-            {
-                string label = m_Labeling.labels[i];
-
-                for (int j = 0; j < m_CommonLabels.Count; j++)
-                {
-                    string label2 = m_CommonLabels[j];
-
-                    if (String.Equals(label, label2) && !m_CommonsIndexToLabelsIndex.ContainsKey(j))
-                    {
-                        m_CommonsIndexToLabelsIndex.Add(j, i);
-                    }
-                }
-            }
-            Debug.Log("dict labels count: " + m_CommonsIndexToLabelsIndex.Count);
-
-            // if (m_CommonLabels.Count > 0 && serializedObject.targetObjects.Length > 1)
-            // {
-            //     foreach (var VARIABLE in m_CommonLabels)
-            //     {
-            //         Debug.Log(VARIABLE);
-            //     }
-            // }
-        }
-
-        //to know which index in the asset
-        Dictionary<int, int> CreateCommonLabelsToAssetsLabelsIndex()
-        {
-            return null;
         }
 
         void SetupCurrentLabelsListView()
@@ -280,7 +243,7 @@ namespace UnityEditor.Perception.GroundTruth
                 if (e is AddedLabelEditor addedLabel)
                 {
                     addedLabel.m_IndexInList = i;
-                    addedLabel.m_LabelTextField.value = m_SerializedLabelsArray.GetArrayElementAtIndex(m_CommonsIndexToLabelsIndex[i]).stringValue;
+                    addedLabel.m_LabelTextField.value = m_CommonLabels[i];
                 }
             }
 
@@ -293,8 +256,15 @@ namespace UnityEditor.Perception.GroundTruth
             m_CurrentLabelsListView.itemsSource = m_CommonLabels;
             m_CurrentLabelsListView.selectionType = SelectionType.None;
 
-            //m_CurrentLabelsListView.reorderable = true;
-            //m_CurrentLabelsListView.selectionType = SelectionType.Multiple;
+
+            // #if UNITY_2020_1_OR_NEWER
+            // m_CurrentLabelsListView.selectionType = SelectionType.Single;
+            // m_CurrentLabelsListView.reorderable = true;
+            // m_CurrentLabelsListView.RegisterCallback<DragPerformEvent>(evt =>
+            // {
+            //
+            // });
+            // #endif
         }
 
         void SetupSuggestedLabelsListViews()
@@ -358,7 +328,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_LabelTextField.isDelayed = true;
 
-            //The listview of added labels in the editor is only bound to the top target object, se we need to apply label modifications to other selected objects too
+
             m_LabelTextField.RegisterValueChangedCallback<string>((cEvent) =>
             {
                 foreach (var targetObject in editor.targets)

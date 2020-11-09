@@ -1,0 +1,10 @@
+<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement class="outer-container" name="outer-container">
+        <Style src="../Uss/Styles.uss"/>
+        <Label text="Added Labels" name="added-labels-title" class="title-label"/>
+        <ListView name="labels-listview" class="labeling__label-listview" style="margin-top: 5px;"/>
+        <Button name="save-button" text="Save" style="display:none"/>
+        <Button name="add-label" text="Add New Label" class="labeling__add-label-button"/>
+    </VisualElement>
+</UXML>
+

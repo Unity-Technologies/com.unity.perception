@@ -14,7 +14,7 @@
 }
 
 .labeling__added-label-value {
-    width: auto;
+    width: 40%;
     flex-grow: 1;
     color: black;
 }
@@ -22,7 +22,7 @@
 .labeling__added-label-value > .unity-text-field__input {
     color: rgb(195, 195, 195);
     background-color: #313131;
-    border-width: 0px;
+    border-width: 0;
 }
 
 
@@ -45,7 +45,7 @@
 
 .labeling__label-listview {
     flex-grow: 1;
-    min-height: 150px;
+    min-height: 150;
     border-radius: 4px;
     margin-right: 2px;
     margin-top: 2px;
@@ -67,10 +67,11 @@
 
 .labeling__add-label-button {
     align-self: flex-end;
-    border-width: 0;
     border-top-right-radius: 0;
     border-top-left-radius: 0;
-    background-color: rgb(25, 25, 25);
+    background-color: #222222;
+    border-color: #707070;
+    border-width: 0;
     margin-right: 2px;
     margin-top: 2px;
     color: #CACACA;
@@ -78,6 +79,7 @@
 
 .outer-container {
     padding-top: 5px;
+    flex-grow: 1;
 }
 
 .outer-container-in-window{
@@ -86,7 +88,7 @@
 
 .inner-container {
     margin-top: 10px;
-    border-radius: 10px;
+    border-radius: 4px;
     border-width: 1px;
     padding: 10px;
     background-color: rgb(75, 75, 75);
@@ -100,7 +102,7 @@
 .labeling__add-to-list-button {
     align-self: flex-end;
     background-color: #505050;
-    border-width: 0px;
+    border-width: 0;
     color: #EEEEEE;
 }
 
@@ -109,7 +111,7 @@
     flex-shrink: 1;
     -unity-text-align: middle-left;
     background-color: #505050;
-    border-width: 0px;
+    border-width: 0;
     color: #EEEEEE;
 }
 
@@ -175,3 +177,26 @@
     margin: 3px;
     background-color: #272727;
 }
+
+.move-label-in-config-button{
+    background-color: #505050;
+    align-self: center;
+}
+
+.move-up{
+    background-image: resource('Packages/com.unity.perception/Editor/Icons/ChevronUpPadded.png');
+}
+
+.move-down{
+    background-image: resource('Packages/com.unity.perception/Editor/Icons/ChevronDownPadded.png');
+}
+
+.move-label-in-config-button:hover{
+    background-color: #808080;
+}
+.move-label-in-config-button:active{
+    background-color: #303030;
+}
+
+
+

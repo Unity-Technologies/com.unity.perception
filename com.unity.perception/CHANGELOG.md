@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 USimScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation
 
+Fixed Unity Simulation nodes generating one extra empty image before generating their share of the randomization scenario iterations
+
+Fixed enumeration in the CategoricalParameter.categories property
+
 ## [0.5.0-preview.1] - 2020-10-14
 
 ### Known Issues

@@ -15,8 +15,8 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
    public static class InstanceIdToColorMapping
     {
-        static readonly Dictionary<uint, uint> s_IdToColorCache;
-        static readonly Dictionary<uint, uint> s_ColorToIdCache;
+        static Dictionary<uint, uint> s_IdToColorCache;
+        static Dictionary<uint, uint> s_ColorToIdCache;
         const uint k_HslCount = 64;
         const uint k_ColorsPerAlpha = 256 * 256 * 256;
         const uint k_MaxId = uint.MaxValue - (256 * 2);
@@ -25,8 +25,9 @@ namespace UnityEngine.Perception.GroundTruth
         static readonly float k_GoldenRatio = (1 + Mathf.Sqrt(5)) / 2;
         const int k_HuesInEachValue = 30;
 
-        static InstanceIdToColorMapping()
+        static void InitializeMaps()
         {
+
             s_IdToColorCache = new Dictionary<uint, uint>();
             s_ColorToIdCache = new Dictionary<uint, uint>();
 
@@ -63,6 +64,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (id <= k_HslCount)
             {
+                if (s_IdToColorCache == null) InitializeMaps();
                 return s_IdToColorCache[id];
             }
 
@@ -81,6 +83,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (alpha == 255)
             {
+                if (s_ColorToIdCache == null) InitializeMaps();
                 if (s_ColorToIdCache.TryGetValue(color, out var id))
                 {
                     return id;

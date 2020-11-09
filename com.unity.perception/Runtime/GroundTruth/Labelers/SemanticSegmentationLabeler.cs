@@ -25,7 +25,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// Only one SemanticSegmentationLabeler can render at once across all cameras.
     /// </summary>
     [Serializable]
-    public sealed class SemanticSegmentationLabeler : CameraLabeler
+    public sealed class SemanticSegmentationLabeler : CameraLabeler, IOverlayPanelProvider
     {
         ///<inheritdoc/>
         public override string description
@@ -98,9 +98,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
 
-        private float segmentTransparency = 0.8f;
-        private float backgroundTransparency = 0.0f;
-
         /// <summary>
         /// Creates a new SemanticSegmentationLabeler. Be sure to assign <see cref="labelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
         /// </summary>
@@ -134,16 +131,6 @@ namespace UnityEngine.Perception.GroundTruth
             public string path;
         }
 
-        int camWidth = 0;
-        int camHeight = 0;
-
-        private GameObject segCanvas;
-        private GameObject segVisual = null;
-        private RawImage segImage = null;
-
-        GUIStyle labelStyle = null;
-        GUIStyle sliderStyle = null;
-
         /// <inheritdoc/>
         protected override bool supportsVisualization => true;
 
@@ -151,8 +138,8 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void Setup()
         {
             var myCamera = perceptionCamera.GetComponent<Camera>();
-            camWidth = myCamera.pixelWidth;
-            camHeight = myCamera.pixelHeight;
+            var camWidth = myCamera.pixelWidth;
+            var camHeight = myCamera.pixelHeight;
 
             if (labelConfig == null)
             {
@@ -226,37 +213,9 @@ namespace UnityEngine.Perception.GroundTruth
                 (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
 
             visualizationEnabled = supportsVisualization;
-        }
 
-        private void SetupVisualizationElements()
-        {
-            segmentTransparency = 0.8f;
-            backgroundTransparency = 0.0f;
-
-            segVisual = GameObject.Instantiate(Resources.Load<GameObject>("SegmentTexture"));
-
-            segImage = segVisual.GetComponent<RawImage>();
-            segImage.material.SetFloat("_SegmentTransparency", segmentTransparency);
-            segImage.material.SetFloat("_BackTransparency", backgroundTransparency);
-            segImage.texture = targetTexture;
-
-            var rt = segVisual.transform as RectTransform;
-            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, camWidth);
-            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
-
-            if (segCanvas == null)
-            {
-                segCanvas = new GameObject(perceptionCamera.gameObject.name + "_segmentation_canvas");
-                segCanvas.AddComponent<RectTransform>();
-                var canvas = segCanvas.AddComponent<Canvas>();
-                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                segCanvas.AddComponent<CanvasScaler>();
-
-                segVisual.transform.SetParent(segCanvas.transform, false);
-            }
-
-            labelStyle = new GUIStyle(GUI.skin.label) {padding = {left = 10}};
-            sliderStyle = new GUIStyle(GUI.skin.horizontalSlider) {margin = {left = 12}};
+            if (visualizationEnabled && perceptionCamera.overlayPanel != null)
+                perceptionCamera.overlayPanel.RegisterOverlayProvider(this);
         }
 
         void OnSemanticSegmentationImageRead(int frameCount, NativeArray<Color32> data)
@@ -312,57 +271,16 @@ namespace UnityEngine.Perception.GroundTruth
             m_SemanticSegmentationTextureReader?.Dispose();
             m_SemanticSegmentationTextureReader = null;
 
-            Object.Destroy(segCanvas);
-            segCanvas = null;
-
             if (m_TargetTextureOverride != null)
                 m_TargetTextureOverride.Release();
 
             m_TargetTextureOverride = null;
         }
 
-        /// <inheritdoc/>
-        override protected void OnVisualizerEnabledChanged(bool enabled)
+        /// <inheritdoc cref="IOverlayPanelProvider"/>
+        public Texture GetOverlayImage()
         {
-            if (segVisual != null)
-                segVisual.SetActive(enabled);
-        }
-
-
-
-        /// <inheritdoc/>
-        protected override void OnVisualizeAdditionalUI()
-        {
-            if (segImage == null)
-            {
-                SetupVisualizationElements();
-            }
-
-            var rt = segVisual.transform as RectTransform;
-            if (rt != null && camHeight != Screen.height)
-            {
-                camHeight = Screen.height;
-                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, camHeight);
-            }
-
-            if (rt != null && camWidth != Screen.width)
-            {
-                camWidth = Screen.width;
-                rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Screen.width);
-            }
-
-            GUILayout.Space(4);
-            GUILayout.Label("Object Alpha:", labelStyle);
-            segmentTransparency = GUILayout.HorizontalSlider(segmentTransparency, 0.0f, 1.0f, sliderStyle, GUI.skin.horizontalSliderThumb);
-            GUILayout.Space(4);
-            GUILayout.Label("Background Alpha:", labelStyle);
-            backgroundTransparency = GUILayout.HorizontalSlider(backgroundTransparency, 0.0f, 1.0f, sliderStyle, GUI.skin.horizontalSliderThumb);
-            GUI.skin.label.padding.left = 0;
-
-            if (!GUI.changed) return;
-            segImage.material.SetFloat("_SegmentTransparency", segmentTransparency);
-            segImage.material.SetFloat("_BackTransparency", backgroundTransparency);
-
+            return targetTexture;
         }
     }
 }

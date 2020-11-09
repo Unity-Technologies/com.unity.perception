@@ -157,13 +157,13 @@ namespace UnityEngine.Perception.GroundTruth
 
             // The player screen can be dynamically resized during play, need to
             // scale the bounding boxes appropriately from the original screen size
-            float screenRatioWidth = Screen.width / m_OriginalScreenSize.x;
-            float screenRatioHeight = Screen.height / m_OriginalScreenSize.y;
+            var screenRatioWidth = Screen.width / m_OriginalScreenSize.x;
+            var screenRatioHeight = Screen.height / m_OriginalScreenSize.y;
 
             foreach (var box in m_BoundingBoxValues)
             {
-                float x = box.x * screenRatioWidth;
-                float y = box.y * screenRatioHeight;
+                var x = box.x * screenRatioWidth;
+                var y = box.y * screenRatioHeight;
 
                 var boxRect = new Rect(x, y, box.width * screenRatioWidth, box.height * screenRatioHeight);
                 var labelWidth = Math.Min(120, box.width * screenRatioWidth);

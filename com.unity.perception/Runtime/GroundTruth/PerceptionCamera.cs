@@ -155,6 +155,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         internal HUDPanel hudPanel = null;
+        internal OverlayPanel overlayPanel = null;
 
         void SetupVisualizationCamera(Camera cam)
         {
@@ -177,6 +178,7 @@ namespace UnityEngine.Perception.GroundTruth
             s_VisualizedPerceptionCamera = this;
 
             hudPanel = gameObject.AddComponent<HUDPanel>();
+            overlayPanel = gameObject.AddComponent<OverlayPanel>();
 #endif
         }
 
@@ -239,6 +241,7 @@ namespace UnityEngine.Perception.GroundTruth
             GUI.skin.label.padding = new RectOffset(0, 0, 1, 1);
             GUI.skin.label.margin = new RectOffset(0, 0, 1, 1);
             GUI.skin.label.wordWrap = true;
+            GUI.skin.label.alignment = TextAnchor.MiddleLeft;
             GUI.skin.box.padding = new RectOffset(5, 5, 5, 5);
             GUI.skin.toggle.margin = new RectOffset(0, 0, 0, 0);
             GUI.skin.horizontalSlider.margin = new RectOffset(0, 0, 0, 0);
@@ -307,11 +310,16 @@ namespace UnityEngine.Perception.GroundTruth
             foreach (var labeler in m_Labelers.Where(labeler => labeler.isInitialized))
             {
                 labeler.VisualizeUI();
-                GUILayout.Space(4);
             }
+
+            // This needs to happen here so that the overlay panel controls
+            // are placed in the controls panel
+            overlayPanel.OnDrawGUI(x, 10, panelWidth, height);
 
             GUILayout.EndScrollView();
             GUILayout.EndArea();
+
+
         }
 
         void OnValidate()

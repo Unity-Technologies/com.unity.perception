@@ -40,6 +40,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public HUDPanel hudPanel => perceptionCamera != null ? perceptionCamera.hudPanel : null;
 
+        public OverlayPanel overlayPanel => perceptionCamera != null ? perceptionCamera.overlayPanel : null;
+
         /// <summary>
         /// The <see cref="PerceptionCamera"/> that contains this labeler.
         /// </summary>
@@ -129,7 +131,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal void VisualizeUI()
         {
-            if (supportsVisualization)
+            if (supportsVisualization && !(this is IOverlayPanelProvider))
             {
                 GUILayout.Label(GetType().Name);
                 GUILayout.BeginHorizontal();

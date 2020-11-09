@@ -2,7 +2,7 @@
 {
     Properties
     {
-        [PerObjectData] _SegmentationId("Segmentation ID", int) = 0
+        [PerObjectData] _SegmentationId("Segmentation ID", vector) = (0,0,0,1)
     }
     SubShader
     {
@@ -30,7 +30,7 @@
                 float4 vertex : SV_POSITION;
             };
 
-            uint _SegmentationId;
+            float4 _SegmentationId;
 
             v2f vert (appdata v)
             {
@@ -41,12 +41,7 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-                return fixed4(
-                    UnpackUIntToFloat((uint)_SegmentationId,  0, 8),
-                    UnpackUIntToFloat((uint)_SegmentationId,  8, 8),
-                    UnpackUIntToFloat((uint)_SegmentationId, 16, 8),
-                    UnpackUIntToFloat((uint)_SegmentationId, 24, 8)
-                );
+                return _SegmentationId;
             }
             ENDCG
         }

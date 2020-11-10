@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+Added instance segmentation labeler
+Added support for full screen visual overlays and overlay manager
+
 ### Changed
+
+Updated perception to user burst 1.3.9
 
 ### Deprecated
 

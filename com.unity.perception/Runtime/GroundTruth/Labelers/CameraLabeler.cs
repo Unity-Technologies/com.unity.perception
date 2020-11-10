@@ -40,6 +40,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public HUDPanel hudPanel => perceptionCamera != null ? perceptionCamera.hudPanel : null;
 
+        /// <summary>
+        /// The overlay panel. Used to control which full screen image visual is displayed.
+        /// </summary>
         public OverlayPanel overlayPanel => perceptionCamera != null ? perceptionCamera.overlayPanel : null;
 
         /// <summary>

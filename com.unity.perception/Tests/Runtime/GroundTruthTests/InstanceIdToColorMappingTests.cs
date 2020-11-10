@@ -8,6 +8,17 @@ namespace GroundTruthTests
     public class InstanceIdToColorMappingTests
     {
         [Test]
+        public void InstanceIdToColorMappingTests_TestHslColors()
+        {
+            for (var i = 1u; i <= 64u; i++)
+            {
+                Assert.IsTrue(InstanceIdToColorMapping.TryGetColorFromInstanceId(i, out var color));
+                Assert.IsTrue(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id));
+                Assert.AreEqual(i, id);
+            }
+        }
+
+        [Test]
         [TestCase(0, 0, 0, 255, 255u)]
         [TestCase(255, 0, 0, 255, 4278190335u)]
         [TestCase(0, 255, 0, 255, 16711935u)]

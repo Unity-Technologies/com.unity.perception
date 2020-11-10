@@ -41,7 +41,7 @@ namespace UnityEngine.Perception.GroundTruth
                 s_ColorToIdCache[color] = i;
             }
         }
-
+        
         static uint GenerateHSLValueForId(uint count)
         {
             count -= 1;

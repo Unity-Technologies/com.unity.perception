@@ -47,7 +47,9 @@ namespace UnityEngine.Perception.GroundTruth
                     };
                     for (var i = 0; i < rowSlice.Length; i++)
                     {
-                        InstanceIdToColorMapping.TryGetInstanceIdFromColor(rowSlice[i], out var id);
+                        var packed = InstanceIdToColorMapping.GetPackedColorFromColor(rowSlice[i]);
+                        // pixel color black (0,0,0,255) is reserved for no hit, so set it to id 0
+                        var id = packed == 255 ? 0 : packed;
 
                         if (id != currentBB.instanceId)
                         {

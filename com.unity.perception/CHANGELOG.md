@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+Expanded all Unity Simulation references from USim to Unity Simulation
+
 ### Deprecated
 
 ### Removed

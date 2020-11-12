@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.Simulation;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 {
@@ -14,14 +15,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public sealed override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 
         /// <summary>
-        /// OnAwake is executed directly after this scenario has been registered and initialized
-        /// </summary>
-        protected sealed override void OnAwake()
-        {
-            currentIteration = constants.instanceIndex;
-        }
-
-        /// <summary>
         /// Progresses the current scenario iteration
         /// </summary>
         protected sealed override void IncrementIteration()
@@ -34,10 +27,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// </summary>
         public sealed override void Deserialize()
         {
-            if (string.IsNullOrEmpty(Unity.Simulation.Configuration.Instance.SimulationConfig.app_param_uri))
-                base.Deserialize();
+            if (Configuration.Instance.IsSimulationRunningInCloud())
+                constants = Configuration.Instance.GetAppParams<T>();
             else
-                constants = Unity.Simulation.Configuration.Instance.GetAppParams<T>();
+                base.Deserialize();
+            currentIteration = constants.instanceIndex;
         }
     }
 

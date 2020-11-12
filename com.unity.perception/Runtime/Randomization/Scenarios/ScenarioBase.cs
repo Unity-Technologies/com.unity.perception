@@ -136,6 +136,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             foreach (var randomizer in m_Randomizers)
                 randomizer.Create();
             ValidateParameters();
+
+            // Don't skip the first frame if executing on Unity Simulation
+            if (Configuration.Instance.IsSimulationRunningInCloud())
+                m_SkipFrame = false;
         }
 
         void OnEnable()

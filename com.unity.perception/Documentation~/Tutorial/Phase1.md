@@ -386,7 +386,7 @@ This will download a Docker image from Unity. If you get an error regarding the 
 
 * **Action**: To make sure your data is properly mounted, navigate to the `data` folder. If you see the dataset's folders there, we are good to go.
 * **Action**: Navigate to the `datasetinsights/notebooks` folder and open `Perception_Statistics.ipynb`.
-* **Action**: Once in the notebook, replace the `<GUID>` in the `data_root = /data/<GUID>` line with the name of the dataset folder inside your generated data. For example, `data_root = /data/Dataseta26351bc-1b72-46c5-9e0c-d7afd6df2974`.
+* **Action**: Once in the notebook, remove the `/<GUID>` part of the `data_root = /data/<GUID>` path. Since the dataset root is already mapped to `/data`, you can use this path directly.
 
 <p align="center">
 <img src="Images/jupyter2.png"/>

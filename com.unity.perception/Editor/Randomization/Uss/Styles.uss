@@ -42,8 +42,9 @@
 /* Scenario classes */
 .scenario__info-box {
     border-width: 1px;
-    border-color: #191919;
-    padding: 2px 4px 2px 4px;
+    border-color: #808080;
+    padding: 7px;
+    border-radius: 4px;
     white-space: normal;
     margin-top: 4px;
     margin-bottom: 4px;
@@ -54,7 +55,6 @@
     background-color: #191919;
     padding: 2px;
 }
-
 
 /* Randomizer classes */
 .randomizer__drag-bar {

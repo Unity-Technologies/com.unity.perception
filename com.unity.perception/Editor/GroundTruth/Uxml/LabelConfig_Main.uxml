@@ -1,10 +1,39 @@
 <UXML xmlns="UnityEngine.UIElements">
     <VisualElement class="outer-container" name="outer-container">
         <Style src="../Uss/Styles.uss"/>
-        <Label text="Added Labels" name="added-labels-title" class="title-label"/>
-        <ListView name="labels-listview" class="labeling__label-listview" style="margin-top: 5px;"/>
-        <Button name="save-button" text="Save" style="display:none"/>
-        <Button name="add-label" text="Add New Label" class="labeling__add-label-button"/>
+        <VisualElement name="added-labels" class="inner-container" style="margin-top:0px">
+            <Label text="Added Labels" name="added-labels-title" class="title-label"/>
+            <ListView name="labels-listview" class="labeling__label-listview" style="margin-top: 5px;"/>
+            <Button name="save-button" text="Save" style="display:none"/>
+            <VisualElement name="button-bar" style="min-width:20px; flex-direction: row; margin-top: 5px">
+                <VisualElement style="flex-direction: row; min-width:100px">
+                    <Label text="Move Selected Label:" style="align-self:center; margin-left: 2px; flex-shrink:1"/>
+                    <Button name="move-up-button" class="move-label-in-config-button move-up"
+                            style="margin-right:-2px"/>
+                    <Button name="move-down-button" class="move-label-in-config-button move-down"/>
+                </VisualElement>
+                <VisualElement style="flex-grow:1"/>
+                <Button name="add-label" text="Add New Label" class="labeling__add-label-button"/>
+            </VisualElement>
+        </VisualElement>
+
+        <VisualElement name="other-labels" class="inner-container depth2">
+            <Label text="Other Labels in Project" class="title-label"/>
+            <ListView name="labels-in-project-listview" class="labeling__label-listview"
+                      style="margin-top: 5px; min-height: 200px"/>
+        </VisualElement>
+
+        <VisualElement name="other-labels" class="inner-container depth2">
+            <Label text="Import Labels" name="added-labels-title" class="title-label"/>
+            <VisualElement class="helpbox" style = "margin: 7px 0 7px 0 ">
+                <Label text="Warning:" style="color:yellow; margin-bottom: 5px"/>
+                <TextElement
+                    text="Importing labels from file will overwrite all existing contents of this label configuration."/>
+            </VisualElement>
+            <Button name = "import-file-button" text="Import from File" class="title-label"
+                    style="align-self: center; padding: 10px; width: 150px; height: 40px; margin-top: 5px;"/>
+        </VisualElement>
+
     </VisualElement>
 </UXML>
 

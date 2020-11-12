@@ -331,6 +331,8 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_LabelTextField.RegisterValueChangedCallback<string>((cEvent) =>
             {
+                bool shouldRefresh = false;
+
                 foreach (var targetObject in editor.targets)
                 {
                     if (targetObject is Labeling labeling)
@@ -342,12 +344,15 @@ namespace UnityEditor.Perception.GroundTruth
                         var serializedLabelingObject2 = new SerializedObject(labeling);
                         var serializedLabelArray2 = serializedLabelingObject2.FindProperty("labels");
                         serializedLabelArray2.GetArrayElementAtIndex(indexToModifyInTargetLabelList).stringValue = cEvent.newValue;
+                        shouldRefresh = shouldRefresh || serializedLabelArray2.serializedObject.hasModifiedProperties;
                         serializedLabelingObject2.ApplyModifiedProperties();
                         serializedLabelingObject2.SetIsDifferentCacheDirty();
                     }
                 }
 
-                editor.RefreshData();
+                //the value change event is called even when the listview recycles its child elements for re-use during scrolling, therefore, we should check to make sure there are modified properties, otherwise we would be doing the refresh for no reason (reduces scrolling performance)
+                if (shouldRefresh)
+                    editor.RefreshData();
             });
 
             m_AddToConfigButton.clicked += () =>

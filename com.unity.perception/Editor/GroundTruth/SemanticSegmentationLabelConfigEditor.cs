@@ -1,81 +1,149 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Unity.Mathematics;
+using UnityEditor.UIElements;
+using UnityEditor.VersionControl;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.UIElements;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using Task = System.Threading.Tasks.Task;
 using Random = UnityEngine.Random;
 
 namespace UnityEditor.Perception.GroundTruth
 {
     [CustomEditor(typeof(SemanticSegmentationLabelConfig))]
-    class SemanticSegmentationLabelConfigEditor : Editor
+    class SemanticSegmentationLabelConfigEditor : LabelConfigEditor<SemanticSegmentationLabelEntry>
     {
-        ReorderableList m_LabelsList;
-        const float k_Margin = 5f;
+        protected override LabelConfig<SemanticSegmentationLabelEntry> TargetLabelConfig => (SemanticSegmentationLabelConfig) serializedObject.targetObject;
 
-        public void OnEnable()
+        protected override void OnEnableExtended()
         {
-            m_LabelsList = new ReorderableList(this.serializedObject, this.serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName), true, false, true, true);
-            m_LabelsList.elementHeight = EditorGUIUtility.singleLineHeight * 2 + k_Margin;
-            m_LabelsList.drawElementCallback = DrawElement;
-            m_LabelsList.onAddCallback += OnAdd;
+            m_MoveButtons.style.display = DisplayStyle.None;
         }
 
-        void OnAdd(ReorderableList list)
+        public override void PostRemoveOperations()
+        { }
+
+        protected override void SetupPresentLabelsListView()
+        {
+            base.SetupPresentLabelsListView();
+
+            VisualElement MakeItem() =>
+                new ColoredLabelElementInLabelConfig(this, m_SerializedLabelsArray);
+
+            void BindItem(VisualElement e, int i)
+            {
+                if (e is ColoredLabelElementInLabelConfig addedLabel)
+                {
+                    addedLabel.m_IndexInList = i;
+                    addedLabel.m_LabelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                        .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.label)));
+                    addedLabel.m_ColorField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                        .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)));
+                    addedLabel.UpdateMoveButtonVisibility(m_SerializedLabelsArray);
+                }
+            }
+
+            m_LabelListView.bindItem = BindItem;
+            m_LabelListView.makeItem = MakeItem;
+        }
+
+        protected override SemanticSegmentationLabelEntry CreateLabelEntryFromLabelString(SerializedProperty serializedArray, string labelToAdd)
         {
             var standardColorList = new List<Color>(SemanticSegmentationLabelConfig.s_StandardColors);
-            for (int i = 0; i < list.serializedProperty.arraySize; i++)
+            for (int i = 0; i < serializedArray.arraySize; i++)
             {
-                var item = list.serializedProperty.GetArrayElementAtIndex(i);
+                var item = serializedArray.GetArrayElementAtIndex(i);
                 standardColorList.Remove(item.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)).colorValue);
             }
-            var index = list.serializedProperty.arraySize;
-            list.serializedProperty.InsertArrayElementAtIndex(index);
-            var element = list.serializedProperty.GetArrayElementAtIndex(index);
-            var labelProperty = element.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.label));
-            labelProperty.stringValue = "";
-            var colorProperty = element.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color));
+
+            Color foundColor;
             if (standardColorList.Any())
-                colorProperty.colorValue = standardColorList.First();
+                foundColor = standardColorList.First();
             else
-                colorProperty.colorValue = Random.ColorHSV(0, 1, .5f, 1, 1, 1);
+                foundColor = Random.ColorHSV(0, 1, .5f, 1, 1, 1);
 
-            serializedObject.ApplyModifiedProperties();
-            EditorUtility.SetDirty(target);
+            return new SemanticSegmentationLabelEntry
+            {
+                color = foundColor,
+                label = labelToAdd
+            };
         }
 
-        void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
+        protected override SemanticSegmentationLabelEntry ImportFromJsonExtended(string labelString, JObject labelEntryJObject,
+            List<SemanticSegmentationLabelEntry> previousEntries, bool preventDuplicateIdentifiers = true)
         {
-            var element = m_LabelsList.serializedProperty.GetArrayElementAtIndex(index);
+            bool invalid = false;
+            Color parsedColor = Color.black;
+
+            if (labelEntryJObject.TryGetValue("Color", out var colorToken))
+            {
+                var colorString = colorToken.Value<string>();
+                if (ColorUtility.TryParseHtmlString(colorString, out parsedColor))
+                {
+                    if (preventDuplicateIdentifiers && previousEntries.FindAll(entry => entry.color == parsedColor).Count > 0)
+                    {
+                        Debug.LogError("File contains a duplicate Label Color: " + colorString);
+                        invalid = true;
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Error parsing Color for Label Entry" + labelEntryJObject +
+                                   " from file. Please make sure a string value is provided in the file and that it is properly formatted as an HTML color.");
+                    invalid = true;
+                }
+            }
+            else
+            {
+                Debug.LogError("Error reading the Color field for Label Entry" + labelEntryJObject +
+                               " from file. Please check the formatting.");
+                invalid = true;
+            }
+
+            return new SemanticSegmentationLabelEntry
+            {
+                label = invalid? InvalidLabel : labelString,
+                color = parsedColor
+            };
+        }
+
+        protected override void AddLabelIdentifierToJson(SerializedProperty labelEntry, JObject jObj)
+        {
+            jObj.Add("Color", "#"+ColorUtility.ToHtmlStringRGBA(
+                labelEntry.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)).colorValue));
+        }
+
+        protected override void AppendLabelEntryToSerializedArray(SerializedProperty serializedArray, SemanticSegmentationLabelEntry semanticSegmentationLabelEntry)
+        {
+            var index = serializedArray.arraySize;
+            serializedArray.InsertArrayElementAtIndex(index);
+            var element = serializedArray.GetArrayElementAtIndex(index);
             var colorProperty = element.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color));
-            var labelProperty = element.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.label));
-            using (var change = new EditorGUI.ChangeCheckScope())
-            {
-                var contentRect = new Rect(rect.position, new Vector2(rect.width, EditorGUIUtility.singleLineHeight));
-                var newLabel = EditorGUI.TextField(contentRect, nameof(SemanticSegmentationLabelEntry.label), labelProperty.stringValue);
-                if (change.changed)
-                {
-                    labelProperty.stringValue = newLabel;
-                }
-            }
-            using (var change = new EditorGUI.ChangeCheckScope())
-            {
-                var contentRect = new Rect(rect.position + new Vector2(0, EditorGUIUtility.singleLineHeight), new Vector2(rect.width, EditorGUIUtility.singleLineHeight));
-                var newLabel = EditorGUI.ColorField(contentRect, nameof(SemanticSegmentationLabelEntry.color), colorProperty.colorValue);
-                if (change.changed)
-                {
-                    colorProperty.colorValue = newLabel;
-                }
-            }
+            colorProperty.colorValue = semanticSegmentationLabelEntry.color;
+            var labelProperty = element.FindPropertyRelative(nameof(ILabelEntry.label));
+            labelProperty.stringValue = semanticSegmentationLabelEntry.label;
         }
+    }
 
-        public override void OnInspectorGUI()
+    internal class ColoredLabelElementInLabelConfig : LabelElementInLabelConfig<SemanticSegmentationLabelEntry>
+    {
+        protected override string UxmlPath => UxmlDir + "ColoredLabelElementInLabelConfig.uxml";
+
+        public ColorField m_ColorField;
+
+        public ColoredLabelElementInLabelConfig(LabelConfigEditor<SemanticSegmentationLabelEntry> editor, SerializedProperty labelsArray) : base(editor, labelsArray)
+        { }
+
+        protected override void InitExtended()
         {
-            serializedObject.Update();
-
-            m_LabelsList.DoLayoutList();
-            this.serializedObject.ApplyModifiedProperties();
+            m_ColorField = this.Q<ColorField>("label-color-value");
         }
     }
 }

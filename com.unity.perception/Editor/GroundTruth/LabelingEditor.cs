@@ -12,7 +12,9 @@ using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.PlayerLoop;
 using UnityEngine.Rendering.UI;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
+using Button = UnityEngine.UIElements.Button;
 
 namespace UnityEditor.Perception.GroundTruth
 {
@@ -328,9 +330,43 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_LabelTextField.isDelayed = true;
 
+            ScrollView tmp = listView.Q<ScrollView>();
+
+            tmp.verticalScroller.slider.RegisterCallback<MouseDownEvent>(evt =>
+            {
+                Debug.Log("mouse down");
+            });
+
+            listView.RegisterCallback<FocusInEvent>(evt =>
+            {
+                Debug.Log("list focused");
+            });
+
+
+            m_LabelTextField.RegisterCallback<FocusOutEvent>(evt =>
+            {
+                Debug.Log("focus out");
+            });
+
+            m_LabelTextField.RegisterCallback<FocusInEvent>(evt =>
+            {
+                Debug.Log("focus in");
+            });
 
             m_LabelTextField.RegisterValueChangedCallback<string>((cEvent) =>
             {
+                //Do not let the user define a duplicate label
+                if (editor.CommonLabels.Contains(cEvent.newValue) && editor.CommonLabels.IndexOf(cEvent.newValue) != m_IndexInList)
+                {
+                    //The listview recycles child visual elements and that causes the RegisterValueChangedCallback event to be called when scrolling.
+                    //Therefore, we need to make sure we are not in this code block just because of scrolling, but because the user is actively changing one of the labels.
+                    //The editor.CommonLabels.IndexOf(cEvent.newValue) != m_IndexInList check is for this purpose.
+
+                    Debug.LogError("A label with the string " + cEvent.newValue + " has already been added to selected objects.");
+                    editor.RefreshData();
+                    return;
+                }
+
                 bool shouldRefresh = false;
 
                 foreach (var targetObject in editor.targets)
@@ -366,22 +402,25 @@ namespace UnityEditor.Perception.GroundTruth
 
                 m_CommonLabels.Clear();
                 var firstTarget = editor.targets[0] as Labeling;
-                m_CommonLabels.AddRange(firstTarget.labels);
-
-                foreach (var obj in editor.targets)
+                if (firstTarget)
                 {
-                    m_CommonLabels = m_CommonLabels.Intersect(((Labeling) obj).labels).ToList();
-                }
+                    m_CommonLabels.AddRange(firstTarget.labels);
 
-                foreach (var targetObject in editor.targets)
-                {
-                    if (targetObject is Labeling labeling)
+                    foreach (var obj in editor.targets)
                     {
-                        RemoveLabelFromLabelingSerObj(labeling, m_CommonLabels);
+                        m_CommonLabels = m_CommonLabels.Intersect(((Labeling) obj).labels).ToList();
                     }
+
+                    foreach (var targetObject in editor.targets)
+                    {
+                        if (targetObject is Labeling labeling)
+                        {
+                            RemoveLabelFromLabelingSerObj(labeling, m_CommonLabels);
+                        }
+                    }
+                    editor.serializedObject.SetIsDifferentCacheDirty();
+                    editor.RefreshData();
                 }
-                editor.serializedObject.SetIsDifferentCacheDirty();
-                editor.RefreshData();
             };
         }
 

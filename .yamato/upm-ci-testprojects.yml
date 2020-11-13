@@ -61,6 +61,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
   name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Linux)
   agent:
     type: Unity::VM::GPU
+    model: rtx2080
     image: cds-ops/ubuntu-18.04-base:latest
     flavor: b1.large
   variables:

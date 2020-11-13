@@ -11,13 +11,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+Expanded all Unity Simulation references from USim to Unity Simulation
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-USimScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation
+UnitySimulationScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation
 
 Fixed Unity Simulation nodes generating one extra empty image before generating their share of the randomization scenario iterations
 

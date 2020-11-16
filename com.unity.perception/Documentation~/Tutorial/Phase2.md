@@ -50,7 +50,7 @@ If you return to your list of Randomizers in the _**Inspector**_ view of `Simula
 
 * **Action**: Add `MyLightRandomizer` to the list of Randomizers in `SimulationScenario`.
 
-You will notice the the Randomizer's UI snippet contains one Parameter named `Light Intensity Parameter`. This is the same Parameter we added in the code block above. Here, you can set the sampling distribution (`Value`), `Seed`, and `Range` for this float Parameter:
+You will notice that the Randomizer's UI snippet contains one Parameter named `Light Intensity Parameter`. This is the same Parameter we added in the code block above. Here, you can set the sampling distribution (`Value`), `Seed`, and `Range` for this float Parameter:
 
 <p align="center">
 <img src="Images/light_rand_1.png" width="420"/>

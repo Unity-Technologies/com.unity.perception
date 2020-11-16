@@ -4,10 +4,10 @@ using Unity.Simulation;
 namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 {
     /// <summary>
-    /// Defines a scenario that is compatible with the Run in USim window
+    /// Defines a scenario that is compatible with the Run in Unity Simulation window
     /// </summary>
     /// <typeparam name="T">The type of constants to serialize</typeparam>
-    public abstract class USimScenario<T> : Scenario<T> where T : USimConstants, new()
+    public abstract class UnitySimulationScenario<T> : Scenario<T> where T : UnitySimulationConstants, new()
     {
         /// <summary>
         /// Returns whether the entire scenario has completed
@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Deserializes this scenario's constants from the USim AppParams Json file
+        /// Deserializes this scenario's constants from the Unity Simulation AppParams Json file
         /// </summary>
         public sealed override void Deserialize()
         {
@@ -36,10 +36,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
     }
 
     /// <summary>
-    /// A class encapsulating the scenario constants fields required for USim cloud execution
+    /// A class encapsulating the scenario constants fields required for Unity Simulation cloud execution
     /// </summary>
     [Serializable]
-    public class USimConstants
+    public class UnitySimulationConstants
     {
         /// <summary>
         /// The total number of iterations to run a scenario for
@@ -47,12 +47,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public int totalIterations = 100;
 
         /// <summary>
-        /// The number of USim instances assigned to executed this scenario
+        /// The number of Unity Simulation instances assigned to executed this scenario
         /// </summary>
         public int instanceCount = 1;
 
         /// <summary>
-        /// The USim instance index of the currently executing worker
+        /// The Unity Simulation instance index of the currently executing worker
         /// </summary>
         public int instanceIndex;
     }

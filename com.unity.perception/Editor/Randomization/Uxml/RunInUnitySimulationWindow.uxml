@@ -5,7 +5,7 @@
     <editor:ObjectField name="main-scene" label="Main Scene" allow-scene-objects="false"/>
     <editor:ObjectField name="scenario" label="Scenario"/>
     <VisualElement class="unity-base-field">
-        <Label text="USim worker config" class="unity-base-field__label"/>
+        <Label text="Sys-Param" class="unity-base-field__label"/>
         <editor:ToolbarMenu name="sys-param" class="unity-base-field__input" style="border-width: 1px;"/>
     </VisualElement>
     <VisualElement style="align-items: center;">

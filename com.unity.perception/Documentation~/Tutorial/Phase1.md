@@ -39,7 +39,7 @@ Once your new project is created and loaded, you will be presented with the Unit
 
 As the name suggests, the _**Package Manager**_ is where you can download new packages, update or remove existing ones, and access a variety of information and additional actions for each package.
 
-* **Action**: Click on the _**+**_ sign at the top-left corner of the _**Package Manager**_ window and then choose the option _**Add package frim git URL...**_. 
+* **Action**: Click on the _**+**_ sign at the top-left corner of the _**Package Manager**_ window and then choose the option _**Add package from git URL...**_. 
 * **Action**: Enter the address `com.unity.perception` and click _**Add**_.
 
 **Note:** If you would like a specific version of the package, you can append the version to the end of the url. For example `com.unity.perception@0.1.0-preview.5`. For this tutorial, **we do not need to add a version**. You can also install the package from a local clone of the Perception repository. More information on installing local packages is available [here](https://docs.unity3d.com/Manual/upm-ui-local.html).
@@ -51,7 +51,7 @@ It will take some time for the manager to download and import the package. Once 
 </p>
 
 
-Each package can come with a set of samples. As seen in the righthand panel, the Perception package includes a sample named _**Tutorial Files**_, which will be required for completing this tutorial. The sample files consist of example foreground and background objects, randomizers, shaders, and other useful elements to work with during this tutorial. **Foreground** objects are those thatthe eventual machine learning model will try to detect, and **background** objects will be placed in the background as distractors for the model.
+Each package can come with a set of samples. As seen in the righthand panel, the Perception package includes a sample named _**Tutorial Files**_, which will be required for completing this tutorial. The sample files consist of example foreground and background objects, randomizers, shaders, and other useful elements to work with during this tutorial. **Foreground** objects are those that the eventual machine learning model will try to detect, and **background** objects will be placed in the background as distractors for the model.
 
 * **Action**: In the _**Package Manager**_ window, from the list of _**Samples**_ for the Perception package, click on the _**Import into Project**_ button for the sample named _**Tutorial Files**_.
 
@@ -262,7 +262,7 @@ The background Prefabs are primitive shapes devoid of color or texture. Later Ra
 <img src="Images/background_randomizer.png" width = "400"/>
 </p>
 
-* **Action**: Click on the **▷** (play) button located at top middle section of the editor to run your simulation.
+* **Action**: Click on the **▷** (play) button located at the top middle section of the editor to run your simulation.
 
 <p align="center">
 <img src="Images/play.png" width = "500"/>

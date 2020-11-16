@@ -28,7 +28,7 @@ If you have not logged in yet, the _**Services**_ tab will display a message not
 * **Action**: Click _**Sign in...**_ and follow the steps in the window that opens to sign in or create an account.
 * **Action**: Sign up for a free trial of Unity Simulation [here](https://unity.com/products/unity-simulation).
 
-Unity Simulation is a cloud-based service that makes it possible for you run thousands of instances of Unity builds in order to generate massive amounts of data. The Unity Simulation service is billed on a per-usage basis, and the free trial offers up to $100 of free credit per month. In order to access the free trial, you will need to provide credit card information. **This information will be used to charge your account if you exceed the $100 monthly credit.** A list of hourly and daily rates for various computational resources is available in the page where you first register for Unity Simulation.
+Unity Simulation is a cloud-based service that makes it possible for you to run hundreds of instances of Unity builds in order to generate massive amounts of data. The Unity Simulation service is billed on a per-usage basis, and the free trial offers up to $100 of free credit per month. In order to access the free trial, you will need to provide credit card information. **This information will be used to charge your account if you exceed the $100 monthly credit.** A list of hourly and daily rates for various computational resources is available in the page where you first register for Unity Simulation.
 
 Once you have registered for a free trial, you will be taken to your Unity Simulation dashboard, where you will be able to observe your usage and billing invoices.
 
@@ -248,7 +248,7 @@ Here is an example output of this command, indicating that there is only one nod
 
 ### <a name="step-4">Step 4: Analyze the Dataset using Dataset Insights</a> 
 
- In order to to download the actual data from your run, we will now use Dataset Insights again. This time though, we will utilize some of the lines that were commented in our previous use with locally generated data.
+ In order to download the actual data from your run, we will now use Dataset Insights again. This time though, we will utilize some of the lines that were commented in our previous use with locally generated data.
 
  * **Action**: Open the Dataset Insights Jupyter notebook again, using the command below:
  

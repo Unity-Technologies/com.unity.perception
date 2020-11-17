@@ -47,6 +47,13 @@ namespace GroundTruthTests
         }
     }
 
+    public enum RendererType
+    {
+        MeshRenderer,
+        SkinnedMeshRenderer,
+        Terrain
+    }
+
     //Graphics issues with OpenGL Linux Editor. https://jira.unity3d.com/browse/AISV-422
     [UnityPlatform(exclude = new[] {RuntimePlatform.LinuxEditor, RuntimePlatform.LinuxPlayer})]
     public class SegmentationPassTests : GroundTruthTestBase
@@ -62,7 +69,7 @@ namespace GroundTruthTests
         // `yield return null;` to skip a frame.
         [UnityTest]
         public IEnumerator SegmentationPassTestsWithEnumeratorPasses(
-            [Values(false, true)] bool useSkinnedMeshRenderer,
+            [Values(RendererType.MeshRenderer, RendererType.SkinnedMeshRenderer, RendererType.Terrain)] RendererType rendererType,
             [Values(SegmentationKind.Instance, SegmentationKind.Semantic)] SegmentationKind segmentationKind)
         {
             int timesSegmentationImageReceived = 0;
@@ -90,32 +97,40 @@ namespace GroundTruthTests
                     break;
             }
 
-            //
-            // // Arbitrary wait for 5 frames for shaders to load. Workaround for issue with Shader.WarmupAllShaders()
-            // for (int i=0 ; i<5 ; ++i)
-            //     yield return new WaitForSeconds(1);
-
-            frameStart = Time.frameCount;
-
             //Put a plane in front of the camera
-            var planeObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            if (useSkinnedMeshRenderer)
+            GameObject planeObject;
+            if (rendererType == RendererType.Terrain)
             {
-                var oldObject = planeObject;
-                planeObject = new GameObject();
-
-                var meshFilter = oldObject.GetComponent<MeshFilter>();
-                var meshRenderer = oldObject.GetComponent<MeshRenderer>();
-                var skinnedMeshRenderer = planeObject.AddComponent<SkinnedMeshRenderer>();
-                skinnedMeshRenderer.sharedMesh = meshFilter.sharedMesh;
-                skinnedMeshRenderer.material = meshRenderer.material;
-
-                Object.DestroyImmediate(oldObject);
+                var terrainData = new TerrainData();
+                AddTestObjectForCleanup(terrainData);
+                //look down because terrains cannot be rotated
+                cameraObject.transform.rotation = Quaternion.LookRotation(Vector3.down, Vector3.forward);
+                planeObject = Terrain.CreateTerrainGameObject(terrainData);
+                planeObject.transform.SetPositionAndRotation(new Vector3(-10, -10, -10), Quaternion.identity);
             }
-            planeObject.transform.SetPositionAndRotation(new Vector3(0, 0, 10), Quaternion.Euler(90, 0, 0));
-            planeObject.transform.localScale = new Vector3(10, -1, 10);
+            else
+            {
+                planeObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                if (rendererType == RendererType.SkinnedMeshRenderer)
+                {
+                    var oldObject = planeObject;
+                    planeObject = new GameObject();
+
+                    var meshFilter = oldObject.GetComponent<MeshFilter>();
+                    var meshRenderer = oldObject.GetComponent<MeshRenderer>();
+                    var skinnedMeshRenderer = planeObject.AddComponent<SkinnedMeshRenderer>();
+                    skinnedMeshRenderer.sharedMesh = meshFilter.sharedMesh;
+                    skinnedMeshRenderer.material = meshRenderer.material;
+
+                    Object.DestroyImmediate(oldObject);
+                }
+                planeObject.transform.SetPositionAndRotation(new Vector3(0, 0, 10), Quaternion.Euler(90, 0, 0));
+                planeObject.transform.localScale = new Vector3(10, -1, 10);
+            }
             var labeling = planeObject.AddComponent<Labeling>();
             labeling.labels.Add("label");
+
+            frameStart = Time.frameCount;
 
             AddTestObjectForCleanup(planeObject);
 

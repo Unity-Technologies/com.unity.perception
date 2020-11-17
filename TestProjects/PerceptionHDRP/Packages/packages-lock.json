@@ -107,6 +107,7 @@
         "com.unity.nuget.newtonsoft-json": "1.1.2",
         "com.unity.render-pipelines.core": "7.1.6",
         "com.unity.entities": "0.8.0-preview.8",
+        "com.unity.simulation.client": "0.0.10-preview.9",
         "com.unity.simulation.capture": "0.0.10-preview.13",
         "com.unity.simulation.core": "0.0.10-preview.19"
       }
@@ -209,6 +210,13 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.simulation.client": {
+      "version": "0.0.10-preview.9",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.simulation.core": {
       "version": "0.0.10-preview.19",
       "depth": 0,
@@ -260,7 +268,8 @@
       "depth": 0,
       "source": "builtin",
       "dependencies": {
-        "com.unity.modules.ui": "1.0.0"
+        "com.unity.modules.ui": "1.0.0",
+        "com.unity.modules.imgui": "1.0.0"
       }
     },
     "com.unity.visualeffectgraph": {

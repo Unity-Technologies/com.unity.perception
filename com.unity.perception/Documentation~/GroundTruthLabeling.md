@@ -11,6 +11,11 @@ Unity uses the resolved Label Entry from the Label Config to produce the final o
 ## Labeling component
 The Labeling component associates a list of string-based labels with a GameObject and its descendants. A Labeling component on a descendant overrides its parent's labels.
 
+### Limitations
+Labeling is supported on MeshRenderers, SkinnedMeshRenderers, and partially supported on Terrains.
+
+On terrains, the labels will be applied to the entire terrain. Trees and details can not be labeled. They will always render as black or zero in instance and segmentation images and will occlude other objects in ground truth.
+
 ## Label Config
 Many labelers require a Label Config asset. This asset specifies a list of all labels to be captured in the dataset along with extra information used by the various labelers.
 

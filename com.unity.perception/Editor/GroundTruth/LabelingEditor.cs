@@ -120,20 +120,53 @@ namespace UnityEditor.Perception.GroundTruth
             });
         }
 
-        void UpdateActivenessOfUiElements()
+        bool SerializedObjectHasValidLabelingScheme(SerializedObject serObj)
+        {
+            var schemeName = serObj.FindProperty(nameof(Labeling.autoLabelingSchemeType)).stringValue;
+            return IsValidLabelingSchemeName(schemeName);
+        }
+
+        bool IsValidLabelingSchemeName(string schemeName)
+        {
+            return schemeName != string.Empty &&
+                   m_LabelingSchemes.FindAll(scheme => scheme.GetType().Name == schemeName).Count > 0;
+        }
+
+        void UpdateUiAspects()
         {
             m_ManualLabelingContainer.SetEnabled(!m_AutoLabelingToggle.value);
             m_AutoLabelingContainer.SetEnabled(m_AutoLabelingToggle.value);
-            if (serializedObject.targetObjects.Length > 1)
+
+            if (!m_AutoLabelingToggle.value || serializedObject.targetObjects.Length > 1 ||
+                !SerializedObjectHasValidLabelingScheme(new SerializedObject(serializedObject.targetObjects[0])))
             {
-                m_CurrentAutoLabelTitle.text = "Select assets individually to inspect their automatic labels.";
                 m_CurrentAutoLabel.style.display = DisplayStyle.None;
             }
-            // if (m_LabelingSchemesPopup.index == 0)
-            // {
-            //     m_CurrentAutoLabel.style.display = DisplayStyle.None;
-            //
-            // }
+            else
+            {
+                m_CurrentAutoLabel.style.display = DisplayStyle.Flex;
+            }
+
+
+            if (serializedObject.targetObjects.Length == 1)
+            {
+                m_AutoLabelingToggle.text = "Use Automatic Labeling";
+            }
+            else
+            {
+                m_CurrentAutoLabelTitle.text = "Select assets individually to inspect their automatic labels.";
+                m_AutoLabelingToggle.text = "Use Automatic Labeling for All Selected Items";
+            }
+        }
+
+
+        void UpdateCurrentAutoLabelValue(SerializedObject serObj)
+        {
+            var array = serObj.FindProperty(nameof(Labeling.labels));
+            if (array.arraySize > 0)
+            {
+                m_CurrentAutoLabel.text = array.GetArrayElementAtIndex(0).stringValue;
+            }
         }
 
         void InitializeLabelingSchemes(VisualElement parent)
@@ -154,14 +187,14 @@ namespace UnityEditor.Perception.GroundTruth
 
         void AutoLabelToggleChanged()
         {
-            UpdateActivenessOfUiElements();
+            UpdateUiAspects();
 
             if (m_AutoLabelingToggle.value)
             {
-                if (serializedObject.targetObjects.Length == 1)
-                {
-                    SyncAutoLabelWithSchemeSingleTarget(true);
-                }
+                // if (serializedObject.targetObjects.Length == 1)
+                // {
+                //     SyncAutoLabelWithSchemeSingleTarget(true);
+                // }
             }
             else
             {
@@ -170,42 +203,37 @@ namespace UnityEditor.Perception.GroundTruth
                     var serObj = new SerializedObject(targetObj);
                     serObj.FindProperty(nameof(Labeling.useAutoLabeling)).boolValue = false;
 
-                    var schemeName = serObj.FindProperty(nameof(Labeling.autoLabelingSchemeType)).stringValue;
-                    if (schemeName != String.Empty)
+                    if (SerializedObjectHasValidLabelingScheme(serObj))
                     {
                         //asset already had a labeling scheme before auto labeling was disabled, which means it has auto label(s) attached. these should be cleared now.
                         serObj.FindProperty(nameof(Labeling.labels)).ClearArray();
                     }
 
+                    serObj.FindProperty(nameof(Labeling.autoLabelingSchemeType)).stringValue = string.Empty;
+                    m_LabelingSchemesPopup.index = 0;
+
                     serObj.ApplyModifiedProperties();
                     serObj.SetIsDifferentCacheDirty();
                 }
             }
-
             RefreshManualLabelingData();
         }
 
         void AssignAutomaticLabelToSelectedAssets()
         {
-            UpdateActivenessOfUiElements();
             //the 0th index of this popup is "<Select Scheme>" and should not do anything
-
             if (m_LabelingSchemesPopup.index == 0)
             {
                 return;
             }
 
             var labelingScheme = m_LabelingSchemes[m_LabelingSchemesPopup.index - 1];
-            string topAssetAutoLabel = String.Empty;
 
             foreach (var targetObj in serializedObject.targetObjects)
             {
                 var serObj = new SerializedObject(targetObj);
                 serObj.FindProperty(nameof(Labeling.useAutoLabeling)).boolValue = true; //only set this flag once the user has actually chosen a scheme, otherwise, we will not touch the flag
                 serObj.FindProperty(nameof(Labeling.autoLabelingSchemeType)).stringValue = labelingScheme.GetType().Name;
-
-                BackupManualLabels(serObj);
-
                 var serLabelsArray = serObj.FindProperty(nameof(Labeling.labels));
                 serLabelsArray.ClearArray();
                 serLabelsArray.InsertArrayElementAtIndex(0);
@@ -213,26 +241,20 @@ namespace UnityEditor.Perception.GroundTruth
                 serLabelsArray.GetArrayElementAtIndex(0).stringValue = label;
                 if (targetObj == serializedObject.targetObjects[0] && serializedObject.targetObjects.Length == 1)
                 {
-                    topAssetAutoLabel = label;
+                    UpdateCurrentAutoLabelValue(serObj);
                 }
                 serObj.ApplyModifiedProperties();
                 serObj.SetIsDifferentCacheDirty();
             }
 
-            m_CurrentAutoLabel.text = topAssetAutoLabel;
-        }
-
-        void AssignAutomaticLabelToSerializedObject(SerializedObject serObj, string labelingSchemeName)
-        {
-            var labelingScheme = m_LabelingSchemes.Find(scheme => scheme.GetType().Name == labelingSchemeName);
-            AssignAutomaticLabelToSerializedObject(serObj, labelingScheme);
+            UpdateUiAspects();
+            RefreshManualLabelingData();
         }
 
         void AssignAutomaticLabelToSerializedObject(SerializedObject serObj, AssetLabelingScheme labelingScheme)
         {
             var serLabelsArray = serObj.FindProperty(nameof(Labeling.labels));
             var label = labelingScheme.GenerateLabel(serObj.targetObject);
-            BackupManualLabels(serObj);
             serLabelsArray.ClearArray();
             serLabelsArray.InsertArrayElementAtIndex(0);
             serLabelsArray.GetArrayElementAtIndex(0).stringValue = label;
@@ -240,79 +262,26 @@ namespace UnityEditor.Perception.GroundTruth
             serObj.SetIsDifferentCacheDirty();
         }
 
-        void BackupManualLabels(SerializedObject serObj)
-        {
-            // var serLabelsArray = serObj.FindProperty(nameof(Labeling.labels));
-            // var backupLabelsArray = serObj.FindProperty(nameof(Labeling.manualLabelsBackup));
-            // backupLabelsArray.ClearArray();
-            // for (int i = 0; i < serLabelsArray.arraySize; i++)
-            // {
-            //     backupLabelsArray.InsertArrayElementAtIndex(i);
-            //     backupLabelsArray.GetArrayElementAtIndex(i).stringValue =
-            //         serLabelsArray.GetArrayElementAtIndex(i).stringValue;
-            // }
-        }
-
-        void RetrieveFromManualLabelsBackupArray(SerializedObject serObj)
-        {
-            // var serLabelsArray = serObj.FindProperty(nameof(Labeling.labels));
-            // var backupLabelsArray = serObj.FindProperty(nameof(Labeling.manualLabelsBackup));
-            // serLabelsArray.ClearArray();
-            // for (int i = 0; i < backupLabelsArray.arraySize; i++)
-            // {
-            //     serLabelsArray.InsertArrayElementAtIndex(i);
-            //     serLabelsArray.GetArrayElementAtIndex(i).stringValue =
-            //         backupLabelsArray.GetArrayElementAtIndex(i).stringValue;
-            // }
-        }
-
-        void SyncAutoLabelWithSchemeSingleTarget(bool enableAutoLabeling = false)
-        {
-            var serObj = new SerializedObject(serializedObject.targetObjects[0]);
-            var currentLabelingSchemeName = serObj.FindProperty(nameof(Labeling.autoLabelingSchemeType)).stringValue;
-            if (currentLabelingSchemeName != String.Empty)
-            {
-                if (enableAutoLabeling)
-                {
-                    //the useAutoLabeling flag is only turned on for an asset if a valid scheme for auto labeling has also been chosen, that is why it is deferred to here instead of immediately on toggle click
-                    serObj.FindProperty(nameof(Labeling.useAutoLabeling)).boolValue = true;
-                }
-                AssignAutomaticLabelToSerializedObject(serObj, currentLabelingSchemeName);
-                var labelsArray = serObj.FindProperty(nameof(Labeling.labels));
-                if (labelsArray.arraySize > 0)
-                {
-                    var autoLabel = labelsArray.GetArrayElementAtIndex(0).stringValue;
-                    m_CurrentAutoLabel.text = autoLabel;
-                }
-
-                m_LabelingSchemesPopup.index =
-                    m_LabelingSchemes.FindIndex(scheme => scheme.GetType().Name.ToString() == currentLabelingSchemeName) + 1;
-            }
-            else
-            {
-
-            }
-        }
-
         void AssesAutoLabelingStatus()
         {
             var enabledOrNot = true;
             if (serializedObject.targetObjects.Length == 1)
             {
-                m_AutoLabelingToggle.text = "Use Automatic Labeling";
-                m_CurrentAutoLabel.style.display = DisplayStyle.Flex;
-
                 var serObj = new SerializedObject(serializedObject.targetObjects[0]);
                 var enabled = serObj.FindProperty(nameof(Labeling.useAutoLabeling)).boolValue;
-                SyncAutoLabelWithSchemeSingleTarget();
                 m_AutoLabelingToggle.value = enabled;
+                var currentLabelingSchemeName = serObj.FindProperty(nameof(Labeling.autoLabelingSchemeType)).stringValue;
+                if (IsValidLabelingSchemeName(currentLabelingSchemeName))
+                {
+                    m_LabelingSchemesPopup.index =
+                        m_LabelingSchemes.FindIndex(scheme => scheme.GetType().Name.ToString() == currentLabelingSchemeName) + 1;
+                }
+                UpdateCurrentAutoLabelValue(serObj);
             }
             else
             {
                 string unifiedLabelingScheme = null;
                 bool allAssetsUseSameLabelingScheme = true;
-                m_AutoLabelingToggle.text = "Use Automatic Labeling for All Selected Items";
-                m_CurrentAutoLabel.style.display = DisplayStyle.None;
 
                 foreach (var targetObj in serializedObject.targetObjects)
                 {
@@ -339,17 +308,6 @@ namespace UnityEditor.Perception.GroundTruth
                             allAssetsUseSameLabelingScheme = false;
                         }
                     }
-
-                    if (targetObj == serializedObject.targetObjects[0])
-                    {
-                        var labelsArray = serObj.FindProperty(nameof(Labeling.labels));
-                        if (labelsArray.arraySize > 0)
-                        {
-                            var autoLabelOfTopSelectedItem = labelsArray.GetArrayElementAtIndex(0).stringValue;
-                            m_CurrentAutoLabel.text = autoLabelOfTopSelectedItem;
-                        }
-                    }
-                    //}
                 }
                 m_AutoLabelingToggle.value = enabledOrNot;
 
@@ -366,10 +324,8 @@ namespace UnityEditor.Perception.GroundTruth
                 }
             }
 
-            if (!enabledOrNot)
-                m_CurrentAutoLabel.text = String.Empty;
+            UpdateUiAspects();
 
-            UpdateActivenessOfUiElements();
         }
 
         HashSet<string> CreateUnionOfAllLabels()
@@ -700,7 +656,7 @@ namespace UnityEditor.Perception.GroundTruth
                 {
                     string label2 = commonLabels[j];
 
-                    if (String.Equals(label, label2) && !commonsIndexToLabelsIndex.ContainsKey(j))
+                    if (string.Equals(label, label2) && !commonsIndexToLabelsIndex.ContainsKey(j))
                     {
                         commonsIndexToLabelsIndex.Add(j, i);
                     }

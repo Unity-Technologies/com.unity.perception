@@ -79,6 +79,12 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public RenderTexture targetTexture => m_TargetTextureOverride;
 
+        /// <inheritdoc cref="IOverlayPanelProvider"/>
+        public Texture overlayImage=> targetTexture;
+
+        /// <inheritdoc cref="IOverlayPanelProvider"/>
+        public string label => "SemanticSegmentation";
+
         [Tooltip("(Optional) The RenderTexture on which semantic segmentation images will be drawn. Will be reformatted on startup.")]
         [SerializeField]
         RenderTexture m_TargetTextureOverride;
@@ -213,9 +219,6 @@ namespace UnityEngine.Perception.GroundTruth
                 (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
 
             visualizationEnabled = supportsVisualization;
-
-            if (visualizationEnabled && perceptionCamera.overlayPanel != null)
-                perceptionCamera.overlayPanel.RegisterOverlayProvider(this);
         }
 
         void OnSemanticSegmentationImageRead(int frameCount, NativeArray<Color32> data)
@@ -275,12 +278,6 @@ namespace UnityEngine.Perception.GroundTruth
                 m_TargetTextureOverride.Release();
 
             m_TargetTextureOverride = null;
-        }
-
-        /// <inheritdoc cref="IOverlayPanelProvider"/>
-        public Texture GetOverlayImage()
-        {
-            return targetTexture;
         }
     }
 }

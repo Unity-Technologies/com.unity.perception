@@ -13,10 +13,14 @@ namespace UnityEngine.Perception.GroundTruth
     public interface IOverlayPanelProvider
     {
         /// <summary>
-        /// Provides an image to the overlay panel.
+        /// The image to the overlay panel.
         /// </summary>
-        /// <returns>The image for the overlay panel.</returns>
-        Texture GetOverlayImage();
+        Texture overlayImage { get; }
+
+        /// <summary>
+        /// The label of the overlay panel.
+        /// </summary>
+        string label { get; }
     }
 
     /// <summary>
@@ -25,8 +29,9 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class OverlayPanel : MonoBehaviour
     {
+        internal PerceptionCamera perceptionCamera { get; set; }
+
         bool m_Enabled;
-        Dictionary<string, IOverlayPanelProvider> m_OverlayProviders = new Dictionary<string, IOverlayPanelProvider>();
 
         GUIStyle m_LabelStyle;
         GUIStyle m_SliderStyle;
@@ -47,25 +52,6 @@ namespace UnityEngine.Perception.GroundTruth
         Texture2D m_NormalDropDownTexture;
         Texture2D m_HoverDropDownTexture;
 
-        /// <summary>
-        /// Registers a labeler as an overlay provider.
-        /// </summary>
-        /// <param name="provider">The overlay provider to register.</param>
-        /// <typeparam name="T">The type of the labeler, which must be an overlay provider and camera labeler</typeparam>
-        /// <returns>Did the labeler register properly</returns>
-        public bool RegisterOverlayProvider<T>(T provider) where T : CameraLabeler, IOverlayPanelProvider
-        {
-            var label = provider.GetType().Name;
-
-            m_OverlayProviders.Add(label, provider);
-
-            // we will set the first added provider as the default provider
-            if (m_OverlayProviders.Count == 1)
-                m_ActiveProvider = label;
-
-            return true;
-        }
-
         void SetEnabled(bool isEnabled)
         {
             if (isEnabled == m_Enabled) return;
@@ -74,10 +60,12 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_SegCanvas.SetActive(isEnabled);
 
-            foreach (var p in m_OverlayProviders.Values)
+            foreach (var p in perceptionCamera.labelers)
             {
-                if (p is CameraLabeler labeler)
-                    labeler.visualizationEnabled = isEnabled;
+                if (p is IOverlayPanelProvider)
+                {
+                    p.visualizationEnabled = isEnabled;
+                }
             }
 
             // Clear out the handle to the cached overlay texture if we are not isEnabled
@@ -134,34 +122,53 @@ namespace UnityEngine.Perception.GroundTruth
             m_SelectorToggleStyle.focused.background = m_HoverDropDownTexture;
 
             m_WindowStyle = new GUIStyle(GUI.skin.window);
-            var windowBackgroundTexture = new Texture2D(1, 1);
-            windowBackgroundTexture.SetPixel(1,1, new Color(0.15f, 0.15f, 0.15f, 1));
-            windowBackgroundTexture.Apply();
-            m_WindowStyle.normal.background = windowBackgroundTexture;
+            var backTexture = Resources.Load<Texture2D>("instance_back");
+            m_WindowStyle.normal.background = backTexture;
         }
 
-        string m_ActiveProvider = "None Available";
+        IOverlayPanelProvider m_ActiveProvider = null;
 
         // Make the contents of the window
         void OnSelectorPopup(int windowID)
         {
-            foreach (var p in m_OverlayProviders.Keys.Where(p => GUILayout.Button(p)))
+            foreach (var labeler in perceptionCamera.labelers.Where(l => l is IOverlayPanelProvider &&  l.enabled))
             {
-                m_ActiveProvider = p;
-                m_ShowPopup = false;
+                var panel = labeler as IOverlayPanelProvider;
+                if (GUILayout.Button(panel.label))
+                {
+                    m_ActiveProvider = panel;
+                    m_ShowPopup = false;
+                }
             }
         }
 
         internal void OnDrawGUI(float x, float y, float width, float height)
         {
-            if (!m_OverlayProviders.Any()) return;
+            var any = perceptionCamera.labelers.Any(l => l is IOverlayPanelProvider && l.enabled);
+
+            // If there used to be active providers, but they have been turned off, remove
+            // the active provider and return null. If one has come online, then set it to the active
+            // provider
+            if (!any)
+            {
+                m_ActiveProvider = null;
+                return;
+            }
+            else
+            {
+                if (m_ActiveProvider == null)
+                    m_ActiveProvider = perceptionCamera.labelers.First(l => l is IOverlayPanelProvider && l.enabled) as IOverlayPanelProvider;
+            }
+
+            if (m_ActiveProvider == null)
+                return;
 
             if (m_OverlayImage == null)
             {
                 SetupVisualizationElements();
             }
 
-            GUILayout.Label("Labeler Overlay");
+            GUILayout.Label("Overlay");
             GUILayout.BeginHorizontal();
             GUILayout.Space(10);
             GUILayout.Label("Enabled");
@@ -179,8 +186,9 @@ namespace UnityEngine.Perception.GroundTruth
             GUILayout.Space(5);
             GUILayout.BeginHorizontal();
             GUILayout.Space(10);
+
             // Truncate the label if it overflows the button size
-            var label = m_ActiveProvider;
+            var label = m_ActiveProvider?.label ?? "Not Selected";
             var trunc = new StringBuilder(label.Substring(0, Math.Min(label.Length, 10)));
             if (trunc.Length != label.Length)
                 trunc.Append("...");
@@ -208,7 +216,7 @@ namespace UnityEngine.Perception.GroundTruth
             GUI.skin.label.padding.left = 0;
 
             // Grab the overlay image from the active provider
-            m_OverlayImage.texture = m_OverlayProviders[m_ActiveProvider].GetOverlayImage();
+            m_OverlayImage.texture = m_ActiveProvider?.overlayImage;
 
             var rt = m_SegVisual.transform as RectTransform;
             if (rt != null && m_CachedHeight != Screen.height)

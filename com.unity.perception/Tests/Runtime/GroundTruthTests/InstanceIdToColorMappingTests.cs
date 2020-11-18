@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -14,6 +15,10 @@ namespace GroundTruthTests
             {
                 Assert.IsTrue(InstanceIdToColorMapping.TryGetColorFromInstanceId(i, out var color));
                 Assert.IsTrue(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id));
+                Assert.AreEqual(i, id);
+
+                color = InstanceIdToColorMapping.GetColorFromInstanceId(i);
+                id = InstanceIdToColorMapping.GetInstanceIdFromColor(color);
                 Assert.AreEqual(i, id);
             }
         }
@@ -64,12 +69,20 @@ namespace GroundTruthTests
 
             Assert.IsTrue(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id2));
             Assert.AreEqual(id, id2);
+
+            color = InstanceIdToColorMapping.GetColorFromInstanceId(id);
+            Assert.AreEqual(color.r, r);
+            Assert.AreEqual(color.g, g);
+            Assert.AreEqual(color.b, b);
+            Assert.AreEqual(color.a, a);
+
+            id2 = InstanceIdToColorMapping.GetInstanceIdFromColor(color);
+            Assert.AreEqual(id, id2);
         }
 
         [Test]
         [TestCase(0u)]
         [TestCase(255u)]
-        [TestCase(uint.MaxValue)]
         public void InstanceIdToColorMappingTests_GetBlackForId(uint id)
         {
             Assert.IsFalse(InstanceIdToColorMapping.TryGetColorFromInstanceId(id, out var color));
@@ -79,6 +92,33 @@ namespace GroundTruthTests
             Assert.AreEqual(color.a, 255);
             Assert.IsFalse(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id2));
             Assert.AreEqual(0, id2);
+
+            color = InstanceIdToColorMapping.GetColorFromInstanceId(id);
+            Assert.AreEqual(color.r, 0);
+            Assert.AreEqual(color.g, 0);
+            Assert.AreEqual(color.b, 0);
+            Assert.AreEqual(color.a, 255);
+            id2 = InstanceIdToColorMapping.GetInstanceIdFromColor(color);
+            Assert.AreEqual(0, id2);
+        }
+
+        [Test]
+        public void InstanceIdToColorMappingTests_ThrowExceptionIdTooLarge()
+        {
+            Assert.Throws<IndexOutOfRangeException>(() => InstanceIdToColorMapping.TryGetColorFromInstanceId(uint.MaxValue, out var color));
+            Assert.Throws<IndexOutOfRangeException>(() => InstanceIdToColorMapping.GetColorFromInstanceId(uint.MaxValue));
+
+            var c = new Color32(255, 255, 255, 0);
+            Assert.Throws<IndexOutOfRangeException>(() => InstanceIdToColorMapping.GetInstanceIdFromColor(c));
+            Assert.Throws<IndexOutOfRangeException>(() => InstanceIdToColorMapping.TryGetInstanceIdFromColor(c, out var id));
+        }
+
+        [Test]
+        public void InstanceIdToColorMappingTests_ThrowExceptionIdNotMapped()
+        {
+            var c = new Color32(28,92,14,255);
+            Assert.Throws<InvalidOperationException>(() => InstanceIdToColorMapping.GetInstanceIdFromColor(c));
+            Assert.Throws<InvalidOperationException>(() => InstanceIdToColorMapping.TryGetInstanceIdFromColor(c, out var id));
         }
     }
 }

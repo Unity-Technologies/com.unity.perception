@@ -179,6 +179,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             hudPanel = gameObject.AddComponent<HUDPanel>();
             overlayPanel = gameObject.AddComponent<OverlayPanel>();
+            overlayPanel.perceptionCamera = this;
 #endif
         }
 

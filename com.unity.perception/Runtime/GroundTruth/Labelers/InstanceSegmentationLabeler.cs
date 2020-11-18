@@ -44,11 +44,18 @@ namespace UnityEngine.Perception.GroundTruth
 
         AnnotationDefinition m_AnnotationDefinition;
 
-        static ProfilerMarker s_OnObjectInfoReceivedCallback = new ProfilerMarker("OnObjectInformationReceived");
-        static ProfilerMarker s_OnImageReceivedCallback = new ProfilerMarker("OnSemanticImagesReceived");
+        static ProfilerMarker s_OnObjectInfoReceivedCallback = new ProfilerMarker("OnInstanceSegmentationObjectInformationReceived");
+        static ProfilerMarker s_OnImageReceivedCallback = new ProfilerMarker("OnInstanceSegmentationImagesReceived");
 
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
         Texture m_CurrentTexture;
+
+        /// <inheritdoc cref="IOverlayPanelProvider"/>
+        // ReSharper disable once ConvertToAutoPropertyWithPrivateSetter
+        public Texture overlayImage => m_CurrentTexture;
+
+        /// <inheritdoc cref="IOverlayPanelProvider"/>
+        public string label => "InstanceSegmentation";
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
@@ -133,10 +140,10 @@ namespace UnityEngine.Perception.GroundTruth
 
                 asyncRequest.Enqueue(r =>
                 {
-                    Profiler.BeginSample("Encode");
+                    Profiler.BeginSample("InstanceSegmentationEncode");
                     var pngBytes = ImageConversion.EncodeArrayToPNG(r.data.data.ToArray(), GraphicsFormat.R8G8B8A8_UNorm, (uint)r.data.width, (uint)r.data.height);
                     Profiler.EndSample();
-                    Profiler.BeginSample("WritePng");
+                    Profiler.BeginSample("InstanceSegmentationWritePng");
                     File.WriteAllBytes(r.data.path, pngBytes);
                     Manager.Instance.ConsumerFileProduced(r.data.path);
                     Profiler.EndSample();
@@ -174,14 +181,6 @@ namespace UnityEngine.Perception.GroundTruth
                 Guid.Parse(annotationId));
 
             visualizationEnabled = supportsVisualization;
-
-            perceptionCamera.overlayPanel.RegisterOverlayProvider(this);
-        }
-
-        /// <inheritdoc cref="IOverlayPanelProvider"/>
-        public Texture GetOverlayImage()
-        {
-            return m_CurrentTexture;
         }
     }
 }

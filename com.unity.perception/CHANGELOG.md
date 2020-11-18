@@ -15,6 +15,7 @@ Added support for full screen visual overlays and overlay manager
 ### Changed
 
 Updated perception to user burst 1.3.9
+Changed InstanceSegmentationImageReadback event to provide a NativeArray\<Color32\> instead of NativeArray\<uint\>
 
 ### Deprecated
 

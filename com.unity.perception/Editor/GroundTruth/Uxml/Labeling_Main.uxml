@@ -1,13 +1,21 @@
-<UXML xmlns="UnityEngine.UIElements">
+<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
     <BindableElement class="outer-container" name="outer-container">
         <Style src="../Uss/Styles.uss"/>
-        <VisualElement name="added-labels" class="inner-container" style="margin-top:0px">
+        <Toggle name = "auto-or-manual-toggle" text="Use Automatic Labeling" style="margin-top: 5px"/>
+        <VisualElement name="automatic-labeling" class="inner-container">
+            <VisualElement name = "drop-down-parent"/>
+            <VisualElement style="flex-direction:row; flex-shrink:1; width:auto">
+                <Label name ="current-auto-label-title" text="Automatic Label:"/>
+                <Label name ="current-auto-label" style="-unity-font-style: bold; margin-left: 54px;"/>
+            </VisualElement>
+        </VisualElement>
+        <VisualElement name="manual-labeling" class="inner-container" style="">
             <Label text="Added Labels" name="added-labels-title" class="title-label"/>
             <ListView name="current-labels-listview" class="labeling__label-listview" style="margin-top: 5px"/>
             <Button name="add-label" text="Add New Label" class="labeling__add-label-button"/>
-        </VisualElement>
-        <VisualElement name="add-more-labels" class="inner-container">
-            <Label text="Add Labels" class="title-label"/>
+        <!--</VisualElement>
+        <VisualElement name="add-more-labels" class="inner-container"> -->
+            <Label text="Add Labels" class="title-label" style = "margin-top:10px"/>
             <VisualElement name="from-label-configs" class="inner-container depth2">
                 <Label text="From Existing Label Configs" class="title-label"/>
                 <VisualElement name="add-from-label-configs" style="padding-top: 10px;">

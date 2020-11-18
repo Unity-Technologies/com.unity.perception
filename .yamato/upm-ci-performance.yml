@@ -9,6 +9,7 @@
   name : {{project.name}} {{ suite.display_name }} performance tests ({{ editor.version }}, Linux)
   agent:
     type: Unity::VM::GPU
+    model: rtx2080
     image: cds-ops/ubuntu-18.04-base:latest
     flavor: b1.large
   variables:
@@ -37,7 +38,8 @@
 {{project.name}}_windows_{{suite.name}}_{{editor.version}}:
   name : {{project.name}} {{ suite.display_name }} performance tests ({{ editor.version }}, Windows)
   agent:
-    type: Unity::VM
+    type: Unity::VM::GPU
+    model: rtx2080
     image: package-ci/win10:stable
     flavor: b1.large
   commands:

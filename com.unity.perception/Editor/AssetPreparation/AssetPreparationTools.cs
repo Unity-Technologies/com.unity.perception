@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace UnityEditor.Perception.AssetPreparation
@@ -12,7 +13,14 @@ namespace UnityEditor.Perception.AssetPreparation
         [MenuItem("Assets/Perception/Create Prefabs from Selected Models")]
         static void CreatePrefabsFromSelectedModels()
         {
-            
+            foreach (var selection in Selection.gameObjects)
+            {
+                var path = AssetDatabase.GetAssetPath(selection);
+                var tmpGameObject = Instantiate(selection);
+                var destinationPath = Path.GetDirectoryName(path) + "/" + selection.name + ".prefab";
+                PrefabUtility.SaveAsPrefabAsset(tmpGameObject, destinationPath);
+                DestroyImmediate(tmpGameObject);
+            }
         }
     }
 

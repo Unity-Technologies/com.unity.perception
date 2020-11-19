@@ -14,6 +14,8 @@ Added support for labeling Terrain objects. Trees and details are not labeled bu
 
 Expanded all Unity Simulation references from USim to Unity Simulation
 
+Uniform and Normal samplers now serialize their random seeds
+
 ### Deprecated
 
 ### Removed

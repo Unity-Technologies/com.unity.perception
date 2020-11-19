@@ -152,21 +152,39 @@ namespace UnityEngine.Perception.GroundTruth
             if (!any)
             {
                 m_ActiveProvider = null;
-                return;
             }
             else
             {
-                if (m_ActiveProvider == null)
-                    m_ActiveProvider = perceptionCamera.labelers.First(l => l is IOverlayPanelProvider && l.enabled) as IOverlayPanelProvider;
+                var findNewProvider = m_ActiveProvider == null;
+
+                if (!findNewProvider)
+                {
+                    if (m_ActiveProvider is CameraLabeler l)
+                    {
+                        findNewProvider = !l.enabled;
+                    }
+                }
+
+                if (findNewProvider)
+                    m_ActiveProvider= perceptionCamera.labelers.First(l => l is IOverlayPanelProvider && l.enabled) as IOverlayPanelProvider;
+
             }
 
             if (m_ActiveProvider == null)
+            {
+                m_SegCanvas.SetActive(false);
                 return;
+            }
 
             if (m_OverlayImage == null)
             {
                 SetupVisualizationElements();
             }
+
+            // If all overlays were offline, but now one has come on line
+            // we need to set the canvas back to active
+            if (!m_SegCanvas.activeSelf)
+                m_SegCanvas.SetActive(true);
 
             GUILayout.Label("Overlay");
             GUILayout.BeginHorizontal();

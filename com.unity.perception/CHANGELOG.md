@@ -26,6 +26,8 @@ Fixed Unity Simulation nodes generating one extra empty image before generating 
 
 Fixed enumeration in the CategoricalParameter.categories property
 
+The GenerateRandomSeedFromIndex method now correctly hashes the current scenario iteration into the random seed it generates
+
 ## [0.5.0-preview.1] - 2020-10-14
 
 ### Known Issues

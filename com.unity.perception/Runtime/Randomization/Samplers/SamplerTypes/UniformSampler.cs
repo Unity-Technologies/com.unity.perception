@@ -11,13 +11,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
     [Serializable]
     public struct UniformSampler : ISampler
     {
-        Unity.Mathematics.Random m_Random;
+        [SerializeField, HideInInspector] Unity.Mathematics.Random m_Random;
 
         /// <summary>
         /// The base seed used to initialize this sampler's state
         /// </summary>
-        [field: SerializeField]
-        public uint baseSeed { get; set; }
+        [field: SerializeField] public uint baseSeed { get; set; }
 
         /// <summary>
         /// The current random state of this sampler

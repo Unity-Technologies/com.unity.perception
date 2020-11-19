@@ -59,6 +59,18 @@ namespace UnityEngine.Perception.GroundTruth
 
         void InitGameObjectRecursive(GameObject gameObject, MaterialPropertyBlock mpb, Labeling labeling, uint instanceId)
         {
+
+            var terrain = gameObject.GetComponent<Terrain>();
+
+            if (terrain != null)
+            {
+                terrain.GetSplatMaterialPropertyBlock(mpb);
+                foreach (var pass in m_ActiveGenerators)
+                    pass.SetupMaterialProperties(mpb, null, labeling, instanceId);
+
+                terrain.SetSplatMaterialPropertyBlock(mpb);
+            }
+
             var renderer = (Renderer)gameObject.GetComponent<MeshRenderer>();
             if (renderer == null)
                 renderer = gameObject.GetComponent<SkinnedMeshRenderer>();

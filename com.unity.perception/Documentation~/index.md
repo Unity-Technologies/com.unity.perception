@@ -28,8 +28,8 @@ The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologie
 
 |Feature|Description|
 |---|---|
-|[Labeling](GroundTruth-Labeling.md)|A component that marks a GameObject and its descendants with a set of labels|
-|[LabelConfig](GroundTruth-Labeling.md#LabelConfig)|An asset that defines a taxonomy of labels for ground truth generation|
+|[Labeling](GroundTruthLabeling.md)|A component that marks a GameObject and its descendants with a set of labels|
+|[LabelConfig](GroundTruthLabeling.md#label-config)|An asset that defines a taxonomy of labels for ground truth generation|
 |[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html).|
 |[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
 |[Randomization (Experimental)](Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|

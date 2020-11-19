@@ -14,7 +14,7 @@ promotion_test_{{ platform.name }}_{{ editor.version }}:
     UPMCI_PROMOTION: 1
   commands:
     - git submodule update --init --recursive
-    - npm install upm-ci-utils -g --registry {{ upmci_registry }}
+    - npm install upm-ci-utils@stable -g --registry {{ upmci_registry }}
     - upm-ci package test -u {{ editor.version }} --package-path ./com.unity.perception --type vetting-tests
   artifacts:
     logs:

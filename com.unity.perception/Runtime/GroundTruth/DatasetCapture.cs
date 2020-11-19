@@ -161,7 +161,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         static SimulationState CreateSimulationData()
         {
-            //TODO: Remove the Guid path when we have proper dataset merging in USim/Thea
+            //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
             return new SimulationState($"Dataset{k_DatasetGuid}");
         }
 

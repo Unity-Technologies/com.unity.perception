@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Unity.Simulation.Client;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
-using UnityEditor.SceneManagement;
 using UnityEditor.UIElements;
 using UnityEngine.Experimental.Perception.Randomization.Editor;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
@@ -16,7 +15,7 @@ using ZipUtility;
 
 namespace UnityEngine.Perception.Randomization.Editor
 {
-    class RunInUSimWindow : EditorWindow
+    class RunInUnitySimulationWindow : EditorWindow
     {
         string m_BuildDirectory;
 
@@ -30,10 +29,10 @@ namespace UnityEngine.Perception.Randomization.Editor
         ObjectField m_ScenarioField;
         Button m_RunButton;
 
-        [MenuItem("Window/Run in USim")]
+        [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
         {
-            var window = GetWindow<RunInUSimWindow>();
+            var window = GetWindow<RunInUnitySimulationWindow>();
             window.titleContent = new GUIContent("Run In Unity Simulation");
             window.minSize = new Vector2(250, 50);
             window.Show();
@@ -75,7 +74,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             }
             else
             {
-                CreateRunInUSimUI();
+                CreateRunInUnitySimulationUI();
             }
         }
 
@@ -85,14 +84,14 @@ namespace UnityEngine.Perception.Randomization.Editor
         /// <param name="element">The visual element to enable view data for</param>
         static void SetViewDataKey(VisualElement element)
         {
-            element.viewDataKey = $"RunInUSim_{element.name}";
+            element.viewDataKey = $"RunInUnitySimulation_{element.name}";
         }
 
-        void CreateRunInUSimUI()
+        void CreateRunInUnitySimulationUI()
         {
             var root = rootVisualElement;
             AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                $"{StaticData.uxmlDir}/RunInUSimWindow.uxml").CloneTree(root);
+                $"{StaticData.uxmlDir}/RunInUnitySimulationWindow.uxml").CloneTree(root);
 
             m_RunNameField = root.Q<TextField>("run-name");
             SetViewDataKey(m_RunNameField);
@@ -132,14 +131,14 @@ namespace UnityEngine.Perception.Randomization.Editor
             m_SysParam = sysParamDefinitions[0];
 
             m_RunButton = root.Q<Button>("run-button");
-            m_RunButton.clicked += RunInUSim;
+            m_RunButton.clicked += RunInUnitySimulation;
         }
 
-        async void RunInUSim()
+        async void RunInUnitySimulation()
         {
             ValidateSettings();
             CreateLinuxBuildAndZip();
-            await StartUSimRun();
+            await StartUnitySimulationRun();
         }
 
         void ValidateSettings()
@@ -151,8 +150,9 @@ namespace UnityEngine.Perception.Randomization.Editor
             if (m_ScenarioField.value == null)
                 throw new MissingFieldException("Scenario unselected");
             var scenario = (ScenarioBase)m_ScenarioField.value;
-            if (!StaticData.IsSubclassOfRawGeneric(typeof(USimScenario<>), scenario.GetType()))
-                throw new NotSupportedException("Scenario class must be derived from USimScenario to run in USim");
+            if (!StaticData.IsSubclassOfRawGeneric(typeof(UnitySimulationScenario<>), scenario.GetType()))
+                throw new NotSupportedException(
+                    "Scenario class must be derived from UnitySimulationScenario to run in Unity Simulation");
         }
 
         void CreateLinuxBuildAndZip()
@@ -191,7 +191,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 if (token.IsCancellationRequested)
                     return null;
                 var appParamName = $"{m_RunNameField.value}_{i}";
-                var appParamId = API.UploadAppParam(appParamName, new USimConstants
+                var appParamId = API.UploadAppParam(appParamName, new UnitySimulationConstants
                 {
                     totalIterations = m_TotalIterationsField.value,
                     instanceCount = m_InstanceCountField.value,
@@ -207,7 +207,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             return appParamIds;
         }
 
-        async Task StartUSimRun()
+        async Task StartUnitySimulationRun()
         {
             m_RunButton.SetEnabled(false);
             var cancellationTokenSource = new CancellationTokenSource();

@@ -23,7 +23,7 @@ namespace UnityEngine.Perception.GroundTruth
     [RequireComponent(typeof(Camera))]
     public partial class PerceptionCamera : MonoBehaviour
     {
-        //TODO: Remove the Guid path when we have proper dataset merging in USim/Thea
+        //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
         internal static string RgbDirectory { get; } = $"RGB{Guid.NewGuid()}";
         static string s_RgbFilePrefix = "rgb_";
 

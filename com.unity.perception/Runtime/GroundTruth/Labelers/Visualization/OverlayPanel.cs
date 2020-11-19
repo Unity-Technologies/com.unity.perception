@@ -172,7 +172,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (m_ActiveProvider == null)
             {
-                m_SegCanvas.SetActive(false);
+                if (m_SegCanvas != null)
+                    m_SegCanvas.SetActive(false);
                 return;
             }
 

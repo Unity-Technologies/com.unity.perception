@@ -179,6 +179,10 @@ namespace UnityEngine.Perception.GroundTruth
                             instanceColor = color
                         };
                     }
+                    else
+                    {
+                        Debug.LogError($"Could not generate instance ID for object, ID exceeded maximum ID");
+                    }
                 }
                 keyValueArrays.Dispose();
             }

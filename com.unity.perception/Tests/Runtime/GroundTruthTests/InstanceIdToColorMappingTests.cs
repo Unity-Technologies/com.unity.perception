@@ -105,12 +105,17 @@ namespace GroundTruthTests
         [Test]
         public void InstanceIdToColorMappingTests_ThrowExceptionIdTooLarge()
         {
-            Assert.Throws<IndexOutOfRangeException>(() => InstanceIdToColorMapping.TryGetColorFromInstanceId(uint.MaxValue, out var color));
             Assert.Throws<IndexOutOfRangeException>(() => InstanceIdToColorMapping.GetColorFromInstanceId(uint.MaxValue));
-
             var c = new Color32(255, 255, 255, 0);
             Assert.Throws<IndexOutOfRangeException>(() => InstanceIdToColorMapping.GetInstanceIdFromColor(c));
-            Assert.Throws<IndexOutOfRangeException>(() => InstanceIdToColorMapping.TryGetInstanceIdFromColor(c, out var id));
+        }
+
+        [Test]
+        public void InstanceIdToColorMappingTests_TryGetReturnsFalseIdTooLarge()
+        {
+            Assert.IsFalse(InstanceIdToColorMapping.TryGetColorFromInstanceId(uint.MaxValue, out var color));
+            color = new Color32(255, 255, 255, 0);
+            Assert.IsFalse(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id));
         }
 
         [Test]
@@ -118,7 +123,13 @@ namespace GroundTruthTests
         {
             var c = new Color32(28,92,14,255);
             Assert.Throws<InvalidOperationException>(() => InstanceIdToColorMapping.GetInstanceIdFromColor(c));
-            Assert.Throws<InvalidOperationException>(() => InstanceIdToColorMapping.TryGetInstanceIdFromColor(c, out var id));
+        }
+
+        [Test]
+        public void InstanceIdToColorMappingTests_TryGetReturnsFalseIdNotMapped()
+        {
+            var c = new Color32(28,92,14,255);
+            Assert.IsFalse(InstanceIdToColorMapping.TryGetInstanceIdFromColor(c, out var id));
         }
     }
 }

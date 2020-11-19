@@ -19,7 +19,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The max ID supported by this class.
         /// </summary>
-        public const uint MaxId = uint.MaxValue - ((256 * 256 * 256) * 2) + k_HslCount;
+        public const uint maxId = uint.MaxValue - ((256 * 256 * 256) * 2) + k_HslCount;
 
         static Dictionary<uint, uint> s_IdToColorCache;
         static Dictionary<uint, uint> s_ColorToIdCache;
@@ -65,7 +65,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         static uint GetColorForId(uint id)
         {
-            if (id > MaxId || id == 0 || id == k_InvalidPackedColor) return k_InvalidPackedColor;
+            if (id > maxId || id == 0 || id == k_InvalidPackedColor) return k_InvalidPackedColor;
 
             if (id <= k_HslCount)
             {
@@ -80,30 +80,37 @@ namespace UnityEngine.Perception.GroundTruth
             return rgb << 8 | alpha;
         }
 
-        static uint GetIdForColor(uint color)
+        static bool TryGetIdForColor(uint color, out uint id)
         {
-            if (color == 0 || color == k_InvalidPackedColor) return 0;
+            if (color == 0 || color == k_InvalidPackedColor)
+            {
+                id = 0;
+                return true;
+            }
 
             var alpha = color & 0xff;
 
             if (alpha == 255)
             {
                 if (s_ColorToIdCache == null) InitializeMaps();
-                if (s_ColorToIdCache.TryGetValue(color, out var id))
-                {
-                    return id;
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Passed in color: {color} was not one of the reserved colors for alpha channel 255");
-                }
+                return s_ColorToIdCache.TryGetValue(color, out id);
             }
             else
             {
                 var rgb = color >> 8;
-                var id = k_HslCount + rgb + (256 * 256 * 256) * (254 - alpha);
-                return id;
+                id = k_HslCount + rgb + (256 * 256 * 256) * (254 - alpha);
+                return true;
             }
+        }
+
+        static uint GetIdForColor(uint color)
+        {
+            if (!TryGetIdForColor(color, out var id))
+            {
+                throw new InvalidOperationException($"Passed in color: {color} was not one of the reserved colors for alpha channel 255");
+            }
+
+            return id;
         }
 
         /// <summary>
@@ -134,14 +141,12 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="id">The ID of interest.</param>
         /// <param name="color">Will be set to the color associated with the passed in ID.</param>
         /// <returns>Returns true if the ID was mapped to a non-black color, otherwise returns false</returns>
-        /// <exception cref="IndexOutOfRangeException">Thrown if the passed in ID is greater than the largest supported ID <see cref="MaxId"/></exception>
         public static bool TryGetColorFromInstanceId(uint id, out Color32 color)
         {
-            if (id > MaxId) throw new IndexOutOfRangeException($"Passed in index: {id} is greater than max ID: {MaxId}");
-
             color = k_InvalidColor;
-            var packed = GetColorForId(id);
+            if (id > maxId) return false;
 
+            var packed = GetColorForId(id);
             if (packed == k_InvalidPackedColor) return false;
             color = GetColorFromPackedColor(packed);
             return true;
@@ -152,34 +157,32 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         /// <param name="id">The ID of interest.</param>
         /// <returns>The color associated with the passed in ID, or black if no associated color exists.</returns>
-        /// <exception cref="IndexOutOfRangeException">Thrown if the passed in ID is greater than the largest supported ID <see cref="MaxId"/></exception>
+        /// <exception cref="IndexOutOfRangeException">Thrown if the passed in ID is greater than the largest supported ID <see cref="maxId"/></exception>
         public static Color32 GetColorFromInstanceId(uint id)
         {
-            if (id > MaxId) throw new IndexOutOfRangeException($"Passed in index: {id} is greater than max ID: {MaxId}");
+            if (id > maxId)
+                throw new IndexOutOfRangeException($"Passed in index: {id} is greater than max ID: {maxId}");
 
-            var color = k_InvalidColor;
-            var packed = GetColorForId(id);
-
-            if (packed != k_InvalidPackedColor)
-                color = GetColorFromPackedColor(packed);
-
+            TryGetColorFromInstanceId(id, out var color);
             return color;
         }
 
         /// <summary>
-        /// Retrieve the ID associated with the passed in color. If the passed in color is black this service will return
-        /// false, and the out id will be set to 0.
+        /// Retrieve the ID associated with the passed in color. If the passed in color is black or cannot be mapped to an ID
+        /// this service will return false, and the out id will be set to 0.
         /// </summary>
         /// <param name="color">The color to map to an ID.</param>
         /// <param name="id">This value will be updated with the ID for the passed in color.</param>
         /// <returns>This service will return true if an ID is properly mapped to a color, otherwise it will return false.</returns>
-        /// <exception cref="IndexOutOfRangeException">Thrown if the passed in color is mapped to an ID that is greater than the largest supported ID</exception>
-        /// <<exception cref="InvalidOperationException">Thrown if the passed in color cannot be mapped to an ID in the alpha 255 range<see cref="MaxId"/></exception>
         public static bool TryGetInstanceIdFromColor(Color32 color, out uint id)
         {
-            id = GetIdForColor(GetPackedColorFromColor(color));
-            if (id > MaxId) throw new IndexOutOfRangeException($"Passed in color: {color} maps to an ID: {id} which is greater than max ID: {MaxId}");
-            return id != 0;
+            var packed = GetPackedColorFromColor(color);
+
+            if (!TryGetIdForColor(packed, out id))
+            {
+                return false;
+            }
+            return id != 0 && id <= maxId;
         }
 
         /// <summary>
@@ -188,11 +191,11 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="color">The color to map to an ID.</param>
         /// <returns>This value will be updated with the ID for the passed in color.</returns>
         /// <exception cref="IndexOutOfRangeException">Thrown if the passed in color is mapped to an ID that is greater than the largest supported ID</exception>
-        /// <<exception cref="InvalidOperationException">Thrown if the passed in color cannot be mapped to an ID in the alpha 255 range<see cref="MaxId"/></exception>
+        /// <<exception cref="InvalidOperationException">Thrown if the passed in color cannot be mapped to an ID in the alpha 255 range<see cref="maxId"/></exception>
         public static uint GetInstanceIdFromColor(Color32 color)
         {
             var id = GetIdForColor(GetPackedColorFromColor(color));
-            if (id > MaxId) throw new IndexOutOfRangeException($"Passed in color: {color} maps to an ID: {id} which is greater than max ID: {MaxId}");
+            if (id > maxId) throw new IndexOutOfRangeException($"Passed in color: {color} maps to an ID: {id} which is greater than max ID: {maxId}");
             return id;
         }
     }

@@ -16,6 +16,8 @@ Expanded all Unity Simulation references from USim to Unity Simulation
 
 Uniform and Normal samplers now serialize their random seeds
 
+The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to GenerateRandomSeedFromIndex()
+
 ### Deprecated
 
 ### Removed

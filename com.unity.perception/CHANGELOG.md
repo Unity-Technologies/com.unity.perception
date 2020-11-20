@@ -19,6 +19,8 @@ Changed InstanceSegmentationImageReadback event to provide a NativeArray\<Color3
 Expanded all Unity Simulation references from USim to Unity Simulation
 Uniform and Normal samplers now serialize their random seeds
 
+The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to GenerateRandomSeedFromIndex()
+
 ### Deprecated
 
 ### Removed
@@ -30,6 +32,8 @@ UnitySimulationScenario now correctly deserializes app-params before offsetting 
 Fixed Unity Simulation nodes generating one extra empty image before generating their share of the randomization scenario iterations
 
 Fixed enumeration in the CategoricalParameter.categories property
+
+The GenerateRandomSeedFromIndex method now correctly hashes the current scenario iteration into the random seed it generates
 
 ## [0.5.0-preview.1] - 2020-10-14
 

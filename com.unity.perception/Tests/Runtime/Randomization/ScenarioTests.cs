@@ -118,6 +118,21 @@ namespace RandomizationTests
             Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, 0);
         }
 
+        [UnityTest]
+        public IEnumerator GeneratedRandomSeedsChangeWithScenarioIteration()
+        {
+            yield return CreateNewScenario(3, 1);
+            var seed = m_Scenario.GenerateRandomSeed();
+            var seeds = new uint[3];
+            for (var i = 0; i < 3; i++)
+                seeds[i] = m_Scenario.GenerateRandomSeedFromIndex(i);
+
+            yield return null;
+            Assert.AreNotEqual(seed, m_Scenario.GenerateRandomSeed());
+            for (var i = 0; i < 3; i++)
+                Assert.AreNotEqual(seeds[i], m_Scenario.GenerateRandomSeedFromIndex(i));
+        }
+
         PerceptionCamera SetupPerceptionCamera()
         {
             m_TestObject.SetActive(false);

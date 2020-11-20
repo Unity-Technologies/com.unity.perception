@@ -338,15 +338,17 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Generates a random seed by hashing three values together: an arbitrary iteration value,
-        /// the current scenario iteration, and a base random seed
+        /// Generates a random seed by hashing three values together: an arbitrary index value,
+        /// the current scenario iteration, and a base random seed. This method is useful for deterministically
+        /// generating random seeds from within a for-loop.
         /// </summary>
         /// <param name="iteration">An offset value hashed inside the seed generator</param>
         /// <param name="baseSeed">An offset value hashed inside the seed generator</param>
         /// <returns>The generated random seed</returns>
-        public uint GenerateIterativeRandomSeed(int iteration, uint baseSeed = SamplerUtility.largePrime)
+        public uint GenerateRandomSeedFromIndex(int iteration, uint baseSeed = SamplerUtility.largePrime)
         {
-            return SamplerUtility.IterateSeed((uint)iteration, baseSeed);
+            var seed =  SamplerUtility.IterateSeed((uint)iteration, baseSeed);
+            return SamplerUtility.IterateSeed((uint)currentIteration, seed);
         }
 
         void ValidateParameters()

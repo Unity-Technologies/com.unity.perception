@@ -77,7 +77,6 @@ namespace UnityEngine.Perception.GroundTruth
             m_AnnotationSerializer = JsonSerializer.CreateDefault();
             m_AnnotationSerializer.Converters.Add(new Vector3Converter());
             m_AnnotationSerializer.Converters.Add(new QuaternionConverter());
-
             m_OutputDirectoryName = outputDirectory;
             IsRunning = true;
         }
@@ -647,8 +646,6 @@ namespace UnityEngine.Perception.GroundTruth
                 return q;
             }
         }
-
-
         [SuppressMessage("ReSharper", "PossibleInvalidOperationException")]
         public class Vector3Converter : JsonConverter<Vector3>
         {
@@ -672,7 +669,6 @@ namespace UnityEngine.Perception.GroundTruth
                 return outVector;
             }
         }
-
         public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, IEnumerable<T> values = null)
         {
             JArray jArray = null;

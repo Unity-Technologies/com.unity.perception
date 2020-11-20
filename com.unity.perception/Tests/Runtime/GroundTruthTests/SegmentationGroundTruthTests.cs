@@ -25,16 +25,16 @@ namespace GroundTruthTests
     {
         public RenderTexture source;
         public Camera cameraSource;
-        RenderTextureReader<uint> m_Reader;
+        RenderTextureReader<Color32> m_Reader;
 
-        public event Action<int, NativeArray<uint>> SegmentationImageReceived;
+        public event Action<int, NativeArray<Color32>> SegmentationImageReceived;
 
         void Awake()
         {
-            m_Reader = new RenderTextureReader<uint>(source, cameraSource, ImageReadCallback);
+            m_Reader = new RenderTextureReader<Color32>(source, cameraSource, ImageReadCallback);
         }
 
-        void ImageReadCallback(int frameCount, NativeArray<uint> data, RenderTexture renderTexture)
+        void ImageReadCallback(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)
         {
             if (SegmentationImageReceived != null)
                 SegmentationImageReceived(frameCount, data);
@@ -88,7 +88,8 @@ namespace GroundTruthTests
             switch (segmentationKind)
             {
                 case SegmentationKind.Instance:
-                    expectedPixelValue = 1;
+                    //expectedPixelValue = new Color32(0, 74, 255, 255);
+                    expectedPixelValue = new Color32(255,0,0, 255);
                     cameraObject = SetupCameraInstanceSegmentation(OnSegmentationImageReceived);
                     break;
                 case SegmentationKind.Semantic:
@@ -153,21 +154,21 @@ namespace GroundTruthTests
         {
             GameObject cameraObject = null;
             PerceptionCamera perceptionCamera;
-            bool fLensDistortionEnabled = false;
-            bool fDone = false;
-            int frames = 0;
-
-            var dataBBox = new uint[]
+            var fLensDistortionEnabled = false;
+            var fDone = false;
+            var frames = 0;
+#if false
+            var dataBBox = new Color32[]
             {
-                1, 1,
-                1, 1
+                Color.blue, Color.blue,
+                Color.blue, Color.blue
             };
+#endif
 
+            var boundingBoxWithoutLensDistortion = new Rect();
+            var boundingBoxWithLensDistortion = new Rect();
 
-            Rect boundingBoxWithoutLensDistortion = new Rect();
-            Rect boundingBoxWithLensDistortion = new Rect();
-
-            void OnSegmentationImageReceived(int frameCount, NativeArray<uint> data, RenderTexture tex)
+            void OnSegmentationImageReceived(int frameCount, NativeArray<Color32> data, RenderTexture tex)
             {
                 frames++;
 
@@ -192,6 +193,7 @@ namespace GroundTruthTests
                 else
                 {
                     var renderedObjectInfoGenerator = new RenderedObjectInfoGenerator();
+
                     renderedObjectInfoGenerator.Compute(data, tex.width, BoundingBoxOrigin.TopLeft, out var boundingBoxes, Allocator.Temp);
 
                     boundingBoxWithLensDistortion = boundingBoxes[0].boundingBox;
@@ -404,10 +406,12 @@ namespace GroundTruthTests
             }
 
             var cameraObject = segmentationKind == SegmentationKind.Instance ?
-                SetupCameraInstanceSegmentation(OnSegmentationImageReceived<uint>) :
+                SetupCameraInstanceSegmentation(OnSegmentationImageReceived<Color32>) :
                 SetupCameraSemanticSegmentation((a) => OnSegmentationImageReceived<Color32>(a.frameCount, a.data, a.sourceTexture), false);
 
-            object expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) 1 : k_SemanticPixelValue;
+            //object expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) new Color32(0, 74, 255, 255) : k_SemanticPixelValue;
+            object expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) new Color32(255, 0, 0, 255) : k_SemanticPixelValue;
+
             expectedLabelAtFrame = new Dictionary<int, object>
             {
                 {Time.frameCount    , expectedPixelValue},
@@ -440,7 +444,7 @@ namespace GroundTruthTests
             Assert.AreEqual(3, timesSegmentationImageReceived);
         }
 
-        GameObject SetupCameraInstanceSegmentation(Action<int, NativeArray<uint>, RenderTexture> onSegmentationImageReceived)
+        GameObject SetupCameraInstanceSegmentation(Action<int, NativeArray<Color32>, RenderTexture> onSegmentationImageReceived)
         {
             var cameraObject = SetupCamera(out var perceptionCamera, false);
             perceptionCamera.InstanceSegmentationImageReadback += onSegmentationImageReceived;

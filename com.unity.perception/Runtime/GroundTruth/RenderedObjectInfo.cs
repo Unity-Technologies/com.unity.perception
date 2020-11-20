@@ -20,11 +20,15 @@ namespace UnityEngine.Perception.GroundTruth
         /// The number of pixels in the image matching this instance.
         /// </summary>
         public int pixelCount;
+        /// <summary>
+        /// The unique RGBA color for the instance.
+        /// </summary>
+        public Color32 instanceColor;
 
         /// <inheritdoc />
         public override string ToString()
         {
-            return $"{nameof(instanceId)}: {instanceId}, {nameof(boundingBox)}: {boundingBox}, {nameof(pixelCount)}: {pixelCount}";
+            return $"{nameof(instanceId)}: {instanceId}, {nameof(boundingBox)}: {boundingBox}, {nameof(pixelCount)}: {pixelCount}, {nameof(instanceColor)}: {instanceColor}";
         }
 
         /// <inheritdoc />

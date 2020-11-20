@@ -41,6 +41,11 @@ namespace UnityEngine.Perception.GroundTruth
         public HUDPanel hudPanel => perceptionCamera != null ? perceptionCamera.hudPanel : null;
 
         /// <summary>
+        /// The overlay panel. Used to control which full screen image visual is displayed.
+        /// </summary>
+        public OverlayPanel overlayPanel => perceptionCamera != null ? perceptionCamera.overlayPanel : null;
+
+        /// <summary>
         /// The <see cref="PerceptionCamera"/> that contains this labeler.
         /// </summary>
         protected PerceptionCamera perceptionCamera { get; private set; }
@@ -129,7 +134,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal void VisualizeUI()
         {
-            if (supportsVisualization)
+            if (supportsVisualization && !(this is IOverlayPanelProvider))
             {
                 GUILayout.Label(GetType().Name);
                 GUILayout.BeginHorizontal();

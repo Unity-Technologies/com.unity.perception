@@ -15,11 +15,11 @@ namespace GroundTruthTests
         public class ProducesCorrectObjectInfoData
         {
             public RenderedObjectInfo[] renderedObjectInfosExpected;
-            public uint[] data;
+            public Color32[] data;
             public BoundingBoxOrigin boundingBoxOrigin;
             public int stride;
             public string name;
-            public ProducesCorrectObjectInfoData(uint[] data, RenderedObjectInfo[] renderedObjectInfosExpected, int stride, BoundingBoxOrigin boundingBoxOrigin, string name)
+            public ProducesCorrectObjectInfoData(Color32[] data, RenderedObjectInfo[] renderedObjectInfosExpected, int stride, BoundingBoxOrigin boundingBoxOrigin, string name)
             {
                 this.data = data;
                 this.renderedObjectInfosExpected = renderedObjectInfosExpected;
@@ -35,82 +35,93 @@ namespace GroundTruthTests
         }
         public static IEnumerable ProducesCorrectBoundingBoxesTestCases()
         {
+            InstanceIdToColorMapping.TryGetColorFromInstanceId(1, out var color1);
+            InstanceIdToColorMapping.TryGetColorFromInstanceId(2, out var color2);
+            var empty = Color.black;
+
             yield return new ProducesCorrectObjectInfoData(
-                new uint[]
+                new Color32[]
                 {
-                    1, 1,
-                    1, 1
+                    color1, color1,
+                    color1, color1
                 }, new[]
                 {
                     new RenderedObjectInfo()
                     {
                         boundingBox = new Rect(0, 0, 2, 2),
                         instanceId = 1,
-                        pixelCount = 4
+                        pixelCount = 4,
+                        instanceColor = color1
+
                     }
                 },
                 2,
                 BoundingBoxOrigin.BottomLeft,
                 "SimpleBox");
             yield return new ProducesCorrectObjectInfoData(
-                new uint[]
+                new Color32[]
                 {
-                    1, 0, 2,
-                    1, 0, 0
+                    color1, empty, color2,
+                    color1, empty, empty
                 }, new[]
                 {
                     new RenderedObjectInfo()
                     {
-                        boundingBox = new Rect(0, 0, 1, 2),
-                        instanceId = 1,
-                        pixelCount = 2
+                        boundingBox = new Rect(2, 0, 1, 1),
+                        instanceId = 2,
+                        pixelCount = 1,
+                        instanceColor = color2
                     },
                     new RenderedObjectInfo()
                     {
-                        boundingBox = new Rect(2, 0, 1, 1),
-                        instanceId = 2,
-                        pixelCount = 1
+                        boundingBox = new Rect(0, 0, 1, 2),
+                        instanceId = 1,
+                        pixelCount = 2,
+                        instanceColor = color1
                     }
                 },
                 3,
                 BoundingBoxOrigin.BottomLeft,
                 "WithGaps");
             yield return new ProducesCorrectObjectInfoData(
-                new uint[]
+                new Color32[]
                 {
-                    1, 2, 1,
-                    1, 2, 1
+                    color1, color2, color1,
+                    color1, color2, color1
                 }, new[]
                 {
                     new RenderedObjectInfo()
                     {
-                        boundingBox = new Rect(0, 0, 3, 2),
-                        instanceId = 1,
-                        pixelCount = 4
+                        boundingBox = new Rect(1, 0, 1, 2),
+                        instanceId = 2,
+                        pixelCount = 2,
+                        instanceColor = color2
                     },
                     new RenderedObjectInfo()
                     {
-                        boundingBox = new Rect(1, 0, 1, 2),
-                        instanceId = 2,
-                        pixelCount = 2
+                        boundingBox = new Rect(0, 0, 3, 2),
+                        instanceId = 1,
+                        pixelCount = 4,
+                        instanceColor = color1
                     }
                 },
                 3,
                 BoundingBoxOrigin.BottomLeft,
                 "Interleaved");
             yield return new ProducesCorrectObjectInfoData(
-                new uint[]
+                new Color32[]
                 {
-                    0, 0,
-                    0, 0,
-                    0, 1
+                    empty, empty,
+                    empty, empty,
+                    empty, color1
                 }, new[]
                 {
                     new RenderedObjectInfo()
                     {
                         boundingBox = new Rect(1, 0, 1, 1),
                         instanceId = 1,
-                        pixelCount = 1
+                        pixelCount = 1,
+                        instanceColor = color1
                     },
                 },
                 2,
@@ -146,7 +157,7 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(TestHelper.CreateLabeledPlane(.1f, label2));
             yield return null;
 
-            var dataNativeArray = new NativeArray<uint>(producesCorrectObjectInfoData.data, Allocator.Persistent);
+            var dataNativeArray = new NativeArray<Color32>(producesCorrectObjectInfoData.data, Allocator.Persistent);
 
             renderedObjectInfoGenerator.Compute(dataNativeArray, producesCorrectObjectInfoData.stride, producesCorrectObjectInfoData.boundingBoxOrigin, out var boundingBoxes, Allocator.Temp);
 

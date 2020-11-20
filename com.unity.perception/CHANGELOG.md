@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
+Added instance segmentation labeler
+Added support for full screen visual overlays and overlay manager
 
 ### Changed
 
+Updated perception to use burst 1.3.9
+Changed InstanceSegmentationImageReadback event to provide a NativeArray\<Color32\> instead of NativeArray\<uint\>
 Expanded all Unity Simulation references from USim to Unity Simulation
-
 Uniform and Normal samplers now serialize their random seeds
 
 ### Deprecated

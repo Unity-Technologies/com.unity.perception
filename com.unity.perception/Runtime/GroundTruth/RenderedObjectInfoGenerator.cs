@@ -27,7 +27,7 @@ namespace UnityEngine.Perception.GroundTruth
         struct ComputeHistogramPerRowJob : IJob
         {
             [ReadOnly]
-            public NativeSlice<uint> segmentationImageData;
+            public NativeSlice<Color32> segmentationImageData;
             public int width;
             public int rows;
             public int rowStart;
@@ -38,7 +38,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 for (var row = 0; row < rows; row++)
                 {
-                    var rowSlice = new NativeSlice<uint>(segmentationImageData, width * row, width);
+                    var rowSlice = new NativeSlice<Color32>(segmentationImageData, width * row, width);
 
                     var currentBB = new Object1DSpan
                     {
@@ -47,9 +47,11 @@ namespace UnityEngine.Perception.GroundTruth
                     };
                     for (var i = 0; i < rowSlice.Length; i++)
                     {
-                        var value = rowSlice[i];
+                        var packed = InstanceIdToColorMapping.GetPackedColorFromColor(rowSlice[i]);
+                        // pixel color black (0,0,0,255) is reserved for no hit, so set it to id 0
+                        var id = packed == 255 ? 0 : packed;
 
-                        if (value != currentBB.instanceId)
+                        if (id != currentBB.instanceId)
                         {
                             if (currentBB.instanceId > 0)
                             {
@@ -60,7 +62,7 @@ namespace UnityEngine.Perception.GroundTruth
 
                             currentBB = new Object1DSpan
                             {
-                                instanceId = value,
+                                instanceId = id,
                                 left = i,
                                 row = row + rowStart
                             };
@@ -89,7 +91,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="boundingBoxOrigin">Whether bounding boxes should be top-left or bottom-right-based.</param>
         /// <param name="renderedObjectInfos">When this method returns, filled with RenderedObjectInfo entries for each object visible in the frame.</param>
         /// <param name="allocator">The allocator to use for allocating renderedObjectInfos and perLabelEntryObjectCount.</param>
-        public void Compute(NativeArray<uint> instanceSegmentationRawData, int stride, BoundingBoxOrigin boundingBoxOrigin, out NativeArray<RenderedObjectInfo> renderedObjectInfos, Allocator allocator)
+        public void Compute(NativeArray<Color32> instanceSegmentationRawData, int stride, BoundingBoxOrigin boundingBoxOrigin, out NativeArray<RenderedObjectInfo> renderedObjectInfos, Allocator allocator)
         {
             const int jobCount = 24;
             var height = instanceSegmentationRawData.Length / stride;
@@ -109,7 +111,7 @@ namespace UnityEngine.Perception.GroundTruth
 
                     handles[jobIndex] = new ComputeHistogramPerRowJob
                     {
-                        segmentationImageData = new NativeSlice<uint>(instanceSegmentationRawData, row * stride, stride * rowsThisJob),
+                        segmentationImageData = new NativeSlice<Color32>(instanceSegmentationRawData, row * stride, stride * rowsThisJob),
                         width = stride,
                         rowStart = row,
                         rows = rowsThisJob,
@@ -158,21 +160,29 @@ namespace UnityEngine.Perception.GroundTruth
                 renderedObjectInfos = new NativeArray<RenderedObjectInfo>(keyValueArrays.Keys.Length, allocator);
                 for (var i = 0; i < keyValueArrays.Keys.Length; i++)
                 {
-                    var instanceId = keyValueArrays.Keys[i];
+                    var color = InstanceIdToColorMapping.GetColorFromPackedColor(keyValueArrays.Keys[i]);
+                    if (InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var instanceId))
+                    {
+                        var renderedObjectInfo = keyValueArrays.Values[i];
+                        var boundingBox = renderedObjectInfo.boundingBox;
+                        if (boundingBoxOrigin == BoundingBoxOrigin.TopLeft)
+                        {
+                            var y = height - boundingBox.yMax;
+                            boundingBox = new Rect(boundingBox.x, y, boundingBox.width, boundingBox.height);
+                        }
 
-                    var renderedObjectInfo = keyValueArrays.Values[i];
-                    var boundingBox = renderedObjectInfo.boundingBox;
-                    if (boundingBoxOrigin == BoundingBoxOrigin.TopLeft)
-                    {
-                        var y = height - boundingBox.yMax;
-                        boundingBox = new Rect(boundingBox.x, y, boundingBox.width, boundingBox.height);
+                        renderedObjectInfos[i] = new RenderedObjectInfo
+                        {
+                            instanceId = instanceId,
+                            boundingBox = boundingBox,
+                            pixelCount = renderedObjectInfo.pixelCount,
+                            instanceColor = color
+                        };
                     }
-                    renderedObjectInfos[i] = new RenderedObjectInfo
+                    else
                     {
-                        instanceId = instanceId,
-                        boundingBox = boundingBox,
-                        pixelCount = renderedObjectInfo.pixelCount
-                    };
+                        Debug.LogError($"Could not generate instance ID for object, ID exceeded maximum ID");
+                    }
                 }
                 keyValueArrays.Dispose();
             }

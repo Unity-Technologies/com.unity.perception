@@ -57,7 +57,7 @@ namespace GroundTruthTests
             // Need to wait to make sure a visualization call is made so that the canvas will be constructed
             yield return null;
 
-            Assert.IsNotNull(GameObject.Find(nameof(VisualizedCamera_SetsUpCanvas) + "_segmentation_canvas"));
+            Assert.IsNotNull(GameObject.Find("overlay_canvas"));
         }
         [Test]
         public void TwoCamerasVisualizing_CausesWarningAndDisablesVisualization()
@@ -90,11 +90,11 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(object1);
             //wait a frame to make sure visualize is called once
             yield return null;
-            Assert.IsNotNull(GameObject.Find(nameof(DestroyCamera_RemovesVisualization) + "_segmentation_canvas"));
+            Assert.IsNotNull(GameObject.Find("overlay_canvas"));
             Object.DestroyImmediate(object1);
             //wait a frame to allow objects destroyed via Destroy() to be cleaned up
             yield return null;
-            Assert.IsNull(GameObject.Find(nameof(DestroyCamera_RemovesVisualization) + "_segmentation_canvas"));
+            Assert.IsNull(GameObject.Find("overlay_segmentation_canvas"));
         }
         [UnityTest]
         public IEnumerator DestroyAndRecreateCamera_ProperlyVisualizes()
@@ -113,7 +113,7 @@ namespace GroundTruthTests
             //wait a frame to make sure visualize is called once
             yield return null;
 
-            Assert.IsNotNull(GameObject.Find(nameof(DestroyAndRecreateCamera_ProperlyVisualizes) + "2_segmentation_canvas"));
+            Assert.IsNotNull("overlay_canvas");
         }
 
         [UnityTest]

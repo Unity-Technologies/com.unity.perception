@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -17,7 +18,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Invoked when instance segmentation images are read back from the graphics system. The first parameter is the
         /// Time.frameCount at which the objects were rendered. May be invoked many frames after the objects were rendered.
         /// </summary>
-        public event Action<int, NativeArray<uint>, RenderTexture> InstanceSegmentationImageReadback;
+        public event Action<int, NativeArray<Color32>, RenderTexture> InstanceSegmentationImageReadback;
 
         /// <summary>
         /// Invoked when RenderedObjectInfos are calculated. The first parameter is the Time.frameCount at which the
@@ -27,7 +28,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         RenderedObjectInfoGenerator m_RenderedObjectInfoGenerator;
         RenderTexture m_InstanceSegmentationTexture;
-        RenderTextureReader<uint> m_InstanceSegmentationReader;
+        RenderTextureReader<Color32> m_InstanceSegmentationReader;
 
         internal bool m_fLensDistortionEnabled = false;
 
@@ -90,7 +91,7 @@ namespace UnityEngine.Perception.GroundTruth
             m_fLensDistortionEnabled = true;
 #endif
 
-            m_InstanceSegmentationReader = new RenderTextureReader<uint>(m_InstanceSegmentationTexture, myCamera, (frameCount, data, tex) =>
+            m_InstanceSegmentationReader = new RenderTextureReader<Color32>(m_InstanceSegmentationTexture, myCamera, (frameCount, data, tex) =>
             {
                 InstanceSegmentationImageReadback?.Invoke(frameCount, data, tex);
                 if (RenderedObjectInfosCalculated != null)

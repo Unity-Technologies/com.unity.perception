@@ -1,8 +1,8 @@
-﻿fileFormatVersion: 2
-<<<<<<< HEAD
+fileFormatVersion: 2
 guid: 6693ffffff2148b0a248e1d8c5ddc805
-timeCreated: 1600754588
-=======
-guid: f9e02c502b7845229d26d377a0d871f1
-timeCreated: 1600744200
->>>>>>> cb407fb... added randomizer tests
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

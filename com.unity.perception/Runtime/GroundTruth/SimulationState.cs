@@ -52,7 +52,6 @@ namespace UnityEngine.Perception.GroundTruth
         string m_OutputDirectoryPath;
 
         JsonSerializer m_AnnotationSerializer;
-
         public bool IsRunning { get; private set; }
 
         public string OutputDirectory

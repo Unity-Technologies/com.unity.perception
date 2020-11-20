@@ -33,12 +33,25 @@ namespace UnityEngine.Perception.GroundTruth {
             return TryGetLabelEntryFromInstanceId(instanceId, out labelEntry, out var _);
         }
 
-
+        /// <summary>
+        /// Add a string to the list of label entries in this label configuration. The id for this entry will be the
+        /// maximum id present in the configuration plus one.
+        /// </summary>
+        /// <param name="labelToAdd"></param>
         public override void AddLabel(string labelToAdd)
         {
+            if (DoesLabelMatchAnEntry(labelToAdd))
+                return;
+
+            int newId = startingLabelId == StartingLabelId.One ? 1 : 0;
+
+            if(m_LabelEntries.Count > 0)
+                newId = m_LabelEntries.Max(entry => entry.id) + 1;
+
             m_LabelEntries.Add(new IdLabelEntry
             {
-                label = labelToAdd
+                label = labelToAdd,
+                id = newId
             });
 
             if (autoAssignIds)
@@ -47,6 +60,11 @@ namespace UnityEngine.Perception.GroundTruth {
             }
         }
 
+        /// <summary>
+        /// Remove a label entry matching the given string from this label configuration.
+        /// Label configurations can not have duplicate labels, so the given string can match only one entry.
+        /// </summary>
+        /// <param name="label"></param>
         public override void RemoveLabel(string label)
         {
             base.RemoveLabel(label);

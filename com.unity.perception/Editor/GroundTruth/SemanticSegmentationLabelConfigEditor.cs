@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEditor.UIElements;
-using UnityEditor.VersionControl;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.UIElements;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using Task = System.Threading.Tasks.Task;
 using Random = UnityEngine.Random;
 
 namespace UnityEditor.Perception.GroundTruth
@@ -25,6 +17,7 @@ namespace UnityEditor.Perception.GroundTruth
         protected override void OnEnableExtended()
         {
             m_MoveButtons.style.display = DisplayStyle.None;
+            m_StartingIdEnumField.style.display = DisplayStyle.None;
         }
 
         public override void PostRemoveOperations()

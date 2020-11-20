@@ -1,21 +1,15 @@
 #define ENABLED
 #if ENABLED
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
-using Unity.Entities;
 using UnityEditor.UIElements;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
-using UnityEngine.PlayerLoop;
-using UnityEngine.Rendering.UI;
-using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Button = UnityEngine.UIElements.Button;
-using Object = UnityEngine.Object;
 using Toggle = UnityEngine.UIElements.Toggle;
 
 namespace UnityEditor.Perception.GroundTruth
@@ -23,11 +17,7 @@ namespace UnityEditor.Perception.GroundTruth
     [CustomEditor(typeof(Labeling)), CanEditMultipleObjects]
     class LabelingEditor : Editor
     {
-        private Labeling m_Labeling;
-        private SerializedProperty m_SerializedLabelsArray;
-        //private SerializedProperty m_AutoLabelingBoolProperty;
         private VisualElement m_Root;
-        private BindableElement m_OuterElement;
         private VisualElement m_ManualLabelingContainer;
         private VisualElement m_AutoLabelingContainer;
         private ListView m_CurrentLabelsListView;
@@ -36,9 +26,12 @@ namespace UnityEditor.Perception.GroundTruth
         private ScrollView m_LabelConfigsScrollView;
         private PopupField<string> m_LabelingSchemesPopup;
         private Button m_AddButton;
+        private Button m_AddAutoLabelToConfButton;
+        private Toggle m_AutoLabelingToggle;
         private Label m_CurrentAutoLabel;
         private Label m_CurrentAutoLabelTitle;
-        private Toggle m_AutoLabelingToggle;
+
+        private Labeling m_Labeling;
 
         private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
         private string m_UxmlPath;
@@ -46,27 +39,21 @@ namespace UnityEditor.Perception.GroundTruth
         private List<string> m_SuggestedLabelsBasedOnName = new List<string>();
         private List<string> m_SuggestedLabelsBasedOnPath = new List<string>();
 
-        private List<string> m_CommonLabels = new List<string>(); //labels that are common between all selected Labeling objects (for multi editing)
-        public List<string> CommonLabels => m_CommonLabels;
+        public List<string> CommonLabels { get; private set; } = new List<string>();
 
-        private List<Type> m_LabelConfigTypes = new List<Type>();
-        private List<ScriptableObject> m_AllLabelConfigsInProject = new List<ScriptableObject>();
+        private List<Type> m_LabelConfigTypes;
+        private readonly List<ScriptableObject> m_AllLabelConfigsInProject = new List<ScriptableObject>();
 
-        private List<AssetLabelingScheme> m_LabelingSchemes = new List<AssetLabelingScheme>();
+        private readonly List<AssetLabelingScheme> m_LabelingSchemes = new List<AssetLabelingScheme>();
 
         private void OnEnable()
         {
             m_LabelConfigTypes = AddToConfigWindow.FindAllSubTypes(typeof(LabelConfig<>));
 
             var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
-            m_SerializedLabelsArray = mySerializedObject.FindProperty("labels");
-
-            //m_AutoLabelingBoolProperty = serializedObject.FindProperty(nameof(Labeling.useAutoLabeling));
-
             m_Labeling = mySerializedObject.targetObject as Labeling;
 
             m_UxmlPath = m_UxmlDir + "Labeling_Main.uxml";
-
             m_Root = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree();
 
             m_CurrentLabelsListView = m_Root.Q<ListView>("current-labels-listview");
@@ -79,10 +66,11 @@ namespace UnityEditor.Perception.GroundTruth
             m_AutoLabelingToggle = m_Root.Q<Toggle>("auto-or-manual-toggle");
             m_ManualLabelingContainer = m_Root.Q<VisualElement>("manual-labeling");
             m_AutoLabelingContainer = m_Root.Q<VisualElement>("automatic-labeling");
-
+            m_AddAutoLabelToConfButton = m_Root.Q<Button>("add-auto-label-to-config");
             var dropdownParent = m_Root.Q<VisualElement>("drop-down-parent");
-            InitializeLabelingSchemes(dropdownParent);
 
+            m_ItIsPossibleToAddMultipleAutoLabelsToConfig = false;
+            InitializeLabelingSchemes(dropdownParent);
             AssesAutoLabelingStatus();
 
             if (serializedObject.targetObjects.Length > 1)
@@ -92,12 +80,23 @@ namespace UnityEditor.Perception.GroundTruth
 
                 var suggestedOnNamePanel = m_Root.Q<VisualElement>("suggested-labels-from-name");
                 suggestedOnNamePanel.RemoveFromHierarchy();
+
+                m_AddAutoLabelToConfButton.text = "Add Automatic Labels of All Selected Assets to Config...";
             }
+            else
+            {
+                m_AddAutoLabelToConfButton.text = "Add to Label Config...";
+            }
+
+            m_AddAutoLabelToConfButton.clicked += () =>
+            {
+                AddToConfigWindow.ShowWindow(CreateUnionOfAllLabels());
+            };
 
             m_AddButton.clicked += () =>
             {
                 var labelsUnion = CreateUnionOfAllLabels();
-                string newLabel = FindNewLabelValue(labelsUnion);
+                var newLabel = FindNewLabelValue(labelsUnion);
                 foreach (var targetObject in targets)
                 {
                     if (targetObject is Labeling labeling)
@@ -114,25 +113,26 @@ namespace UnityEditor.Perception.GroundTruth
                 RefreshManualLabelingData();
             };
 
-            m_AutoLabelingToggle.RegisterValueChangedCallback<bool>(evt =>
+            m_AutoLabelingToggle.RegisterValueChangedCallback(evt =>
             {
                 AutoLabelToggleChanged();
             });
         }
 
-        bool SerializedObjectHasValidLabelingScheme(SerializedObject serObj)
+        private bool SerializedObjectHasValidLabelingScheme(SerializedObject serObj)
         {
             var schemeName = serObj.FindProperty(nameof(Labeling.autoLabelingSchemeType)).stringValue;
             return IsValidLabelingSchemeName(schemeName);
         }
 
-        bool IsValidLabelingSchemeName(string schemeName)
+        private bool IsValidLabelingSchemeName(string schemeName)
         {
             return schemeName != string.Empty &&
                    m_LabelingSchemes.FindAll(scheme => scheme.GetType().Name == schemeName).Count > 0;
         }
 
-        void UpdateUiAspects()
+        private bool m_ItIsPossibleToAddMultipleAutoLabelsToConfig;
+        private void UpdateUiAspects()
         {
             m_ManualLabelingContainer.SetEnabled(!m_AutoLabelingToggle.value);
             m_AutoLabelingContainer.SetEnabled(m_AutoLabelingToggle.value);
@@ -141,10 +141,17 @@ namespace UnityEditor.Perception.GroundTruth
                 !SerializedObjectHasValidLabelingScheme(new SerializedObject(serializedObject.targetObjects[0])))
             {
                 m_CurrentAutoLabel.style.display = DisplayStyle.None;
+                m_AddAutoLabelToConfButton.SetEnabled(false);
             }
             else
             {
                 m_CurrentAutoLabel.style.display = DisplayStyle.Flex;
+                m_AddAutoLabelToConfButton.SetEnabled(true);
+            }
+
+            if(m_AutoLabelingToggle.value && serializedObject.targetObjects.Length > 1 && m_ItIsPossibleToAddMultipleAutoLabelsToConfig)
+            {
+                m_AddAutoLabelToConfButton.SetEnabled(true);
             }
 
 
@@ -160,7 +167,7 @@ namespace UnityEditor.Perception.GroundTruth
         }
 
 
-        void UpdateCurrentAutoLabelValue(SerializedObject serObj)
+        private void UpdateCurrentAutoLabelValue(SerializedObject serObj)
         {
             var array = serObj.FindProperty(nameof(Labeling.labels));
             if (array.arraySize > 0)
@@ -169,7 +176,7 @@ namespace UnityEditor.Perception.GroundTruth
             }
         }
 
-        void InitializeLabelingSchemes(VisualElement parent)
+        private void InitializeLabelingSchemes(VisualElement parent)
         {
             //this function should be called only once during the lifecycle of the editor element
             m_LabelingSchemes.Add(new AssetNameLabelingScheme());
@@ -182,10 +189,10 @@ namespace UnityEditor.Perception.GroundTruth
             m_LabelingSchemesPopup.style.marginLeft = 0;
             parent.Add(m_LabelingSchemesPopup);
 
-            m_LabelingSchemesPopup.RegisterValueChangedCallback<string>(evt => AssignAutomaticLabelToSelectedAssets());
+            m_LabelingSchemesPopup.RegisterValueChangedCallback(evt => AssignAutomaticLabelToSelectedAssets());
         }
 
-        void AutoLabelToggleChanged()
+        private void AutoLabelToggleChanged()
         {
             UpdateUiAspects();
 
@@ -219,13 +226,15 @@ namespace UnityEditor.Perception.GroundTruth
             RefreshManualLabelingData();
         }
 
-        void AssignAutomaticLabelToSelectedAssets()
+        private void AssignAutomaticLabelToSelectedAssets()
         {
             //the 0th index of this popup is "<Select Scheme>" and should not do anything
             if (m_LabelingSchemesPopup.index == 0)
             {
                 return;
             }
+
+            m_ItIsPossibleToAddMultipleAutoLabelsToConfig = true;
 
             var labelingScheme = m_LabelingSchemes[m_LabelingSchemesPopup.index - 1];
 
@@ -251,18 +260,7 @@ namespace UnityEditor.Perception.GroundTruth
             RefreshManualLabelingData();
         }
 
-        void AssignAutomaticLabelToSerializedObject(SerializedObject serObj, AssetLabelingScheme labelingScheme)
-        {
-            var serLabelsArray = serObj.FindProperty(nameof(Labeling.labels));
-            var label = labelingScheme.GenerateLabel(serObj.targetObject);
-            serLabelsArray.ClearArray();
-            serLabelsArray.InsertArrayElementAtIndex(0);
-            serLabelsArray.GetArrayElementAtIndex(0).stringValue = label;
-            serObj.ApplyModifiedProperties();
-            serObj.SetIsDifferentCacheDirty();
-        }
-
-        void AssesAutoLabelingStatus()
+        private void AssesAutoLabelingStatus()
         {
             var enabledOrNot = true;
             if (serializedObject.targetObjects.Length == 1)
@@ -281,15 +279,14 @@ namespace UnityEditor.Perception.GroundTruth
             else
             {
                 string unifiedLabelingScheme = null;
-                bool allAssetsUseSameLabelingScheme = true;
+                var allAssetsUseSameLabelingScheme = true;
 
                 foreach (var targetObj in serializedObject.targetObjects)
                 {
                     var serObj = new SerializedObject(targetObj);
                     var enabled = serObj.FindProperty(nameof(Labeling.useAutoLabeling)).boolValue;
                     enabledOrNot &= enabled;
-                    // if (enabled)
-                    // {
+
                     var schemeName = serObj.FindProperty(nameof(Labeling.autoLabelingSchemeType)).stringValue;
                     if (schemeName == string.Empty)
                     {
@@ -313,22 +310,28 @@ namespace UnityEditor.Perception.GroundTruth
 
                 if (allAssetsUseSameLabelingScheme)
                 {
-                    //all selected assets are using auto labeling, all using the same scheme
+                    //all selected assets have the same scheme recorded in their serialized objects
                     m_LabelingSchemesPopup.index =
                         m_LabelingSchemes.FindIndex(scheme => scheme.GetType().Name.ToString() == unifiedLabelingScheme) + 1;
+
+                    if (enabledOrNot)
+                    {
+                        //all selected assets have the same scheme recorded in their serialized objects, and they all
+                        //have auto labeling enabled
+                        m_ItIsPossibleToAddMultipleAutoLabelsToConfig = true;
+                    }
                 }
                 else
                 {
-                    //the selected assets are all using auto labeling, but not using the same scheme
+                    //the selected DO NOT have the same scheme recorded in their serialized objects
                     m_LabelingSchemesPopup.index = 0;
                 }
             }
 
             UpdateUiAspects();
-
         }
 
-        HashSet<string> CreateUnionOfAllLabels()
+        private HashSet<string> CreateUnionOfAllLabels()
         {
             HashSet<String> result = new HashSet<string>();
             foreach (var obj in targets)
@@ -340,7 +343,7 @@ namespace UnityEditor.Perception.GroundTruth
             }
             return result;
         }
-        string FindNewLabelValue(HashSet<string> labels)
+        private string FindNewLabelValue(HashSet<string> labels)
         {
             string baseLabel = "New Label";
             string label = baseLabel;
@@ -355,9 +358,7 @@ namespace UnityEditor.Perception.GroundTruth
         public override VisualElement CreateInspectorGUI()
         {
             serializedObject.Update();
-            var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
             m_Labeling = serializedObject.targetObject as Labeling;
-            m_SerializedLabelsArray = mySerializedObject.FindProperty("labels");
             RefreshCommonLabels();
             RefreshSuggestedLabelLists();
             RefreshLabelConfigsList();
@@ -384,8 +385,8 @@ namespace UnityEditor.Perception.GroundTruth
 
         public void RemoveAddedLabelsFromSuggestedLists()
         {
-            m_SuggestedLabelsBasedOnName.RemoveAll(s => m_CommonLabels.Contains(s));
-            m_SuggestedLabelsBasedOnPath.RemoveAll(s => m_CommonLabels.Contains(s));
+            m_SuggestedLabelsBasedOnName.RemoveAll(s => CommonLabels.Contains(s));
+            m_SuggestedLabelsBasedOnPath.RemoveAll(s => CommonLabels.Contains(s));
         }
 
         public void RefreshSuggestedLabelLists()
@@ -433,8 +434,6 @@ namespace UnityEditor.Perception.GroundTruth
         {
             serializedObject.SetIsDifferentCacheDirty();
             serializedObject.Update();
-            var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
-            m_SerializedLabelsArray = mySerializedObject.FindProperty(nameof(Labeling.labels));
             RefreshCommonLabels();
             RefreshSuggestedLabelLists();
             SetupSuggestedLabelsListViews();
@@ -453,29 +452,28 @@ namespace UnityEditor.Perception.GroundTruth
 
         void RefreshCommonLabels()
         {
-            m_CommonLabels.Clear();
-            m_CommonLabels.AddRange(((Labeling)serializedObject.targetObjects[0]).labels);
+            CommonLabels.Clear();
+            CommonLabels.AddRange(((Labeling)serializedObject.targetObjects[0]).labels);
 
             foreach (var obj in serializedObject.targetObjects)
             {
-                m_CommonLabels = m_CommonLabels.Intersect(((Labeling) obj).labels).ToList();
+                CommonLabels = CommonLabels.Intersect(((Labeling) obj).labels).ToList();
             }
         }
 
         void SetupCurrentLabelsListView()
         {
-            m_CurrentLabelsListView.itemsSource = m_CommonLabels;
-            var mySerializedObject = new SerializedObject(serializedObject.targetObjects[0]);
+            m_CurrentLabelsListView.itemsSource = CommonLabels;
 
             VisualElement MakeItem() =>
-                new AddedLabelEditor(this, m_CurrentLabelsListView, mySerializedObject, m_SerializedLabelsArray);
+                new AddedLabelEditor(this, m_CurrentLabelsListView);
 
             void BindItem(VisualElement e, int i)
             {
                 if (e is AddedLabelEditor addedLabel)
                 {
                     addedLabel.m_IndexInList = i;
-                    addedLabel.m_LabelTextField.value = m_CommonLabels[i];
+                    addedLabel.m_LabelTextField.value = CommonLabels[i];
                 }
             }
 
@@ -485,7 +483,7 @@ namespace UnityEditor.Perception.GroundTruth
             m_CurrentLabelsListView.makeItem = MakeItem;
             m_CurrentLabelsListView.itemHeight = itemHeight;
 
-            m_CurrentLabelsListView.itemsSource = m_CommonLabels;
+            m_CurrentLabelsListView.itemsSource = CommonLabels;
             m_CurrentLabelsListView.selectionType = SelectionType.None;
         }
 
@@ -533,47 +531,21 @@ namespace UnityEditor.Perception.GroundTruth
     internal class AddedLabelEditor : VisualElement
     {
         private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
-        private string m_UxmlPath;
-        private Button m_RemoveButton;
-        private Button m_AddToConfigButton;
 
         public TextField m_LabelTextField;
         public int m_IndexInList;
 
-        public AddedLabelEditor(LabelingEditor editor, ListView listView, SerializedObject serializedLabelingObject, SerializedProperty labelsArrayProperty)
+        public AddedLabelEditor(LabelingEditor editor, ListView listView)
         {
-            m_UxmlPath = m_UxmlDir + "AddedLabelElement.uxml";
-            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree(this);
+            var uxmlPath = m_UxmlDir + "AddedLabelElement.uxml";
+            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath).CloneTree(this);
             m_LabelTextField = this.Q<TextField>("label-value");
-            m_RemoveButton = this.Q<Button>("remove-button");
-            m_AddToConfigButton = this.Q<Button>("add-to-config-button");
+            var removeButton = this.Q<Button>("remove-button");
+            var addToConfigButton = this.Q<Button>("add-to-config-button");
 
             m_LabelTextField.isDelayed = true;
 
-            ScrollView tmp = listView.Q<ScrollView>();
-
-            tmp.verticalScroller.slider.RegisterCallback<MouseDownEvent>(evt =>
-            {
-                Debug.Log("mouse down");
-            });
-
-            listView.RegisterCallback<FocusInEvent>(evt =>
-            {
-                Debug.Log("list focused");
-            });
-
-
-            m_LabelTextField.RegisterCallback<FocusOutEvent>(evt =>
-            {
-                Debug.Log("focus out");
-            });
-
-            m_LabelTextField.RegisterCallback<FocusInEvent>(evt =>
-            {
-                Debug.Log("focus in");
-            });
-
-            m_LabelTextField.RegisterValueChangedCallback<string>((cEvent) =>
+            m_LabelTextField.RegisterValueChangedCallback((cEvent) =>
             {
                 //Do not let the user define a duplicate label
                 if (editor.CommonLabels.Contains(cEvent.newValue) && editor.CommonLabels.IndexOf(cEvent.newValue) != m_IndexInList)
@@ -611,31 +583,31 @@ namespace UnityEditor.Perception.GroundTruth
                     editor.RefreshManualLabelingData();
             });
 
-            m_AddToConfigButton.clicked += () =>
+            addToConfigButton.clicked += () =>
             {
                 AddToConfigWindow.ShowWindow(m_LabelTextField.value);
             };
 
-            m_RemoveButton.clicked += () =>
+            removeButton.clicked += () =>
             {
-                List<string> m_CommonLabels = new List<string>();
+                List<string> commonLabels = new List<string>();
 
-                m_CommonLabels.Clear();
+                commonLabels.Clear();
                 var firstTarget = editor.targets[0] as Labeling;
-                if (firstTarget)
+                if (firstTarget != null)
                 {
-                    m_CommonLabels.AddRange(firstTarget.labels);
+                    commonLabels.AddRange(firstTarget.labels);
 
                     foreach (var obj in editor.targets)
                     {
-                        m_CommonLabels = m_CommonLabels.Intersect(((Labeling) obj).labels).ToList();
+                        commonLabels = commonLabels.Intersect(((Labeling) obj).labels).ToList();
                     }
 
                     foreach (var targetObject in editor.targets)
                     {
                         if (targetObject is Labeling labeling)
                         {
-                            RemoveLabelFromLabelingSerObj(labeling, m_CommonLabels);
+                            RemoveLabelFromLabelingSerObj(labeling, commonLabels);
                         }
                     }
                     editor.serializedObject.SetIsDifferentCacheDirty();
@@ -674,18 +646,16 @@ namespace UnityEditor.Perception.GroundTruth
     internal class SuggestedLabelElement : VisualElement
     {
         private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
-        private string m_UxmlPath;
-        private Button m_AddButton;
         public Label m_Label;
 
         public SuggestedLabelElement(LabelingEditor editor)
         {
-            m_UxmlPath = m_UxmlDir + "SuggestedLabelElement.uxml";
-            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree(this);
+            var uxmlPath = m_UxmlDir + "SuggestedLabelElement.uxml";
+            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath).CloneTree(this);
             m_Label = this.Q<Label>("label-value");
-            m_AddButton = this.Q<Button>("add-button");
+            var addButton = this.Q<Button>("add-button");
 
-            m_AddButton.clicked += () =>
+            addButton.clicked += () =>
             {
                 foreach (var targetObject in editor.serializedObject.targetObjects)
                 {
@@ -703,7 +673,6 @@ namespace UnityEditor.Perception.GroundTruth
                     }
                 }
                 editor.RefreshManualLabelingData();
-                //editor.RefreshUi();
             };
         }
     }
@@ -711,21 +680,18 @@ namespace UnityEditor.Perception.GroundTruth
     internal class LabelConfigElement : VisualElement
     {
         private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
-        private string m_UxmlPath;
         private bool m_Collapsed = true;
 
         private ListView m_LabelsListView;
-        private Label m_ConfigName;
         private VisualElement m_CollapseToggle;
-        //private Toggle m_HiddenCollapsedToggle;
 
         public LabelConfigElement(LabelingEditor editor, ScriptableObject config)
         {
-            m_UxmlPath = m_UxmlDir + "ConfigElementForAddingLabelsFrom.uxml";
-            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree(this);
+            var uxmlPath = m_UxmlDir + "ConfigElementForAddingLabelsFrom.uxml";
+            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath).CloneTree(this);
             m_LabelsListView = this.Q<ListView>("label-config-contents-listview");
-            m_ConfigName = this.Q<Label>("config-name");
-            m_ConfigName.text = config.name;
+            var configName = this.Q<Label>("config-name");
+            configName.text = config.name;
             m_CollapseToggle = this.Q<VisualElement>("collapse-toggle");
 
             var propertyInfo = config.GetType().GetProperty(IdLabelConfig.publicLabelEntriesFieldName);
@@ -783,7 +749,5 @@ namespace UnityEditor.Perception.GroundTruth
             }
         }
     }
-
-
 }
 #endif

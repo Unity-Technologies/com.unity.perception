@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Unity.Mathematics;
-using UnityEditor.UIElements;
-using UnityEditor.VersionControl;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.UIElements;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using Task = System.Threading.Tasks.Task;
+using UnityEditor.UIElements;
 
 namespace UnityEditor.Perception.GroundTruth
 {
@@ -35,16 +28,21 @@ namespace UnityEditor.Perception.GroundTruth
         private List<string> m_LabelsNotPresentInConfig = new List<string>();
 
         private VisualElement m_Root;
-        protected ListView m_LabelListView;
-        private ListView m_NonPresentLabelsListView;
 
         private Button m_SaveButton;
         private Button m_AddNewLabelButton;
+        private Button m_RemoveAllButton;
+        private Button m_AddAllButton;
+        private Button m_ImportFromFileButton;
+        private Button m_ExportToFileButton;
+        private ListView m_NonPresentLabelsListView;
+
+        protected ListView m_LabelListView;
         protected Button m_MoveUpButton;
         protected Button m_MoveDownButton;
         protected VisualElement m_MoveButtons;
-        private Button m_ImportFromFileButton;
-        private Button m_ExportToFileButton;
+        protected EnumField m_StartingIdEnumField;
+
 
         public void OnEnable()
         {
@@ -55,11 +53,14 @@ namespace UnityEditor.Perception.GroundTruth
             m_NonPresentLabelsListView = m_Root.Q<ListView>("labels-in-project-listview");
             m_SaveButton = m_Root.Q<Button>("save-button");
             m_AddNewLabelButton = m_Root.Q<Button>("add-label");
+            m_RemoveAllButton = m_Root.Q<Button>("remove-all-labels");
             m_MoveUpButton = m_Root.Q<Button>("move-up-button");
             m_MoveDownButton = m_Root.Q<Button>("move-down-button");
             m_MoveButtons = m_Root.Q<VisualElement>("move-buttons");
             m_ImportFromFileButton = m_Root.Q<Button>("import-file-button");
             m_ExportToFileButton = m_Root.Q<Button>("export-file-button");
+            m_AddAllButton = m_Root.Q<Button>("add-all-labels-in-project");
+            m_StartingIdEnumField = m_Root.Q<EnumField>("starting-id-dropdown");
 
             m_SaveButton.SetEnabled(false);
             m_SerializedLabelsArray = serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName);
@@ -77,7 +78,22 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_AddNewLabelButton.clicked += () => { AddNewLabel(m_SerializedLabelsArray, m_AddedLabels); };
 
-            m_LabelListView.RegisterCallback<ClickEvent>(evt => { UpdateMoveButtonState(); });
+            m_RemoveAllButton.clicked += () =>
+            {
+                m_SerializedLabelsArray.ClearArray();
+                serializedObject.ApplyModifiedProperties();
+                RefreshListDataAndPresenation();
+            };
+
+            m_AddAllButton.clicked += () =>
+            {
+                foreach (var label in m_LabelsNotPresentInConfig)
+                {
+                    AppendLabelEntryToSerializedArray(m_SerializedLabelsArray, CreateLabelEntryFromLabelString(m_SerializedLabelsArray, label));
+                }
+                serializedObject.ApplyModifiedProperties();
+                RefreshListDataAndPresenation();
+            };
 
             m_ImportFromFileButton.clicked += () =>
             {
@@ -95,7 +111,7 @@ namespace UnityEditor.Perception.GroundTruth
                 var path = EditorUtility.SaveFilePanel("Export label configuration to file", "", this.name, "json");
                 if (path.Length != 0)
                 {
-                    string fileContents = ExportToJson(this);
+                    string fileContents = ExportToJson();
                     var writer = File.CreateText(path);
 
                     writer.Write(fileContents);
@@ -165,7 +181,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         private void ScrollToBottomAndSelectLastItem()
         {
-            m_LabelListView.SetSelection(m_LabelListView.itemsSource.Count - 1);
+            m_LabelListView.selectedIndex = m_LabelListView.itemsSource.Count - 1;
             UpdateMoveButtonState();
 
             m_Root.schedule.Execute(() => { m_LabelListView.ScrollToItem(-1); })
@@ -347,7 +363,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         protected abstract void AddLabelIdentifierToJson(SerializedProperty labelEntry, JObject jObj);
 
-        private string ExportToJson(LabelConfigEditor<T> editor)
+        private string ExportToJson()
         {
             JObject result = new JObject();
             result.Add("LabelEntryType", typeof(T).Name);
@@ -407,7 +423,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             InitExtended();
 
-            m_LabelTextField.RegisterValueChangedCallback<string>((cEvent) =>
+            m_LabelTextField.RegisterValueChangedCallback((cEvent) =>
             {
                 if (m_LabelConfigEditor.AddedLabels.Contains(cEvent.newValue) && m_LabelConfigEditor.AddedLabels.IndexOf(cEvent.newValue) != m_IndexInList)
                 {
@@ -457,18 +473,16 @@ namespace UnityEditor.Perception.GroundTruth
     class NonPresentLabelElement<T> : VisualElement where T : ILabelEntry
     {
         private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
-        private string m_UxmlPath;
-        private Button m_AddButton;
         public Label m_Label;
 
         public NonPresentLabelElement(LabelConfigEditor<T> editor, SerializedProperty labelsArray)
         {
-            m_UxmlPath = m_UxmlDir + "SuggestedLabelElement.uxml";
-            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree(this);
+            var uxmlPath = m_UxmlDir + "SuggestedLabelElement.uxml";
+            AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath).CloneTree(this);
             m_Label = this.Q<Label>("label-value");
-            m_AddButton = this.Q<Button>("add-button");
+            var addButton = this.Q<Button>("add-button");
 
-            m_AddButton.clicked += () => { editor.AddLabel(labelsArray, m_Label.text); };
+            addButton.clicked += () => { editor.AddLabel(labelsArray, m_Label.text); };
         }
     }
 }

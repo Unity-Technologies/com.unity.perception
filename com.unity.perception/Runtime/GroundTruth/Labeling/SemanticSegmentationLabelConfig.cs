@@ -10,6 +10,9 @@ namespace UnityEngine.Perception.GroundTruth {
     [CreateAssetMenu(fileName = "SemanticSegmentationLabelConfig", menuName = "Perception/Semantic Segmentation Label Config", order = 1)]
     public class SemanticSegmentationLabelConfig : LabelConfig<SemanticSegmentationLabelEntry>
     {
+        /// <summary>
+        /// List of standard color based on which this type of label configuration assigns new colors to added labels.
+        /// </summary>
         public static readonly List<Color> s_StandardColors = new List<Color>()
         {
             Color.blue,
@@ -20,8 +23,16 @@ namespace UnityEngine.Perception.GroundTruth {
             Color.gray
         };
 
+        /// <summary>
+        /// Add a string to the list of label entries in this label configuration. The color for this entry will be
+        /// a unique color not previously present in the config.
+        /// </summary>
+        /// <param name="labelToAdd"></param>
         public override void AddLabel(string labelToAdd)
         {
+            if (DoesLabelMatchAnEntry(labelToAdd))
+                return;
+
             m_LabelEntries.Add(new SemanticSegmentationLabelEntry
             {
                 label = labelToAdd,

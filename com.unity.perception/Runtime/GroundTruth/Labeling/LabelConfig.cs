@@ -28,6 +28,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public const string labelEntriesFieldName = nameof(m_LabelEntries);
 
+        /// <summary>
+        /// List of LabelEntry items added to this label configuration
+        /// </summary>
         [FormerlySerializedAs("LabelEntries")]
         [FormerlySerializedAs("LabelingConfigurations")]
         [SerializeField]
@@ -59,9 +62,15 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <summary>
-        /// Name of the function that checks whether a string label is included in the config, used for reflection purposes.
+        /// Name of the function that checks whether a given string matches any of the label entries in this label configuration, used for reflection purposes.
         /// </summary>
+
         public const string DoesLabelMatchAnEntryName = nameof(DoesLabelMatchAnEntry);
+        /// <summary>
+        /// Does the given string match any of the label entries added to this label configuration.
+        /// </summary>
+        /// <param name="label"></param>
+        /// <returns></returns>
         public bool DoesLabelMatchAnEntry(string label)
         {
             return m_LabelEntries.Any(entry => string.Equals(entry.label, label));

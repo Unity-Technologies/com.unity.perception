@@ -1,5 +1,5 @@
 <UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <BindableElement class="outer-container" name="outer-container">
+    <VisualElement class="outer-container" name="outer-container">
         <Style src="../Uss/Styles.uss"/>
         <Toggle name = "auto-or-manual-toggle" text="Use Automatic Labeling" style="margin-top: 5px"/>
         <VisualElement name="automatic-labeling" class="inner-container">
@@ -8,6 +8,7 @@
                 <Label name ="current-auto-label-title" text="Automatic Label:"/>
                 <Label name ="current-auto-label" style="-unity-font-style: bold; margin-left: 54px;"/>
             </VisualElement>
+            <Button name ="add-auto-label-to-config" text="Add to Label Config..." style="margin-top: 5px; align-self: flex-end;"/>
         </VisualElement>
         <VisualElement name="manual-labeling" class="inner-container" style="">
             <Label text="Added Labels" name="added-labels-title" class="title-label"/>
@@ -34,6 +35,6 @@
                 </VisualElement>
             </VisualElement>
         </VisualElement>
-    </BindableElement>
+    </VisualElement>
 </UXML>
 

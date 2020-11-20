@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -13,7 +12,13 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class Labeling : MonoBehaviour
     {
+        /// <summary>
+        /// List of separator characters used for parsing asset names for auto labeling or label suggestion purposes
+        /// </summary>
         public static readonly string[] NameSeparators = {".", "-", "_"};
+        /// <summary>
+        /// List of separator characters used for parsing asset paths for auto labeling or label suggestion purposes
+        /// </summary>
         public static readonly string[] PathSeparators = {"/"};
 
         /// <summary>
@@ -30,13 +35,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Whether this labeling component is currently using an automatic labeling scheme. When this is enabled, the asset can have only one label (the automatic one) and the user cannot add more labels.
         /// </summary>
-        public bool useAutoLabeling = false;
+        public bool useAutoLabeling;
 
 
         /// <summary>
         /// The specific subtype of AssetLabelingScheme that this component is using, if useAutoLabeling is enabled.
         /// </summary>
-        public string autoLabelingSchemeType = String.Empty;
+        public string autoLabelingSchemeType = string.Empty;
 
         /// <summary>
         /// The unique id of this labeling component instance
@@ -66,7 +71,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             labels.Clear();
             useAutoLabeling = false;
-            autoLabelingSchemeType = String.Empty;
+            autoLabelingSchemeType = string.Empty;
 #if UNITY_EDITOR
             EditorUtility.SetDirty(gameObject);
 #endif
@@ -83,11 +88,16 @@ namespace UnityEngine.Perception.GroundTruth
                 .RefreshLabeling(m_Entity);
         }
 
+        /// <summary>
+        /// Get the path of the given asset in the project, or get the path of the given Scene GameObject's source prefab if any
+        /// </summary>
+        /// <param name="gObj"></param>
+        /// <returns></returns>
         public static string GetAssetOrPrefabPath(Object gObj)
         {
             string assetPath = AssetDatabase.GetAssetPath(gObj);
 
-            if (assetPath == String.Empty)
+            if (assetPath == string.Empty)
             {
                 //this indicates that gObj is a scene object and not a prefab directly selected from the Project tab
                 var prefabObject = PrefabUtility.GetCorrespondingObjectFromSource(gObj);
@@ -101,62 +111,49 @@ namespace UnityEngine.Perception.GroundTruth
         }
     }
 
+    /// <summary>
+    /// A labeling scheme based on which an automatic label can be produced for a given asset. E.g. based on asset name, asset path, etc.
+    /// </summary>
     public abstract class AssetLabelingScheme
     {
-        protected Object m_TargetAsset;
+        /// <summary>
+        /// The description of how this scheme generates labels. Used in the dropdown menu in the UI.
+        /// </summary>
+        public abstract string Description { get; }
 
-        //public abstract string Title { get; protected set; }
-        public abstract string Description { get; protected set; }
+        /// <summary>
+        /// Generate a label for the given asset
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <returns></returns>
         public abstract string GenerateLabel(Object asset);
-        public abstract bool IsCompatibleWithAsset(Object asset);
     }
 
+    /// <summary>
+    /// Asset labeling scheme that outputs the given asset's name as its automatic label
+    /// </summary>
     public class AssetNameLabelingScheme : AssetLabelingScheme
     {
-        // public override string Title
-        // {
-        //     get => "Use Asset Name";
-        //     protected set { }
-        // }
+        ///<inheritdoc/>
+        public override string Description => "Use asset name";
 
-        public override string Description
-        {
-            get => "Use asset name";
-            protected set { }
-        }
-
-        public override bool IsCompatibleWithAsset(Object asset)
-        {
-            return true;
-        }
-
+        ///<inheritdoc/>
         public override string GenerateLabel(Object asset)
         {
             return asset.name;
         }
     }
 
+
+    /// <summary>
+    /// Asset labeling scheme that outputs the given asset's file name, including extension, as its automatic label
+    /// </summary>
     public class AssetFileNameLabelingScheme : AssetLabelingScheme
     {
-        // public override string Title
-        // {
-        //     get => "Use File Name with Extension";
-        //     protected set { }
-        // }
+        ///<inheritdoc/>
+        public override string Description => "Use file name with extension";
 
-        public override string Description
-        {
-            //get => "Uses the full file name of the asset, including the extension.";
-            get => "Use file name with extension";
-            protected set { }
-        }
-
-        public override bool IsCompatibleWithAsset(Object asset)
-        {
-            string assetPath = Labeling.GetAssetOrPrefabPath(asset);
-            return assetPath != null;
-        }
-
+        ///<inheritdoc/>
         public override string GenerateLabel(Object asset)
         {
             string assetPath = Labeling.GetAssetOrPrefabPath(asset);
@@ -166,26 +163,16 @@ namespace UnityEngine.Perception.GroundTruth
         }
     }
 
+
+    /// <summary>
+    /// Asset labeling scheme that outputs the given asset's folder name as its automatic label
+    /// </summary>
     public class CurrentOrParentsFolderNameLabelingScheme : AssetLabelingScheme
     {
-        // public override string Title
-        // {
-        //     get => "Use folder name of asset or its ancestors";
-        //     protected set { }
-        // }
+        ///<inheritdoc/>
+        public override string Description => "Use folder name of asset or its ancestors";
 
-        public override string Description
-        {
-            get => "Use folder name of asset or its ancestors";
-            protected set { }
-        }
-
-        public override bool IsCompatibleWithAsset(Object asset)
-        {
-            string assetPath = Labeling.GetAssetOrPrefabPath(asset);
-            return assetPath != null;
-        }
-
+        ///<inheritdoc/>
         public override string GenerateLabel(Object asset)
         {
             string assetPath = Labeling.GetAssetOrPrefabPath(asset);

@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections;
+﻿#define ENABLED
+#if ENABLED
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEditor.UIElements;
-using UnityEditor.VersionControl;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.UIElements;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using Task = System.Threading.Tasks.Task;
 
 namespace UnityEditor.Perception.GroundTruth
 {
@@ -23,6 +19,15 @@ namespace UnityEditor.Perception.GroundTruth
 
         protected override void OnEnableExtended()
         {
+            m_StartingIdEnumField.RegisterValueChangedCallback(evt =>
+            {
+                var prop = serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId));
+                var id = (int) ((StartingLabelId) evt.newValue);
+                serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId)).enumValueIndex = id;
+                serializedObject.ApplyModifiedProperties();
+                AutoAssignIds();
+            });
+
             AutoAssignIdsIfNeeded();
             m_MoveDownButton.clicked += MoveSelectedItemDown;
             m_MoveUpButton.clicked += MoveSelectedItemUp;
@@ -48,7 +53,7 @@ namespace UnityEditor.Perception.GroundTruth
                 topProperty.stringValue = currentProperty.stringValue;
                 currentProperty.stringValue = tmpString;
 
-                m_LabelListView.SetSelection(selectedIndex - 1);
+                m_LabelListView.selectedIndex = selectedIndex - 1;
 
                 serializedObject.ApplyModifiedProperties();
                 RefreshAddedLabels();
@@ -73,7 +78,7 @@ namespace UnityEditor.Perception.GroundTruth
                 bottomProperty.stringValue = currentProperty.stringValue;
                 currentProperty.stringValue = tmpString;
 
-                m_LabelListView.SetSelection(selectedIndex + 1);
+                m_LabelListView.selectedIndex = selectedIndex + 1;
 
                 serializedObject.ApplyModifiedProperties();
                 RefreshAddedLabels();
@@ -193,6 +198,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         private void AutoAssignIds()
         {
+            serializedObject.Update();
             var serializedProperty = serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName);
             var size = serializedProperty.arraySize;
             if (size == 0)
@@ -208,6 +214,10 @@ namespace UnityEditor.Perception.GroundTruth
                     nextId;
                 nextId++;
             }
+
+            serializedObject.ApplyModifiedProperties();
+            RefreshListDataAndPresenation();
+            EditorUtility.SetDirty(target);
         }
 
         private void AutoAssignIdsIfNeeded()
@@ -215,8 +225,6 @@ namespace UnityEditor.Perception.GroundTruth
             if (AutoAssign)
             {
                 AutoAssignIds();
-                serializedObject.ApplyModifiedProperties();
-                EditorUtility.SetDirty(target);
             }
         }
     }
@@ -238,3 +246,4 @@ namespace UnityEditor.Perception.GroundTruth
         }
     }
 }
+#endif

@@ -1,6 +1,9 @@
-<UXML xmlns="UnityEngine.UIElements">
+<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
     <VisualElement class="outer-container" name="outer-container">
         <Style src="../Uss/Styles.uss"/>
+        <VisualElement style="flex-direction: row; flex-grow: 1; margin-bottom: 5px">
+            <editor:EnumField label="Starting ID" name="starting-id-dropdown" binding-path="startingLabelId" style="flex-grow:1; margin:0"/>
+        </VisualElement>
         <VisualElement name="added-labels" class="inner-container" style="margin-top:0px">
             <Label text="Added Labels" name="added-labels-title" class="title-label"/>
             <ListView name="labels-listview" class="labeling__label-listview" style="margin-top: 5px;"/>
@@ -13,15 +16,18 @@
                     <Button name="move-down-button" class="move-label-in-config-button move-down"/>
                 </VisualElement>
                 <VisualElement style="flex-grow:1"/>
+                <Button name="remove-all-labels" text="Remove All" class="labeling__add-label-button"
+                        style="color:red"/>
                 <Button name="add-label" text="Add New Label" class="labeling__add-label-button"/>
             </VisualElement>
-            <!--<Toggle name = "auto-assign-toggle" text="Auto Assign Ids" style="margin-top: 5px"/>-->
         </VisualElement>
 
         <VisualElement name="other-labels" class="inner-container depth2">
             <Label text="Other Labels in Project" class="title-label"/>
             <ListView name="labels-in-project-listview" class="labeling__label-listview"
                       style="margin-top: 5px; min-height: 200px"/>
+            <Button name="add-all-labels-in-project" text="Add All Labels to Config" class="labeling__add-label-button"
+                    style="margin-top: 5px"/>
         </VisualElement>
 
         <VisualElement name="other-labels" class="inner-container depth2">

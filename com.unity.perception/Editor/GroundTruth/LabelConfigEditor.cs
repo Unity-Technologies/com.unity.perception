@@ -51,11 +51,6 @@ namespace UnityEditor.Perception.GroundTruth
             m_UiInitialized = false;
             ChangesHappeningInForeground = true;
             RefreshListDataAndPresentation();
-            Undo.undoRedoPerformed += () =>
-            {
-                ChangesHappeningInForeground = true;
-                RefreshListDataAndPresentation();
-            };
         }
 
         private int m_PreviousLabelsArraySize = -1;

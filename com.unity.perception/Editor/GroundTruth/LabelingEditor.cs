@@ -150,7 +150,6 @@ namespace UnityEditor.Perception.GroundTruth
 
             if (m_FirstItemLabelsArray.arraySize != m_PreviousLabelsArraySize)
             {
-                Debug.Log("model checker refreshing");
                 AssesAutoLabelingStatus();
                 RefreshManualLabelingData();
                 m_PreviousLabelsArraySize = m_FirstItemLabelsArray.arraySize;

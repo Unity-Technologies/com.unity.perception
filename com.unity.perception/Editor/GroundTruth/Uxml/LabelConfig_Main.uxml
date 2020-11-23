@@ -43,9 +43,8 @@
                         style="align-self: center; padding: 10px; flex-grow:1; height: 40px; margin: 0 0 0 3"/>
             </VisualElement>
             <VisualElement class="helpbox" style="margin: 7px 0 7px 0 ">
-                <Label text="Warning:" style="color:yellow; margin-bottom: 5px"/>
                 <TextElement
-                    text="Importing labels from file will overwrite all existing contents of this label configuration."/>
+                    text="Importing a label config file will overwrite all existing contents of this label config."/>
             </VisualElement>
         </VisualElement>
 

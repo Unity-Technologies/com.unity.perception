@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.UIElements;
-using Newtonsoft.Json.Linq;
 using UnityEditor.UIElements;
 
 namespace UnityEditor.Perception.GroundTruth
@@ -230,7 +230,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_Root.schedule.Execute(() => { m_LabelListView.ScrollToItem(-1); })
                 .StartingIn(
-                    10); //to circumvent the delay in the listview's internal scrollview updating its geometry (when new items are added).
+                    10); //to circumvent the delay in listview's internal scrollview updating its geometry (when new items are added).
         }
 
         protected void RefreshAddedLabels()
@@ -371,7 +371,6 @@ namespace UnityEditor.Perception.GroundTruth
         public int m_IndexInList;
 
         protected SerializedProperty m_LabelsArray;
-
 
         protected LabelConfigEditor<T> m_LabelConfigEditor;
 

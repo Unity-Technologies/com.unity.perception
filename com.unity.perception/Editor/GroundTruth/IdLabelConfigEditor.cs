@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Unity.Mathematics;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -83,7 +81,6 @@ namespace UnityEditor.Perception.GroundTruth
                 RefreshAddedLabels();
                 m_LabelListView.Refresh();
                 RefreshListViewHeight();
-                //AssetDatabase.SaveAssets();
             }
         }
 
@@ -121,7 +118,6 @@ namespace UnityEditor.Perception.GroundTruth
                 RefreshAddedLabels();
                 m_LabelListView.Refresh();
                 RefreshListViewHeight();
-                //AssetDatabase.SaveAssets();
             }
         }
 

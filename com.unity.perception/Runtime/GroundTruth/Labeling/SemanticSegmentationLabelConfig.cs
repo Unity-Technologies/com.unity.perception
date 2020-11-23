@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
 
 namespace UnityEngine.Perception.GroundTruth {
     /// <summary>
@@ -22,36 +20,6 @@ namespace UnityEngine.Perception.GroundTruth {
             Color.yellow,
             Color.gray
         };
-
-
-        /// <summary>
-        /// Add a string to the list of label entries in this label configuration. The color for this entry will be
-        /// a unique color not previously present in the config.
-        /// </summary>
-        /// <param name="labelToAdd"></param>
-        public void AddLabel(string labelToAdd)
-        {
-            if (DoesLabelMatchAnEntry(labelToAdd))
-                return;
-            m_LabelEntries.Add(new SemanticSegmentationLabelEntry
-            {
-                label = labelToAdd,
-                color = FindNewColor()
-            });
-        }
-
-        Color FindNewColor()
-        {
-            var standardColorList = new List<Color>(s_StandardColors);
-            foreach (var item in m_LabelEntries)
-            {
-                standardColorList.Remove(item.color);
-            }
-            if (standardColorList.Any())
-                return standardColorList.First();
-
-            return Random.ColorHSV(0, 1, .5f, 1, 1, 1);
-        }
     }
 
     /// <summary>

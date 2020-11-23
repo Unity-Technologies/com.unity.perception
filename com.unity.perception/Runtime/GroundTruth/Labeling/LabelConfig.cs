@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -73,15 +72,6 @@ namespace UnityEngine.Perception.GroundTruth
         public bool DoesLabelMatchAnEntry(string label)
         {
             return m_LabelEntries.Any(entry => string.Equals(entry.label, label));
-        }
-
-        /// <summary>
-        /// Remove the label entries matching the given string
-        /// </summary>
-        /// <param name="label"></param>
-        public virtual void RemoveLabel(string label)
-        {
-            m_LabelEntries.RemoveAll(entry => String.Equals(entry.label, label));
         }
 
         /// <summary>

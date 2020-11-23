@@ -158,9 +158,9 @@ namespace UnityEngine.Perception.GroundTruth
         public override string GenerateLabel(Object asset)
         {
             string assetPath = Labeling.GetAssetOrPrefabPath(asset);
-            var stringList = assetPath?.Split(Labeling.PathSeparators, StringSplitOptions.RemoveEmptyEntries)
+            var stringList = assetPath.Split(Labeling.PathSeparators, StringSplitOptions.RemoveEmptyEntries)
                 .ToList();
-            return stringList?.Last();
+            return stringList.Count > 0 ? stringList.Last() : null;
         }
     }
 
@@ -177,11 +177,9 @@ namespace UnityEngine.Perception.GroundTruth
         public override string GenerateLabel(Object asset)
         {
             string assetPath = Labeling.GetAssetOrPrefabPath(asset);
-            var stringList = assetPath?.Split(Labeling.PathSeparators, StringSplitOptions.RemoveEmptyEntries)
+            var stringList = assetPath.Split(Labeling.PathSeparators, StringSplitOptions.RemoveEmptyEntries)
                 .ToList();
-
-            //if stringList is not null, it always has at least two members, the file's name and the parent folder
-            return stringList?[stringList.Count-2];
+            return stringList.Count > 1 ? stringList[stringList.Count-2] : null;
         }
     }
 }

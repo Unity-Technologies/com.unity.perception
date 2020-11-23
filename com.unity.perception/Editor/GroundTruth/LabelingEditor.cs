@@ -219,12 +219,30 @@ namespace UnityEditor.Perception.GroundTruth
             }
         }
 
+        private bool AreSelectedAssetsCompatibleWithAutoLabelScheme(AssetLabelingScheme scheme)
+        {
+            foreach (var asset in serializedObject.targetObjects)
+            {
+                string label = scheme.GenerateLabel(asset);
+                if (label == null)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private void InitializeLabelingSchemes(VisualElement parent)
         {
             //this function should be called only once during the lifecycle of the editor element
-            m_LabelingSchemes.Add(new AssetNameLabelingScheme());
-            m_LabelingSchemes.Add(new AssetFileNameLabelingScheme());
-            m_LabelingSchemes.Add(new CurrentOrParentsFolderNameLabelingScheme());
+            AssetLabelingScheme labelingScheme = new AssetNameLabelingScheme();
+            if (AreSelectedAssetsCompatibleWithAutoLabelScheme(labelingScheme)) m_LabelingSchemes.Add(labelingScheme);
+
+            labelingScheme = new AssetFileNameLabelingScheme();
+            if (AreSelectedAssetsCompatibleWithAutoLabelScheme(labelingScheme)) m_LabelingSchemes.Add(labelingScheme);
+
+            labelingScheme = new CurrentOrParentsFolderNameLabelingScheme();
+            if (AreSelectedAssetsCompatibleWithAutoLabelScheme(labelingScheme)) m_LabelingSchemes.Add(labelingScheme);
 
             var descriptions = m_LabelingSchemes.Select(scheme => scheme.Description).ToList();
             descriptions.Insert(0, "<Select Scheme>");

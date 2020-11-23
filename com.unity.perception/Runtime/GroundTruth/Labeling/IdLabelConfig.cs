@@ -37,36 +37,6 @@ namespace UnityEngine.Perception.GroundTruth {
         }
 
         /// <summary>
-        /// Remove a label entry matching the given string from this label configuration.
-        /// Label configurations can not have duplicate labels, so the given string can match only one entry.
-        /// </summary>
-        /// <param name="label"></param>
-        public override void RemoveLabel(string label)
-        {
-            base.RemoveLabel(label);
-            if (autoAssignIds)
-            {
-                AutoAssignIds();
-            }
-        }
-
-        void AutoAssignIds()
-        {
-            var size = m_LabelEntries.Count;
-            if (size == 0)
-                return;
-
-            var nextId = startingLabelId == StartingLabelId.One ? 1 : 0;
-            for (int i = 0; i < size; i++)
-            {
-                var labelEntry = m_LabelEntries[i];
-                labelEntry.id = nextId;
-                m_LabelEntries[i] = labelEntry;
-                nextId++;
-            }
-        }
-
-        /// <summary>
         /// Attempts to find the label id for the given instance id.
         /// </summary>
         /// <param name="instanceId">The instanceId of the object for which the labelId should be found</param>

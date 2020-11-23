@@ -61,11 +61,5 @@ namespace UnityEngine.Perception.GroundTruth
             World.DefaultGameObjectInjectionWorld?.GetExistingSystem<GroundTruthLabelSetupSystem>()?.Deactivate(this);
             m_InstanceIdToLabelEntryIndexLookup.Dispose();
         }
-
-        public void ClearCache()
-        {
-            m_InstanceIdToLabelEntryIndexLookup.Clear();
-        }
-
     }
 }

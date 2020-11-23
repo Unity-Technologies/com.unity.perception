@@ -35,6 +35,8 @@ Fixed enumeration in the CategoricalParameter.categories property
 
 The GenerateRandomSeedFromIndex method now correctly hashes the current scenario iteration into the random seed it generates
 
+Corrupted .meta files have been rebuilt and replaced
+
 ## [0.5.0-preview.1] - 2020-10-14
 
 ### Known Issues

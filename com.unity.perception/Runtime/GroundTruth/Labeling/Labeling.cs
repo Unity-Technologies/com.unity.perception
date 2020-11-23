@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Entities;
 using UnityEditor;
 using UnityEngine.Serialization;
+using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -170,7 +171,7 @@ namespace UnityEngine.Perception.GroundTruth
     public class CurrentOrParentsFolderNameLabelingScheme : AssetLabelingScheme
     {
         ///<inheritdoc/>
-        public override string Description => "Use folder name of asset or its ancestors";
+        public override string Description => "Use the asset's folder name";
 
         ///<inheritdoc/>
         public override string GenerateLabel(Object asset)

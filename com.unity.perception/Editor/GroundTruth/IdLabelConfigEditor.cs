@@ -1,6 +1,4 @@
-﻿#define ENABLED
-#if ENABLED
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
@@ -8,25 +6,38 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.UIElements;
-using Newtonsoft.Json.Linq;
 
 namespace UnityEditor.Perception.GroundTruth
 {
     [CustomEditor(typeof(IdLabelConfig))]
     class IdLabelConfigEditor : LabelConfigEditor<IdLabelEntry>
     {
-        protected override LabelConfig<IdLabelEntry> TargetLabelConfig => (IdLabelConfig) serializedObject.targetObject;
-
-        protected override void OnEnableExtended()
+        protected override void InitUiExtended()
         {
             m_StartingIdEnumField.RegisterValueChangedCallback(evt =>
             {
-                var prop = serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId));
                 var id = (int) ((StartingLabelId) evt.newValue);
                 serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId)).enumValueIndex = id;
                 serializedObject.ApplyModifiedProperties();
                 AutoAssignIds();
             });
+
+            m_AutoIdToggle.RegisterValueChangedCallback(evt =>
+            {
+                serializedObject.FindProperty(nameof(IdLabelConfig.autoAssignIds)).boolValue = evt.newValue;
+                m_StartingIdEnumField.SetEnabled(evt.newValue);
+                serializedObject.ApplyModifiedProperties();
+                if (!evt.newValue)
+                {
+                    ChangesHappeningInForeground = true;
+                    RefreshListDataAndPresentation();
+                    //if evt.newValue is true, the auto assign function will perform the above refresh, so no need to do this twice
+                    //refresh is needed because the id textfields of the labels need to be enabled or disabled accordingly
+                }
+                AutoAssignIdsIfNeeded();
+            });
+
+            m_StartingIdEnumField.SetEnabled(AutoAssign);
 
             AutoAssignIdsIfNeeded();
             m_MoveDownButton.clicked += MoveSelectedItemDown;
@@ -53,6 +64,19 @@ namespace UnityEditor.Perception.GroundTruth
                 topProperty.stringValue = currentProperty.stringValue;
                 currentProperty.stringValue = tmpString;
 
+                if (!AutoAssign)
+                {
+                    var currentIdProperty =
+                        m_SerializedLabelsArray.GetArrayElementAtIndex(selectedIndex)
+                            .FindPropertyRelative(nameof(IdLabelEntry.id));
+                    var topIdProperty = m_SerializedLabelsArray.GetArrayElementAtIndex(selectedIndex - 1)
+                        .FindPropertyRelative(nameof(IdLabelEntry.id));
+
+                    var tmpInt = topIdProperty.intValue;
+                    topIdProperty.intValue = currentIdProperty.intValue;
+                    currentIdProperty.intValue = tmpInt;
+                }
+
                 m_LabelListView.selectedIndex = selectedIndex - 1;
 
                 serializedObject.ApplyModifiedProperties();
@@ -78,6 +102,19 @@ namespace UnityEditor.Perception.GroundTruth
                 bottomProperty.stringValue = currentProperty.stringValue;
                 currentProperty.stringValue = tmpString;
 
+                if (!AutoAssign)
+                {
+                    var currentIdProperty =
+                        m_SerializedLabelsArray.GetArrayElementAtIndex(selectedIndex)
+                            .FindPropertyRelative(nameof(IdLabelEntry.id));
+                    var bottomIdProperty = m_SerializedLabelsArray.GetArrayElementAtIndex(selectedIndex + 1)
+                        .FindPropertyRelative(nameof(IdLabelEntry.id));
+
+                    var tmpInt = bottomIdProperty.intValue;
+                    bottomIdProperty.intValue = currentIdProperty.intValue;
+                    currentIdProperty.intValue = tmpInt;
+                }
+
                 m_LabelListView.selectedIndex = selectedIndex + 1;
 
                 serializedObject.ApplyModifiedProperties();
@@ -102,8 +139,8 @@ namespace UnityEditor.Perception.GroundTruth
                     addedLabel.m_IndexInList = i;
                     addedLabel.m_LabelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
                         .FindPropertyRelative(nameof(IdLabelEntry.label)));
-                    addedLabel.m_LabelId.text = TargetLabelConfig.labelEntries[i].id.ToString();
-                    addedLabel.UpdateMoveButtonVisibility(m_SerializedLabelsArray);
+                    addedLabel.m_LabelIdTextField.value = m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                        .FindPropertyRelative(nameof(IdLabelEntry.id)).intValue.ToString();
                 }
             }
 
@@ -131,50 +168,6 @@ namespace UnityEditor.Perception.GroundTruth
             };
         }
 
-        protected override IdLabelEntry ImportFromJsonExtended(string labelString, JObject labelEntryJObject,
-            List<IdLabelEntry> previousEntries, bool preventDuplicateIdentifiers = true)
-        {
-            bool invalid = false;
-            int parsedId = -1;
-
-            if (labelEntryJObject.TryGetValue("Id", out var idToken))
-            {
-                var idString = idToken.Value<string>();
-                if (Int32.TryParse(idString, out parsedId))
-                {
-                    if (preventDuplicateIdentifiers && previousEntries.FindAll(entry => entry.id == parsedId).Count > 0)
-                    {
-                        Debug.LogError("File contains a duplicate Label Id: " + parsedId);
-                        invalid = true;
-                    }
-                }
-                else
-                {
-                    Debug.LogError("Error parsing Id for Label Entry" + labelEntryJObject +
-                                   " from file. Please make sure a string value is provided in the file and that it is convertible to an integer.");
-                    invalid = true;
-                }
-            }
-            else
-            {
-                Debug.LogError("Error reading the Id field for Label Entry" + labelEntryJObject +
-                               " from file. Please check the formatting.");
-                invalid = true;
-            }
-
-            return new IdLabelEntry
-            {
-                label = invalid? InvalidLabel : labelString,
-                id = parsedId
-            };
-        }
-
-
-        protected override void AddLabelIdentifierToJson(SerializedProperty labelEntry, JObject jObj)
-        {
-            jObj.Add("Id", labelEntry.FindPropertyRelative(nameof(IdLabelEntry.id)).intValue.ToString());
-        }
-
         protected override void AppendLabelEntryToSerializedArray(SerializedProperty serializedArray,
             IdLabelEntry labelEntry)
         {
@@ -187,18 +180,10 @@ namespace UnityEditor.Perception.GroundTruth
             labelProperty.stringValue = labelEntry.label;
         }
 
-        protected override void ImportLabelEntryListIntoSerializedArray(SerializedProperty serializedArray,
-            List<IdLabelEntry> labelEntriesToAdd)
-        {
-            labelEntriesToAdd = labelEntriesToAdd.OrderBy(entry => entry.id).ToList();
-            base.ImportLabelEntryListIntoSerializedArray(serializedArray, labelEntriesToAdd);
-        }
-
-        private bool AutoAssign => serializedObject.FindProperty(nameof(IdLabelConfig.autoAssignIds)).boolValue;
+        public bool AutoAssign => serializedObject.FindProperty(nameof(IdLabelConfig.autoAssignIds)).boolValue;
 
         private void AutoAssignIds()
         {
-            serializedObject.Update();
             var serializedProperty = serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName);
             var size = serializedProperty.arraySize;
             if (size == 0)
@@ -216,7 +201,8 @@ namespace UnityEditor.Perception.GroundTruth
             }
 
             serializedObject.ApplyModifiedProperties();
-            RefreshListDataAndPresenation();
+            ChangesHappeningInForeground = true;
+            RefreshListDataAndPresentation();
             EditorUtility.SetDirty(target);
         }
 
@@ -227,13 +213,26 @@ namespace UnityEditor.Perception.GroundTruth
                 AutoAssignIds();
             }
         }
+
+        public int IndexOfGivenIdInSerializedLabelsArray(int id)
+        {
+            for (int i = 0; i < m_SerializedLabelsArray.arraySize; i++)
+            {
+                var element = m_SerializedLabelsArray.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(IdLabelEntry.id));
+                if (element.intValue == id)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
     }
 
     internal class IdLabelElementInLabelConfig : LabelElementInLabelConfig<IdLabelEntry>
     {
         protected override string UxmlPath => UxmlDir + "IdLabelElementInLabelConfig.uxml";
 
-        public Label m_LabelId;
+        public TextField m_LabelIdTextField;
 
         public IdLabelElementInLabelConfig(LabelConfigEditor<IdLabelEntry> editor, SerializedProperty labelsArray) :
             base(editor, labelsArray)
@@ -242,8 +241,39 @@ namespace UnityEditor.Perception.GroundTruth
 
         protected override void InitExtended()
         {
-            m_LabelId = this.Q<Label>("label-id-value");
+            m_LabelIdTextField = this.Q<TextField>("label-id-value");
+            m_LabelIdTextField.isDelayed = true;
+            m_LabelIdTextField.SetEnabled(!((IdLabelConfigEditor) m_LabelConfigEditor).AutoAssign);
+            m_LabelIdTextField.RegisterValueChangedCallback(evt =>
+            {
+                if(int.TryParse(evt.newValue, out int parsedId))
+                {
+                    m_LabelsArray.GetArrayElementAtIndex(m_IndexInList).FindPropertyRelative(nameof(IdLabelEntry.id))
+                        .intValue = parsedId;
+                    if (m_LabelsArray.serializedObject.hasModifiedProperties)
+                    {
+                        m_LabelsArray.serializedObject.ApplyModifiedProperties();
+                        m_LabelConfigEditor.ChangesHappeningInForeground = true;
+                        m_LabelConfigEditor.RefreshListDataAndPresentation();
+                    }
+
+                    int index = ((IdLabelConfigEditor)m_LabelConfigEditor).IndexOfGivenIdInSerializedLabelsArray(parsedId);
+
+                    if (index != -1 && index != m_IndexInList)
+                    {
+                        //The listview recycles child visual elements and that causes the RegisterValueChangedCallback event to be called when scrolling.
+                        //Therefore, we need to make sure we are not in this code block just because of scrolling, but because the user is actively changing one of the labels.
+                        //The index check is for this purpose.
+
+                        Debug.LogWarning("A label with the ID " + evt.newValue + " has already been added to this label configuration.");
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Provided id is not a valid integer. Please provide integer values.");
+                    m_LabelIdTextField.value = evt.previousValue;
+                }
+            });
         }
     }
 }
-#endif

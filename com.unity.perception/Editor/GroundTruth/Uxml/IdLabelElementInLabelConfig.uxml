@@ -2,8 +2,8 @@
     <VisualElement class="added-label" style="padding-top: 3px;">
         <Button name="remove-button" class="labeling__remove-item-button" />
         <VisualElement class="generic-hover" style = "flex-direction: row; padding: 3px; margin-left: 3px; margin-right: 3px; border-width: 1px; border-color: #555555; border-radius: 4px;">
-            <Label name="label-id-title" text = "id = " style="align-self:center; color: #888888;"/>
-            <Label name="label-id-value" style="-unity-font-style: bold; color: #888888; min-width : 25px; align-self:center;"/>
+            <Label name="label-id-title" text = "ID = " style="align-self:center; color: #888888;"/>
+            <TextField name="label-id-value" style="-unity-font-style: bold; color: #888888; min-width : 30px; align-self:center;"/>
         </VisualElement>
         <TextField name="label-value" class="labeling__added-label-value"/>
         <VisualElement style="min-width:20px; flex-direction: row; display:none">

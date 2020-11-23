@@ -23,16 +23,16 @@ namespace UnityEngine.Perception.GroundTruth {
             Color.gray
         };
 
+
         /// <summary>
         /// Add a string to the list of label entries in this label configuration. The color for this entry will be
         /// a unique color not previously present in the config.
         /// </summary>
         /// <param name="labelToAdd"></param>
-        public override void AddLabel(string labelToAdd)
+        public void AddLabel(string labelToAdd)
         {
             if (DoesLabelMatchAnEntry(labelToAdd))
                 return;
-
             m_LabelEntries.Add(new SemanticSegmentationLabelEntry
             {
                 label = labelToAdd,

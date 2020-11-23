@@ -5,6 +5,8 @@
         <VisualElement class="label-config-header">
             <VisualElement name="collapse-toggle" class="collapse-toggle"/>
             <Label name="config-name" class="labeling__config-name-label"/>
+            <VisualElement style="flex-grow:1"/>
+            <Button name="open-config-button" text="Open"/>
         </VisualElement>
         <ListView name="label-config-contents-listview" class="labeling__label-listview" style="height: 300px"/>
     </VisualElement>

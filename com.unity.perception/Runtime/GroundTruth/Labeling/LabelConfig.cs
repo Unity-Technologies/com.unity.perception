@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -35,8 +36,6 @@ namespace UnityEngine.Perception.GroundTruth
         [FormerlySerializedAs("LabelingConfigurations")]
         [SerializeField]
         protected List<T> m_LabelEntries = new List<T>();
-
-
 
         /// <summary>
         /// Name of the public accessor for the list of label entries, used for reflection purposes.
@@ -77,29 +76,12 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <summary>
-        /// Name of label removal function with string argument, used for reflection purposes
-        /// </summary>
-        public const string RemoveLabelName = nameof(RemoveLabel);
-        /// <summary>
         /// Remove the label entries matching the given string
         /// </summary>
         /// <param name="label"></param>
         public virtual void RemoveLabel(string label)
         {
             m_LabelEntries.RemoveAll(entry => String.Equals(entry.label, label));
-        }
-
-
-        /// <summary>
-        /// Name of label adding function with string argument, used for reflection purposes
-        /// </summary>
-        public const string AddLabelName = nameof(AddLabel);
-        /// <summary>
-        /// To add a label carrying the given string
-        /// </summary>
-        /// <param name="label"></param>
-        public virtual void AddLabel(string label)
-        {
         }
 
         /// <summary>

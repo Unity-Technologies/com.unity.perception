@@ -6,6 +6,8 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace UnityEditor.Perception.GroundTruth
 {
@@ -16,7 +18,7 @@ namespace UnityEditor.Perception.GroundTruth
         private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
         private string m_UxmlPath;
 
-        private static HashSet<string> m_LabelValues = new HashSet<string>();
+        private static List<string> m_LabelValues = new List<string>();
         private static Label m_TitleLabel;
         private static Label m_Status;
 
@@ -32,6 +34,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         private static ListView m_PresentConfigsListview;
         private static ListView m_NonPresentConfigsListview;
+        private static ListView m_SelectedLabelsListview;
         private static Label m_CurrentlyPresentTitle;
         private static Label m_OtherConfigsTitle;
 
@@ -43,9 +46,9 @@ namespace UnityEditor.Perception.GroundTruth
             ShowWindow(m_LabelValues);
         }
 
-        public static void ShowWindow(HashSet<string> labelValues)
+        public static void ShowWindow(List<string> labelValues)
         {
-            m_LabelValues = new HashSet<string>(labelValues);
+            m_LabelValues = new List<string>(labelValues);
             var window = GetWindow<AddToConfigWindow>();
             if (labelValues.Count == 1)
             {
@@ -65,7 +68,7 @@ namespace UnityEditor.Perception.GroundTruth
 
                 if (m_OtherConfigsTitle != null)
                 {
-                    m_OtherConfigsTitle.text = "Other Label Configs in Project:";
+                    m_OtherConfigsTitle.text = "Other Label Configs in Project";
                 }
 
                 if (m_NonPresentConfigsListview != null)
@@ -73,15 +76,19 @@ namespace UnityEditor.Perception.GroundTruth
                     m_NonPresentConfigsListview.style.height = 150;
                 }
 
+                if (m_SelectedLabelsListview != null)
+                {
+                    m_SelectedLabelsListview.style.display = DisplayStyle.None;
+                }
 
                 window.titleContent = new GUIContent("Manage Label");
-                window.minSize = new Vector2(350, 385);
-                window.maxSize = new Vector2(350, 600);
+                window.minSize = new Vector2(400, 390);
+                window.maxSize = new Vector2(400, 390);
             }
             else
             {
                 if(m_TitleLabel != null)
-                    m_TitleLabel.text = "Multiple Labels Selected";
+                    m_TitleLabel.text = "Labels to Add";
 
                 if (m_PresentConfigsListview != null)
                 {
@@ -95,7 +102,7 @@ namespace UnityEditor.Perception.GroundTruth
 
                 if (m_OtherConfigsTitle != null)
                 {
-                    m_OtherConfigsTitle.text = "All Label Configurations in Project:";
+                    m_OtherConfigsTitle.text = "All Label Configurations in Project";
                 }
 
                 if (m_NonPresentConfigsListview != null)
@@ -103,9 +110,15 @@ namespace UnityEditor.Perception.GroundTruth
                     m_NonPresentConfigsListview.style.height = 250;
                 }
 
+                if (m_SelectedLabelsListview != null)
+                {
+                    m_SelectedLabelsListview.style.display = DisplayStyle.Flex;
+
+                }
+
                 window.titleContent = new GUIContent("Manage Labels");
-                window.minSize = new Vector2(350, 300);
-                window.maxSize = new Vector2(350, 600);
+                window.minSize = new Vector2(400, 370);
+                window.maxSize = new Vector2(400, 1000);
             }
 
             window.Init();
@@ -179,6 +192,26 @@ namespace UnityEditor.Perception.GroundTruth
             m_NonPresentConfigsListview.bindItem = BindItem2;
             m_NonPresentConfigsListview.makeItem = MakeItem2;
             m_NonPresentConfigsListview.selectionType = SelectionType.None;
+
+
+            //Selected labels
+            m_SelectedLabelsListview.itemsSource = m_LabelValues;
+
+            VisualElement MakeItem3() => new Label();
+            void BindItem3(VisualElement e, int i)
+            {
+                if (e is Label label)
+                {
+                    label.text = m_LabelValues[i];
+                    label.style.marginLeft = 2;
+                    label.style.marginRight = 2;
+                }
+            }
+
+            m_SelectedLabelsListview.itemHeight = 20;
+            m_SelectedLabelsListview.bindItem = BindItem3;
+            m_SelectedLabelsListview.makeItem = MakeItem3;
+            m_SelectedLabelsListview.selectionType = SelectionType.None;
         }
 
         public void RefreshLists()
@@ -199,6 +232,7 @@ namespace UnityEditor.Perception.GroundTruth
             m_OtherConfigsTitle = m_Root.Q<Label>("other-configs-label");
             m_PresentConfigsListview = m_Root.Q<ListView>("current-configs-listview");
             m_NonPresentConfigsListview = m_Root.Q<ListView>("other-configs-listview");
+            m_SelectedLabelsListview = m_Root.Q<ListView>("selected-labels-list");
             m_Status = m_Root.Q<Label>("status");
             m_Status.style.display = DisplayStyle.None;
         }
@@ -278,19 +312,27 @@ namespace UnityEditor.Perception.GroundTruth
             var removeButton = this.Q<Button>("remove-from-config-button");
             removeButton.text = "Remove Label";
 
+            var openButton = this.Q<Button>("open-config-button");
+            openButton.clicked += () =>
+            {
+                Selection.SetActiveObjectWithContext(m_LabelConfig, null);
+            };
 
             removeButton.clicked += () =>
             {
-                var methodInfo = m_LabelConfig.GetType().GetMethod(IdLabelConfig.RemoveLabelName);
-                if (methodInfo != null)
+                var editor = Editor.CreateEditor(m_LabelConfig);
+                if (editor is SemanticSegmentationLabelConfigEditor semanticEditor)
                 {
-                    object[] parametersArray = new object[1];
-                    parametersArray[0] = targetLabel;
-
-                    methodInfo.Invoke(m_LabelConfig, parametersArray);
-                    EditorUtility.SetDirty(m_LabelConfig);
-                    window.RefreshLists();
+                    semanticEditor.RemoveLabel(targetLabel);
                 }
+                else if (editor is IdLabelConfigEditor idEditor)
+                {
+                    idEditor.RemoveLabel(targetLabel);
+                }
+
+                window.RefreshLists();
+                //AssetDatabase.SaveAssets();
+                Object.DestroyImmediate(editor);
             };
         }
     }
@@ -304,7 +346,7 @@ namespace UnityEditor.Perception.GroundTruth
         public Label m_Label;
         public ScriptableObject m_LabelConfig;
 
-        public ConfigElementLabelNotPresent(AddToConfigWindow window, HashSet<string> targetLabels)
+        public ConfigElementLabelNotPresent(AddToConfigWindow window, List<string> targetLabels)
         {
             var uxmlPath = m_UxmlDir + "ConfigElementLabelPresent.uxml";
             AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath).CloneTree(this);
@@ -312,25 +354,38 @@ namespace UnityEditor.Perception.GroundTruth
             var addButton = this.Q<Button>("remove-from-config-button");
             addButton.text = targetLabels.Count ==1 ? "Add Label" : "Add All Labels";
 
+            var openButton = this.Q<Button>("open-config-button");
+            openButton.clicked += () =>
+            {
+                Selection.SetActiveObjectWithContext(m_LabelConfig, null);
+            };
+
             addButton.clicked += () =>
             {
-                var methodInfo = m_LabelConfig.GetType().GetMethod(IdLabelConfig.AddLabelName);
-                if (methodInfo != null)
+                var editor = Editor.CreateEditor(m_LabelConfig);
+                if (editor is SemanticSegmentationLabelConfigEditor semanticEditor)
                 {
-                    object[] parametersArray = new object[1];
-                    foreach (var targetLabel in targetLabels)
+                    foreach (var label in targetLabels)
                     {
-                        parametersArray[0] = targetLabel;
-                        methodInfo.Invoke(m_LabelConfig, parametersArray);
+                        semanticEditor.AddLabel(label);
                     }
-                    EditorUtility.SetDirty(m_LabelConfig);
-                    window.RefreshLists();
+                }
+                else if (editor is IdLabelConfigEditor idEditor)
+                {
+                    foreach (var label in targetLabels)
+                    {
+                        idEditor.AddLabel(label);
+                    }
                 }
 
                 if (targetLabels.Count > 1)
                 {
                     window.SetStatus("All Labels Added to " + m_LabelConfig.name);
                 }
+
+                window.RefreshLists();
+                //AssetDatabase.SaveAssets();
+                Object.DestroyImmediate(editor);
             };
         }
     }

@@ -20,6 +20,8 @@ namespace UnityEditor.Perception.GroundTruth
         private VisualElement m_Root;
         private VisualElement m_ManualLabelingContainer;
         private VisualElement m_AutoLabelingContainer;
+        private VisualElement m_FromLabelConfigsContainer;
+        private VisualElement m_SuggestedLabelsContainer;
         private ListView m_CurrentLabelsListView;
         private ListView m_SuggestLabelsListView_FromName;
         private ListView m_SuggestLabelsListView_FromPath;
@@ -30,6 +32,7 @@ namespace UnityEditor.Perception.GroundTruth
         private Toggle m_AutoLabelingToggle;
         private Label m_CurrentAutoLabel;
         private Label m_CurrentAutoLabelTitle;
+        private Label m_AddManualLabelsTitle;
 
         private Labeling m_Labeling;
 
@@ -66,12 +69,17 @@ namespace UnityEditor.Perception.GroundTruth
             m_AutoLabelingToggle = m_Root.Q<Toggle>("auto-or-manual-toggle");
             m_ManualLabelingContainer = m_Root.Q<VisualElement>("manual-labeling");
             m_AutoLabelingContainer = m_Root.Q<VisualElement>("automatic-labeling");
+            m_FromLabelConfigsContainer = m_Root.Q<VisualElement>("from-label-configs");
+            m_SuggestedLabelsContainer = m_Root.Q<VisualElement>("suggested-labels");
             m_AddAutoLabelToConfButton = m_Root.Q<Button>("add-auto-label-to-config");
+            m_AddManualLabelsTitle = m_Root.Q<Label>("add-manual-labels-title");
             var dropdownParent = m_Root.Q<VisualElement>("drop-down-parent");
 
             m_ItIsPossibleToAddMultipleAutoLabelsToConfig = false;
             InitializeLabelingSchemes(dropdownParent);
             AssesAutoLabelingStatus();
+
+            m_FirstItemLabelsArray = serializedObject.FindProperty(nameof(Labeling.labels));
 
             if (serializedObject.targetObjects.Length > 1)
             {
@@ -90,7 +98,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_AddAutoLabelToConfButton.clicked += () =>
             {
-                AddToConfigWindow.ShowWindow(CreateUnionOfAllLabels());
+                AddToConfigWindow.ShowWindow(CreateUnionOfAllLabels().ToList());
             };
 
             m_AddButton.clicked += () =>
@@ -110,6 +118,7 @@ namespace UnityEditor.Perception.GroundTruth
                         serializedObject.SetIsDifferentCacheDirty();
                     }
                 }
+                ChangesHappeningInForeground = true;
                 RefreshManualLabelingData();
             };
 
@@ -117,6 +126,35 @@ namespace UnityEditor.Perception.GroundTruth
             {
                 AutoLabelToggleChanged();
             });
+
+            ChangesHappeningInForeground = true;
+            m_Root.schedule.Execute(CheckForModelChanges).Every(30);
+        }
+
+        private int m_PreviousLabelsArraySize = -1;
+        /// <summary>
+        /// This boolean is used to signify when changes in the model are triggered directly from the inspector UI by the user.
+        /// In these cases, the scheduled model checker does not need to update the UI again.
+        /// </summary>
+        public bool ChangesHappeningInForeground { get; set; }
+
+        private SerializedProperty m_FirstItemLabelsArray;
+        private void CheckForModelChanges()
+        {
+            if (ChangesHappeningInForeground)
+            {
+                ChangesHappeningInForeground = false;
+                m_PreviousLabelsArraySize = m_FirstItemLabelsArray.arraySize;
+                return;
+            }
+
+            if (m_FirstItemLabelsArray.arraySize != m_PreviousLabelsArraySize)
+            {
+                Debug.Log("model checker refreshing");
+                AssesAutoLabelingStatus();
+                RefreshManualLabelingData();
+                m_PreviousLabelsArraySize = m_FirstItemLabelsArray.arraySize;
+            }
         }
 
         private bool SerializedObjectHasValidLabelingScheme(SerializedObject serObj)
@@ -136,6 +174,12 @@ namespace UnityEditor.Perception.GroundTruth
         {
             m_ManualLabelingContainer.SetEnabled(!m_AutoLabelingToggle.value);
             m_AutoLabelingContainer.SetEnabled(m_AutoLabelingToggle.value);
+
+            m_AddManualLabelsTitle.style.display = m_AutoLabelingToggle.value ? DisplayStyle.None : DisplayStyle.Flex;
+            m_FromLabelConfigsContainer.style.display = m_AutoLabelingToggle.value ? DisplayStyle.None : DisplayStyle.Flex;
+            m_SuggestedLabelsContainer.style.display = m_AutoLabelingToggle.value ? DisplayStyle.None : DisplayStyle.Flex;
+
+            m_CurrentLabelsListView.style.minHeight = m_AutoLabelingToggle.value ? 70 : 120;
 
             if (!m_AutoLabelingToggle.value || serializedObject.targetObjects.Length > 1 ||
                 !SerializedObjectHasValidLabelingScheme(new SerializedObject(serializedObject.targetObjects[0])))
@@ -196,15 +240,10 @@ namespace UnityEditor.Perception.GroundTruth
         {
             UpdateUiAspects();
 
-            if (m_AutoLabelingToggle.value)
+            if (!m_AutoLabelingToggle.value)
             {
-                // if (serializedObject.targetObjects.Length == 1)
-                // {
-                //     SyncAutoLabelWithSchemeSingleTarget(true);
-                // }
-            }
-            else
-            {
+                m_ItIsPossibleToAddMultipleAutoLabelsToConfig = false;
+
                 foreach (var targetObj in serializedObject.targetObjects)
                 {
                     var serObj = new SerializedObject(targetObj);
@@ -223,6 +262,8 @@ namespace UnityEditor.Perception.GroundTruth
                     serObj.SetIsDifferentCacheDirty();
                 }
             }
+
+            ChangesHappeningInForeground = true;
             RefreshManualLabelingData();
         }
 
@@ -257,6 +298,7 @@ namespace UnityEditor.Perception.GroundTruth
             }
 
             UpdateUiAspects();
+            ChangesHappeningInForeground = true;
             RefreshManualLabelingData();
         }
 
@@ -314,12 +356,9 @@ namespace UnityEditor.Perception.GroundTruth
                     m_LabelingSchemesPopup.index =
                         m_LabelingSchemes.FindIndex(scheme => scheme.GetType().Name.ToString() == unifiedLabelingScheme) + 1;
 
-                    if (enabledOrNot)
-                    {
-                        //all selected assets have the same scheme recorded in their serialized objects, and they all
-                        //have auto labeling enabled
-                        m_ItIsPossibleToAddMultipleAutoLabelsToConfig = true;
-                    }
+                    m_ItIsPossibleToAddMultipleAutoLabelsToConfig = enabledOrNot;
+                    //if all selected assets have the same scheme recorded in their serialized objects, and they all
+                    //have auto labeling enabled, we can now add all auto labels to a config
                 }
                 else
                 {
@@ -555,6 +594,7 @@ namespace UnityEditor.Perception.GroundTruth
                     //The editor.CommonLabels.IndexOf(cEvent.newValue) != m_IndexInList check is for this purpose.
 
                     Debug.LogError("A label with the string " + cEvent.newValue + " has already been added to selected objects.");
+                    editor.ChangesHappeningInForeground = true;
                     editor.RefreshManualLabelingData();
                     return;
                 }
@@ -580,7 +620,10 @@ namespace UnityEditor.Perception.GroundTruth
 
                 //the value change event is called even when the listview recycles its child elements for re-use during scrolling, therefore, we should check to make sure there are modified properties, otherwise we would be doing the refresh for no reason (reduces scrolling performance)
                 if (shouldRefresh)
+                {
+                    editor.ChangesHappeningInForeground = true;
                     editor.RefreshManualLabelingData();
+                }
             });
 
             addToConfigButton.clicked += () =>
@@ -672,6 +715,7 @@ namespace UnityEditor.Perception.GroundTruth
                         editor.serializedObject.SetIsDifferentCacheDirty();
                     }
                 }
+                editor.ChangesHappeningInForeground = true;
                 editor.RefreshManualLabelingData();
             };
         }
@@ -690,9 +734,15 @@ namespace UnityEditor.Perception.GroundTruth
             var uxmlPath = m_UxmlDir + "ConfigElementForAddingLabelsFrom.uxml";
             AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath).CloneTree(this);
             m_LabelsListView = this.Q<ListView>("label-config-contents-listview");
+            var openButton = this.Q<Button>("open-config-button");
             var configName = this.Q<Label>("config-name");
             configName.text = config.name;
             m_CollapseToggle = this.Q<VisualElement>("collapse-toggle");
+
+            openButton.clicked += () =>
+            {
+                Selection.SetActiveObjectWithContext(config, null);
+            };
 
             var propertyInfo = config.GetType().GetProperty(IdLabelConfig.publicLabelEntriesFieldName);
             if (propertyInfo != null)

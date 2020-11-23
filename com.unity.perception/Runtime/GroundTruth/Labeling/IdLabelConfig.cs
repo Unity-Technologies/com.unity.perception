@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 
 namespace UnityEngine.Perception.GroundTruth {
     /// <summary>
@@ -10,6 +11,8 @@ namespace UnityEngine.Perception.GroundTruth {
     [CreateAssetMenu(fileName = "IdLabelConfig", menuName = "Perception/ID Label Config", order = 1)]
     public class IdLabelConfig : LabelConfig<IdLabelEntry>
     {
+
+
         /// <summary>
         /// Whether the inspector will auto-assign ids based on the id of the first element.
         /// </summary>
@@ -31,33 +34,6 @@ namespace UnityEngine.Perception.GroundTruth {
         public bool TryGetLabelEntryFromInstanceId(uint instanceId, out IdLabelEntry labelEntry)
         {
             return TryGetLabelEntryFromInstanceId(instanceId, out labelEntry, out var _);
-        }
-
-        /// <summary>
-        /// Add a string to the list of label entries in this label configuration. The id for this entry will be the
-        /// maximum id present in the configuration plus one.
-        /// </summary>
-        /// <param name="labelToAdd"></param>
-        public override void AddLabel(string labelToAdd)
-        {
-            if (DoesLabelMatchAnEntry(labelToAdd))
-                return;
-
-            int newId = startingLabelId == StartingLabelId.One ? 1 : 0;
-
-            if(m_LabelEntries.Count > 0)
-                newId = m_LabelEntries.Max(entry => entry.id) + 1;
-
-            m_LabelEntries.Add(new IdLabelEntry
-            {
-                label = labelToAdd,
-                id = newId
-            });
-
-            if (autoAssignIds)
-            {
-                AutoAssignIds();
-            }
         }
 
         /// <summary>

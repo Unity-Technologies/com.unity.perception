@@ -2,6 +2,6 @@
     <VisualElement class="suggested-label">
         <Style src="../Uss/Styles.uss"/>
         <Label name="label-value" class="labeling__suggested-label-value"/>
-        <Button name="add-button" class="labeling__add-to-list-button" text="Add"/>
+        <Button name="add-button" class="labeling__add-to-list-button" text="Add to Labels"/>
     </VisualElement>
 </UXML>

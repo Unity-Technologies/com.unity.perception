@@ -17,15 +17,14 @@ namespace UnityEditor.Perception.GroundTruth
         private int m_AddedLabelsItemHeight = 37;
         private int m_OtherLabelsItemHeight = 27;
 
-        protected abstract LabelConfig<T> TargetLabelConfig { get; }
-
         private List<string> m_AddedLabels = new List<string>();
-        public List<string> AddedLabels => m_AddedLabels;
 
         protected SerializedProperty m_SerializedLabelsArray;
 
         private static HashSet<string> allLabelsInProject = new HashSet<string>();
         private List<string> m_LabelsNotPresentInConfig = new List<string>();
+        private bool m_UiInitialized;
+        private bool m_EditorHasUi;
 
         private VisualElement m_Root;
 
@@ -41,11 +40,66 @@ namespace UnityEditor.Perception.GroundTruth
         protected Button m_MoveUpButton;
         protected Button m_MoveDownButton;
         protected VisualElement m_MoveButtons;
+        protected VisualElement m_IdSpecificUi;
         protected EnumField m_StartingIdEnumField;
+        protected Toggle m_AutoIdToggle;
 
 
         public void OnEnable()
         {
+            m_SerializedLabelsArray = serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName);
+            m_UiInitialized = false;
+            ChangesHappeningInForeground = true;
+            RefreshListDataAndPresentation();
+            Undo.undoRedoPerformed += () =>
+            {
+                ChangesHappeningInForeground = true;
+                RefreshListDataAndPresentation();
+            };
+        }
+
+        private int m_PreviousLabelsArraySize = -1;
+        /// <summary>
+        /// This boolean is used to signify when changes in the model are triggered directly from the inspector UI by the user.
+        /// In these cases, the scheduled model checker does not need to update the UI again.
+        /// </summary>
+        public bool ChangesHappeningInForeground { get; set; }
+        private void CheckForModelChanges()
+        {
+            if (ChangesHappeningInForeground)
+            {
+                ChangesHappeningInForeground = false;
+                m_PreviousLabelsArraySize = m_SerializedLabelsArray.arraySize;
+                return;
+            }
+
+            if (m_SerializedLabelsArray.arraySize != m_PreviousLabelsArraySize)
+            {
+                RefreshListDataAndPresentation();
+                m_PreviousLabelsArraySize = m_SerializedLabelsArray.arraySize;
+            }
+        }
+
+        protected abstract void InitUiExtended();
+
+        public abstract void PostRemoveOperations();
+
+        public override VisualElement CreateInspectorGUI()
+        {
+            if (!m_UiInitialized)
+            {
+                InitUi();
+                m_UiInitialized = true;
+            }
+            serializedObject.Update();
+            RefreshListDataAndPresentation();
+            return m_Root;
+        }
+
+        private void InitUi()
+        {
+            m_EditorHasUi = true;
+
             m_UxmlPath = m_UxmlDir + "LabelConfig_Main.uxml";
             m_Root = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(m_UxmlPath).CloneTree();
             m_LabelListView = m_Root.Q<ListView>("labels-listview");
@@ -61,28 +115,29 @@ namespace UnityEditor.Perception.GroundTruth
             m_ExportToFileButton = m_Root.Q<Button>("export-file-button");
             m_AddAllButton = m_Root.Q<Button>("add-all-labels-in-project");
             m_StartingIdEnumField = m_Root.Q<EnumField>("starting-id-dropdown");
+            m_AutoIdToggle = m_Root.Q<Toggle>("auto-id-toggle");
+            m_IdSpecificUi = m_Root.Q<VisualElement>("id-specific-ui");
 
             m_SaveButton.SetEnabled(false);
-            m_SerializedLabelsArray = serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName);
 
-            UpdateMoveButtonState();
-
-            RefreshAddedLabels();
             SetupPresentLabelsListView();
-
             RefreshLabelsMasterList();
             RefreshNonPresentLabels();
             SetupNonPresentLabelsListView();
 
-            OnEnableExtended();
+            InitUiExtended();
+            UpdateMoveButtonState(null);
 
-            m_AddNewLabelButton.clicked += () => { AddNewLabel(m_SerializedLabelsArray, m_AddedLabels); };
+            m_AddNewLabelButton.clicked += () => { AddNewLabel(m_AddedLabels); };
+
+            m_LabelListView.onSelectionChanged +=  UpdateMoveButtonState;
 
             m_RemoveAllButton.clicked += () =>
             {
                 m_SerializedLabelsArray.ClearArray();
                 serializedObject.ApplyModifiedProperties();
-                RefreshListDataAndPresenation();
+                ChangesHappeningInForeground = true;
+                RefreshListDataAndPresentation();
             };
 
             m_AddAllButton.clicked += () =>
@@ -92,7 +147,8 @@ namespace UnityEditor.Perception.GroundTruth
                     AppendLabelEntryToSerializedArray(m_SerializedLabelsArray, CreateLabelEntryFromLabelString(m_SerializedLabelsArray, label));
                 }
                 serializedObject.ApplyModifiedProperties();
-                RefreshListDataAndPresenation();
+                ChangesHappeningInForeground = true;
+                RefreshListDataAndPresentation();
             };
 
             m_ImportFromFileButton.clicked += () =>
@@ -119,18 +175,8 @@ namespace UnityEditor.Perception.GroundTruth
                     writer.Close();
                 }
             };
-        }
 
-
-        protected abstract void OnEnableExtended();
-
-        public abstract void PostRemoveOperations();
-
-        public override VisualElement CreateInspectorGUI()
-        {
-            serializedObject.Update();
-            RefreshListDataAndPresenation();
-            return m_Root;
+            m_Root.schedule.Execute(CheckForModelChanges).Every(30);
         }
 
         static void RefreshLabelsMasterList()
@@ -162,27 +208,30 @@ namespace UnityEditor.Perception.GroundTruth
             return allPaths.Where(path => path.EndsWith(".prefab")).ToList();
         }
 
-        private void UpdateMoveButtonState()
+        private void UpdateMoveButtonState(IEnumerable<object> objectList)
         {
             var selectedIndex = m_LabelListView.selectedIndex;
-            m_MoveDownButton.SetEnabled(selectedIndex > -1);
-            m_MoveUpButton.SetEnabled(selectedIndex > -1);
+            m_MoveDownButton.SetEnabled(selectedIndex < m_LabelListView.itemsSource.Count - 1);
+            m_MoveUpButton.SetEnabled(selectedIndex > 0);
         }
 
-        public void RefreshListDataAndPresenation()
+        public void RefreshListDataAndPresentation()
         {
             serializedObject.Update();
             RefreshAddedLabels();
-            RefreshNonPresentLabels();
-            m_NonPresentLabelsListView.Refresh();
-            RefreshListViewHeight();
-            m_LabelListView.Refresh();
+            if (m_EditorHasUi && m_UiInitialized)
+            {
+                RefreshNonPresentLabels();
+                m_NonPresentLabelsListView.Refresh();
+                RefreshListViewHeight();
+                m_LabelListView.Refresh();
+            }
         }
 
         private void ScrollToBottomAndSelectLastItem()
         {
             m_LabelListView.selectedIndex = m_LabelListView.itemsSource.Count - 1;
-            UpdateMoveButtonState();
+            UpdateMoveButtonState(null);
 
             m_Root.schedule.Execute(() => { m_LabelListView.ScrollToItem(-1); })
                 .StartingIn(
@@ -192,7 +241,12 @@ namespace UnityEditor.Perception.GroundTruth
         protected void RefreshAddedLabels()
         {
             m_AddedLabels.Clear();
-            m_AddedLabels.AddRange(TargetLabelConfig.labelEntries.Select(entry => entry.label));
+            m_SerializedLabelsArray = serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName);
+
+            for (int i = 0; i < m_SerializedLabelsArray.arraySize; i++)
+            {
+                m_AddedLabels.Add(m_SerializedLabelsArray.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(ILabelEntry.label)).stringValue);
+            }
         }
 
         protected virtual void SetupPresentLabelsListView()
@@ -210,7 +264,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             VisualElement MakeItem()
             {
-                var element = new NonPresentLabelElement<T>(this, m_SerializedLabelsArray);
+                var element = new NonPresentLabelElement<T>(this);
                 return element;
             }
 
@@ -227,11 +281,6 @@ namespace UnityEditor.Perception.GroundTruth
             m_NonPresentLabelsListView.itemHeight = m_OtherLabelsItemHeight;
             m_NonPresentLabelsListView.selectionType = SelectionType.None;
         }
-
-        // public void SetSaveButtonEnabled(bool enabled)
-        // {
-        //     m_SaveButton.SetEnabled(enabled);
-        // }
 
         protected void RefreshListViewHeight()
         {
@@ -252,135 +301,66 @@ namespace UnityEditor.Perception.GroundTruth
             return label;
         }
 
-        private void AddNewLabel(SerializedProperty serializedArray, List<string> presentLabels)
+        private void AddNewLabel(List<string> presentLabels)
         {
-            AddLabel(serializedArray, FindNewLabelString(presentLabels));
+            AddLabel(FindNewLabelString(presentLabels));
         }
 
-        public void AddLabel(SerializedProperty serializedArray, string labelToAdd)
+        public void AddLabel(string labelToAdd)
         {
             if (m_AddedLabels.Contains(labelToAdd)) //label has already been added, cannot add again
                 return;
 
-            AppendLabelEntryToSerializedArray(serializedArray, CreateLabelEntryFromLabelString(serializedArray, labelToAdd));
+            AppendLabelEntryToSerializedArray(m_SerializedLabelsArray, CreateLabelEntryFromLabelString(m_SerializedLabelsArray, labelToAdd));
 
             serializedObject.ApplyModifiedProperties();
-            RefreshListDataAndPresenation();
-            ScrollToBottomAndSelectLastItem();
+            RefreshListDataAndPresentation();
+            if (m_EditorHasUi)
+                ScrollToBottomAndSelectLastItem();
+        }
+
+        public void RemoveLabel(string labelToRemove)
+        {
+            var index = IndexOfStringLabelInSerializedLabelsArray(labelToRemove);
+            if (index >= 0)
+            {
+                m_SerializedLabelsArray.DeleteArrayElementAtIndex(index);
+            }
+            serializedObject.ApplyModifiedProperties();
+            RefreshListDataAndPresentation();
+            if (m_EditorHasUi)
+                ScrollToBottomAndSelectLastItem();
         }
 
         protected abstract T CreateLabelEntryFromLabelString(SerializedProperty serializedArray, string labelToAdd);
 
-
-        // Import a list of IdLabelEntry objects to the target object's serialized entries array. This function assumes the labelsToAdd list does not contain any duplicate labels.
-        protected virtual void ImportLabelEntryListIntoSerializedArray(SerializedProperty serializedArray,
-            List<T> labelEntriesToAdd)
-        {
-            serializedArray.ClearArray();
-
-            foreach (var entry in labelEntriesToAdd)
-            {
-                AppendLabelEntryToSerializedArray(serializedArray, entry);
-            }
-
-            serializedObject.ApplyModifiedProperties();
-            RefreshListDataAndPresenation();
-        }
         protected abstract void AppendLabelEntryToSerializedArray(SerializedProperty serializedArray, T labelEntry);
 
-
-        protected abstract T ImportFromJsonExtended(string labelString, JObject jsonObject, List<T> previousEntries, bool preventDuplicateIdentifiers = true);
-
-        protected const string InvalidLabel = "INVALID_LABEL";
         void ImportFromJson(JObject jsonObj)
         {
-            var importedLabelEntries = new List<T>();
-            if (jsonObj.TryGetValue("LabelEntryType", out var type))
-            {
-                if (type.Value<string>() == typeof(T).Name)
-                {
-                    if (jsonObj.TryGetValue("LabelEntries", out var labelsArrayToken))
-                    {
-                        JArray labelsArray = JArray.Parse(labelsArrayToken.ToString());
-                        if (labelsArray != null)
-                        {
-                            foreach (var labelEntryToken in labelsArray)
-                            {
-                                if (labelEntryToken is JObject entryObject)
-                                {
-                                    if (entryObject.TryGetValue("Label", out var labelToken))
-                                    {
-                                        string labelString = labelToken.Value<string>();
+            Undo.RegisterCompleteObjectUndo(serializedObject.targetObject, "Import new label config");
+            JsonUtility.FromJsonOverwrite(jsonObj.ToString(), serializedObject.targetObject);
+            ChangesHappeningInForeground = true;
+            RefreshListDataAndPresentation();
 
-                                        if (importedLabelEntries.FindAll(entry => entry.label == labelString)
-                                            .Count > 0)
-                                        {
-                                            Debug.LogError("File contains a duplicate Label: " + labelString);
-                                            return;
-                                        }
-
-                                        T labelEntry = ImportFromJsonExtended(labelString, entryObject, importedLabelEntries);
-
-                                        if (labelEntry.label == InvalidLabel)
-                                            return;
-
-                                        importedLabelEntries.Add(labelEntry);
-                                    }
-                                    else
-                                    {
-                                        Debug.LogError("Error reading Label for Label Entry" + labelEntryToken +
-                                                       " from file. Please check the formatting.");
-                                        return;
-                                    }
-                                }
-                                else
-                                {
-                                    Debug.LogError("Error reading Label Entry " + labelEntryToken +
-                                                   " from file. Please check the formatting.");
-                                    return;
-                                }
-                            }
-                            ImportLabelEntryListIntoSerializedArray(m_SerializedLabelsArray, importedLabelEntries);
-                        }
-                        else
-                        {
-                            Debug.LogError(
-                                "Could not read list of Label Entries from file. Please check the formatting.");
-                        }
-                    }
-                }
-                else
-                {
-                    Debug.LogError("Specified LabelEntryType does not match " + typeof(T).Name);
-                }
-            }
-            else
-            {
-                Debug.LogError("LabelEntryType not found.");
-            }
         }
-
-
-        protected abstract void AddLabelIdentifierToJson(SerializedProperty labelEntry, JObject jObj);
 
         private string ExportToJson()
         {
-            JObject result = new JObject();
-            result.Add("LabelEntryType", typeof(T).Name);
+            return JsonUtility.ToJson(serializedObject.targetObject);
+        }
 
-            JArray labelEntries = new JArray();
+        public int IndexOfStringLabelInSerializedLabelsArray(string label)
+        {
             for (int i = 0; i < m_SerializedLabelsArray.arraySize; i++)
             {
-                var entry = m_SerializedLabelsArray.GetArrayElementAtIndex(i);
-                JObject entryJobj = new JObject();
-                entryJobj.Add("Label", entry.FindPropertyRelative(nameof(ILabelEntry.label)).stringValue);
-                AddLabelIdentifierToJson(entry, entryJobj);
-                labelEntries.Add(entryJobj);
+                var element = m_SerializedLabelsArray.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(ILabelEntry.label));
+                if (element.stringValue == label)
+                {
+                    return i;
+                }
             }
-
-            result.Add("LabelEntries", labelEntries);
-
-            return result.ToString();
+            return -1;
         }
     }
 
@@ -390,8 +370,6 @@ namespace UnityEditor.Perception.GroundTruth
         protected abstract string UxmlPath { get; }
 
         private Button m_RemoveButton;
-        private Button m_MoveUpButton;
-        private Button m_MoveDownButton;
 
         public TextField m_LabelTextField;
 
@@ -399,14 +377,13 @@ namespace UnityEditor.Perception.GroundTruth
 
         protected SerializedProperty m_LabelsArray;
 
-        //protected ListView m_LabelsListView;
+
         protected LabelConfigEditor<T> m_LabelConfigEditor;
 
         protected LabelElementInLabelConfig(LabelConfigEditor<T> editor, SerializedProperty labelsArray)
         {
             m_LabelConfigEditor = editor;
             m_LabelsArray = labelsArray;
-            //m_LabelsListView = labelsListView;
 
             Init();
         }
@@ -416,8 +393,6 @@ namespace UnityEditor.Perception.GroundTruth
             AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(UxmlPath).CloneTree(this);
             m_LabelTextField = this.Q<TextField>("label-value");
             m_RemoveButton = this.Q<Button>("remove-button");
-            m_MoveUpButton = this.Q<Button>("move-up-button");
-            m_MoveDownButton = this.Q<Button>("move-down-button");
 
             m_LabelTextField.isDelayed = true;
 
@@ -425,17 +400,20 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_LabelTextField.RegisterValueChangedCallback((cEvent) =>
             {
-                if (m_LabelConfigEditor.AddedLabels.Contains(cEvent.newValue) && m_LabelConfigEditor.AddedLabels.IndexOf(cEvent.newValue) != m_IndexInList)
+                int index = m_LabelConfigEditor.IndexOfStringLabelInSerializedLabelsArray(cEvent.newValue);
+
+                if (index != -1 && index != m_IndexInList)
                 {
                     //The listview recycles child visual elements and that causes the RegisterValueChangedCallback event to be called when scrolling.
                     //Therefore, we need to make sure we are not in this code block just because of scrolling, but because the user is actively changing one of the labels.
-                    //The m_LabelConfigEditor.AddedLabels.IndexOf(cEvent.newValue) != m_IndexInList check is for this purpose.
+                    //The index check is for this purpose.
 
                     Debug.LogError("A label with the string " + cEvent.newValue + " has already been added to this label configuration.");
                     m_LabelsArray.GetArrayElementAtIndex(m_IndexInList).FindPropertyRelative(nameof(ILabelEntry.label))
                         .stringValue = cEvent.previousValue; //since the textfield is bound to this property, it has already changed the property, so we need to revert the proprty.
                     m_LabelsArray.serializedObject.ApplyModifiedProperties();
-                    m_LabelConfigEditor.RefreshListDataAndPresenation();
+                    m_LabelConfigEditor.ChangesHappeningInForeground = true;
+                    m_LabelConfigEditor.RefreshListDataAndPresentation();
                     return;
                 }
 
@@ -448,7 +426,8 @@ namespace UnityEditor.Perception.GroundTruth
                 {
                     //the value change event is called even when the listview recycles its child elements for re-use during scrolling, therefore, we should check to make sure there are modified properties, otherwise we would be doing the refresh for no reason (reduces scrolling performance)
                     m_LabelsArray.serializedObject.ApplyModifiedProperties();
-                    m_LabelConfigEditor.RefreshListDataAndPresenation();
+                    m_LabelConfigEditor.ChangesHappeningInForeground = true;
+                    m_LabelConfigEditor.RefreshListDataAndPresentation();
                 }
             });
 
@@ -457,17 +436,12 @@ namespace UnityEditor.Perception.GroundTruth
                 m_LabelsArray.DeleteArrayElementAtIndex(m_IndexInList);
                 m_LabelConfigEditor.PostRemoveOperations();
                 m_LabelConfigEditor.serializedObject.ApplyModifiedProperties();
-                m_LabelConfigEditor.RefreshListDataAndPresenation();
+                m_LabelConfigEditor.ChangesHappeningInForeground = true;
+                m_LabelConfigEditor.RefreshListDataAndPresentation();
             };
         }
 
         protected abstract void InitExtended();
-
-        public void UpdateMoveButtonVisibility(SerializedProperty labelsArray)
-        {
-            m_MoveDownButton.visible = m_IndexInList != labelsArray.arraySize - 1;
-            m_MoveUpButton.visible = m_IndexInList != 0;
-        }
     }
 
     class NonPresentLabelElement<T> : VisualElement where T : ILabelEntry
@@ -475,14 +449,14 @@ namespace UnityEditor.Perception.GroundTruth
         private string m_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
         public Label m_Label;
 
-        public NonPresentLabelElement(LabelConfigEditor<T> editor, SerializedProperty labelsArray)
+        public NonPresentLabelElement(LabelConfigEditor<T> editor)
         {
             var uxmlPath = m_UxmlDir + "SuggestedLabelElement.uxml";
             AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath).CloneTree(this);
             m_Label = this.Q<Label>("label-value");
             var addButton = this.Q<Button>("add-button");
 
-            addButton.clicked += () => { editor.AddLabel(labelsArray, m_Label.text); };
+            addButton.clicked += () => { editor.AddLabel(m_Label.text); };
         }
     }
 }

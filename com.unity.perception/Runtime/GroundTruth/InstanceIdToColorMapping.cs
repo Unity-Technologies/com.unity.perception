@@ -189,9 +189,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// Retrieve the ID associated with the passed in color. If the passed in color is black this service will return 0.
         /// </summary>
         /// <param name="color">The color to map to an ID.</param>
-        /// <returns>This value will be updated with the ID for the passed in color.</returns>
+        /// <returns>The ID for the passed in color.</returns>
         /// <exception cref="IndexOutOfRangeException">Thrown if the passed in color is mapped to an ID that is greater than the largest supported ID</exception>
-        /// <<exception cref="InvalidOperationException">Thrown if the passed in color cannot be mapped to an ID in the alpha 255 range<see cref="maxId"/></exception>
+        /// <exception cref="InvalidOperationException">Thrown if the passed in color cannot be mapped to an ID in the alpha 255 range<see cref="maxId"/></exception>
         public static uint GetInstanceIdFromColor(Color32 color)
         {
             var id = GetIdForColor(GetPackedColorFromColor(color));

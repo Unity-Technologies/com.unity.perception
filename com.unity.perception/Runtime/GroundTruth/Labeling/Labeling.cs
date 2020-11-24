@@ -89,6 +89,7 @@ namespace UnityEngine.Perception.GroundTruth
                 .RefreshLabeling(m_Entity);
         }
 
+        #if UNITY_EDITOR
         /// <summary>
         /// Get the path of the given asset in the project, or get the path of the given Scene GameObject's source prefab if any
         /// </summary>
@@ -110,8 +111,10 @@ namespace UnityEngine.Perception.GroundTruth
 
             return assetPath;
         }
+        #endif
     }
 
+#if UNITY_EDITOR
     /// <summary>
     /// A labeling scheme based on which an automatic label can be produced for a given asset. E.g. based on asset name, asset path, etc.
     /// </summary>
@@ -182,4 +185,5 @@ namespace UnityEngine.Perception.GroundTruth
             return stringList.Count > 1 ? stringList[stringList.Count-2] : null;
         }
     }
+    #endif
 }

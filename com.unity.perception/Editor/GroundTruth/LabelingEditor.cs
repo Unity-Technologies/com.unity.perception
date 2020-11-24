@@ -1,6 +1,3 @@
-#define ENABLED
-#if ENABLED
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -48,6 +45,15 @@ namespace UnityEditor.Perception.GroundTruth
         private readonly List<ScriptableObject> m_AllLabelConfigsInProject = new List<ScriptableObject>();
 
         private readonly List<AssetLabelingScheme> m_LabelingSchemes = new List<AssetLabelingScheme>();
+
+        /// <summary>
+        /// List of separator characters used for parsing asset names for auto labeling or label suggestion purposes
+        /// </summary>
+        public static readonly string[] NameSeparators = {".", "-", "_"};
+        /// <summary>
+        /// List of separator characters used for parsing asset paths for auto labeling or label suggestion purposes
+        /// </summary>
+        public static readonly string[] PathSeparators = {"/"};
 
         private void OnEnable()
         {
@@ -454,16 +460,22 @@ namespace UnityEditor.Perception.GroundTruth
             if (serializedObject.targetObjects.Length == 1)
             {
                 string assetName = serializedObject.targetObject.name;
-                m_SuggestedLabelsBasedOnName.Add(assetName);
-                m_SuggestedLabelsBasedOnName.AddRange(assetName.Split(Labeling.NameSeparators, StringSplitOptions.RemoveEmptyEntries).ToList());
+                var pieces = assetName.Split(NameSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
+                if (pieces.Count > 1)
+                {
+                    //means the asset name was actually split
+                    m_SuggestedLabelsBasedOnName.Add(assetName);
+                }
+
+                m_SuggestedLabelsBasedOnName.AddRange(pieces);
             }
 
             //based on path
-            string assetPath = Labeling.GetAssetOrPrefabPath(m_Labeling.gameObject);
+            string assetPath = GetAssetOrPrefabPath(m_Labeling.gameObject);
             //var prefabObject = PrefabUtility.GetCorrespondingObjectFromSource(m_Labeling.gameObject);
             if (assetPath != null)
             {
-                var stringList = assetPath.Split(Labeling.PathSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
+                var stringList = assetPath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
                 stringList.Reverse();
                 m_SuggestedLabelsBasedOnPath.AddRange(stringList);
             }
@@ -473,11 +485,11 @@ namespace UnityEditor.Perception.GroundTruth
                 if (targetObject == target)
                     continue; //we have already taken care of this one above
 
-                assetPath = Labeling.GetAssetOrPrefabPath(((Labeling)targetObject).gameObject);
+                assetPath = GetAssetOrPrefabPath(((Labeling)targetObject).gameObject);
                 //prefabObject = PrefabUtility.GetCorrespondingObjectFromSource(((Labeling)targetObject).gameObject);
                 if (assetPath != null)
                 {
-                    var stringList = assetPath.Split(Labeling.PathSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    var stringList = assetPath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries).ToList();
                     m_SuggestedLabelsBasedOnPath = m_SuggestedLabelsBasedOnPath.Intersect(stringList).ToList();
                 }
             }
@@ -547,8 +559,6 @@ namespace UnityEditor.Perception.GroundTruth
         {
             SetupSuggestedLabelsBasedOnFlatList(m_SuggestLabelsListView_FromName, m_SuggestedLabelsBasedOnName);
             SetupSuggestedLabelsBasedOnFlatList(m_SuggestLabelsListView_FromPath, m_SuggestedLabelsBasedOnPath);
-            //SetupSuggestedBasedOnNameLabelsListView();
-            //SetupSuggestedBasedOnPathLabelsListView();
         }
 
         void SetupSuggestedLabelsBasedOnFlatList(ListView labelsListView, List<string> stringList)
@@ -580,6 +590,28 @@ namespace UnityEditor.Perception.GroundTruth
                 VisualElement configElement = new LabelConfigElement(this, config);
                 m_LabelConfigsScrollView.Add(configElement);
             }
+        }
+
+        /// <summary>
+        /// Get the path of the given asset in the project, or get the path of the given Scene GameObject's source prefab if any
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static string GetAssetOrPrefabPath(UnityEngine.Object obj)
+        {
+            string assetPath = AssetDatabase.GetAssetPath(obj);
+
+            if (assetPath == string.Empty)
+            {
+                //this indicates that gObj is a scene object and not a prefab directly selected from the Project tab
+                var prefabObject = PrefabUtility.GetCorrespondingObjectFromSource(obj);
+                if (prefabObject)
+                {
+                    assetPath = AssetDatabase.GetAssetPath(prefabObject);
+                }
+            }
+
+            return assetPath;
         }
     }
 
@@ -816,5 +848,75 @@ namespace UnityEditor.Perception.GroundTruth
             }
         }
     }
+
+    /// <summary>
+    /// A labeling scheme based on which an automatic label can be produced for a given asset. E.g. based on asset name, asset path, etc.
+    /// </summary>
+    internal abstract class AssetLabelingScheme
+    {
+        /// <summary>
+        /// The description of how this scheme generates labels. Used in the dropdown menu in the UI.
+        /// </summary>
+        public abstract string Description { get; }
+
+        /// <summary>
+        /// Generate a label for the given asset
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <returns></returns>
+        public abstract string GenerateLabel(UnityEngine.Object asset);
+    }
+
+    /// <summary>
+    /// Asset labeling scheme that outputs the given asset's name as its automatic label
+    /// </summary>
+    internal class AssetNameLabelingScheme : AssetLabelingScheme
+    {
+        ///<inheritdoc/>
+        public override string Description => "Use asset name";
+
+        ///<inheritdoc/>
+        public override string GenerateLabel(UnityEngine.Object asset)
+        {
+            return asset.name;
+        }
+    }
+
+
+    /// <summary>
+    /// Asset labeling scheme that outputs the given asset's file name, including extension, as its automatic label
+    /// </summary>
+    internal class AssetFileNameLabelingScheme : AssetLabelingScheme
+    {
+        ///<inheritdoc/>
+        public override string Description => "Use file name with extension";
+
+        ///<inheritdoc/>
+        public override string GenerateLabel(UnityEngine.Object asset)
+        {
+            string assetPath = LabelingEditor.GetAssetOrPrefabPath(asset);
+            var stringList = assetPath.Split(LabelingEditor.PathSeparators, StringSplitOptions.RemoveEmptyEntries)
+                .ToList();
+            return stringList.Count > 0 ? stringList.Last() : null;
+        }
+    }
+
+
+    /// <summary>
+    /// Asset labeling scheme that outputs the given asset's folder name as its automatic label
+    /// </summary>
+    internal class CurrentOrParentsFolderNameLabelingScheme : AssetLabelingScheme
+    {
+        ///<inheritdoc/>
+        public override string Description => "Use the asset's folder name";
+
+        ///<inheritdoc/>
+        public override string GenerateLabel(UnityEngine.Object asset)
+        {
+            string assetPath = LabelingEditor.GetAssetOrPrefabPath(asset);
+            var stringList = assetPath.Split(LabelingEditor.PathSeparators, StringSplitOptions.RemoveEmptyEntries)
+                .ToList();
+            return stringList.Count > 1 ? stringList[stringList.Count-2] : null;
+        }
+    }
 }
-#endif

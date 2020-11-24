@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using UnityEditor;
 using UnityEngine.Serialization;
-using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -13,15 +10,6 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class Labeling : MonoBehaviour
     {
-        /// <summary>
-        /// List of separator characters used for parsing asset names for auto labeling or label suggestion purposes
-        /// </summary>
-        public static readonly string[] NameSeparators = {".", "-", "_"};
-        /// <summary>
-        /// List of separator characters used for parsing asset paths for auto labeling or label suggestion purposes
-        /// </summary>
-        public static readonly string[] PathSeparators = {"/"};
-
         /// <summary>
         /// The label names to associate with the GameObject. Modifications to this list after the Update() step of the frame the object is created in are
         /// not guaranteed to be reflected by labelers.
@@ -88,102 +76,5 @@ namespace UnityEngine.Perception.GroundTruth
             World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<GroundTruthLabelSetupSystem>()
                 .RefreshLabeling(m_Entity);
         }
-
-        #if UNITY_EDITOR
-        /// <summary>
-        /// Get the path of the given asset in the project, or get the path of the given Scene GameObject's source prefab if any
-        /// </summary>
-        /// <param name="gObj"></param>
-        /// <returns></returns>
-        public static string GetAssetOrPrefabPath(Object gObj)
-        {
-            string assetPath = AssetDatabase.GetAssetPath(gObj);
-
-            if (assetPath == string.Empty)
-            {
-                //this indicates that gObj is a scene object and not a prefab directly selected from the Project tab
-                var prefabObject = PrefabUtility.GetCorrespondingObjectFromSource(gObj);
-                if (prefabObject)
-                {
-                    assetPath = AssetDatabase.GetAssetPath(prefabObject);
-                }
-            }
-
-            return assetPath;
-        }
-        #endif
     }
-
-#if UNITY_EDITOR
-    /// <summary>
-    /// A labeling scheme based on which an automatic label can be produced for a given asset. E.g. based on asset name, asset path, etc.
-    /// </summary>
-    public abstract class AssetLabelingScheme
-    {
-        /// <summary>
-        /// The description of how this scheme generates labels. Used in the dropdown menu in the UI.
-        /// </summary>
-        public abstract string Description { get; }
-
-        /// <summary>
-        /// Generate a label for the given asset
-        /// </summary>
-        /// <param name="asset"></param>
-        /// <returns></returns>
-        public abstract string GenerateLabel(Object asset);
-    }
-
-    /// <summary>
-    /// Asset labeling scheme that outputs the given asset's name as its automatic label
-    /// </summary>
-    public class AssetNameLabelingScheme : AssetLabelingScheme
-    {
-        ///<inheritdoc/>
-        public override string Description => "Use asset name";
-
-        ///<inheritdoc/>
-        public override string GenerateLabel(Object asset)
-        {
-            return asset.name;
-        }
-    }
-
-
-    /// <summary>
-    /// Asset labeling scheme that outputs the given asset's file name, including extension, as its automatic label
-    /// </summary>
-    public class AssetFileNameLabelingScheme : AssetLabelingScheme
-    {
-        ///<inheritdoc/>
-        public override string Description => "Use file name with extension";
-
-        ///<inheritdoc/>
-        public override string GenerateLabel(Object asset)
-        {
-            string assetPath = Labeling.GetAssetOrPrefabPath(asset);
-            var stringList = assetPath.Split(Labeling.PathSeparators, StringSplitOptions.RemoveEmptyEntries)
-                .ToList();
-            return stringList.Count > 0 ? stringList.Last() : null;
-        }
-    }
-
-
-    /// <summary>
-    /// Asset labeling scheme that outputs the given asset's folder name as its automatic label
-    /// </summary>
-    public class CurrentOrParentsFolderNameLabelingScheme : AssetLabelingScheme
-    {
-        ///<inheritdoc/>
-        public override string Description => "Use the asset's folder name";
-
-        ///<inheritdoc/>
-        public override string GenerateLabel(Object asset)
-        {
-            string assetPath = Labeling.GetAssetOrPrefabPath(asset);
-            var stringList = assetPath.Split(Labeling.PathSeparators, StringSplitOptions.RemoveEmptyEntries)
-                .ToList();
-            return stringList.Count > 1 ? stringList[stringList.Count-2] : null;
-        }
-    }
-    #endif
 }

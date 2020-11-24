@@ -15,7 +15,7 @@ performance_editors:
 
 complete_editors:
   - version: 2019.4.6f1
-  - version: 2020.1.3f1
+#  - version: 2020.1.3f1
 #  - version: 2020.2.0a21
 
 publish_platforms:
@@ -33,7 +33,7 @@ publish_platforms:
     standalone-platform: StandaloneOSX
   - name: ubuntu
     type: Unity::VM
-    image: package-ci/ubuntu:latest
+    image: package-ci/ubuntu:stable
     flavor: b1.large
 
 

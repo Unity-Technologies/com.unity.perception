@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9d0176327854820ab53adc46cbec7c1, type: 3}
   m_Name: SemanticSegmentationLabelingConfiguration
   m_EditorClassIdentifier: 
-  LabelEntries:
+  m_LabelEntries:
   - label: Box
     color: {r: 1, g: 0, b: 0, a: 1}
   - label: Cube
     color: {r: 0, g: 0.024693727, b: 1, a: 1}
   - label: Crate
     color: {r: 0, g: 1, b: 0.16973758, a: 1}
+  - label: Terrain
+    color: {r: 0.8207547, g: 0, b: 0.6646676, a: 1}

@@ -30,7 +30,10 @@ namespace UnityEngine.Perception.GroundTruth
             [UsedImplicitly]
             public uint instance_id;
             [UsedImplicitly]
+            public Color32 instance_color;
+            [UsedImplicitly]
             public int visible_pixels;
+
         }
         // ReSharper restore InconsistentNaming
 
@@ -112,7 +115,13 @@ namespace UnityEngine.Perception.GroundTruth
                 if (m_VisiblePixelsValues == null || m_VisiblePixelsValues.Length != renderedObjectInfos.Length)
                     m_VisiblePixelsValues = new RenderedObjectInfoValue[renderedObjectInfos.Length];
 
-                bool visualize = visualizationEnabled;
+                var visualize = visualizationEnabled;
+
+                if (visualize)
+                {
+                    // Clear out all of the old entries...
+                    hudPanel.RemoveEntries(this);
+                }
 
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
@@ -124,7 +133,8 @@ namespace UnityEngine.Perception.GroundTruth
                     {
                         label_id = labelEntry.id,
                         instance_id = objectInfo.instanceId,
-                        visible_pixels = objectInfo.pixelCount
+                        visible_pixels = objectInfo.pixelCount,
+                        instance_color = objectInfo.instanceColor
                     };
 
                     if (visualize)

@@ -17,6 +17,7 @@ node_modules/**
 .npmrc
 !Documentation~
 !.Documentation
+!Samples~
 npm-debug.log
 build.sh.meta
 build.bat.meta

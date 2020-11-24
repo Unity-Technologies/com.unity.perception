@@ -1,15 +1,15 @@
 <img src="images/banner2.PNG" align="middle"/>
 
 # Unity Perception package (com.unity.perception)
-The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on capturing ground truth for camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
+The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning, training and validation. It is focused on capturing ground truth for Camera-based use cases. In the future, the Perception package will include other types of sensors and machine learning tasks.
 
-> The Perception package is in active development. Its features and API are subject to significant change as development progresses.
+[Quick Installation Instructions](SetupSteps.md)
 
-[Installation instructions](SetupSteps.md)
+[Perception Tutorial](Tutorial/TUTORIAL.md)
 
-[Setting up your first perception scene](GettingStarted.md)
+## Preview package
 
-[Randomizing your simulation (Experimental)](Randomization/Index.md)
+This package is available as a preview, so it is not ready for production use. The features and documentation in this package might change before it is verified for release.
 
 ## Example projects using Perception
 
@@ -17,23 +17,23 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 <img src="images/synthdet.png"/>
 
-[SynthDet](https://github.com/Unity-Technologies/SynthDet) is an end-to-end solution for training a 2d object detection model using synthetic data.
+[SynthDet](https://github.com/Unity-Technologies/SynthDet) is an end-to-end solution for training a 2D object detection model using synthetic data.
 
-### Unity Simulation Smart Camera Example
+### Unity Simulation Smart Camera example
 <img src="images/smartcamera.png"/>
 
-The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how Perception could be used in a smart city or autonomous vehicle simulation. Datasets can be generated locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
+The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how Perception could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
 
 ## Package contents
 
-|Feature|Description
+|Feature|Description|
 |---|---|
-|[Labeling](GroundTruth-Labeling.md)|Component which marks a GameObject and its descendants with a set of labels|
-|[LabelConfig](GroundTruth-Labeling.md#LabelConfig)|Asset which defines a taxonomy of labels for ground truth generation|
-|[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html)|
-|[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset|
-|[Randomization (Experimental)](Randomization/Index.md)|Integrate domain randomization principles into your simulation|
+|[Labeling](GroundTruthLabeling.md)|A component that marks a GameObject and its descendants with a set of labels|
+|[LabelConfig](GroundTruthLabeling.md#label-config)|An asset that defines a taxonomy of labels for ground truth generation|
+|[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html).|
+|[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
+|[Randomization (Experimental)](Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|
 
-## Known Issues
+## Known issues
 
-* The Linux Editor 2019.4.7f1 and 2019.4.8f1 have been found to hang when importing HDRP-based perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1
+* The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1

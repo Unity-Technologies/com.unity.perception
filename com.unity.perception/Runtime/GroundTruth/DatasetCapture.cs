@@ -161,7 +161,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         static SimulationState CreateSimulationData()
         {
-            //TODO: Remove the Guid path when we have proper dataset merging in USim/Thea
+            //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
             return new SimulationState($"Dataset{k_DatasetGuid}");
         }
 
@@ -508,6 +508,24 @@ namespace UnityEngine.Perception.GroundTruth
                 throw new ArgumentNullException(nameof(path));
 
             m_SimulationState.ReportAsyncAnnotationResult<object>(this, path);
+        }
+
+        /// <summary>
+        /// Report file-based and value-based data for this annotation.
+        /// </summary>
+        /// <param name="path">The path to the file containing the annotation data.</param>
+        /// <param name="values">The annotation data.</param>
+        /// <typeparam name="T">The type of the data.</typeparam>
+        /// <exception cref="ArgumentNullException">Thrown if path or values is null</exception>
+        public void ReportFileAndValues<T>(string path, IEnumerable<T> values)
+        {
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+
+            if (values == null)
+                throw new ArgumentNullException(nameof(values));
+
+            m_SimulationState.ReportAsyncAnnotationResult(this, path, values);
         }
 
         /// <summary>

@@ -21,9 +21,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         Shader m_SegmentationShader;
         Material m_OverrideMaterial;
-        int m_NextObjectIndex;
-
-        Dictionary<uint, uint> m_Ids;
 
         /// <summary>
         /// Create a new <see cref="InstanceSegmentationCrossPipelinePass"/> referencing the given
@@ -56,7 +53,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             using (s_ExecuteMarker.Auto())
             {
-                cmd.ClearRenderTarget(true, true, Color.clear);
+                cmd.ClearRenderTarget(true, true, Color.black);
                 var result = CreateRendererListDesc(camera, cullingResult, "FirstPass", 0, m_OverrideMaterial, layerMask);
 
                 DrawRendererList(renderContext, cmd, RendererList.Create(result));
@@ -65,7 +62,14 @@ namespace UnityEngine.Perception.GroundTruth
 
         public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
-            mpb.SetInt(k_SegmentationIdProperty, (int)instanceId);
+            var found = InstanceIdToColorMapping.TryGetColorFromInstanceId(instanceId, out var color);
+
+            if (!found)
+            {
+                Debug.LogError($"Could not get a unique color for {instanceId}");
+            }
+
+            mpb.SetVector(k_SegmentationIdProperty, (Color)color);
     #if PERCEPTION_DEBUG
             Debug.Log($"Assigning id. Frame {Time.frameCount} id {id}");
     #endif

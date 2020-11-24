@@ -5,9 +5,46 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
 
 ### Added
+Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
+Added instance segmentation labeler
+Added support for full screen visual overlays and overlay manager
+
+### Changed
+
+Updated perception to use burst 1.3.9
+Changed InstanceSegmentationImageReadback event to provide a NativeArray\<Color32\> instead of NativeArray\<uint\>
+Expanded all Unity Simulation references from USim to Unity Simulation
+Uniform and Normal samplers now serialize their random seeds
+
+The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to GenerateRandomSeedFromIndex()
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+UnitySimulationScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation
+
+Fixed Unity Simulation nodes generating one extra empty image before generating their share of the randomization scenario iterations
+
+Fixed enumeration in the CategoricalParameter.categories property
+
+The GenerateRandomSeedFromIndex method now correctly hashes the current scenario iteration into the random seed it generates
+
+## [0.5.0-preview.1] - 2020-10-14
+
+### Known Issues
+
+Creating a new 2020.1.x project and adding the perception package to the project causes a memory error that is a [known issue in 2020.1 editors](https://issuetracker.unity3d.com/issues/wild-memory-leaks-leading-to-stackallocator-walkallocations-crashes). Users can remedy this issue by closing and reopening the editor.
+
+### Added
+
+Added Randomizers and RandomizerTags
+Added support for generating 3D bounding box ground truth data
 
 Added performance test framework
 
@@ -19,7 +56,12 @@ Added nightly performance tests
 
 ### Removed
 
+Removed ParameterConfigurations (replaced with Randomizers)
+
 ### Fixed
+
+Fixed visualization issue where object count and pixel count labelers were shown stale values
+Fixed visualization issue where HUD entry labels could be too long and take up the entire panel
 
 ## [0.4.0-preview.1] - 2020-08-07
 

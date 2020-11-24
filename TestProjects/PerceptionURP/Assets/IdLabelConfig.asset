@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: IdLabelConfig
   m_EditorClassIdentifier: 
   m_LabelEntries:
-  - label: Box
+  - label: Crate
     id: 1
   - label: Cube
     id: 2
-  - label: Crate
+  - label: Box
     id: 3
+  - label: Terrain
+    id: 4
   autoAssignIds: 1
   startingLabelId: 1

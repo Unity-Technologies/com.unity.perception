@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         }
 
         /// <summary>
-        /// Non-deterministically generates a random seed
+        /// Non-deterministically generates a non-zero random seed
         /// </summary>
         /// <returns>A non-deterministically generated random seed</returns>
         public static uint GenerateRandomSeed()

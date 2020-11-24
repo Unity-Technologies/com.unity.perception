@@ -1,8 +1,0 @@
-﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <VisualElement class="categorical-option ">
-        <Button name="remove" class="remove-option-button"/>
-        <Label name="index-label" text="[0]" style="min-width: 50px;"/>
-        <editor:PropertyField name="option" class="option-property-field"/>
-        <editor:FloatField label="p:" name="probability" tooltip="Probability" class="hide-when-uniform" style="min-width: 40px; flex-grow: 0.15;"/>
-    </VisualElement>
-</UXML>

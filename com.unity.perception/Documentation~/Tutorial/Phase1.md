@@ -61,13 +61,13 @@ Once the sample files are imported, they will be placed inside the `Assets/Sampl
 <img src="Images/project_folders_samples.png" width="600"/>
 </p>
 
-* **Action**: The _**Project**_ tab contains a search bar; use it to find the file named `ForwardRenderer.asset`, as shown below:
+* **Action**: **(For URP projects only)** The _**Project**_ tab contains a search bar; use it to find the file named `ForwardRenderer.asset`, as shown below:
 
 <p align="center">
 <img src="Images/forward_renderer.png"/>
 </p>
 
-* **Action**: Click on the found file to select it. Then, from the _**Inspector**_ tab of the editor, click on the _**Add Renderer Feature**_ button, and select _**Ground Truth Renderer Feature**_ from the dropdown menu:
+* **Action**: **(For URP projects only)** Click on the found file to select it. Then, from the _**Inspector**_ tab of the editor, click on the _**Add Renderer Feature**_ button, and select _**Ground Truth Renderer Feature**_ from the dropdown menu:
 
 <p align="center">
 <img src="Images/forward_renderer_inspector.png" width="400"/>
@@ -215,7 +215,7 @@ When you open the Prefab asset, you will see the object shown in the Scene tab a
 <img src="Images/exampleprefab.png"/>
 </p>
 
-The Prefab contains a number of components, including a `Transform`, a `Mesh Filter`, a `Mesh Renderer` and a `Labeling` component (highlighted in the image above). While the first three of these are common Unity components, the fourth one is specific to the Perception package, and is used for assigning labels to objects. You can see here that the cream carton is already labeled `drink_whippingcream_lucerner`. This is true for all the foreground objects supplied in the sample tutorial files in order to save time, which means you do not need to perform any additional steps to label your foreground objects. However, adding a label to a prefab would be as simple as clicking _**Add Component**_ and adding the `Labeling` script, then typing the label in.
+The Prefab contains a number of components, including a `Transform`, a `Mesh Filter`, a `Mesh Renderer` and a `Labeling` component (highlighted in the image above). While the first three of these are common Unity components, the fourth one is specific to the Perception package, and is used for assigning labels to objects. You can see here that the cream carton is already labeled `drink_whippingcream_lucerne`. This is true for all the foreground objects supplied in the sample tutorial files in order to save time, which means you do not need to perform any additional steps to label your foreground objects. However, adding a label to a prefab would be as simple as clicking _**Add Component**_ and adding the `Labeling` script, then typing the label in.
 
 Note that each object can have multiple labels assigned, and thus appear as different objects to labelers with different label configurations. For instance, you may want your semantic segmentation labeler to detect all cream cartons as `dairy_product`, while your bounding box labeler still distinguishes between different types of dairy product. To achieve this, you can add a `dairy_product` label to all your dairy products, and then in your label configuration for semantic segmentation, only add the `dairy_product` label, and not any specific products or brand names. To add an additional label to the cream carton, you can click on the _**+**_ button to the bottom right corner of the label list, in the `Labeling` component.
 

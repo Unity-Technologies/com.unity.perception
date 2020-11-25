@@ -210,7 +210,7 @@ In the window that opens, you can add all the automatic labels you just added to
 Here, you can also open either of the configurations by clicking the _**Open**_ buttons. Open both configurations to make sure the list of labels has been added to them. They should now look similar to the screenshot below:
 
 <p align="center">
-<img src="Images/labelconfigs.png"/>
+<img src="Images/labelconfigs.png" width = "800"/>
 </p>
 
 ### <a name="step-5">Step 5: Add and Set-up Randomizers</a> 

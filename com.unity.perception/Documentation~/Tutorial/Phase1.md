@@ -183,7 +183,7 @@ Note that each object can have multiple labels assigned, and thus appear as diff
 
 For this tutorial, we have already added the `Labeling` component to all the foreground Prefabs; however, if you are making your own Prefabs, you can easily add a `Labeling` component to them using the _**Add Component**_ button in the screenshot above.
 
-**Note:** If you would like to start from `.fbx` models, the Perception package lets you quickly create Prefabs from multiple models. Just select all your models and from the top menu bar select _**Assets -> Perception -> Create Prefabs from Selected Models**_. The newly created Prefabs will be placed in the same folder as the selected models.
+**Note:** If you would like to start from `.fbx` models, the Perception package lets you quickly create Prefabs from multiple models. Just select all your models and from the top menu bar select _**Assets -> Perception -> Create Prefabs from Selected Models**_. The newly created Prefabs will be placed in the same folders as their corresponding models.
 
 Here, we will use automatic labeling to label all our foreground objects. 
 

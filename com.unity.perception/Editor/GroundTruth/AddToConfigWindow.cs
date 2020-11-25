@@ -50,6 +50,12 @@ namespace UnityEditor.Perception.GroundTruth
         {
             m_LabelValues = new List<string>(labelValues);
             var window = GetWindow<AddToConfigWindow>();
+
+            if (m_Status != null)
+            {
+                m_Status.style.display = DisplayStyle.None;
+            }
+
             if (labelValues.Count == 1)
             {
 
@@ -83,7 +89,7 @@ namespace UnityEditor.Perception.GroundTruth
 
                 window.titleContent = new GUIContent("Manage Label");
                 window.minSize = new Vector2(400, 390);
-                window.maxSize = new Vector2(400, 390);
+                window.maxSize = new Vector2(700, 390);
             }
             else
             {
@@ -118,7 +124,7 @@ namespace UnityEditor.Perception.GroundTruth
 
                 window.titleContent = new GUIContent("Manage Labels");
                 window.minSize = new Vector2(400, 370);
-                window.maxSize = new Vector2(400, 1000);
+                window.maxSize = new Vector2(700, 1000);
             }
 
             window.Init();

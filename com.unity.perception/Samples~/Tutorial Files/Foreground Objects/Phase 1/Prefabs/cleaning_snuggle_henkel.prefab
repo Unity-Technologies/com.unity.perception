@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  labels:
-  - cleaning_snuggle_henkel
+  labels: []
+  useAutoLabeling: 0
+  autoLabelingSchemeType: 
 --- !u!1001 &3161380922541062055
 PrefabInstance:
   m_ObjectHideFlags: 0

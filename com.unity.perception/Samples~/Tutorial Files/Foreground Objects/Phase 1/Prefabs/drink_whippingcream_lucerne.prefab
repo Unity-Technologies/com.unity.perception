@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  labels:
-  - drink_whippingcream_lucerne
+  labels: []
+  useAutoLabeling: 0
+  autoLabelingSchemeType: 
 --- !u!1001 &7648697372167589499
 PrefabInstance:
   m_ObjectHideFlags: 0

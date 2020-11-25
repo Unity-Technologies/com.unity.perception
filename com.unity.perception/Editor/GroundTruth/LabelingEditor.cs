@@ -19,6 +19,8 @@ namespace UnityEditor.Perception.GroundTruth
         private VisualElement m_AutoLabelingContainer;
         private VisualElement m_FromLabelConfigsContainer;
         private VisualElement m_SuggestedLabelsContainer;
+        private VisualElement m_SuggestedOnNamePanel;
+        private VisualElement m_SuggestedOnPathPanel;
         private ListView m_CurrentLabelsListView;
         private ListView m_SuggestLabelsListView_FromName;
         private ListView m_SuggestLabelsListView_FromPath;
@@ -69,6 +71,8 @@ namespace UnityEditor.Perception.GroundTruth
             m_SuggestLabelsListView_FromName = m_Root.Q<ListView>("suggested-labels-name-listview");
             m_SuggestLabelsListView_FromPath = m_Root.Q<ListView>("suggested-labels-path-listview");
             m_LabelConfigsScrollView = m_Root.Q<ScrollView>("label-configs-scrollview");
+            m_SuggestedOnNamePanel = m_Root.Q<VisualElement>("suggested-labels-from-name");
+            m_SuggestedOnPathPanel = m_Root.Q<VisualElement>("suggested-labels-from-path");
             m_AddButton = m_Root.Q<Button>("add-label");
             m_CurrentAutoLabel = m_Root.Q<Label>("current-auto-label");
             m_CurrentAutoLabelTitle = m_Root.Q<Label>("current-auto-label-title");
@@ -92,8 +96,7 @@ namespace UnityEditor.Perception.GroundTruth
                 var addedTitle = m_Root.Q<Label>("added-labels-title");
                 addedTitle.text = "Common Labels of Selected Items";
 
-                var suggestedOnNamePanel = m_Root.Q<VisualElement>("suggested-labels-from-name");
-                suggestedOnNamePanel.RemoveFromHierarchy();
+                m_SuggestedOnNamePanel.style.display = DisplayStyle.None;
 
                 m_AddAutoLabelToConfButton.text = "Add Automatic Labels of All Selected Assets to Config...";
             }
@@ -506,6 +509,7 @@ namespace UnityEditor.Perception.GroundTruth
             RefreshSuggestedLabelLists();
             SetupSuggestedLabelsListViews();
             SetupCurrentLabelsListView();
+            UpdateSuggestedPanelVisibility();
         }
 
         void SetupListsAndScrollers()
@@ -516,7 +520,21 @@ namespace UnityEditor.Perception.GroundTruth
             SetupSuggestedLabelsListViews();
             //Add labels from Label Configs present in project
             SetupLabelConfigsScrollView();
+            UpdateSuggestedPanelVisibility();
         }
+
+        void UpdateSuggestedPanelVisibility()
+        {
+            m_SuggestedOnNamePanel.style.display = m_SuggestedLabelsBasedOnName.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+
+            m_SuggestedOnPathPanel.style.display = m_SuggestedLabelsBasedOnPath.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+
+            if (m_SuggestedLabelsBasedOnPath.Count == 0 && m_SuggestedLabelsBasedOnName.Count == 0)
+            {
+                m_SuggestedLabelsContainer.style.display = DisplayStyle.None;
+            }
+        }
+
 
         void RefreshCommonLabels()
         {

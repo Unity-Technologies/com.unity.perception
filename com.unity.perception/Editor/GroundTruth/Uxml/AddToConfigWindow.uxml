@@ -1,0 +1,13 @@
+<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement class="outer-container-in-window" name="outer-container">
+        <Style src="../Uss/Styles.uss"/>
+        <Label name="title" class="title-label"/>
+        <ListView name="selected-labels-list" class="labeling__label-listview" style="height:800px; margin: 0;"/>
+        <Label name="currently-present-label" text="Currently Present In:" style="margin: 10px 0 4px 0"/>
+        <ListView name="current-configs-listview" class="labeling__configs-listview" style="height:150px; margin: 0; max-height:150px"/>
+        <Label name="other-configs-label" style="margin: 10px 0 4px 0"/>
+        <ListView name="other-configs-listview" class="labeling__configs-listview" style="height:150px; margin: 0; max-height:150px"/>
+        <Label name="status" style="display:none; margin-top: 7px; -unity-font-style: bold; color:yellow"/>
+    </VisualElement>
+</UXML>
+

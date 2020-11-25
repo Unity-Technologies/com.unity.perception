@@ -1,0 +1,7 @@
+<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement class="added-label">
+        <Button name="remove-button" class="labeling__remove-item-button" />
+        <TextField name="label-value" class="labeling__added-label-value" />
+        <Button name="add-to-config-button" text="Add to Label Config..." class="labeling__add-to-config-button" />
+    </VisualElement>
+</UXML>

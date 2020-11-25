@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 
 namespace UnityEngine.Perception.GroundTruth {
     /// <summary>
@@ -10,6 +11,8 @@ namespace UnityEngine.Perception.GroundTruth {
     [CreateAssetMenu(fileName = "IdLabelConfig", menuName = "Perception/ID Label Config", order = 1)]
     public class IdLabelConfig : LabelConfig<IdLabelEntry>
     {
+
+
         /// <summary>
         /// Whether the inspector will auto-assign ids based on the id of the first element.
         /// </summary>

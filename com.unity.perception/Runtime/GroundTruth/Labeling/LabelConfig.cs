@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -27,11 +28,18 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public const string labelEntriesFieldName = nameof(m_LabelEntries);
 
+        /// <summary>
+        /// List of LabelEntry items added to this label configuration
+        /// </summary>
         [FormerlySerializedAs("LabelEntries")]
         [FormerlySerializedAs("LabelingConfigurations")]
         [SerializeField]
-        List<T> m_LabelEntries = new List<T>();
+        protected List<T> m_LabelEntries = new List<T>();
 
+        /// <summary>
+        /// Name of the public accessor for the list of label entries, used for reflection purposes.
+        /// </summary>
+        public const string publicLabelEntriesFieldName = nameof(labelEntries);
         /// <summary>
         /// A sequence of <see cref="ILabelEntry"/> which defines the labels relevant for this configuration and their values.
         /// </summary>
@@ -49,6 +57,21 @@ namespace UnityEngine.Perception.GroundTruth
         public bool TryGetMatchingConfigurationEntry(Labeling labeling, out T labelEntry)
         {
             return TryGetMatchingConfigurationEntry(labeling, out labelEntry, out int _);
+        }
+
+        /// <summary>
+        /// Name of the function that checks whether a given string matches any of the label entries in this label configuration, used for reflection purposes.
+        /// </summary>
+
+        public const string DoesLabelMatchAnEntryName = nameof(DoesLabelMatchAnEntry);
+        /// <summary>
+        /// Does the given string match any of the label entries added to this label configuration.
+        /// </summary>
+        /// <param name="label"></param>
+        /// <returns></returns>
+        public bool DoesLabelMatchAnEntry(string label)
+        {
+            return m_LabelEntries.Any(entry => string.Equals(entry.label, label));
         }
 
         /// <summary>

@@ -148,7 +148,7 @@ This will create a new asset file named `IdLabelConfig` inside the `Assets` fold
 
 * **Action**: Rename the newly created `IdLabelConfig` asset to `TutorialIdLabelConfig`.
 
-Then, click on this asset to bring up its _**Inspector**_ view. In there, you can specify the labels that this config will keep track of. You can add any labels defined in the project (through being added to prefabs), and you can import/export this label config as a JSON file. A new label config like this one contains an empty list of labels.
+Click on this asset to bring up its _**Inspector**_ view. In there, you can specify the labels that this config will keep track of. You can type in manually, add any labels defined in the project (through being added to prefabs), and import/export this label config as a JSON file. A new label config like this one contains an empty list of labels.
 
 In this tutorial, we will generate synthetic data intended for detecting 10 everyday grocery items. These grocery items were imported into your project when you imported the tutorial files from the _**Package Manager**_, and are located in the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
 

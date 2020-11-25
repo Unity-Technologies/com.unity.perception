@@ -20,7 +20,7 @@ Steps included this phase of the tutorial:
 
 An alternative approach is to first install [_**Unity Hub**_](https://unity3d.com/get-unity/download), which will allow you to have multiple versions of Unity on your computer, and make it easier to manage your Unity projects and the versions of Unity they will use. 
 
-During the installation of Unity, you will be asked to choose which modules you would like to include. This will depend on the types of applications you eventually intend to build with your Unity installation; however, for the purposes of this tutorial, we need to make sure _**Linux Build Support**_ is checked. In addition, if you do not already have _**Visual Studio**_ on your computer, the wizard will give you an option to install it. Go ahead and check this option, as we will need _**Visual Studio**_ for writing some simple scripts in Phase 2 of the tutorial. 
+During the installation of Unity, you will be asked to choose which modules you would like to include. This will depend on the types of applications you eventually intend to build with your Unity installation; however, for the purposes of this tutorial, we need to make sure _**Linux Build Support (IL2CPP)**_ is checked. In addition, if you do not already have _**Visual Studio**_ on your computer, the wizard will give you an option to install it. Go ahead and check this option, as we will need _**Visual Studio**_ for writing some simple scripts in Phase 2 of the tutorial. 
 
 * **Action**: Make sure the _**Linux Build Support**_ and _**Visual Studio**_ installation options are checked when selecting modules during installation.
 
@@ -140,7 +140,7 @@ One of the useful features that comes with the `Perception Camera` component is 
 
 It is now time to tell each labeler added to the `Perception Camera` which objects it should label in the generated dataset. For instance, if your workflow is intended for generating frames and ground-truth for detecting chairs, your labelers would need to know that they should look for objects labeled "chair" within the scene. The chairs should in turn also be labeled "chair" in order to make them visible to the labelers. We will now learn how to set-up these configurations.
 
-You will notice each added labeler has a field named `Id Label Config`. By adding a label configuration here you can instruct the labeler to look for certain labels within the scene and ignore the rest. To do that, we should first create label configurations.
+You will notice each added labeler has a `Label Config` field. By adding a label configuration here you can instruct the labeler to look for certain labels within the scene and ignore the rest. To do that, we should first create label configurations.
 
 * **Action**: In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Id Label Config**_.
 
@@ -148,51 +148,13 @@ This will create a new asset file named `IdLabelConfig` inside the `Assets` fold
 
 * **Action**: Rename the newly created `IdLabelConfig` asset to `TutorialIdLabelConfig`.
 
-Then, click on this asset to bring up its _**Inspector**_ view. In there, you can specify the labels that this config will keep track of. A new label config like this one contains an empty list of labels. 
+Click on this asset to bring up its _**Inspector**_ view. In there, you can specify the labels that this config will keep track of. You can type in manually, add any labels defined in the project (through being added to prefabs), and import/export this label config as a JSON file. A new label config like this one contains an empty list of labels.
 
-In this tutorial, we will generate synthetic data intended for detecting 10 everyday grocery items. Thus, in this step, you will add labels for each of these 10 items to the list of labels for `TutorialIdLabelConfig`. 
+In this tutorial, we will generate synthetic data intended for detecting 10 everyday grocery items. These grocery items were imported into your project when you imported the tutorial files from the _**Package Manager**_, and are located in the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
 
-* **Action**: Select `TutorialIdLabelConfig` and in the _**Inspector**_ tab, click on the _**+**_ button to add 10 new label entries. Use the following exact names for these entries:
-
-1 `candy_minipralines_lindt`
-
-2 `cereal_cheerios_honeynut`
-
-3 `cleaning_snuggle_henkel`
-
-4 `craft_yarn_caron`
-
-5 `drink_greentea_itoen`
-
-6 `drink_whippingcream_lucerne`
-
-7 `lotion_essentially_nivea`
-
-8 `pasta_lasagne_barilla`
-
-9 `snack_biscotti_ghiott`
-
-10 `snack_granolabar_naturevalley`
-  
-  
-Once done, the _**Inspector**_ window for `TutorialIdLabelConfig` will look like this:
-
-<p align="center">
-<img src="Images/idlabelconfig.png" width="400"/>
-</p>
-
-These are the names of the 10 grocery items that we will work with in this tutorial. Wonder where the actual objects are? They were imported into your project when you imported the tutorial files from the _**Package Manager**_, and are located in the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
-
-Notice that each of the labels you entered automatically has a numerical ID assigned. These ids are required in order to use the generated data in machine learning models, which typically require numerical ids for classification of objects.
-
-The label configuration we have created is compatible with three of the four labelers we plan to attach to our `Perception Camera`. However, `SemanticSegmentationLabeler` requires a different kind of label configuration which includes unique colors for each label instead of numerical IDs. This is because the output of this labeler are images in which each visible foreground object is painted in a unique color.
+The label configuration we have created (`TutorialIdLabelConfig`) is an `IdLabelConfig`, and is compatible with three of the four labelers we plan to attach to our `Perception Camera`. This type of label configuration carries a unique numerical ID for each label. However, `SemanticSegmentationLabeler` requires a different kind of label configuration which includes unique colors for each label instead of numerical IDs. This is because the output of this labeler are images in which each visible foreground object is painted in a unique color.
 
 * **Action**: In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Semantic Segmentation Label Config**_. Name this asset `TutorialSemanticSegmentationLabelConfig`.
-* **Action**: Add the same 10 labels from the above list to this new label configuration. Note how this time they each get a new unique color instead of a number:
-
-<p align="center">
-<img src="Images/semseglabelconfig.png" width="400"/>
-</p>
 
 Now that you have created your label configurations, we need to assign them to labelers that you previously added to your `Perception Camera` component. 
 
@@ -202,7 +164,7 @@ Now that you have created your label configurations, we need to assign them to l
 <img src="Images/pclabelconfigsadded.png" width="400"/>
 </p>
 
-The final piece of the label set-up workflow is to assign the same 10 labels to the objects that are supposed to be detected by an eventual object-detection model. As mentioned above, these are located at `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1/Prefabs`. 
+The final piece of the label set-up workflow is to assign labels to the objects that are supposed to be detected by an eventual object-detection model, and add those labels to both of the label configurations we have created. As mentioned above, these objects are located at `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1/Prefabs`. 
 
 In Unity, Prefabs are essentially reusable GameObjects that are stored to disk, along with all their child GameObjects, components, and property values. Let's see what our sample prefabs include.
 
@@ -215,9 +177,39 @@ When you open the Prefab asset, you will see the object shown in the Scene tab a
 <img src="Images/exampleprefab.png"/>
 </p>
 
-The Prefab contains a number of components, including a `Transform`, a `Mesh Filter`, a `Mesh Renderer` and a `Labeling` component (highlighted in the image above). While the first three of these are common Unity components, the fourth one is specific to the Perception package, and is used for assigning labels to objects. You can see here that the cream carton is already labeled `drink_whippingcream_lucerne`. This is true for all the foreground objects supplied in the sample tutorial files in order to save time, which means you do not need to perform any additional steps to label your foreground objects. However, adding a label to a prefab would be as simple as clicking _**Add Component**_ and adding the `Labeling` script, then typing the label in.
+The Prefab contains a number of components, including a `Transform`, a `Mesh Filter`, a `Mesh Renderer` and a `Labeling` component (highlighted in the image above). While the first three of these are common Unity components, the fourth one is specific to the Perception package, and is used for assigning labels to objects. You can see here that the Prefab currently has no labels added since the list of `Added Labels` is empty. The UI here provides a multitude of ways for you to assign labels to the object. You can either choose to have the asset automatically labeled (by enabling `Use Automatic Labeling`), or add labels manually. In case of automatic labeling, you can choose from a number of labeling schemes, e.g. the asset's name or folder name. If you go the manual route, you can type in labels manually, add labels from any of the label configurations included in the project, or add from lists of suggested labels based on the Prefab's name and path. 
 
-Note that each object can have multiple labels assigned, and thus appear as different objects to labelers with different label configurations. For instance, you may want your semantic segmentation labeler to detect all cream cartons as `dairy_product`, while your bounding box labeler still distinguishes between different types of dairy product. To achieve this, you can add a `dairy_product` label to all your dairy products, and then in your label configuration for semantic segmentation, only add the `dairy_product` label, and not any specific products or brand names. To add an additional label to the cream carton, you can click on the _**+**_ button to the bottom right corner of the label list, in the `Labeling` component.
+Note that each object can have multiple labels assigned, and thus appear as different objects to labelers with different label configurations. For instance, you may want your semantic segmentation labeler to detect all cream cartons as `dairy_product`, while your bounding box labeler still distinguishes between different types of dairy product. To achieve this, you can add a `dairy_product` label to all your dairy products, and then in your label configuration for semantic segmentation, only add the `dairy_product` label, and not any specific products or brand names.
+
+For this tutorial, we have already added the `Labeling` component to all the foreground Prefabs; however, if you are making your own Prefabs, you can easily add a `Labeling` component to them using the _**Add Component**_ button in the screenshot above.
+
+Here, we will use automatic labeling to label all our foreground objects. 
+
+* **Action**: Select all the Prefabs inside the `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1/Prefabs` folder.
+* **Action**: From the _**Inspector**_ tab, enable `Use Automatic Labeling for All Selected Items`, and then select `Use asset name` as the labeling scheme.
+
+<p align="center">
+<img src="Images/autolabel.png" width = "400"/>
+</p>
+
+This will assign each of the selected Prefabs its own name as a label.
+
+* **Action**: Click _**Add Auotmatic Labels of All Selected Assets to Congfig...**_.
+
+In the window that opens, you can add all the automatic labels you just added to your Prefabs, to the label configurations you created earlier. At the top, there is a list of all the labels you are about to add, and below that, a list of all label configurations currently present in the project. 
+
+* **Action**: Add the list of labels to `TutorialIdLabelConfig` and `SemanticSegmentationLabelConfig` by clicking the _**Add All Labels**_ button for both.
+
+
+<p align="center">
+<img src="Images/addtoconfigwindow.png" width = "400"/>
+</p>
+
+Here, you can also open either of the configurations by clicking the _**Open**_ buttons. Open both configurations to make sure the list of labels has been added to them. They should now look like similar to the screenshot below:
+
+<p align="center">
+<img src="Images/labelconfigs.png"/>
+</p>
 
 ### <a name="step-5">Step 5: Add and Set-up Randomizers</a> 
 

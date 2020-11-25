@@ -168,7 +168,7 @@ The final piece of the label set-up workflow is to assign labels to the objects 
 
 In Unity, Prefabs are essentially reusable GameObjects that are stored to disk, along with all their child GameObjects, components, and property values. Let's see what our sample prefabs include.
 
-* **Action**: In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1/Prefabs`
+* **Action**: In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`
 * **Action**: Double click the file named `drink_whippingcream_lucerne.prefab` to open the Prefab asset. 
 
 When you open the Prefab asset, you will see the object shown in the Scene tab and its components shown on the right side of the editor, in the _**Inspector**_ tab:
@@ -187,7 +187,7 @@ For this tutorial, we have already added the `Labeling` component to all the for
 
 Here, we will use automatic labeling to label all our foreground objects. 
 
-* **Action**: Select all the Prefabs inside the `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/ Foreground Objects/Phase 1/Prefabs` folder.
+* **Action**: Select all the Prefabs inside the `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs` folder.
 * **Action**: From the _**Inspector**_ tab, enable `Use Automatic Labeling for All Selected Items`, and then select `Use asset name` as the labeling scheme.
 
 <p align="center">

@@ -196,7 +196,7 @@ Here, we will use automatic labeling to label all our foreground objects.
 
 This will assign each of the selected Prefabs its own name as a label.
 
-* **Action**: Click _**Add Auotmatic Labels of All Selected Assets to Congfig...**_.
+* **Action**: Click _**Add Auotmatic Labels of All Selected Assets to Config...**_.
 
 In the window that opens, you can add all the automatic labels you just added to your Prefabs, to the label configurations you created earlier. At the top, there is a list of all the labels you are about to add, and below that, a list of all label configurations currently present in the project. 
 

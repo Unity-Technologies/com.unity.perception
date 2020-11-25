@@ -200,11 +200,11 @@ This will assign each of the selected Prefabs its own name as a label.
 
 In the window that opens, you can add all the automatic labels you just added to your Prefabs, to the label configurations you created earlier. At the top, there is a list of all the labels you are about to add, and below that, a list of all label configurations currently present in the project. 
 
-* **Action**: Add the list of labels to `TutorialIdLabelConfig` and `SemanticSegmentationLabelConfig` by clicking the _**Add All Labels**_ button for both.
+* **Action**: Add the list of labels to `TutorialIdLabelConfig` and `TutorialSemanticSegmentationLabelConfig` by clicking the _**Add All Labels**_ button for both.
 
 
 <p align="center">
-<img src="Images/addtoconfigwindow.png" width = "400"/>
+<img src="Images/addtoconfigwindow.png" width = "600"/>
 </p>
 
 Here, you can also open either of the configurations by clicking the _**Open**_ buttons. Open both configurations to make sure the list of labels has been added to them. They should now look like similar to the screenshot below:

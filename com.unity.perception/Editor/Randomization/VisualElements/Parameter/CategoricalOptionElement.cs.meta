@@ -1,8 +1,11 @@
-﻿fileFormatVersion: 2
-<<<<<<< HEAD
+fileFormatVersion: 2
 guid: 5b6d309152934df99cfff89a96b9703e
-timeCreated: 1600754567
-=======
-guid: 3066f77d411047baafb6cc454adc6e37
-timeCreated: 1595535184
->>>>>>> 86d25d2... implemented parameter behaviours
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

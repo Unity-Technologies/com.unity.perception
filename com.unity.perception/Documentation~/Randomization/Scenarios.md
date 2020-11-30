@@ -44,3 +44,8 @@ There are a few key things to note here:
 2. Make sure to include the [Serializable] attribute on a constant class. This will ensure that the constants can be manipulated from the Unity inspector.
 3. By default, UnityEngine.Object class references cannot be serialized to JSON in a meaningful way. This includes Monobehaviors and SerializedObjects. For more information on what can and can't be serialized, take a look at the [Unity JsonUtility manual](https://docs.unity3d.com/ScriptReference/JsonUtility.html).
 4. A scenario class's Serialize() and Deserialized() methods can be overriden to implement custom serialization strategies.
+
+Follow the instructions below to generate a constants configuration file to modify your scenario constants in a built player:
+1. Click the serialize constants button in the scenario's inspector window. This will generate a constants.json file and place it in the project's Assets/StreamingAssets folder.
+2. Build your player. The new player will have a [ProjectName]_Data/StreamingAssets folder. A copy of the constants.json file previously constructed in the editor will be found in this folder.
+3. Change the contents of the constants file. Any running player thereafter will utilize the newly authored constants values.

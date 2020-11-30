@@ -2,7 +2,7 @@
 .randomization__remove-item-button {
     width: 12px;
     height: 14px;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/X.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/X.png");
 }
 
 .randomization__collapse-toggle {
@@ -11,11 +11,11 @@
     margin-left: 3px;
     width: 10px;
     height: 10px;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutOpen.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/FoldoutOpen.png");
 }
 
 .collapsed .randomization__collapse-toggle {
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/FoldoutClosed.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/FoldoutClosed.png");
 }
 
 .randomization__collapse-toggle:hover {
@@ -29,21 +29,22 @@
 .randomization__chevron-left {
     height: 12px;
     width: 12px;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/ChevronLeft.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/ChevronLeft.png");
 }
 
 .randomization__chevron-right {
     height: 12px;
     width: 12px;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/ChevronRight.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/ChevronRight.png");
 }
 
 
 /* Scenario classes */
 .scenario__info-box {
     border-width: 1px;
-    border-color: #191919;
-    padding: 2px 4px 2px 4px;
+    border-color: #808080;
+    padding: 7px;
+    border-radius: 4px;
     white-space: normal;
     margin-top: 4px;
     margin-bottom: 4px;
@@ -54,7 +55,6 @@
     background-color: #191919;
     padding: 2px;
 }
-
 
 /* Randomizer classes */
 .randomizer__drag-bar {
@@ -77,7 +77,7 @@
     width: 16px;
     height: 100%;
     min-height: 20px;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/DragHandle.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/DragHandle.png");
 }
 
 .randomizer__drag-handle:hover {
@@ -105,7 +105,7 @@
     top: 9px;
     width: 10px;
     height: 10px;
-    background-image: resource("Packages/com.unity.perception/Editor/Randomization/Icons/Search.png");
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/Search.png");
 }
 
 .randomizer__menu-search-bar .unity-base-text-field__input {

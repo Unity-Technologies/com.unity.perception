@@ -1,0 +1,53 @@
+<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement class="outer-container" name="outer-container">
+        <Style src="../Uss/Styles.uss"/>
+        <VisualElement class="inner-container" name="id-specific-ui">
+            <Toggle name="auto-id-toggle" text="Auto Assign IDs" style="margin:0" binding-path="autoAssignIds"/>
+            <VisualElement style="flex-direction: row; flex-grow: 1;">
+                <editor:EnumField label="Starting ID" name="starting-id-dropdown" binding-path="startingLabelId"
+                                  style="flex-grow:1; margin:0"/>
+            </VisualElement>
+        </VisualElement>
+        <VisualElement name="added-labels" class="inner-container" style="margin-top:5px">
+            <Label text="Added Labels" name="added-labels-title" class="title-label"/>
+            <ListView name="labels-listview" class="labeling__label-listview" style="margin-top: 5px;"/>
+            <Button name="save-button" text="Save" style="display:none"/>
+            <VisualElement name="button-bar" style="min-width:20px; flex-direction: row; margin-top: 5px">
+                <VisualElement name="move-buttons" style="flex-direction: row; min-width:100px">
+                    <Label text="Move Selected Label:" style="align-self:center; margin-left: 2px; flex-shrink:1"/>
+                    <Button name="move-up-button" class="move-label-in-config-button move-up"
+                            style="margin-right:-2px"/>
+                    <Button name="move-down-button" class="move-label-in-config-button move-down"/>
+                </VisualElement>
+                <VisualElement style="flex-grow:1"/>
+                <Button name="remove-all-labels" text="Remove All" class="labeling__add-label-button"
+                        style="color:red"/>
+                <Button name="add-label" text="Add New Label" class="labeling__add-label-button"/>
+            </VisualElement>
+        </VisualElement>
+
+        <VisualElement name="other-labels" class="inner-container depth2">
+            <Label text="Other Labels in Project" class="title-label"/>
+            <ListView name="labels-in-project-listview" class="labeling__label-listview"
+                      style="margin-top: 5px; min-height: 200px"/>
+            <Button name="add-all-labels-in-project" text="Add All Labels to Config" class="labeling__add-label-button"
+                    style="margin-top: 5px"/>
+        </VisualElement>
+
+        <VisualElement name="other-labels" class="inner-container depth2">
+            <Label text="Import or Export Label Config" name="added-labels-title" class="title-label"/>
+            <VisualElement style="flex-direction: row; flex-grow: 1; padding: 0; margin: 8 0 3 0">
+                <Button name="import-file-button" text="Import from File" class="title-label"
+                        style="align-self: center; padding: 10px; flex-grow:1; height: 40px; margin: 0 3 0 0"/>
+                <Button name="export-file-button" text="Export to File" class="title-label"
+                        style="align-self: center; padding: 10px; flex-grow:1; height: 40px; margin: 0 0 0 3"/>
+            </VisualElement>
+            <VisualElement class="helpbox" style="margin: 7px 0 7px 0 ">
+                <TextElement
+                    text="Importing a label config file will overwrite all existing contents of this label config."/>
+            </VisualElement>
+        </VisualElement>
+
+    </VisualElement>
+</UXML>
+

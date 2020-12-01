@@ -15,6 +15,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
         ToolbarMenu m_AddRandomizerMenu;
         public HashSet<Type> randomizerTypeSet = new HashSet<Type>();
 
+        int m_PreviousListSize;
+
         ScenarioBase scenario => (ScenarioBase)m_Property.serializedObject.targetObject;
 
         VisualElement inspectorContainer
@@ -49,6 +51,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             collapseAllButton.clicked += () => CollapseRandomizers(true);
 
             RefreshList();
+            Undo.undoRedoPerformed += () =>
+            {
+                m_Property.serializedObject.Update();
+                RefreshList();
+            };
         }
 
         void RefreshList()
@@ -59,10 +66,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             randomizerTypeSet.Clear();
             foreach (var randomizer in scenario.randomizers)
                 randomizerTypeSet.Add(randomizer.GetType());
+            m_PreviousListSize = m_Property.arraySize;
         }
 
         public void AddRandomizer(Type randomizerType)
         {
+            Undo.RegisterCompleteObjectUndo(m_Property.serializedObject.targetObject, "Add Randomizer");
             var newRandomizer = scenario.CreateRandomizer(randomizerType);
             newRandomizer.RandomizeParameterSeeds();
             m_Property.serializedObject.Update();
@@ -71,6 +80,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
 
         public void RemoveRandomizer(RandomizerElement element)
         {
+            Undo.RegisterCompleteObjectUndo(m_Property.serializedObject.targetObject, "Remove Randomizer");
             scenario.RemoveRandomizer(element.randomizerType);
             m_Property.serializedObject.Update();
             RefreshList();
@@ -80,6 +90,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
         {
             if (currentIndex == nextIndex)
                 return;
+            Undo.RegisterCompleteObjectUndo(m_Property.serializedObject.targetObject, "Reorder Randomizer");
             scenario.ReorderRandomizer(currentIndex, nextIndex);
             m_Property.serializedObject.Update();
             RefreshList();

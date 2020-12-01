@@ -4,16 +4,17 @@ upmci_registry: https://artifactory.prd.cds.internal.unity3d.com/artifactory/api
 # sticking to 2019.4.6f1 for testing for now because Linux Editor fails to open PerceptionHDRP on 2019.4.8f1
 # see https://fogbugz.unity3d.com/default.asp?1273518_d68j5lb6eucglb84
 coverage_editors:
-  - version: 2020.1.15f1
+  - version: 2019.4.6f1
 
-per_commit_editors:  
+per_commit_editors:
+  - version: 2019.4.6f1
   - version: 2020.1.15f1
-  - version: 2020.2.0b1
+  - version: 2020.2.0b13
 
 complete_editors:
   - version: 2019.4.6f1
   - version: 2020.1.15f1
-  - version: 2020.2.0b11  
+  - version: 2020.2.0b13  
 
 publish_platforms:
   - name: win

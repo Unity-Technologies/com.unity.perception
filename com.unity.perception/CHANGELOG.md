@@ -37,6 +37,8 @@ The GenerateRandomSeedFromIndex method now correctly hashes the current scenario
 
 Corrupted .meta files have been rebuilt and replaced
 
+The randomizer list inspector UI now updates appropriately when a user clicks undo
+
 ## [0.5.0-preview.1] - 2020-10-14
 
 ### Known Issues

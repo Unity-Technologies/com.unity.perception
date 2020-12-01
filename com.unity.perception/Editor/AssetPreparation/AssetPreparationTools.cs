@@ -3,21 +3,24 @@ using UnityEngine;
 
 namespace UnityEditor.Perception.AssetPreparation
 {
-    public class CreatePrefabFromSelectedAssets : MonoBehaviour
+    class AssetPreparationTools
     {
-        /// <summary>
-        /// Function for creating prefabs from multiple models with one click. Created prefabs will be placed in the same folder as their corresponding model.
-        /// </summary>
-        [MenuItem("Assets/Perception/Create Prefabs from Selected Models")]
-        static void CreatePrefabsFromSelectedModels()
+        class AssetPreparationMenuFunctions : MonoBehaviour
         {
-            foreach (var selection in Selection.gameObjects)
+            /// <summary>
+            /// Function for creating prefabs from multiple models with one click. Created prefabs will be placed in the same folder as their corresponding model.
+            /// </summary>
+            [MenuItem("Assets/Perception/Create Prefabs from Selected Models")]
+            static void CreatePrefabsFromSelectedModels()
             {
-                var path = AssetDatabase.GetAssetPath(selection);
-                var tmpGameObject = Instantiate(selection);
-                var destinationPath = Path.GetDirectoryName(path) + "/" + selection.name + ".prefab";
-                PrefabUtility.SaveAsPrefabAsset(tmpGameObject, destinationPath);
-                DestroyImmediate(tmpGameObject);
+                foreach (var selection in Selection.gameObjects)
+                {
+                    var path = AssetDatabase.GetAssetPath(selection);
+                    var tmpGameObject = Instantiate(selection);
+                    var destinationPath = Path.GetDirectoryName(path) + "/" + selection.name + ".prefab";
+                    PrefabUtility.SaveAsPrefabAsset(tmpGameObject, destinationPath);
+                    DestroyImmediate(tmpGameObject);
+                }
             }
         }
     }

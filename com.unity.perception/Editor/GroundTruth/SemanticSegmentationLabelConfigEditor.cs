@@ -31,10 +31,10 @@ namespace UnityEditor.Perception.GroundTruth
             {
                 if (e is ColoredLabelElementInLabelConfig addedLabel)
                 {
-                    addedLabel.m_IndexInList = i;
-                    addedLabel.m_LabelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                    addedLabel.indexInList = i;
+                    addedLabel.labelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
                         .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.label)));
-                    addedLabel.m_ColorField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                    addedLabel.colorField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
                         .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)));
                 }
             }
@@ -52,11 +52,7 @@ namespace UnityEditor.Perception.GroundTruth
                 standardColorList.Remove(item.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)).colorValue);
             }
 
-            Color foundColor;
-            if (standardColorList.Any())
-                foundColor = standardColorList.First();
-            else
-                foundColor = Random.ColorHSV(0, 1, .5f, 1, 1, 1);
+            var foundColor = standardColorList.Any() ? standardColorList.First() : Random.ColorHSV(0, 1, .5f, 1, 1, 1);
 
             return new SemanticSegmentationLabelEntry
             {
@@ -90,26 +86,24 @@ namespace UnityEditor.Perception.GroundTruth
         }
     }
 
-    internal class ColoredLabelElementInLabelConfig : LabelElementInLabelConfig<SemanticSegmentationLabelEntry>
+    class ColoredLabelElementInLabelConfig : LabelElementInLabelConfig<SemanticSegmentationLabelEntry>
     {
-        protected override string UxmlPath => UxmlDir + "ColoredLabelElementInLabelConfig.uxml";
+        protected override string UxmlPath => k_UxmlDir + "ColoredLabelElementInLabelConfig.uxml";
 
-        public ColorField m_ColorField;
+        public ColorField colorField;
 
         public ColoredLabelElementInLabelConfig(LabelConfigEditor<SemanticSegmentationLabelEntry> editor, SerializedProperty labelsArray) : base(editor, labelsArray)
         { }
 
-        private Color previousColor;
-
         protected override void InitExtended()
         {
-            m_ColorField = this.Q<ColorField>("label-color-value");
+            colorField = this.Q<ColorField>("label-color-value");
 
-            m_ColorField.RegisterValueChangedCallback((cEvent) =>
+            colorField.RegisterValueChangedCallback((cEvent) =>
             {
-                int index = ((SemanticSegmentationLabelConfigEditor)m_LabelConfigEditor).IndexOfGivenColorInSerializedLabelsArray(cEvent.newValue);
+                var index = ((SemanticSegmentationLabelConfigEditor)m_LabelConfigEditor).IndexOfGivenColorInSerializedLabelsArray(cEvent.newValue);
 
-                if (index != -1 && index != m_IndexInList)
+                if (index != -1 && index != indexInList)
                 {
                     //The listview recycles child visual elements and that causes the RegisterValueChangedCallback event to be called when scrolling.
                     //Therefore, we need to make sure we are not in this code block just because of scrolling, but because the user is actively changing one of the labels.

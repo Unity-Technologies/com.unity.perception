@@ -47,7 +47,7 @@ namespace UnityEditor.Perception.GroundTruth
             AutoAssignIdsIfNeeded();
         }
 
-        private void MoveSelectedItemUp()
+        void MoveSelectedItemUp()
         {
             var selectedIndex = m_LabelListView.selectedIndex;
             if (selectedIndex > 0)
@@ -84,7 +84,7 @@ namespace UnityEditor.Perception.GroundTruth
             }
         }
 
-        private void MoveSelectedItemDown()
+        void MoveSelectedItemDown()
         {
             var selectedIndex = m_LabelListView.selectedIndex;
             if (selectedIndex > -1 && selectedIndex < m_SerializedLabelsArray.arraySize - 1)
@@ -132,10 +132,10 @@ namespace UnityEditor.Perception.GroundTruth
             {
                 if (e is IdLabelElementInLabelConfig addedLabel)
                 {
-                    addedLabel.m_IndexInList = i;
-                    addedLabel.m_LabelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                    addedLabel.indexInList = i;
+                    addedLabel.labelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
                         .FindPropertyRelative(nameof(IdLabelEntry.label)));
-                    addedLabel.m_LabelIdTextField.value = m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                    addedLabel.labelIdTextField.value = m_SerializedLabelsArray.GetArrayElementAtIndex(i)
                         .FindPropertyRelative(nameof(IdLabelEntry.id)).intValue.ToString();
                 }
             }
@@ -178,7 +178,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         public bool AutoAssign => serializedObject.FindProperty(nameof(IdLabelConfig.autoAssignIds)).boolValue;
 
-        private void AutoAssignIds()
+        void AutoAssignIds()
         {
             var serializedProperty = serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName);
             var size = serializedProperty.arraySize;
@@ -202,7 +202,7 @@ namespace UnityEditor.Perception.GroundTruth
             EditorUtility.SetDirty(target);
         }
 
-        private void AutoAssignIdsIfNeeded()
+        void AutoAssignIdsIfNeeded()
         {
             if (AutoAssign)
             {
@@ -224,11 +224,11 @@ namespace UnityEditor.Perception.GroundTruth
         }
     }
 
-    internal class IdLabelElementInLabelConfig : LabelElementInLabelConfig<IdLabelEntry>
+    class IdLabelElementInLabelConfig : LabelElementInLabelConfig<IdLabelEntry>
     {
-        protected override string UxmlPath => UxmlDir + "IdLabelElementInLabelConfig.uxml";
+        protected override string UxmlPath => k_UxmlDir + "IdLabelElementInLabelConfig.uxml";
 
-        public TextField m_LabelIdTextField;
+        public TextField labelIdTextField;
 
         public IdLabelElementInLabelConfig(LabelConfigEditor<IdLabelEntry> editor, SerializedProperty labelsArray) :
             base(editor, labelsArray)
@@ -237,14 +237,14 @@ namespace UnityEditor.Perception.GroundTruth
 
         protected override void InitExtended()
         {
-            m_LabelIdTextField = this.Q<TextField>("label-id-value");
-            m_LabelIdTextField.isDelayed = true;
-            m_LabelIdTextField.SetEnabled(!((IdLabelConfigEditor) m_LabelConfigEditor).AutoAssign);
-            m_LabelIdTextField.RegisterValueChangedCallback(evt =>
+            labelIdTextField = this.Q<TextField>("label-id-value");
+            labelIdTextField.isDelayed = true;
+            labelIdTextField.SetEnabled(!((IdLabelConfigEditor) m_LabelConfigEditor).AutoAssign);
+            labelIdTextField.RegisterValueChangedCallback(evt =>
             {
                 if(int.TryParse(evt.newValue, out int parsedId))
                 {
-                    m_LabelsArray.GetArrayElementAtIndex(m_IndexInList).FindPropertyRelative(nameof(IdLabelEntry.id))
+                    m_LabelsArray.GetArrayElementAtIndex(indexInList).FindPropertyRelative(nameof(IdLabelEntry.id))
                         .intValue = parsedId;
                     if (m_LabelsArray.serializedObject.hasModifiedProperties)
                     {
@@ -253,9 +253,9 @@ namespace UnityEditor.Perception.GroundTruth
                         m_LabelConfigEditor.RefreshListDataAndPresentation();
                     }
 
-                    int index = ((IdLabelConfigEditor)m_LabelConfigEditor).IndexOfGivenIdInSerializedLabelsArray(parsedId);
+                    var index = ((IdLabelConfigEditor)m_LabelConfigEditor).IndexOfGivenIdInSerializedLabelsArray(parsedId);
 
-                    if (index != -1 && index != m_IndexInList)
+                    if (index != -1 && index != indexInList)
                     {
                         //The listview recycles child visual elements and that causes the RegisterValueChangedCallback event to be called when scrolling.
                         //Therefore, we need to make sure we are not in this code block just because of scrolling, but because the user is actively changing one of the labels.
@@ -267,7 +267,7 @@ namespace UnityEditor.Perception.GroundTruth
                 else
                 {
                     Debug.LogError("Provided id is not a valid integer. Please provide integer values.");
-                    m_LabelIdTextField.value = evt.previousValue;
+                    labelIdTextField.value = evt.previousValue;
                 }
             });
         }

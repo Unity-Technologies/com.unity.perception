@@ -1,8 +1,8 @@
-﻿fileFormatVersion: 2
-<<<<<<< HEAD
+fileFormatVersion: 2
 guid: 80645bae9cd440ca81c7a1e03572e7da
-timeCreated: 1600754588
-=======
-guid: ae6aad06c0e14f67aa7a9ad9004a1828
-timeCreated: 1600274594
->>>>>>> c653d18... Implemented randomizer class. Ran into SerializeReference issue 1193322.
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

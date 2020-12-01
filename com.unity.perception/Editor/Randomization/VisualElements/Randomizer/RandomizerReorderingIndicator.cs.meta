@@ -1,15 +1,5 @@
-<<<<<<< HEAD
-﻿fileFormatVersion: 2
-<<<<<<< HEAD
-guid: 61021c66c33e40e98de0702ae0aa4449
-timeCreated: 1600754567
-=======
-guid: 7c1e08b02e5a4c55875f34baf32f8e76
-timeCreated: 1596143672
->>>>>>> 86d25d2... implemented parameter behaviours
-=======
 fileFormatVersion: 2
-guid: 7c1e08b02e5a4c55875f34baf32f8e76
+guid: e43353090a445024ab8110b73630525a
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -19,4 +9,3 @@ MonoImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
->>>>>>> 750f255... working on new workflow

@@ -8,11 +8,11 @@ coverage_editors:
 
 per_commit_editors:
   - version: 2019.4.6f1
-  - version: 2020.1.14f1
+  - version: 2020.1.15f1
 
 complete_editors:
   - version: 2019.4.6f1
-  - version: 2020.1.14f1
+  - version: 2020.1.15f1
 #  - version: 2020.2.0a21
 
 publish_platforms:

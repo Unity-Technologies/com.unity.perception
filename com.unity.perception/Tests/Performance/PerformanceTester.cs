@@ -39,7 +39,7 @@ namespace PerformanceTests
             this.m_VisualizersOn = vizOn;
             this.m_Labelers = new string[]{ labeler1, labeler2 };
         }
-        
+
         public PerformanceTester(int resx ,int resy, bool capData, bool vizOn, string labeler1, string labeler2, string labeler3)
         {
             this.m_Resolution = (resx, resy);
@@ -47,7 +47,7 @@ namespace PerformanceTests
             this.m_VisualizersOn = vizOn;
             this.m_Labelers = new string[]{ labeler1, labeler2, labeler3 };
         }
-        
+
         public PerformanceTester(int resx ,int resy, bool capData, bool vizOn, string labeler1, string labeler2, string labeler3, string labeler4)
         {
             this.m_Resolution = (resx, resy);
@@ -67,17 +67,17 @@ namespace PerformanceTests
                      return new RenderedObjectInfoLabeler(idConfig);
                 case PerformanceTestSemanticSegmentationLabeler.Label:
                      return new SemanticSegmentationLabeler(ssConfig);
-                                                    
+
                 default:
                     return null;
             }
         }
-        
+
         private static List<CameraLabeler> CreateLabelers(IEnumerable<string> labelers, IdLabelConfig idConfig, SemanticSegmentationLabelConfig ssConfig)
         {
             return labelers.Select(l => CreateLabeler(l, idConfig, ssConfig)).Where(labeler => labeler != null).ToList();
         }
-        
+
         [SetUp]
         public void SetUpTest()
         {
@@ -89,7 +89,7 @@ namespace PerformanceTests
 
             Screen.SetResolution(m_Resolution.Item1, m_Resolution.Item2, true);
             (m_Camera, m_IdConfig, m_SsConfig, m_SceneRoot) = TestHelper.CreateThreeBlockScene();
-            
+
             m_Camera.enabled = true;
             m_Camera.showVisualizations = false;
 
@@ -99,7 +99,7 @@ namespace PerformanceTests
             {
                 m_Camera.AddLabeler(l);
             }
-            
+
             if (!m_CaptureData) m_Camera.enabled = false;
             if (m_CaptureData && !m_VisualizersOn) m_Camera.showVisualizations = false;
             m_Camera.gameObject.SetActive(true);
@@ -113,6 +113,11 @@ namespace PerformanceTests
 
             var simState = DatasetCapture.SimulationState;
             simState.End();
+
+            DatasetCapture.ResetSimulation();
+            Time.timeScale = 1;
+            if (Directory.Exists(DatasetCapture.OutputDirectory))
+                Directory.Delete(DatasetCapture.OutputDirectory, true);
 
             m_ActiveLabelers = null;
             m_IdConfig = null;

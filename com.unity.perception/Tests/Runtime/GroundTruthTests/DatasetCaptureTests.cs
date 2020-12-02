@@ -447,13 +447,13 @@ namespace GroundTruthTests
           ""annotation_definition"": <guid>,
           ""values"": [
             {{
-              ""a"": ""a string"",
-              ""b"": 10
-            }},
+  ""a"": ""a string"",
+  ""b"": 10
+}},
             {{
-              ""a"": ""a second string"",
-              ""b"": 20
-            }}
+  ""a"": ""a second string"",
+  ""b"": 20
+}}
           ]
         }}
       ]";

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace UnityEngine.Perception.GroundTruth {
     /// <summary>
@@ -7,6 +8,18 @@ namespace UnityEngine.Perception.GroundTruth {
     [CreateAssetMenu(fileName = "SemanticSegmentationLabelConfig", menuName = "Perception/Semantic Segmentation Label Config", order = 1)]
     public class SemanticSegmentationLabelConfig : LabelConfig<SemanticSegmentationLabelEntry>
     {
+        /// <summary>
+        /// List of standard color based on which this type of label configuration assigns new colors to added labels.
+        /// </summary>
+        public static readonly List<Color> s_StandardColors = new List<Color>()
+        {
+            Color.blue,
+            Color.green,
+            Color.red,
+            Color.white,
+            Color.yellow,
+            Color.gray
+        };
     }
 
     /// <summary>

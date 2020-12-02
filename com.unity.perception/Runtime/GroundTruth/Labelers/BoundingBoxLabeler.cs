@@ -119,7 +119,6 @@ namespace UnityEngine.Perception.GroundTruth
                 return;
 
             m_AsyncAnnotations.Remove(frameCount);
-
             using (s_BoundingBoxCallback.Auto())
             {
                 m_BoundingBoxValues.Clear();

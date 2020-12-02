@@ -1,91 +1,118 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditorInternal;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
 namespace UnityEditor.Perception.GroundTruth
 {
     [CustomEditor(typeof(SemanticSegmentationLabelConfig))]
-    class SemanticSegmentationLabelConfigEditor : Editor
+    class SemanticSegmentationLabelConfigEditor : LabelConfigEditor<SemanticSegmentationLabelEntry>
     {
-        ReorderableList m_LabelsList;
-        const float k_Margin = 5f;
-
-        static List<Color> s_StandardColors = new List<Color>()
+        protected override void InitUiExtended()
         {
-            Color.blue,
-            Color.green,
-            Color.red,
-            Color.white,
-            Color.yellow,
-            Color.gray
-        };
-
-        public void OnEnable()
-        {
-            m_LabelsList = new ReorderableList(this.serializedObject, this.serializedObject.FindProperty(IdLabelConfig.labelEntriesFieldName), true, false, true, true);
-            m_LabelsList.elementHeight = EditorGUIUtility.singleLineHeight * 2 + k_Margin;
-            m_LabelsList.drawElementCallback = DrawElement;
-            m_LabelsList.onAddCallback += OnAdd;
+            m_MoveButtons.style.display = DisplayStyle.None;
+            m_IdSpecificUi.style.display = DisplayStyle.None;
         }
 
-        void OnAdd(ReorderableList list)
+        public override void PostRemoveOperations()
+        { }
+
+        protected override void SetupPresentLabelsListView()
         {
-            var standardColorList = new List<Color>(s_StandardColors);
-            for (int i = 0; i < list.serializedProperty.arraySize; i++)
+            base.SetupPresentLabelsListView();
+
+            VisualElement MakeItem() =>
+                new ColoredLabelElementInLabelConfig(this, m_SerializedLabelsArray);
+
+            void BindItem(VisualElement e, int i)
             {
-                var item = list.serializedProperty.GetArrayElementAtIndex(i);
+                if (e is ColoredLabelElementInLabelConfig addedLabel)
+                {
+                    addedLabel.indexInList = i;
+                    addedLabel.labelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                        .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.label)));
+                    addedLabel.colorField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                        .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)));
+                }
+            }
+
+            m_LabelListView.bindItem = BindItem;
+            m_LabelListView.makeItem = MakeItem;
+        }
+
+        protected override SemanticSegmentationLabelEntry CreateLabelEntryFromLabelString(SerializedProperty serializedArray, string labelToAdd)
+        {
+            var standardColorList = new List<Color>(SemanticSegmentationLabelConfig.s_StandardColors);
+            for (int i = 0; i < serializedArray.arraySize; i++)
+            {
+                var item = serializedArray.GetArrayElementAtIndex(i);
                 standardColorList.Remove(item.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)).colorValue);
             }
-            var index = list.serializedProperty.arraySize;
-            list.serializedProperty.InsertArrayElementAtIndex(index);
-            var element = list.serializedProperty.GetArrayElementAtIndex(index);
-            var labelProperty = element.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.label));
-            labelProperty.stringValue = "";
-            var colorProperty = element.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color));
-            if (standardColorList.Any())
-                colorProperty.colorValue = standardColorList.First();
-            else
-                colorProperty.colorValue = Random.ColorHSV(0, 1, .5f, 1, 1, 1);
 
-            serializedObject.ApplyModifiedProperties();
-            EditorUtility.SetDirty(target);
+            var foundColor = standardColorList.Any() ? standardColorList.First() : Random.ColorHSV(0, 1, .5f, 1, 1, 1);
+
+            return new SemanticSegmentationLabelEntry
+            {
+                color = foundColor,
+                label = labelToAdd
+            };
         }
 
-        void DrawElement(Rect rect, int index, bool isactive, bool isfocused)
+        protected override void AppendLabelEntryToSerializedArray(SerializedProperty serializedArray, SemanticSegmentationLabelEntry semanticSegmentationLabelEntry)
         {
-            var element = m_LabelsList.serializedProperty.GetArrayElementAtIndex(index);
+            var index = serializedArray.arraySize;
+            serializedArray.InsertArrayElementAtIndex(index);
+            var element = serializedArray.GetArrayElementAtIndex(index);
             var colorProperty = element.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color));
-            var labelProperty = element.FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.label));
-            using (var change = new EditorGUI.ChangeCheckScope())
-            {
-                var contentRect = new Rect(rect.position, new Vector2(rect.width, EditorGUIUtility.singleLineHeight));
-                var newLabel = EditorGUI.TextField(contentRect, nameof(SemanticSegmentationLabelEntry.label), labelProperty.stringValue);
-                if (change.changed)
-                {
-                    labelProperty.stringValue = newLabel;
-                }
-            }
-            using (var change = new EditorGUI.ChangeCheckScope())
-            {
-                var contentRect = new Rect(rect.position + new Vector2(0, EditorGUIUtility.singleLineHeight), new Vector2(rect.width, EditorGUIUtility.singleLineHeight));
-                var newLabel = EditorGUI.ColorField(contentRect, nameof(SemanticSegmentationLabelEntry.color), colorProperty.colorValue);
-                if (change.changed)
-                {
-                    colorProperty.colorValue = newLabel;
-                }
-            }
+            colorProperty.colorValue = semanticSegmentationLabelEntry.color;
+            var labelProperty = element.FindPropertyRelative(nameof(ILabelEntry.label));
+            labelProperty.stringValue = semanticSegmentationLabelEntry.label;
         }
 
-        public override void OnInspectorGUI()
+        public int IndexOfGivenColorInSerializedLabelsArray(Color color)
         {
-            serializedObject.Update();
+            for (int i = 0; i < m_SerializedLabelsArray.arraySize; i++)
+            {
+                var element = m_SerializedLabelsArray.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color));
+                if (element.colorValue == color)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+    }
 
-            m_LabelsList.DoLayoutList();
-            this.serializedObject.ApplyModifiedProperties();
+    class ColoredLabelElementInLabelConfig : LabelElementInLabelConfig<SemanticSegmentationLabelEntry>
+    {
+        protected override string UxmlPath => k_UxmlDir + "ColoredLabelElementInLabelConfig.uxml";
+
+        public ColorField colorField;
+
+        public ColoredLabelElementInLabelConfig(LabelConfigEditor<SemanticSegmentationLabelEntry> editor, SerializedProperty labelsArray) : base(editor, labelsArray)
+        { }
+
+        protected override void InitExtended()
+        {
+            colorField = this.Q<ColorField>("label-color-value");
+
+            colorField.RegisterValueChangedCallback((cEvent) =>
+            {
+                var index = ((SemanticSegmentationLabelConfigEditor)m_LabelConfigEditor).IndexOfGivenColorInSerializedLabelsArray(cEvent.newValue);
+
+                if (index != -1 && index != indexInList)
+                {
+                    //The listview recycles child visual elements and that causes the RegisterValueChangedCallback event to be called when scrolling.
+                    //Therefore, we need to make sure we are not in this code block just because of scrolling, but because the user is actively changing one of the labels.
+                    //The index check is for this purpose.
+
+                    Debug.LogWarning("A label with the chosen color " + cEvent.newValue + " has already been added to this label configuration.");
+                }
+            });
+
         }
     }
 }

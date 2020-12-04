@@ -50,6 +50,10 @@ Creating a new 2020.1.x project and adding the perception package to the project
 Added Randomizers and RandomizerTags
 Added support for generating 3D bounding box ground truth data
 
+Added performance test framework
+
+Added nightly performance tests
+
 ### Changed
 
 ### Deprecated

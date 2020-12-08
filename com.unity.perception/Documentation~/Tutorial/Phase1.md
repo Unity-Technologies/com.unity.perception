@@ -11,9 +11,9 @@ Steps included this phase of the tutorial:
 - [Step 2: Download the Perception Package and Import Samples](#step-2)
 - [Step 3: Setup a Scene for Your Perception Simulation](#step-3)
 - [Step 4: Specify Ground-Truth and Setup Object Labels](#step-4)
-- [Step 5: Add and Set-up Randomizers](#step-5)
-- [Step 6: Generate and Verify Synthetic Data](#step-6)
-
+- [Step 5: Set Up Randomizers and Generate Data](#step-5)
+- [Step 6: Inspect Generated Synthetic Data](#step-6)
+- [Step 5: Verify Data Using Dataset Insights](#step-7)
 
 ### <a name="step-1">Step 1: Download Unity Editor and Create a New Project</a> 
 * **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of **Unity Editor 2019.4.x**. (The tutorial has not yet been fully tested on newer versions.)
@@ -98,7 +98,7 @@ For this tutorial, we prefer our light to not cast any shadows, therefore:
 
 * **Action**: Click on `Directional Light` and in the _**Inspector**_ tab, set `Shadow Type` to `No Shadows`.
 
-We will now add the necessary components to the camera in order to equip it for the perception workflow. To do this, we need to add a `PerceptionCamera` component to it, and then define which types of ground-truth we wish to generate using this camera.
+We will now add the necessary components to the camera in order to equip it for the perception workflow. To do this, we need to add a `Perception Camera` component to it, and then define which types of ground-truth we wish to generate using this camera.
 
 * **Action**: Select `Main Camera` again and in the _**Inspector**_ tab, click on the _**Add Component**_ button.
 * **Action**: Start typing `Perception Camera` in the search bar that appears, until the `Perception Camera` script is found, with a **#** icon to the left:
@@ -150,7 +150,7 @@ This will create a new asset file named `IdLabelConfig` inside the `Assets` fold
 
 Click on this asset to bring up its _**Inspector**_ view. In there, you can specify the labels that this config will keep track of. You can type in labels, add any labels defined in the project (through being added to prefabs), and import/export this label config as a JSON file. A new label config like this one contains an empty list of labels.
 
-In this tutorial, we will generate synthetic data intended for detecting 10 everyday grocery items. These grocery items were imported into your project when you imported the tutorial files from the _**Package Manager**_, and are located in the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
+In this tutorial, we will generate synthetic data intended for detecting 10 everyday grocery items. These grocery items were imported into your project when you imported the tutorial files from the _**Package Manager**_, and are located in the folder `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
 
 The label configuration we have created (`TutorialIdLabelConfig`) is of type `IdLabelConfig`, and is compatible with three of the four labelers we have attached to our `Perception Camera`. This type of label configuration carries a unique numerical ID for each label. However, `SemanticSegmentationLabeler` requires a different kind of label configuration which includes unique colors for each label instead of numerical IDs. This is because the output of this labeler are images in which each visible foreground object is painted in a unique color.
 
@@ -164,11 +164,11 @@ Now that you have created your label configurations, we need to assign them to l
 <img src="Images/pclabelconfigsadded.png" width="400"/>
 </p>
 
-It is now time to assign labels to the objects that are supposed to be detected by an eventual object-detection model, and add those labels to both of the label configurations we have created. As mentioned above, these objects are located at `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`. 
+It is now time to assign labels to the objects that are supposed to be detected by an eventual object-detection model, and add those labels to both of the label configurations we have created. As mentioned above, these objects are located at `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`. 
 
 In Unity, Prefabs are essentially reusable GameObjects that are stored to disk, along with all their child GameObjects, components, and property values. Let's see what our sample prefabs include.
 
-* **Action**: In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`
+* **Action**: In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`
 * **Action**: Double click the file named `drink_whippingcream_lucerne.prefab` to open the Prefab asset. 
 
 When you open the Prefab asset, you will see the object shown in the Scene tab and its components shown on the right side of the editor, in the _**Inspector**_ tab:
@@ -187,7 +187,7 @@ For this tutorial, we have already added the `Labeling` component to all the for
 
 Even though the sample Prefabs already have a label manually added, to learn more about how to use the Labeling component, we will now use automatic labeling to label all our foreground objects. This will overwrite their manually added labels.
 
-* **Action**: Select **all the files** inside the `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs` folder.
+* **Action**: Select **all the files** inside the `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs` folder.
 * **Action**: From the _**Inspector**_ tab, enable `Use Automatic Labeling for All Selected Items`, and then select `Use asset name` as the labeling scheme.
 
 <p align="center">
@@ -215,7 +215,19 @@ Here, you can also open either of the configurations by clicking the _**Open**_ 
 
 **Note:** Since we used automatic labels here and added them to our configurations, we are confident that the labels in the configurations match the labels of our objects. In cases where you decide to add manual labels to objects and configurations, make sure you use the exact same labels, otherwise, the objects for which a matching label is not found in your configurations will not be detected by the labelers that are using those configurations.
 
-### <a name="step-5">Step 5: Add and Set-up Randomizers</a> 
+Now that we have labelled all our foreground objects and setup our label configurations, let's briefly test things.
+
+* **Action**: In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
+* **Action**: Drag and drop any of the Prefabs inside this folder into the Scene.
+* **Action**: Click on the **▷** (play) button located at the top middle section of the editor to run your simulation.
+
+Since we have visualizations enabled on our `Perception Camera`, you should now see a bounding box being drawn around the object you put in the scene, and the object itself being colored according to its label's color in `TutorialSemanticSegmentationLabelConfig`, similar to the image below:
+
+<p align="center">
+<img src="Images/one_object_run.png" width = "600"/>
+</p>
+
+### <a name="step-5">Step 5: Set Up Randomizers and Generate Data</a> 
 
 As mentioned earlier, one of the core ingredients of the perception workflow is the randomization of various aspects of the simulation, in order to introduce sufficient variation into the generated data. 
 
@@ -248,7 +260,7 @@ There are a number of settings and properties you can modify here. `Quit On Comp
 
 This Randomizer uses Poisson-Disk sampling to select random positions from a given area, and spawn copies of randomly selected Prefabs (from a given list) at the chosen positions. We will use this component to generate a background that will act as a distraction for our eventual object-detection machine learning model.
 
-* **Action**: Click _**Add Folder**_, and from the file explorer window that opens, choose the folder `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
+* **Action**: Click _**Add Folder**_, and from the file explorer window that opens, choose the folder `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
 
 The background Prefabs are primitive shapes devoid of color or texture. Later Randomizers will take care of those aspects. 
 
@@ -282,7 +294,7 @@ As seen in the image above, what we have now is just a beige-colored wall of sha
 
 `TextureRandomizer` will have the task of attaching random textures to our colorless background objects at each Iteration of the Scenario. Similarly, `HueOffsetRandomizer` will alter the color of the objects, and `RotationRandomizer` will give the objects a new random rotation each Iteration. 
 
-* **Action**: In the UI snippet for `TextureRandomizer`, click _**Add Folder**_ and choose `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Textures`. 
+* **Action**: In the UI snippet for `TextureRandomizer`, click _**Add Folder**_ and choose `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Background Textures`. 
 
 * **Action**: In the UI snippet for `RotationRandomizer`, change all the maximum values for the three ranges to `360` and leave the minimums at `0`. 
 
@@ -298,7 +310,7 @@ There is one more important thing left to do, in order to make sure all the abov
 
 To make sure each Randomizer knows which objects it should work with, we will use an object tagging and querying workflow that the bundled Randomizers already use. Each Randomizer can query the Scene for objects that carry certain types of `RandomizerTag` components. For instance, the `TextureRandomizer` queries the Scene for objects that have a `TextureRandomizerTag` component (you can change this in code!). Therefore, in order to make sure our background Prefabs are affected by the `TextureRandomizer` we need to make sure they have `TextureRandomizerTag` attached to them.
 
-* **Action**: In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
+* **Action**: In the _**Project**_ tab, navigate to `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Background Objects/Prefabs`.
 * **Action**: Select all the files inside and from the _**Inspector**_ tab add a `TextureRandomizerTag` to them. This will add the component to all the selected files.
 * **Action**: Repeat the above step to add `HueOffsetRandomizerTag` and `RotationRandomizerTag` to all selected Prefabs.
 
@@ -316,20 +328,18 @@ If you run the simulation now you will see the generated backgrounds look much m
 
 It is now time to spawn and randomize our foreground objects. We are getting close to generating our first set of synthetic data!
 
-* **Action**: Add `ForegroundObjectPlacementRandomizer` to your list of Randomizers. Click _**Add Folder**_ and select `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
+* **Action**: Add `ForegroundObjectPlacementRandomizer` to your list of Randomizers. Click _**Add Folder**_ and select `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
 * **Action**: Set these values for the above Randomizer: `Depth = -3, Separation Distance = 1.5, Placement Area = (5,5)`.
 
 This Randomizer uses the same algorithm as the one we used for backgrounds; however, it is defined in a separate C# class because you can only have **one of each type of Randomizer added to your Scenario**. Therefore, this is our way of differentiating between how background and foreground objects are treated.
 
 While the texture and color of the foreground objects will be constant during the simulation, we would like their rotation to be randomized similar to the background Prefabs. To achieve this:
 
-* **Action**: From the _**Project**_ tab select all the foreground Prefabs located in `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`, and add a `RotationRandomizerTag` component to them.
+* **Action**: From the _**Project**_ tab select all the foreground Prefabs located in `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`, and add a `RotationRandomizerTag` component to them.
 
-The last step here is to make sure the order of randomizations is correct. Randomizers execute according to their order within the list of Randomizers added to your Scenario. If you look at the list now, you will notice that `ForegroundObjectPlacementRandomizer` is coming after `RotationRandomizer`, therefore, foreground objects will NOT be included in the rotation randomizations, even though they are carrying the proper RandomizerTag. To fix that:
+Randomizers execute according to their order within the list of Randomizers added to your Scenario. If you look at the list now, you will notice that `ForegroundObjectPlacementRandomizer` is coming after `RotationRandomizer`, therefore, foreground objects will NOT be included in the rotation randomizations, even though they are carrying the proper RandomizerTag. To fix that:
 
 * **Action**: Drag `ForegroundObjectPlacementRandomizer` and drop it above `RotationRandomizer`.
-
-### <a name="step-6">Step 6: Generate and Verify Synthetic Data</a> 
 
 You are now ready to generate your first dataset. Our current set-up will produce 100 frames of annotated captures.
 
@@ -341,6 +351,8 @@ While the simulation is running, your _**Game**_ view will quickly generate fram
 <img src="Images/generation1.gif" width = "700"/>
 </p>
 
+
+### <a name="step-6">Step 6: Inspect Generated Synthetic Data</a> 
 
 Once the run is complete, you will see a message in the _**Console**_ tab of the editor, with information on where the generated data has been saved. An example is shown below (Mac OS):
 
@@ -364,6 +376,9 @@ The output dataset includes a variety of information about different aspects of 
 * `instance_id`: Unique instance id of the object
 * `x` and `y`: Pixel coordinates of the top-left corner of the object's bounding box (measured from the top-left corner of the image)
 * `width` and `height` of the object's bounding box
+
+
+### <a name="step-7">Step 7: Verify Data Using Dataset Insights</a> 
 
 
 To verify and analyze a variety of metrics for the generated data, such as number of foreground objects in each frame and degree of representation for each foreground object (label), we will now use Unity's Dataset Insights framework. This will involve running a Jupyter notebook which is conveniently packaged within a Docker file that you can download from Unity. 

@@ -187,7 +187,7 @@ For this tutorial, we have already added the `Labeling` component to all the for
 
 Even though the sample Prefabs already have a label manually added, to learn more about how to use the Labeling component, we will now use automatic labeling to label all our foreground objects. This will overwrite their manually added labels.
 
-* **Action**: Select all the Prefabs inside the `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs` folder.
+* **Action**: Select **all the files** inside the `Assets/Samples/Perception/0.5.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs` folder.
 * **Action**: From the _**Inspector**_ tab, enable `Use Automatic Labeling for All Selected Items`, and then select `Use asset name` as the labeling scheme.
 
 <p align="center">

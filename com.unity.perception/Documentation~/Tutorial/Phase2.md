@@ -5,7 +5,7 @@ In Phase 1 of the tutorial, we learned how to use the Randomizers that are bundl
 
 Steps included this phase of the tutorial:
 - [Step 1: Build a Lighting Randomizer](#step-1)
-- [Step 2: Bundle Data and Logic Inside Randomization Tags](#step-2)
+- [Step 2: Bundle Data and Logic Inside RandomizerTags](#step-2)
 
 ### <a name="step-1">Step 1: Build a Lighting Randomizer</a> 
 
@@ -123,7 +123,7 @@ The UI for `My Light Randomizer` should now look like this:
 * **Action**: Run the simulation for a few frames to observe the lighting color changing on each iteration.
 
 
-### <a name="step-2">Step 2: Bundle Data and Logic Inside Randomization Tags</a> 
+### <a name="step-2">Step 2: Bundle Data and Logic Inside RandomizerTags</a> 
 
 
 You may sometimes need to bundle certain randomization-related data or logic within an object that are inherent to the object itself. For instance, you may have multiple lights in the Scene but would like each of them to have their own unique range of intensities. It would be quite tedious to add a new Parameter to your light Randomizer for each of your lights. Furthermore, this would make your light Randomizer excessively tailored to one use-case, limiting the Randomizer's reusability. 

@@ -1,8 +1,8 @@
-﻿fileFormatVersion: 2
-<<<<<<< HEAD
+fileFormatVersion: 2
 guid: 2b14f5553d2847319c3077ecf7206d06
-timeCreated: 1600754588
-=======
-guid: ce91e289cdaa4ccc849a0c287aefd34d
-timeCreated: 1598326361
->>>>>>> 50f2c39... Added xml documentation
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -52,7 +52,6 @@ namespace UnityEngine.Perception.GroundTruth
         string m_OutputDirectoryPath;
 
         JsonSerializer m_AnnotationSerializer;
-        
         public bool IsRunning { get; private set; }
 
         public string OutputDirectory
@@ -77,7 +76,6 @@ namespace UnityEngine.Perception.GroundTruth
             m_AnnotationSerializer = JsonSerializer.CreateDefault();
             m_AnnotationSerializer.Converters.Add(new Vector3Converter());
             m_AnnotationSerializer.Converters.Add(new QuaternionConverter());
-            
             m_OutputDirectoryName = outputDirectory;
             IsRunning = true;
         }
@@ -639,7 +637,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 var q = Quaternion.identity;
                 reader.Read(); // open [ token
-                q.x = (float)reader.ReadAsDecimal(); 
+                q.x = (float)reader.ReadAsDecimal();
                 q.y = (float)reader.ReadAsDecimal();
                 q.z = (float)reader.ReadAsDecimal();
                 q.w = (float)reader.ReadAsDecimal();
@@ -647,8 +645,6 @@ namespace UnityEngine.Perception.GroundTruth
                 return q;
             }
         }
-        
-        
         [SuppressMessage("ReSharper", "PossibleInvalidOperationException")]
         public class Vector3Converter : JsonConverter<Vector3>
         {
@@ -672,11 +668,20 @@ namespace UnityEngine.Perception.GroundTruth
                 return outVector;
             }
         }
-        
         public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, IEnumerable<T> values = null)
         {
-            var jArray = values == null ? null : JArray.FromObject(values, m_AnnotationSerializer);
-            
+            JArray jArray = null;
+
+            if (values != null)
+            {
+                jArray = new JArray();
+                foreach (var value in values)
+                {
+                    if (value != null)
+                        jArray.Add(new JRaw(DatasetJsonUtility.ToJToken(value)));
+                }
+            }
+
             ReportAsyncAnnotationResult<T>(asyncAnnotation, filename, jArray);
         }
 

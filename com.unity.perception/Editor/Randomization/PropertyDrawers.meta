@@ -1,8 +1,8 @@
-﻿fileFormatVersion: 2
-<<<<<<< HEAD
+fileFormatVersion: 2
 guid: 47a26876f92a4b19adb3b7b525efa830
-timeCreated: 1600754588
-=======
-guid: d3107e026b2943c1868c9b3f8c6480d3
-timeCreated: 1598135730
->>>>>>> 86d25d2... implemented parameter behaviours
+folderAsset: yes
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

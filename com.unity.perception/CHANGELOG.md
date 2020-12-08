@@ -35,6 +35,10 @@ Fixed enumeration in the CategoricalParameter.categories property
 
 The GenerateRandomSeedFromIndex method now correctly hashes the current scenario iteration into the random seed it generates
 
+Corrupted .meta files have been rebuilt and replaced
+
+The randomizer list inspector UI now updates appropriately when a user clicks undo
+
 ## [0.5.0-preview.1] - 2020-10-14
 
 ### Known Issues
@@ -45,6 +49,10 @@ Creating a new 2020.1.x project and adding the perception package to the project
 
 Added Randomizers and RandomizerTags
 Added support for generating 3D bounding box ground truth data
+
+Added performance test framework
+
+Added nightly performance tests
 
 ### Changed
 

@@ -15,7 +15,7 @@ namespace UnityEngine.Perception.GroundTruth
     public class BoundingBox3DLabeler : CameraLabeler
     {
         EntityQuery m_EntityQuery;
-        
+
         ///<inheritdoc/>
         public override string description
         {
@@ -37,16 +37,6 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Each 3D bounding box data record maps a tuple of (instance, label) to translation, size and rotation that draws a 3D bounding box,
         /// as well as velocity and acceleration (optional) of the 3D bounding box. All location data is given with respect to the sensor coordinate system.
-        ///
-        /// bounding_box_3d
-        ///      label_id (int): Integer identifier of the label
-        ///      label_name (str): String identifier of the label
-        ///      instance_id (str): UUID of the instance.
-        ///      translation (float, float, float): 3d bounding box's center location in meters as center_x, center_y, center_z with respect to global coordinate system.
-        ///      size (float, float, float): 3d bounding box size in meters as width, length, height.
-        ///      rotation (float, float, float, float): 3d bounding box orientation as quaternion: w, x, y, z.
-        ///      velocity (float, float, float) [optional]: 3d bounding box velocity in meters per second as v_x, v_y, v_z.
-        ///      acceleration (float, float, float) [optional]: 3d bounding box acceleration in meters per second^2 as a_x, a_y, a_z.
         /// </summary>
         /// <remarks>
         /// Currently not supporting exporting velocity and acceleration. Both values will be null.
@@ -55,23 +45,47 @@ namespace UnityEngine.Perception.GroundTruth
         [Serializable]
         public struct BoxData
         {
+            /// <summary>
+            /// Integer identifier of the label
+            /// </summary>
             public int label_id;
+            /// <summary>
+            /// String identifier of the label
+            /// </summary>
             public string label_name;
+            /// <summary>
+            /// UUID of the instance
+            /// </summary>
             public uint instance_id;
+            /// <summary>
+            /// 3d bounding box's center location in meters as center_x, center_y, center_z with respect to global coordinate system
+            /// </summary>
             public Vector3 translation;
+            /// <summary>
+            /// 3d bounding box size in meters as width, length, height
+            /// </summary>
             public Vector3 size;
+            /// <summary>
+            /// 3d bounding box orientation as quaternion: w, x, y, z
+            /// </summary>
             public Quaternion rotation;
+            /// <summary>
+            /// [optional]: 3d bounding box velocity in meters per second as v_x, v_y, v_z
+            /// </summary>
             public Vector3 velocity;
+            /// <summary>
+            /// [optional]: 3d bounding box acceleration in meters per second^2 as a_x, a_y, a_z
+            /// </summary>
             public Vector3 acceleration;
         }
 
         static ProfilerMarker s_BoundingBoxCallback = new ProfilerMarker("OnBoundingBoxes3DReceived");
         AnnotationDefinition m_AnnotationDefinition;
-        
+
         Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
         Dictionary<int, Dictionary<uint, BoxData>> m_BoundingBoxValues;
         List<BoxData> m_ToReport;
-        
+
         int m_CurrentFrame;
 
         /// <inheritdoc/>
@@ -106,9 +120,9 @@ namespace UnityEngine.Perception.GroundTruth
                 "Bounding box for each labeled object visible to the sensor", id: new Guid(annotationId));
 
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderObjectInfosCalculated;
-            
+
             m_EntityQuery = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(Labeling), typeof(GroundTruthInfo));
-            
+
             m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
             m_BoundingBoxValues = new Dictionary<int, Dictionary<uint, BoxData>>();
             m_ToReport = new List<BoxData>();
@@ -139,16 +153,16 @@ namespace UnityEngine.Perception.GroundTruth
             right = rotation * right;
             up = rotation * up;
             forward = rotation * forward;
-            
+
             var doubleRight = right * 2;
             var doubleUp = up * 2;
             var doubleForward = forward * 2;
-            
+
             var corners = new Vector3[8];
             corners[0] = boundsCenter - right - up - forward;
             corners[1] = corners[0] + doubleUp;
             corners[2] = corners[1] + doubleRight;
-            corners[3] = corners[0] + doubleRight; 
+            corners[3] = corners[0] + doubleRight;
             for (var i = 0; i < 4; i++)
             {
                 corners[i + 4] = corners[i] + doubleForward;
@@ -161,14 +175,14 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void OnBeginRendering()
         {
             m_CurrentFrame = Time.frameCount;
-            
+
             m_BoundingBoxValues[m_CurrentFrame] = new Dictionary<uint, BoxData>();
-            
+
             m_AsyncAnnotations[m_CurrentFrame] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
-            
+
             var entities = m_EntityQuery.ToEntityArray(Allocator.TempJob);
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            
+
             foreach (var entity in entities)
             {
                 ProcessEntity(entityManager.GetComponentObject<Labeling>(entity));
@@ -184,14 +198,14 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (!m_BoundingBoxValues.TryGetValue(frameCount, out var boxes))
                 return;
-            
+
             m_AsyncAnnotations.Remove(frameCount);
             m_BoundingBoxValues.Remove(frameCount);
 
             using (s_BoundingBoxCallback.Auto())
             {
                 m_ToReport.Clear();
-                
+
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
@@ -201,7 +215,7 @@ namespace UnityEngine.Perception.GroundTruth
                         m_ToReport.Add(box);
                     }
                 }
-                
+
                 BoundingBoxComputed?.Invoke(frameCount, m_ToReport);
                 asyncAnnotation.ReportValues(m_ToReport);
             }
@@ -226,10 +240,10 @@ namespace UnityEngine.Perception.GroundTruth
                 if (idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
                 {
                     var entityGameObject = labeledEntity.gameObject;
-                    
+
                     var meshFilters = entityGameObject.GetComponentsInChildren<MeshFilter>();
                     if (meshFilters == null || meshFilters.Length == 0) return;
-                    
+
                     var labelTransform = entityGameObject.transform;
                     var cameraTransform = perceptionCamera.transform;
                     var combinedBounds = new Bounds(Vector3.zero, Vector3.zero);
@@ -243,10 +257,10 @@ namespace UnityEngine.Perception.GroundTruth
                         // they are axis-aligned with respect to the current component's coordinate space. This, in theory
                         // could still provide non-ideal fitting bounds (if the model is made strangely, but garbage in; garbage out)
                         var meshBounds = mesh.mesh.bounds;
-                        
+
                         var transformedBounds = new Bounds(meshBounds.center, meshBounds.size);
                         var transformedRotation = Quaternion.identity;
-                        
+
                         // Apply the transformations on this object until we reach the labeled transform
                         while (currentTransform != labelTransform)
                         {
@@ -260,7 +274,7 @@ namespace UnityEngine.Perception.GroundTruth
                         // need to calculate all 8 corners of the bounds and combine them with the current combined
                         // bounds
                         var corners = GetBoxCorners(transformedBounds, transformedRotation);
-                        
+
                         // If this is the first time, create a new bounds struct
                         if (areBoundsUnset)
                         {
@@ -274,7 +288,7 @@ namespace UnityEngine.Perception.GroundTruth
                             combinedBounds.Encapsulate(c2);
                         }
                     }
-                    
+
                     // Convert the combined bounds into world space
                     combinedBounds.center = labelTransform.TransformPoint(combinedBounds.center);
                     combinedBounds.extents = Vector3.Scale(combinedBounds.extents,  labelTransform.localScale);
@@ -282,12 +296,12 @@ namespace UnityEngine.Perception.GroundTruth
                     // Now convert all points into camera's space
                     var cameraCenter = cameraTransform.InverseTransformPoint(combinedBounds.center);
                     cameraCenter = Vector3.Scale(cameraTransform.localScale, cameraCenter);
-                    
+
                     // Rotation to go from label space to camera space
                     var cameraRotation = Quaternion.Inverse(cameraTransform.rotation) * labelTransform.rotation;
-                    
+
                     var converted = ConvertToBoxData(labelEntry, labeledEntity.instanceId, cameraCenter, combinedBounds.extents, cameraRotation);
-                    
+
                     m_BoundingBoxValues[m_CurrentFrame][labeledEntity.instanceId] = converted;
                 }
             }

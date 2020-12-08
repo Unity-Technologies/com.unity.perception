@@ -296,7 +296,7 @@ As seen in the image above, what we have now is just a beige-colored wall of sha
 
 * **Action**: In the UI snippet for `TextureRandomizer`, click _**Add Folder**_ and choose `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Background Textures`. 
 
-* **Action**: In the UI snippet for `RotationRandomizer`, change all the maximum values for the three ranges to `360` and leave the minimums at `0`. 
+* **Action**: In the UI snippet for `RotationRandomizer`, verify that all the maximum values for the three ranges are `360` and that minimum values are `0`. 
 
 Your list of Randomizers should now look like the screenshot below:
 

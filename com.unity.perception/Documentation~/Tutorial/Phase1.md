@@ -22,7 +22,7 @@ An alternative approach is to first install [_**Unity Hub**_](https://unity3d.co
 
 During the installation of Unity, you will be asked to choose which modules you would like to include. This will depend on the types of applications you eventually intend to build with your Unity installation; however, for the purposes of this tutorial, we need to make sure _**Linux Build Support (Mono)**_ is checked (the IL2CPP option may be selected by default, but for this tutorial, we will need the Mono option). In addition, if you do not already have _**Visual Studio**_ on your computer, the wizard will give you an option to install it. Go ahead and check this option, as we will need _**Visual Studio**_ for writing some simple scripts in Phase 2 of the tutorial. 
 
-* **Action**: Make sure the _**Linux Build Support**_ and _**Visual Studio**_ installation options are checked when selecting modules during installation.
+* **Action**: Make sure the _**Linux Build Support (Mono)**_ and _**Visual Studio**_ installation options are checked when selecting modules during installation.
 
 When you first run Unity, you will be asked to open an existing project, or create a new one. 
 

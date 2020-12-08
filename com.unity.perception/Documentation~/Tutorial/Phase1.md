@@ -138,7 +138,7 @@ One of the useful features that comes with the `Perception Camera` component is 
 
 ### <a name="step-4">Step 4: Specify Ground-Truth and Setup Object Labels</a> 
 
-It is now time to tell each labeler added to the `Perception Camera` which objects it should label in the generated dataset. For instance, if your workflow is intended for generating frames and ground-truth for detecting chairs, your labelers would need to know that they should look for objects labeled "chair" within the scene. The chairs should in turn also be labeled "chair" in order to make them visible to the labelers. We will now learn how to set-up these configurations.
+It is now time to tell each labeler added to the `Perception Camera` which objects it should label in the generated dataset. For instance, if your workflow is intended for generating frames and ground-truth for detecting chairs, your labelers would need to know that they should look for objects labeled "chair" within the scene. The chairs should in turn also be labeled "chair" in order to make them visible to the labelers. We will now learn how to set up these configurations.
 
 You will notice each added labeler has a `Label Config` field. By adding a label configuration here you can instruct the labeler to look for certain labels within the scene and ignore the rest. To do that, we should first create label configurations.
 
@@ -341,7 +341,7 @@ Randomizers execute according to their order within the list of Randomizers adde
 
 * **Action**: Drag `ForegroundObjectPlacementRandomizer` and drop it above `RotationRandomizer`.
 
-You are now ready to generate your first dataset. Our current set-up will produce 100 frames of annotated captures.
+You are now ready to generate your first dataset. Our current setup will produce 100 frames of annotated captures.
 
 * **Action** Click **▷** (play) again and this time let the simulation finish. This should take only a few seconds.
 

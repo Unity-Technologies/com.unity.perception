@@ -377,6 +377,7 @@ The output dataset includes a variety of information about different aspects of 
 * `x` and `y`: Pixel coordinates of the top-left corner of the object's bounding box (measured from the top-left corner of the image)
 * `width` and `height` of the object's bounding box
 
+* **Action**: Review the JSON meta-data and the images captured for the first annotated frame, and verify that the objects within them match. 
 
 ### <a name="step-7">Step 7: Verify Data Using Dataset Insights</a> 
 

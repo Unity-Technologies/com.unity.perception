@@ -13,7 +13,7 @@ Steps included this phase of the tutorial:
 - [Step 4: Specify Ground-Truth and Setup Object Labels](#step-4)
 - [Step 5: Set Up Randomizers and Generate Data](#step-5)
 - [Step 6: Inspect Generated Synthetic Data](#step-6)
-- [Step 5: Verify Data Using Dataset Insights](#step-7)
+- [Step 7: Verify Data Using Dataset Insights](#step-7)
 
 ### <a name="step-1">Step 1: Download Unity Editor and Create a New Project</a> 
 * **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of **Unity Editor 2019.4.x**. (The tutorial has not yet been fully tested on newer versions.)

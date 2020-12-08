@@ -12,9 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  labels: []
-  useAutoLabeling: 0
-  autoLabelingSchemeType: 
+  labels:
+  - craft_yarn_caron
 --- !u!1001 &9163128344492649175
 PrefabInstance:
   m_ObjectHideFlags: 0

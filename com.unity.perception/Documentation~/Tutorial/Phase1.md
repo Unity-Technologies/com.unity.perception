@@ -345,7 +345,7 @@ You are now ready to generate your first dataset. Our current setup will produce
 
 * **Action** Click **▷** (play) again and this time let the simulation finish. This should take only a few seconds.
 
-While the simulation is running, your _**Game**_ view will quickly generate frames similar to the gif below (visualization for `SemanticSegmentationLabeler` is disabled here):
+While the simulation is running, your _**Game**_ view will quickly generate frames similar to the gif below (note: visualization for `SemanticSegmentationLabeler` is disabled here):
 
 <p align="center">
 <img src="Images/generation1.gif" width = "700"/>

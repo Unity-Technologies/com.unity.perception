@@ -266,7 +266,7 @@ This Randomizer uses Poisson-Disk sampling to select random positions from a giv
 
 The background Prefabs are primitive shapes devoid of color or texture. Later Randomizers will take care of those aspects. 
 
-* **Action**: Set the rest of the properties (except for `Seed`) according to the image below. That is, Depth = 0, Separation Distance = 0.5, Placement Area = (6,6). The `Seed` attribute is the seed used for the underlying random sampler and does not need to match the image shown.
+* **Action**: Set the rest of the properties (except for `Seed`) according to the image below. That is, `Depth = 0, Separation Distance = 0.5, Placement Area = (6,6)`. The `Seed` attribute is the seed used for the underlying random sampler and does not need to match the image shown.
 
 <p align="center">
 <img src="Images/background_randomizer.png" width = "400"/>
@@ -344,7 +344,7 @@ While the texture and color of the foreground objects will be constant during th
 
 Randomizers execute according to their order within the list of Randomizers added to your Scenario. If you look at the list now, you will notice that `ForegroundObjectPlacementRandomizer` is coming after `RotationRandomizer`, therefore, foreground objects will NOT be included in the rotation randomizations, even though they are carrying the proper RandomizerTag. To fix that:
 
-* **Action**: Drag `ForegroundObjectPlacementRandomizer` and drop it above `RotationRandomizer`.
+* **Action**: Drag `ForegroundObjectPlacementRandomizer` using the striped handle bar (on its left side) and drop it above `RotationRandomizer`.
 
 You are now ready to generate your first dataset. Our current setup will produce 100 frames of annotated captures.
 

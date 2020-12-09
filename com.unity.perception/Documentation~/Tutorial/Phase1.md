@@ -11,9 +11,10 @@ Steps included this phase of the tutorial:
 - [Step 2: Download the Perception Package and Import Samples](#step-2)
 - [Step 3: Setup a Scene for Your Perception Simulation](#step-3)
 - [Step 4: Specify Ground-Truth and Set Up Object Labels](#step-4)
-- [Step 5: Set Up Randomizers and Generate Data](#step-5)
-- [Step 6: Inspect Generated Synthetic Data](#step-6)
-- [Step 7: Verify Data Using Dataset Insights](#step-7)
+- [Step 5: Set Up Background Randomizers](#step-5)
+- [Step 6: Set Up Foreground Randomizers](#step-6)
+- [Step 7: Inspect Generated Synthetic Data](#step-7)
+- [Step 8: Verify Data Using Dataset Insights](#step-8)
 
 ### <a name="step-1">Step 1: Download Unity Editor and Create a New Project</a> 
 * **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of **Unity Editor 2019.4.x**. (The tutorial has not yet been fully tested on newer versions.)
@@ -229,7 +230,7 @@ Since we have visualizations enabled on our `Perception Camera`, you should now 
 <img src="Images/one_object_run.png" width="600"/>
 </p>
 
-### <a name="step-5">Step 5: Set Up Randomizers and Generate Data</a> 
+### <a name="step-5">Step 5: Set Up Background Randomizers</a> 
 
 As mentioned earlier, one of the core ingredients of the perception workflow is the randomization of various aspects of the simulation, in order to introduce sufficient variation into the generated data. 
 
@@ -337,7 +338,9 @@ If you run the simulation now you will see the generated backgrounds look much m
 <img src="Images/background_good.png" width = "700"/>
 </p>
 
-It is now time to spawn and randomize our foreground objects. We are getting close to generating our first set of synthetic data!
+### <a name="step-6">Step 6: Set Up Foreground Randomizers</a> 
+
+It is now time to spawn and randomize our foreground objects.
 
 * **Action**: Add `ForegroundObjectPlacementRandomizer` to your list of Randomizers. Click _**Add Folder**_ and select `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
 * **Action**: Set these values for the above Randomizer: `Depth = -3, Separation Distance = 1.5, Placement Area = (5,5)`.
@@ -363,7 +366,7 @@ While the simulation is running, your _**Game**_ view will quickly generate fram
 </p>
 
 
-### <a name="step-6">Step 6: Inspect Generated Synthetic Data</a> 
+### <a name="step-7">Step 7: Inspect Generated Synthetic Data</a> 
 
 Once the run is complete, you will see a message in the _**Console**_ tab of the editor, with information on where the generated data has been saved. An example is shown below (Mac OS):
 
@@ -390,7 +393,7 @@ The output dataset includes a variety of information about different aspects of 
 
 * **Action**: Review the JSON meta-data and the images captured for the first annotated frame, and verify that the objects within them match. 
 
-### <a name="step-7">Step 7: Verify Data Using Dataset Insights</a> 
+### <a name="step-8">Step 8: Verify Data Using Dataset Insights</a> 
 
 
 To verify and analyze a variety of metrics for the generated data, such as number of foreground objects in each frame and degree of representation for each foreground object (label), we will now use Unity's Dataset Insights framework. This will involve running a Jupyter notebook which is conveniently packaged within a Docker file that you can download from Unity. 

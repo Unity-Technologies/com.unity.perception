@@ -204,7 +204,7 @@ In the window that opens, you can add all the automatic labels you just added to
 
 
 <p align="center">
-<img src="Images/addtoconfigwindow.png" width = "600"/>
+<img src="Images/addtoconfigwindow.png" width = "500"/>
 </p>
 
 Here, you can also open either of the configurations by clicking the _**Open**_ buttons. Open both configurations to make sure the list of labels has been added to them. They should now look similar to the screenshots below:

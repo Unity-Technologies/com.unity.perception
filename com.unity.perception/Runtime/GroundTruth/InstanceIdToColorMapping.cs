@@ -65,7 +65,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         static uint GetColorForId(uint id)
         {
-            if (id > maxId || id == 0 || id == k_InvalidPackedColor) return k_InvalidPackedColor;
+            if (id > maxId || id == 0) return k_InvalidPackedColor;
 
             if (id <= k_HslCount)
             {

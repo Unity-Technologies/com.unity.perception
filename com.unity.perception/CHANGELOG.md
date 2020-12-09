@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+Fixed a bug in instance segmentation labeler that erroneously logged that object ID 255 was not supported
+
+## [0.6.0-preview.1] - 2020-12-08
+
+### Added
 Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
 Added instance segmentation labeler
 Added support for full screen visual overlays and overlay manager

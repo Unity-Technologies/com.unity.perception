@@ -46,7 +46,7 @@ public class MyLightRandomizer : Randomizer
 
 The purpose of this piece of code is to obtain a random float parameter and assign it to the light's `Intensity` field on the start of every Iteration. Let's go through the code above and understand each part. The `FloatParameter` field makes it possible for us to define a randomized float parameter and modify its properties from the editor UI, similar to how we already modified the properties for the previous Randomizers we used. 
 
-**Note:** If you look at the _**Console**_ tab of the editor now, you will see an error regarding `MyLightRandomizerTag` not being found. This is normal, since we have not yet created this class; the error will go away once we create the class later.
+**Note:** If you look at the _**Console**_ tab of the editor now, you will see an error regarding `MyLightRandomizerTag` not being found. This is to be expected, since we have not yet created this class; the error will go away once we create the class later.
 
 If you return to your list of Randomizers in the _**Inspector**_ view of `SimulationScenario`, you can now add this new Randomizer.
 

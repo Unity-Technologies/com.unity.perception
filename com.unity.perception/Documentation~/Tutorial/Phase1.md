@@ -191,7 +191,7 @@ Even though the sample Prefabs already have a label manually added, to learn mor
 * **Action**: From the _**Inspector**_ tab, enable `Use Automatic Labeling for All Selected Items`, and then select `Use asset name` as the labeling scheme.
 
 <p align="center">
-<img src="Images/autolabel.png" width = "400"/>
+<img src="Images/autolabel.png" width="400"/>
 </p>
 
 This will assign each of the selected Prefabs its own name as a label.
@@ -204,13 +204,13 @@ In the window that opens, you can add all the automatic labels you just added to
 
 
 <p align="center">
-<img src="Images/addtoconfigwindow.png" width = "500"/>
+<img src="Images/addtoconfigwindow.png" width="500"/>
 </p>
 
 Here, you can also open either of the configurations by clicking the _**Open**_ buttons. Open both configurations to make sure the list of labels has been added to them. They should now look similar to the screenshots below:
 
 <p align="center">
-<img src="Images/labelconfigs.png" width = "800"/>
+<img src="Images/labelconfigs.png" width="800"/>
 </p>
 
 **Note:** Since we used automatic labels here and added them to our configurations, we are confident that the labels in the configurations match the labels of our objects. In cases where you decide to add manual labels to objects and configurations, make sure you use the exact same labels, otherwise, the objects for which a matching label is not found in your configurations will not be detected by the labelers that are using those configurations.
@@ -224,7 +224,7 @@ Now that we have labelled all our foreground objects and setup our label configu
 Since we have visualizations enabled on our `Perception Camera`, you should now see a bounding box being drawn around the object you put in the scene, and the object itself being colored according to its label's color in `TutorialSemanticSegmentationLabelConfig`, similar to the image below:
 
 <p align="center">
-<img src="Images/one_object_run.png" width = "600"/>
+<img src="Images/one_object_run.png" width="600"/>
 </p>
 
 ### <a name="step-5">Step 5: Set Up Randomizers and Generate Data</a> 
@@ -296,7 +296,7 @@ As seen in the image above, what we have now is just a beige-colored wall of sha
 
 * **Action**: In the UI snippet for `TextureRandomizer`, click _**Add Folder**_ and choose `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Background Textures`. 
 
-* **Action**: In the UI snippet for `RotationRandomizer`, verify that all the maximum values for the three ranges are `360` and that minimum values are `0`. 
+* **Action**: In the UI snippet for `RotationRandomizer`, verify that all the minimum values for the three ranges are `0` and that maximum values are `360`. 
 
 Your list of Randomizers should now look like the screenshot below:
 

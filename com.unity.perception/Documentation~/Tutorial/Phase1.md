@@ -266,11 +266,12 @@ This Randomizer uses Poisson-Disk sampling to select random positions from a giv
 
 The background Prefabs are primitive shapes devoid of color or texture. Later Randomizers will take care of those aspects. 
 
-* **Action**: Set the rest of the properties (except for `Seed`) according to the image below. The `Seed` attribute is the seed used for the underlying random sampler and does not need to match the image shown.
+* **Action**: Set the rest of the properties (except for `Seed`) according to the image below. That is, Depth = 0, Separation Distance = 0.5, Placement Area = (6,6). The `Seed` attribute is the seed used for the underlying random sampler and does not need to match the image shown.
 
 <p align="center">
 <img src="Images/background_randomizer.png" width = "400"/>
 </p>
+
 
 * **Action**: Click on the **▷** (play) button located at the top middle section of the editor to run your simulation.
 
@@ -291,6 +292,8 @@ Note that disabling visualizations for a labeler does not affect your generated 
 To generate data as fast as possible, the simulation utilizes asynchronous processing to churn through frames quickly, rearranging and randomizing the objects in each frame. To be able to check out individual frames and inspect the real-time visualizations, click on the pause button (next to play). You can also switch back to the Scene view to be able to inspect each object individually. For performance reasons, it is recommended to disable visualizations altogether (from the _**Inspector**_ view of `Perception Camera`) once you are ready to generate a large dataset.
 
 As seen in the image above, what we have now is just a beige-colored wall of shapes. This is because so far, we are only spawning them, and the beige color of our light is what gives them their current look. To make this background more useful, let's add a couple more `Randomizers`. 
+
+**Note:** If at this point you don't see any objects being displayed, make sure the Separation Distance for `BackgroundObjectPlacementRandomizer` is (6,6) and not (0,0).
 
 * **Action**: Repeat the previous steps to add `TextureRandomizer`, `HueOffsetRandomizer`, and `RotationRandomizer`.
 

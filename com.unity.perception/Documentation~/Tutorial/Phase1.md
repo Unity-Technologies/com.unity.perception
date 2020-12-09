@@ -10,7 +10,7 @@ Steps included this phase of the tutorial:
 - [Step 1: Download Unity Editor and Create a New Project](#step-1)
 - [Step 2: Download the Perception Package and Import Samples](#step-2)
 - [Step 3: Setup a Scene for Your Perception Simulation](#step-3)
-- [Step 4: Specify Ground-Truth and Setup Object Labels](#step-4)
+- [Step 4: Specify Ground-Truth and Set Up Object Labels](#step-4)
 - [Step 5: Set Up Randomizers and Generate Data](#step-5)
 - [Step 6: Inspect Generated Synthetic Data](#step-6)
 - [Step 7: Verify Data Using Dataset Insights](#step-7)
@@ -136,7 +136,7 @@ Once you add the labelers, the _**Inspector**_ view of the `Perception Camera` c
 
 One of the useful features that comes with the `Perception Camera` component is the ability to display real-time visualizations of the labelers when your simulation is running. For instance, `BoundingBox2DLabeler` can display two-dimensional bounding boxes around the foreground objects that it tracks in real-time and `SemanticSegmentationLabeler` displays the semantic segmentation image overlaid on top of the camera's view. To enable this feature, make sure the `Show Labeler Visualizations` checkmark is enabled. 
 
-### <a name="step-4">Step 4: Specify Ground-Truth and Setup Object Labels</a> 
+### <a name="step-4">Step 4: Specify Ground-Truth and Set Up Object Labels</a> 
 
 It is now time to tell each labeler added to the `Perception Camera` which objects it should label in the generated dataset. For instance, if your workflow is intended for generating frames and ground-truth for detecting chairs, your labelers would need to know that they should look for objects labeled "chair" within the scene. The chairs should in turn also be labeled "chair" in order to make them visible to the labelers. We will now learn how to set up these configurations.
 

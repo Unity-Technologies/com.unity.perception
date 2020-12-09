@@ -295,7 +295,7 @@ As seen in the image above, what we have now is just a beige-colored wall of sha
 
 **Note:** If at this point you don't see any objects being displayed, make sure the Separation Distance for `BackgroundObjectPlacementRandomizer` is (6,6) and not (0,0).
 
-**Note:** If your _**Game**_ tab has a different field of view than the one shown here, change the resolution of your _**Game**_ tab to `800 x 600`, as shown below:
+**Note:** If your _**Game**_ tab has a different field of view than the one shown here, change the aspect ratio of your _**Game**_ tab to `4:3`, as shown below:
 
 <p align="center">
 <img src="Images/game_aspect.png" width = "400"/>

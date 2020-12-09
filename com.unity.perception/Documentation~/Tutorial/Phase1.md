@@ -109,6 +109,8 @@ We will now add the necessary components to the camera in order to equip it for 
 
 * **Action**: Click on this script to add it as a component. Your camera is now a `Perception` camera.
 
+**Note:** You may now see a warning regarding asynchronous shader compilation in the UI for the `Perception Camera` component. To fix this issue, from the top menu bar go to _**Edit -> Project Settings… -> Editor**_ and under _**Shader Compilation**_ settings, disable _**Asynchronous Shader Compilation**_.
+
 Adding components is the standard way in which objects can have various kinds of logic and data attached to them in Unity. This includes objects placed within the Scene (called GameObjects), such as the camera above, or objects outside of a Scene, in your project folders (called Prefabs).
 
 The `Perception Camera` component comes with its own UI to modify various aspects of synthetic frame generation and annotation, as well as add or remove ground-truth 

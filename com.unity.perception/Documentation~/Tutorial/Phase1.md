@@ -355,6 +355,13 @@ Randomizers execute according to their order within the list of Randomizers adde
 
 * **Action**: Drag `ForegroundObjectPlacementRandomizer` using the striped handle bar (on its left side) and drop it above `RotationRandomizer`.
 
+Your full list of Randomizers should now look like the screenshot below:
+
+<p align="center">
+<img src="Images/randomizers_all.png" width = "400"/>
+</p>
+
+
 You are now ready to generate your first dataset. Our current setup will produce 100 frames of annotated captures.
 
 * **Action** Click **▷** (play) again and this time let the simulation finish. This should take only a few seconds.

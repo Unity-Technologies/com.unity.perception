@@ -81,8 +81,29 @@ namespace GroundTruthTests
         }
 
         [Test]
+        public void InstanceIdToColorMappingTests_GetCorrectValuesFor255()
+        {
+            var expectedColor = new Color(0, 0, 191, 254);
+
+            Assert.IsTrue(InstanceIdToColorMapping.TryGetColorFromInstanceId(255u, out var color));
+            Assert.AreEqual(color.r, expectedColor.r);
+            Assert.AreEqual(color.g, expectedColor.g);
+            Assert.AreEqual(color.b, expectedColor.b);
+            Assert.AreEqual(color.a, expectedColor.a);
+            Assert.IsTrue(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id2));
+            Assert.AreEqual(255u, id2);
+
+            color = InstanceIdToColorMapping.GetColorFromInstanceId(255u);
+            Assert.AreEqual(color.r, expectedColor.r);
+            Assert.AreEqual(color.g, expectedColor.g);
+            Assert.AreEqual(color.b, expectedColor.b);
+            Assert.AreEqual(color.a, expectedColor.a);
+            id2 = InstanceIdToColorMapping.GetInstanceIdFromColor(color);
+            Assert.AreEqual(255u, id2);
+        }
+
+        [Test]
         [TestCase(0u)]
-        [TestCase(255u)]
         public void InstanceIdToColorMappingTests_GetBlackForId(uint id)
         {
             Assert.IsFalse(InstanceIdToColorMapping.TryGetColorFromInstanceId(id, out var color));

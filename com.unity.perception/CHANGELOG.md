@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+Fixed a bug in instance segmentation labeler that erroneously logged that object ID 255 was not supported
+
 ## [0.6.0-preview.1] - 2020-12-03
 
 ### Added

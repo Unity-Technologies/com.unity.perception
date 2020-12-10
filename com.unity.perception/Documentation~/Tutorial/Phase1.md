@@ -11,9 +11,10 @@ Steps included this phase of the tutorial:
 - [Step 2: Download the Perception Package and Import Samples](#step-2)
 - [Step 3: Setup a Scene for Your Perception Simulation](#step-3)
 - [Step 4: Specify Ground-Truth and Set Up Object Labels](#step-4)
-- [Step 5: Set Up Randomizers and Generate Data](#step-5)
-- [Step 6: Inspect Generated Synthetic Data](#step-6)
-- [Step 7: Verify Data Using Dataset Insights](#step-7)
+- [Step 5: Set Up Background Randomizers](#step-5)
+- [Step 6: Set Up Foreground Randomizers](#step-6)
+- [Step 7: Inspect Generated Synthetic Data](#step-7)
+- [Step 8: Verify Data Using Dataset Insights](#step-8)
 
 ### <a name="step-1">Step 1: Download Unity Editor and Create a New Project</a> 
 * **Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of **Unity Editor 2019.4.x**. (The tutorial has not yet been fully tested on newer versions.)
@@ -78,7 +79,7 @@ This step prepares your project to render tailor-made images that will be later 
 ### <a name="step-3">Step 3: Setup a Scene for Your Perception Simulation</a> 
 Simply put, in Unity, Scenes contain any object that exists in the world. This world can be a game, or in this case, a perception-oriented simulation. Every new project contains a Scene named `SampleScene`, which is automatically opened when the project is created. This Scene comes with several objects and settings that we do not need, so let's create a new one. 
 
-* **Action**: In the _**Project**_ tab, right-click on the `Assets/Scenes` folder and click _**Create -> Scene**_. Name this new Scene `TutorialScene` and double-click on it to open it. 
+* **Action**: In the _**Project**_ tab, right-click on the `Assets/Scenes` folder and click _**Create -> Scene**_. Name this new Scene `TutorialScene` and **double-click on it to open it**. 
 
 The _**Hierarchy**_ tab of the editor displays all the Scenes currently loaded, and all the objects currently present in each loaded Scene, as shown below:
 <p align="center">
@@ -108,6 +109,8 @@ We will now add the necessary components to the camera in order to equip it for 
 </p>
 
 * **Action**: Click on this script to add it as a component. Your camera is now a `Perception` camera.
+
+**Note:** You may now see a warning regarding asynchronous shader compilation in the UI for the `Perception Camera` component. To fix this issue, from the top menu bar go to _**Edit -> Project Settings… -> Editor**_ and under _**Shader Compilation**_ settings, disable _**Asynchronous Shader Compilation**_.
 
 Adding components is the standard way in which objects can have various kinds of logic and data attached to them in Unity. This includes objects placed within the Scene (called GameObjects), such as the camera above, or objects outside of a Scene, in your project folders (called Prefabs).
 
@@ -227,7 +230,7 @@ Since we have visualizations enabled on our `Perception Camera`, you should now 
 <img src="Images/one_object_run.png" width="600"/>
 </p>
 
-### <a name="step-5">Step 5: Set Up Randomizers and Generate Data</a> 
+### <a name="step-5">Step 5: Set Up Background Randomizers</a> 
 
 As mentioned earlier, one of the core ingredients of the perception workflow is the randomization of various aspects of the simulation, in order to introduce sufficient variation into the generated data. 
 
@@ -264,11 +267,12 @@ This Randomizer uses Poisson-Disk sampling to select random positions from a giv
 
 The background Prefabs are primitive shapes devoid of color or texture. Later Randomizers will take care of those aspects. 
 
-* **Action**: Set the rest of the properties (except for `Seed`) according to the image below. The `Seed` attribute is the seed used for the underlying random sampler and does not need to match the image shown.
+* **Action**: Set the rest of the properties (except for `Seed`) according to the image below. That is, `Depth = 0, Layer Count = 2, Separation Distance = 0.5, Placement Area = (6,6)`. The `Seed` attribute is the seed used for the underlying random sampler and does not need to match the image shown.
 
 <p align="center">
 <img src="Images/background_randomizer.png" width = "400"/>
 </p>
+
 
 * **Action**: Click on the **▷** (play) button located at the top middle section of the editor to run your simulation.
 
@@ -289,6 +293,14 @@ Note that disabling visualizations for a labeler does not affect your generated 
 To generate data as fast as possible, the simulation utilizes asynchronous processing to churn through frames quickly, rearranging and randomizing the objects in each frame. To be able to check out individual frames and inspect the real-time visualizations, click on the pause button (next to play). You can also switch back to the Scene view to be able to inspect each object individually. For performance reasons, it is recommended to disable visualizations altogether (from the _**Inspector**_ view of `Perception Camera`) once you are ready to generate a large dataset.
 
 As seen in the image above, what we have now is just a beige-colored wall of shapes. This is because so far, we are only spawning them, and the beige color of our light is what gives them their current look. To make this background more useful, let's add a couple more `Randomizers`. 
+
+**Note:** If at this point you don't see any objects being displayed, make sure the Separation Distance for `BackgroundObjectPlacementRandomizer` is (6,6) and not (0,0).
+
+**Note:** If your _**Game**_ tab has a different field of view than the one shown here, change the aspect ratio of your _**Game**_ tab to `4:3`, as shown below:
+
+<p align="center">
+<img src="Images/game_aspect.png" width = "400"/>
+</p>
 
 * **Action**: Repeat the previous steps to add `TextureRandomizer`, `HueOffsetRandomizer`, and `RotationRandomizer`.
 
@@ -326,7 +338,9 @@ If you run the simulation now you will see the generated backgrounds look much m
 <img src="Images/background_good.png" width = "700"/>
 </p>
 
-It is now time to spawn and randomize our foreground objects. We are getting close to generating our first set of synthetic data!
+### <a name="step-6">Step 6: Set Up Foreground Randomizers</a> 
+
+It is now time to spawn and randomize our foreground objects.
 
 * **Action**: Add `ForegroundObjectPlacementRandomizer` to your list of Randomizers. Click _**Add Folder**_ and select `Assets/Samples/Perception/0.6.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`.
 * **Action**: Set these values for the above Randomizer: `Depth = -3, Separation Distance = 1.5, Placement Area = (5,5)`.
@@ -339,7 +353,14 @@ While the texture and color of the foreground objects will be constant during th
 
 Randomizers execute according to their order within the list of Randomizers added to your Scenario. If you look at the list now, you will notice that `ForegroundObjectPlacementRandomizer` is coming after `RotationRandomizer`, therefore, foreground objects will NOT be included in the rotation randomizations, even though they are carrying the proper RandomizerTag. To fix that:
 
-* **Action**: Drag `ForegroundObjectPlacementRandomizer` and drop it above `RotationRandomizer`.
+* **Action**: Drag `ForegroundObjectPlacementRandomizer` using the striped handle bar (on its left side) and drop it above `RotationRandomizer`.
+
+Your full list of Randomizers should now look like the screenshot below:
+
+<p align="center">
+<img src="Images/randomizers_all.png" width = "400"/>
+</p>
+
 
 You are now ready to generate your first dataset. Our current setup will produce 100 frames of annotated captures.
 
@@ -352,7 +373,7 @@ While the simulation is running, your _**Game**_ view will quickly generate fram
 </p>
 
 
-### <a name="step-6">Step 6: Inspect Generated Synthetic Data</a> 
+### <a name="step-7">Step 7: Inspect Generated Synthetic Data</a> 
 
 Once the run is complete, you will see a message in the _**Console**_ tab of the editor, with information on where the generated data has been saved. An example is shown below (Mac OS):
 
@@ -379,7 +400,7 @@ The output dataset includes a variety of information about different aspects of 
 
 * **Action**: Review the JSON meta-data and the images captured for the first annotated frame, and verify that the objects within them match. 
 
-### <a name="step-7">Step 7: Verify Data Using Dataset Insights</a> 
+### <a name="step-8">Step 8: Verify Data Using Dataset Insights</a> 
 
 
 To verify and analyze a variety of metrics for the generated data, such as number of foreground objects in each frame and degree of representation for each foreground object (label), we will now use Unity's Dataset Insights framework. This will involve running a Jupyter notebook which is conveniently packaged within a Docker file that you can download from Unity. 

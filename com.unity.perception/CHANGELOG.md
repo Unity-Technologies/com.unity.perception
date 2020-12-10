@@ -8,18 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 
 ### Added
-Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
-Added instance segmentation labeler
-Added support for full screen visual overlays and overlay manager
 
 ### Changed
-
-Updated perception to use burst 1.3.9
-Changed InstanceSegmentationImageReadback event to provide a NativeArray\<Color32\> instead of NativeArray\<uint\>
-Expanded all Unity Simulation references from USim to Unity Simulation
-Uniform and Normal samplers now serialize their random seeds
-
-The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to GenerateRandomSeedFromIndex()
 
 ### Deprecated
 
@@ -27,17 +17,51 @@ The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to Gene
 
 ### Fixed
 
-UnitySimulationScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation
+## [0.6.0-preview.1] - 2020-12-03
 
-Fixed Unity Simulation nodes generating one extra empty image before generating their share of the randomization scenario iterations
+### Added
 
-Fixed enumeration in the CategoricalParameter.categories property
+Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
 
-The GenerateRandomSeedFromIndex method now correctly hashes the current scenario iteration into the random seed it generates
+Added instance segmentation labeler.
 
-Corrupted .meta files have been rebuilt and replaced
+Added support for full screen visual overlays and overlay manager.
 
-The randomizer list inspector UI now updates appropriately when a user clicks undo
+All-new editor interface for the Labeling component and Label Configuration assets. The new UI improves upon various parts of the label specification and configuration workflow, making it more efficient and less error-prone to setup a new Perception project.
+
+Added Assets->Perception menu for current and future asset preparation and validation tools. Currently contains one function which lets the user create prefabs out of multiple selected models with one click, removing the need for going through all models individually.
+
+### Changed
+
+Updated dependencies to com.unity.simulation.capture:0.0.10-preview.14, com.unity.simulation.core:0.0.10-preview.20, and com.unity.burst:1.3.9.
+
+Changed InstanceSegmentationImageReadback event to provide a NativeArray\<Color32\> instead of NativeArray\<uint\>.
+
+Expanded all Unity Simulation references from USim to Unity Simulation.
+
+Uniform and Normal samplers now serialize their random seeds.
+
+The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to GenerateRandomSeedFromIndex().
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+
+UnitySimulationScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation.
+
+Fixed Unity Simulation nodes generating one extra empty image before generating their share of the randomization scenario iterations.
+
+Fixed enumeration in the CategoricalParameter.categories property.
+
+The GenerateRandomSeedFromIndex method now correctly hashes the current scenario iteration into the random seed it generates.
+
+Corrupted .meta files have been rebuilt and replaced.
+
+The Randomizer list inspector UI now updates appropriately when a user clicks undo.
+    
 
 ## [0.5.0-preview.1] - 2020-10-14
 
@@ -49,10 +73,6 @@ Creating a new 2020.1.x project and adding the perception package to the project
 
 Added Randomizers and RandomizerTags
 Added support for generating 3D bounding box ground truth data
-
-Added performance test framework
-
-Added nightly performance tests
 
 ### Changed
 

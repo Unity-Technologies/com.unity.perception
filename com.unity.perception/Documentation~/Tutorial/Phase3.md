@@ -52,7 +52,7 @@ For performance reasons, it is best to disable real-time visualizations before c
 
 * **Action**: From the _**Inspector**_ view of `Perception Camera`, disable real-time visualizations.
 
-In order to make sure our builds are compatible with Unity Simulation, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_. The latter is the default option for projects created with newer versions of Unity, so we need to change it. We will also need to switch to _**Windowed**_ mode.
+In order to make sure our builds are compatible with Unity Simulation, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_ (if not already set). We will also need to switch to _**Windowed**_ mode.
 
 * **Action**: From the top menu bar, open _**Edit -> Project Settings**_.
 * **Action**: In the window that opens, navigate to the _**Player**_ tab, find the _**Scripting Backend**_ setting (under _**Other Settings**_), and change it to _**Mono**_:

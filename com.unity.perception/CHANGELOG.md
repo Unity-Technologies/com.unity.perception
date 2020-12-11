@@ -13,6 +13,8 @@ Added ScenarioConstants base class for all scenario constants objects
 
 Added ScenarioBase.SerializeToConfigFile()
 
+Randomizer tags now support inheritance
+
 ### Changed
 
 Randomizers now access their parent scenario through the static activeScenario property

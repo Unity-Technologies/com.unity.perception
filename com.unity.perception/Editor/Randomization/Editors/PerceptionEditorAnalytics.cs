@@ -10,9 +10,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         static int k_MaxItems = 100;
         static int k_MaxEventsPerHour = 100;
         const string k_VendorKey = "unity.perception";
-        const string k_RunInUnitySimulationSucceededName = "runinunitysimulationsucceeded";
-        const string k_RunInUnitySimulationBeginName = "runinunitysimulationbegin";
-        const string k_RunInUnitySimulationFailedName = "runinunitysimulationfailed";
+        const string k_RunInUnitySimulationName = "runinunitysimulation";
 
         static bool k_IsRegistered = false;
 
@@ -22,84 +20,80 @@ namespace UnityEngine.Perception.Randomization.Editor
                 return true;
 
             bool success = true;
-            success &= EditorAnalytics.RegisterEventWithLimit(k_RunInUnitySimulationBeginName, k_MaxEventsPerHour, k_MaxItems,
-                k_VendorKey) == AnalyticsResult.Ok;
-            success &= EditorAnalytics.RegisterEventWithLimit(k_RunInUnitySimulationFailedName, k_MaxEventsPerHour, k_MaxItems,
-                k_VendorKey) == AnalyticsResult.Ok;
-            success &= EditorAnalytics.RegisterEventWithLimit(k_RunInUnitySimulationSucceededName, k_MaxEventsPerHour, k_MaxItems,
+            success &= EditorAnalytics.RegisterEventWithLimit(k_RunInUnitySimulationName, k_MaxEventsPerHour, k_MaxItems,
                 k_VendorKey) == AnalyticsResult.Ok;
 
             k_IsRegistered = success;
             return success;
         }
 
-        struct RunInUnitySimulationBeginData
+        enum RunStatus
+        {
+            Started,
+            Failed,
+            Succeeded
+        }
+
+        struct RunInUnitySimulationData
         {
             [UsedImplicitly]
-            public Guid runGuid;
+            public string runId;
             [UsedImplicitly]
             public int totalIterations;
             [UsedImplicitly]
             public int instanceCount;
             [UsedImplicitly]
             public string existingBuildId;
-        }
-
-        public static void ReportRunInUnitySimulationBegin(Guid runGuid, int totalIterations, int instanceCount, string existingBuildId)
-        {
-            if (!TryRegisterEvents())
-                return;
-
-            var data = new RunInUnitySimulationBeginData()
-            {
-                runGuid = runGuid,
-                totalIterations = totalIterations,
-                instanceCount = instanceCount,
-                existingBuildId = existingBuildId
-            };
-            EditorAnalytics.SendEventWithLimit(k_RunInUnitySimulationBeginName, data);
-        }
-
-        struct RunInUnitySimulationFailedData
-        {
-            [UsedImplicitly]
-            public Guid runGuid;
             [UsedImplicitly]
             public string errorMessage;
-        }
-
-        public static void ReportRunInUnitySimulationFailed(Guid runGuid, string errorMessage)
-        {
-            if (!TryRegisterEvents())
-                return;
-
-            var data = new RunInUnitySimulationFailedData()
-            {
-                runGuid = runGuid,
-                errorMessage = errorMessage
-            };
-            EditorAnalytics.SendEventWithLimit(k_RunInUnitySimulationFailedName, data);
-        }
-
-        struct RunInUnitySimulationSucceededData
-        {
-            [UsedImplicitly]
-            public Guid runGuid;
             [UsedImplicitly]
             public string runExecutionId;
+            [UsedImplicitly]
+            public string runStatus;
         }
 
-        public static void ReportRunInUnitySimulationSucceeded(Guid runGuid, string runExecutionId)
+        public static void ReportRunInUnitySimulationStarted(Guid runId, int totalIterations, int instanceCount, string existingBuildId)
         {
             if (!TryRegisterEvents())
                 return;
 
-            var data = new RunInUnitySimulationSucceededData()
+            var data = new RunInUnitySimulationData()
             {
-                runGuid = runGuid,
-                runExecutionId = runExecutionId
+                runId = runId.ToString(),
+                totalIterations = totalIterations,
+                instanceCount = instanceCount,
+                existingBuildId = existingBuildId,
+                runStatus = RunStatus.Started.ToString()
             };
-            EditorAnalytics.SendEventWithLimit(k_RunInUnitySimulationSucceededName, data);
+            EditorAnalytics.SendEventWithLimit(k_RunInUnitySimulationName, data);
+        }
+
+        public static void ReportRunInUnitySimulationFailed(Guid runId, string errorMessage)
+        {
+            if (!TryRegisterEvents())
+                return;
+
+            var data = new RunInUnitySimulationData()
+            {
+                runId = runId.ToString(),
+                errorMessage = errorMessage,
+                runStatus = RunStatus.Failed.ToString()
+            };
+            EditorAnalytics.SendEventWithLimit(k_RunInUnitySimulationName, data);
+        }
+
+        public static void ReportRunInUnitySimulationSucceeded(Guid runId, string runExecutionId)
+        {
+            if (!TryRegisterEvents())
+                return;
+
+            var data = new RunInUnitySimulationData()
+            {
+                runId = runId.ToString(),
+                runExecutionId = runExecutionId,
+                runStatus = RunStatus.Succeeded.ToString()
+            };
+            EditorAnalytics.SendEventWithLimit(k_RunInUnitySimulationName, data);
         }
     }
 }

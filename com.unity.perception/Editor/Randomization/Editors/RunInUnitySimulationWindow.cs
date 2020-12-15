@@ -137,7 +137,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         async void RunInUnitySimulation()
         {
             var runGuid = Guid.NewGuid();
-            PerceptionEditorAnalytics.ReportRunInUnitySimulationBegin(
+            PerceptionEditorAnalytics.ReportRunInUnitySimulationStarted(
                 runGuid,
                 m_TotalIterationsField.value,
                 m_InstanceCountField.value,

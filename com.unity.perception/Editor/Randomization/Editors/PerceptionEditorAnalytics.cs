@@ -10,9 +10,9 @@ namespace UnityEngine.Perception.Randomization.Editor
         static int k_MaxItems = 100;
         static int k_MaxEventsPerHour = 100;
         const string k_VendorKey = "unity.perception";
-        const string k_RunInUnitySimulationSucceededName = "RunInUnitySimulationSucceeded";
-        const string k_RunInUnitySimulationBeginName = "RunInUnitySimulationBegin";
-        const string k_RunInUnitySimulationFailedName = "RunInUnitySimulationFailed";
+        const string k_RunInUnitySimulationSucceededName = "runinunitysimulationsucceeded";
+        const string k_RunInUnitySimulationBeginName = "runinunitysimulationbegin";
+        const string k_RunInUnitySimulationFailedName = "runinunitysimulationfailed";
 
         static bool k_IsRegistered = false;
 

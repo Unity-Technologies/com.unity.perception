@@ -37,6 +37,8 @@ Removed ScenarioBase.GenerateRandomSeedFromIndex()
 
 Fixed an issue where the overlay panel would display a full screen semi-transparent image over the entire screen when the overlay panel is disabled in the UI
 Fixed a bug in instance segmentation labeler that erroneously logged that object ID 255 was not supported
+Fixed the simulation stopping while the editor/player is not focused
+Fixed memory leak or crash occurring at the end of long simulations when using BackgroundObjectPlacementRandomizer or ForegroundObjectPlacementRandomizer
 
 ## [0.6.0-preview.1] - 2020-12-03
 

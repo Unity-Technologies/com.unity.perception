@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 Fixed an issue where the overlay panel would display a full screen semi-transparent image over the entire screen when the overlay panel is disabled in the UI
+Fixed a bug in instance segmentation labeler that erroneously logged that object ID 255 was not supported
 
 ## [0.6.0-preview.1] - 2020-12-03
 

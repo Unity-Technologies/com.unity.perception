@@ -18,10 +18,13 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
     {
         static ScenarioBase s_ActiveScenario;
 
+        const string k_ScenarioIterationMetricDefinitionId = "DB1B258E-D1D0-41B6-8751-16F601A2E230";
+
         uint m_RandomState = SamplerUtility.largePrime;
         bool m_SkipFrame = true;
         bool m_FirstScenarioFrame = true;
         bool m_WaitingForFinalUploads;
+        MetricDefinition m_IterationMetricDefinition;
 
         IEnumerable<Randomizer> activeRandomizers
         {
@@ -185,6 +188,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             // Don't skip the first frame if executing on Unity Simulation
             if (Configuration.Instance.IsSimulationRunningInCloud())
                 m_SkipFrame = false;
+
+            m_IterationMetricDefinition = DatasetCapture.RegisterMetricDefinition("scenario_iteration", "Iteration information for dataset sequences",
+                Guid.Parse(k_ScenarioIterationMetricDefinitionId));
         }
 
         void OnEnable()
@@ -211,6 +217,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 Debug.Log($"No configuration file found at {defaultConfigFilePath}. " +
                     "Proceeding with built in scenario constants and randomizer settings.");
 #endif
+        }
+
+        struct IterationMetricData
+        {
+            public int iteration;
         }
 
         void Update()
@@ -268,6 +279,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             if (currentIterationFrame == 0)
             {
                 DatasetCapture.StartNewSequence();
+
+                DatasetCapture.ReportMetric(m_IterationMetricDefinition, new[]
+                {
+                    new IterationMetricData()
+                    {
+                        iteration = currentIteration
+                    }
+                });
                 m_RandomState = SamplerUtility.IterateSeed((uint)currentIteration, genericConstants.randomSeed);
                 foreach (var randomizer in activeRandomizers)
                     randomizer.IterationStart();

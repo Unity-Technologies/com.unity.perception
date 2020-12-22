@@ -38,6 +38,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         const string k_SemanticSegmentationDirectory = "SemanticSegmentation";
         const string k_SegmentationFilePrefix = "segmentation_";
+        string m_SemanticSegmentationDirectory;
 
         /// <summary>
         /// The id to associate with semantic segmentation annotations in the dataset.
@@ -170,6 +171,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             targetTexture.Create();
             targetTexture.name = "Labeling";
+            m_SemanticSegmentationDirectory = k_SemanticSegmentationDirectory + Guid.NewGuid();
 
 #if HDRP_PRESENT
             var gameObject = perceptionCamera.gameObject;
@@ -226,8 +228,8 @@ namespace UnityEngine.Perception.GroundTruth
             if (!m_AsyncAnnotations.TryGetValue(frameCount, out var annotation))
                 return;
 
-            var datasetRelativePath = $"{k_SemanticSegmentationDirectory}/{k_SegmentationFilePrefix}{frameCount}.png";
-            var localPath = $"{Manager.Instance.GetDirectoryFor(k_SemanticSegmentationDirectory)}/{k_SegmentationFilePrefix}{frameCount}.png";
+            var datasetRelativePath = $"{m_SemanticSegmentationDirectory}/{k_SegmentationFilePrefix}{frameCount}.png";
+            var localPath = $"{Manager.Instance.GetDirectoryFor(m_SemanticSegmentationDirectory)}/{k_SegmentationFilePrefix}{frameCount}.png";
 
             annotation.ReportFile(datasetRelativePath);
 

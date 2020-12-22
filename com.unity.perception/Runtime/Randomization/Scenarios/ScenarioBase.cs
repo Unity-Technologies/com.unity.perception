@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
     {
         static ScenarioBase s_ActiveScenario;
 
+        uint m_RandomState = SamplerUtility.largePrime;
         bool m_SkipFrame = true;
         bool m_FirstScenarioFrame = true;
         bool m_WaitingForFinalUploads;
@@ -50,9 +51,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         [HideInInspector] public bool quitOnComplete = true;
 
         /// <summary>
+        /// The random state of the scenario
+        /// </summary>
+        public uint randomState => m_RandomState;
+
+        /// <summary>
         /// The name of the Json file this scenario's constants are serialized to/from.
         /// </summary>
-        [HideInInspector] public string serializedConstantsFileName = "constants";
+        public virtual string serializedConstantsFileName => "constants";
 
         /// <summary>
         /// Returns the active parameter scenario in the scene
@@ -77,7 +83,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <summary>
         /// Returns this scenario's non-typed serialized constants
         /// </summary>
-        public abstract object genericConstants { get; }
+        public abstract ScenarioConstants genericConstants { get; }
 
         /// <summary>
         /// The number of frames that have elapsed since the current scenario iteration was Setup
@@ -150,6 +156,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             s_ActiveScenario = null;
         }
 
+        void Reset()
+        {
+            activeScenario = this;
+        }
+
         void Start()
         {
             Deserialize();
@@ -210,7 +221,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             if (currentIterationFrame == 0)
             {
                 DatasetCapture.StartNewSequence();
-                IterateParameterStates();
+                m_RandomState = SamplerUtility.IterateSeed((uint)currentIteration, genericConstants.randomSeed);
                 foreach (var randomizer in activeRandomizers)
                     randomizer.IterationStart();
             }
@@ -324,28 +335,13 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Generates a random seed by hashing the current scenario iteration with a given base random seed
+        /// Generates and returns a new random seed
         /// </summary>
-        /// <param name="baseSeed">Used to offset the seed generator</param>
         /// <returns>The generated random seed</returns>
-        public uint GenerateRandomSeed(uint baseSeed = SamplerUtility.largePrime)
+        public uint NextRandomSeed()
         {
-            var seed = SamplerUtility.IterateSeed((uint)currentIteration, baseSeed);
-            return SamplerUtility.IterateSeed((uint)currentIteration, seed);
-        }
-
-        /// <summary>
-        /// Generates a random seed by hashing three values together: an arbitrary index value,
-        /// the current scenario iteration, and a base random seed. This method is useful for deterministically
-        /// generating random seeds from within a for-loop.
-        /// </summary>
-        /// <param name="iteration">An offset value hashed inside the seed generator</param>
-        /// <param name="baseSeed">An offset value hashed inside the seed generator</param>
-        /// <returns>The generated random seed</returns>
-        public uint GenerateRandomSeedFromIndex(int iteration, uint baseSeed = SamplerUtility.largePrime)
-        {
-            var seed =  SamplerUtility.IterateSeed((uint)iteration, baseSeed);
-            return SamplerUtility.IterateSeed((uint)currentIteration, seed);
+            m_RandomState = SamplerUtility.Hash32(m_RandomState);
+            return m_RandomState;
         }
 
         void ValidateParameters()
@@ -353,18 +349,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             foreach (var randomizer in m_Randomizers)
             foreach (var parameter in randomizer.parameters)
                 parameter.Validate();
-        }
-
-        void IterateParameterStates()
-        {
-            foreach (var randomizer in m_Randomizers)
-            {
-                foreach (var parameter in randomizer.parameters)
-                {
-                    parameter.ResetState();
-                    parameter.IterateState(currentIteration);
-                }
-            }
         }
     }
 }

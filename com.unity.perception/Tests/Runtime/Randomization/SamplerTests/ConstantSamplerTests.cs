@@ -9,7 +9,7 @@ namespace RandomizationTests.SamplerTests
         [Test]
         public void ConstantSamplerGeneratesConstantValues()
         {
-            var constantSampler = new ConstantSampler();
+            var constantSampler = new ConstantSampler(0f);
             var sample1 = constantSampler.Sample();
             var sample2 = constantSampler.Sample();
             Assert.AreEqual(sample1, sample2);

@@ -191,7 +191,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 if (token.IsCancellationRequested)
                     return null;
                 var appParamName = $"{m_RunNameField.value}_{i}";
-                var appParamId = API.UploadAppParam(appParamName, new UnitySimulationConstants
+                var appParamId = API.UploadAppParam(appParamName, new UnitySimulationScenarioConstants
                 {
                     totalIterations = m_TotalIterationsField.value,
                     instanceCount = m_InstanceCountField.value,

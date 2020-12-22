@@ -43,7 +43,6 @@ namespace RandomizationTests
         public IEnumerator OverwritesConstantsOnSerialization()
         {
             yield return CreateNewScenario(10, 10);
-            m_Scenario.serializedConstantsFileName = "perception_serialization_test";
 
             var constants = new FixedLengthScenario.Constants
             {
@@ -122,15 +121,13 @@ namespace RandomizationTests
         public IEnumerator GeneratedRandomSeedsChangeWithScenarioIteration()
         {
             yield return CreateNewScenario(3, 1);
-            var seed = m_Scenario.GenerateRandomSeed();
             var seeds = new uint[3];
             for (var i = 0; i < 3; i++)
-                seeds[i] = m_Scenario.GenerateRandomSeedFromIndex(i);
+                seeds[i] = m_Scenario.NextRandomSeed();
 
             yield return null;
-            Assert.AreNotEqual(seed, m_Scenario.GenerateRandomSeed());
             for (var i = 0; i < 3; i++)
-                Assert.AreNotEqual(seeds[i], m_Scenario.GenerateRandomSeedFromIndex(i));
+                Assert.AreNotEqual(seeds[i], m_Scenario.NextRandomSeed());
         }
 
         PerceptionCamera SetupPerceptionCamera()

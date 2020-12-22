@@ -1,8 +1,5 @@
 using System;
 using System.Runtime.CompilerServices;
-using Unity.Burst;
-using Unity.Collections;
-using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Samplers
@@ -13,7 +10,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
     public static class SamplerUtility
     {
         internal const uint largePrime = 0x202A96CF;
-        const int k_SamplingBatchSize = 64;
+        public const int samplingBatchSize = 64;
 
         /// <summary>
         /// Returns the sampler's display name
@@ -42,7 +39,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <param name="x">Unsigned integer to hash</param>
         /// <returns>The calculated hash value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static uint Hash32(uint x) {
+        public static uint Hash32(uint x) {
             x = ((x >> 16) ^ x) * 0x45d9f3b;
             x = ((x >> 16) ^ x) * 0x45d9f3b;
             x = (x >> 16) ^ x;
@@ -55,7 +52,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <param name="x">64-bit value to hash</param>
         /// <returns>The calculated hash value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static ulong Hash64(ulong x) {
+        public static ulong Hash64(ulong x) {
             x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ul;
             x = (x ^ (x >> 27)) * 0x94d049bb133111ebul;
             x ^= (x >> 31);
@@ -73,43 +70,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         {
             var state = (uint)Hash64(((ulong)index << 32) | baseSeed);
             return state == 0u ? largePrime : state;
-        }
-
-        /// <summary>
-        /// Schedules a multi-threaded job to generate an array of samples
-        /// </summary>
-        /// <param name="sampler">The sampler to generate samples from</param>
-        /// <param name="sampleCount">The number of samples to generate</param>
-        /// <param name="jobHandle">The handle of the scheduled job</param>
-        /// <typeparam name="T">The type of sampler to sample</typeparam>
-        /// <returns>A NativeArray of generated samples</returns>
-        public static NativeArray<float> GenerateSamples<T>(
-            T sampler, int sampleCount, out JobHandle jobHandle) where T : struct, ISampler
-        {
-            var samples = new NativeArray<float>(
-                sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            jobHandle = new SampleJob<T>
-            {
-                sampler = sampler,
-                samples = samples
-            }.ScheduleBatch(sampleCount, k_SamplingBatchSize);
-            return samples;
-        }
-
-        [BurstCompile]
-        struct SampleJob<T> : IJobParallelForBatch where T : ISampler
-        {
-            public T sampler;
-            public NativeArray<float> samples;
-
-            public void Execute(int startIndex, int count)
-            {
-                var endIndex = startIndex + count;
-                var batchIndex = startIndex / k_SamplingBatchSize;
-                sampler.IterateState(batchIndex);
-                for (var i = startIndex; i < endIndex; i++)
-                    samples[i] = sampler.Sample();
-            }
         }
 
         /// <summary>

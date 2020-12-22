@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
             if (m_SpawnedObjects == null)
                 m_SpawnedObjects = new List<GameObject>();
 
-            var seed = scenario.GenerateRandomSeed();
+            var seed = scenario.NextRandomSeed();
             var placementSamples = PoissonDiskSampling.GenerateSamples(
                 placementArea.x, placementArea.y, separationDistance, seed);
             var offset = new Vector3(placementArea.x, placementArea.y, 0f) * -0.5f;

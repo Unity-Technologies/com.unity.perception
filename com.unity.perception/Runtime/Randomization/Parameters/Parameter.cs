@@ -25,14 +25,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         internal abstract IEnumerable<ISampler> samplers { get; }
 
         /// <summary>
-        /// Constructs a new parameter
-        /// </summary>
-        protected Parameter()
-        {
-            InitializeSamplers();
-        }
-
-        /// <summary>
         /// Returns the display name of a parameter type
         /// </summary>
         /// <param name="type">A subclass of Parameter</param>
@@ -40,47 +32,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         public static string GetDisplayName(Type type)
         {
             return type.Name.Replace("Parameter", "");
-        }
-
-        /// <summary>
-        /// Deterministically ensures that no sampler shares the same seed when a parameter is initialized
-        /// </summary>
-        void InitializeSamplers()
-        {
-            var i = 0;
-            foreach (var sampler in samplers)
-            {
-                sampler.IterateState(i++);
-                sampler.ResetState();
-            }
-        }
-
-        internal void RandomizeSamplers()
-        {
-            foreach (var sampler in samplers)
-            {
-                sampler.baseSeed = SamplerUtility.GenerateRandomSeed();
-                sampler.ResetState();
-            }
-        }
-
-        /// <summary>
-        /// Resets the state of each sampler employed by this parameter
-        /// </summary>
-        public void ResetState()
-        {
-            foreach (var sampler in samplers)
-                sampler.ResetState();
-        }
-
-        /// <summary>
-        /// Offsets the state of each sampler employed by this parameter
-        /// </summary>
-        /// <param name="offsetIndex">Often the current scenario iteration</param>
-        public void IterateState(int offsetIndex)
-        {
-            foreach (var sampler in samplers)
-                sampler.IterateState(offsetIndex);
         }
 
         /// <summary>

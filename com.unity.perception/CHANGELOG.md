@@ -17,7 +17,7 @@ Randomizers now access their parent scenario through the static activeScenario p
 
 Unique seeds per Sampler have been replaced with one global random seed configured via the ScenarioConstants of a Scenario
 
-Replaced ScenarioBase.GenerateRandomSeed() with ScenarioBase.NextRandomSeed()
+Replaced ScenarioBase.GenerateRandomSeed() with ScenarioBase.NextRandomState()
 
 ### Deprecated
 

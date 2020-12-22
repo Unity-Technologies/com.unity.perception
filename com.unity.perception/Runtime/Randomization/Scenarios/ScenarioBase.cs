@@ -132,8 +132,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             activeScenario = this;
             OnAwake();
             foreach (var randomizer in m_Randomizers)
-                randomizer.Initialize(this, tagManager);
-            foreach (var randomizer in m_Randomizers)
                 randomizer.Create();
             ValidateParameters();
 
@@ -257,7 +255,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                         $"Two Randomizers of the same type ({randomizerType.Name}) cannot both be active simultaneously");
             var newRandomizer = (Randomizer)Activator.CreateInstance(randomizerType);
             m_Randomizers.Add(newRandomizer);
-            newRandomizer.Initialize(this, tagManager);
             newRandomizer.Create();
             return newRandomizer;
         }

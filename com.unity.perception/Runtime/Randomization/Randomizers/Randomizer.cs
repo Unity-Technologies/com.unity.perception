@@ -17,10 +17,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
     public abstract class Randomizer
     {
         bool m_PreviouslyEnabled;
-        // ReSharper disable once InconsistentNaming
-        ScenarioBase m_Scenario;
-        // ReSharper disable once InconsistentNaming
-        RandomizerTagManager m_TagManager;
 
         [HideInInspector, SerializeField] internal bool collapsed;
 
@@ -32,12 +28,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         /// <summary>
         /// Returns the scenario containing this Randomizer
         /// </summary>
-        public ScenarioBase scenario => m_Scenario;
+        public ScenarioBase scenario => ScenarioBase.activeScenario;
 
         /// <summary>
         /// Retrieves the RandomizerTagManager of the scenario containing this Randomizer
         /// </summary>
-        public RandomizerTagManager tagManager => m_TagManager;
+        public RandomizerTagManager tagManager => scenario.tagManager;
 
         internal IEnumerable<Parameter> parameters
         {
@@ -93,12 +89,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         /// OnUpdate is executed every frame for enabled Randomizers
         /// </summary>
         protected virtual void OnUpdate() { }
-
-        internal void Initialize(ScenarioBase parentScenario, RandomizerTagManager parentTagManager)
-        {
-            m_Scenario = parentScenario;
-            m_TagManager = parentTagManager;
-        }
 
         internal virtual void Create()
         {

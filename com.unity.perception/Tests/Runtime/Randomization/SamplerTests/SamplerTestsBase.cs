@@ -1,8 +1,10 @@
 ﻿using System;
 using NUnit.Framework;
 using Unity.Jobs;
+using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using Object = UnityEngine.Object;
 
 namespace RandomizationTests.SamplerTests
 {
@@ -11,6 +13,7 @@ namespace RandomizationTests.SamplerTests
         const int k_TestSampleCount = 30;
         protected T m_BaseSampler;
         T m_Sampler;
+        GameObject m_ScenarioObj;
 
         static ScenarioBase activeScenario => ScenarioBase.activeScenario;
 
@@ -18,6 +21,14 @@ namespace RandomizationTests.SamplerTests
         public void Setup()
         {
             m_Sampler = m_BaseSampler;
+            m_ScenarioObj = new GameObject("Scenario");
+            m_ScenarioObj.AddComponent<FixedLengthScenario>();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(m_ScenarioObj);
         }
 
         [Test]

@@ -9,7 +9,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
     /// </summary>
     public static class SamplerUtility
     {
-        internal const uint largePrime = 0x202A96CF;
+        /// <summary>
+        /// A large prime number
+        /// </summary>
+        public const uint largePrime = 0x202A96CF;
+
+        /// <summary>
+        /// The number of samples to generate per job batch in an IJobParallelForBatch job
+        /// </summary>
         public const int samplingBatchSize = 64;
 
         /// <summary>

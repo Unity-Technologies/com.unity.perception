@@ -28,7 +28,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             serializeConstantsButton.clicked += () => m_Scenario.Serialize();
 
             var deserializeConstantsButton = m_Root.Q<Button>("deserialize-constants");
-            deserializeConstantsButton.clicked += () => m_Scenario.Deserialize();
+            deserializeConstantsButton.clicked += () =>
+            {
+                Undo.RecordObject(m_Scenario, "Deserialized scenario configuration");
+                m_Scenario.Deserialize();
+            };
 
             m_RandomizerListPlaceholder = m_Root.Q<VisualElement>("randomizer-list-placeholder");
 

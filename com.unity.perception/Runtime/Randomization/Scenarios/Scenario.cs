@@ -1,4 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.CodeDom;
+using System.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 {
@@ -23,9 +29,60 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// </summary>
         public override void Serialize()
         {
+            SerializeRandomizers();
             Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
             using (var writer = new StreamWriter(serializedConstantsFilePath, false))
                 writer.Write(JsonUtility.ToJson(constants, true));
+        }
+
+        static bool IsSubclassOfRawGeneric(Type generic, Type toCheck) {
+            while (toCheck != null && toCheck != typeof(object)) {
+                var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+                if (generic == cur) {
+                    return true;
+                }
+                toCheck = toCheck.BaseType;
+            }
+            return false;
+        }
+
+        void SerializeRandomizers()
+        {
+            var configObj = new JObject();
+            var randomizersObj = new JObject();
+            configObj["randomizers"] = randomizersObj;
+            foreach (var randomizer in m_Randomizers)
+            {
+                var randomizerObj = new JObject();
+                var parameterFields = randomizer.GetType().GetFields();
+                foreach (var parameterField in parameterFields)
+                {
+                    if (!IsSubclassOfRawGeneric(typeof(NumericParameter<>), parameterField.FieldType))
+                        continue;
+                    var parameter = parameterField.GetValue(randomizer);
+                    var parameterObj = new JObject();
+                    var samplerFields = parameter.GetType().GetFields();
+                    foreach (var samplerField in samplerFields)
+                    {
+                        if (samplerField.FieldType != typeof(ISampler))
+                            continue;
+                        var sampler = samplerField.GetValue(parameter);
+                        var samplerObj = new JObject();
+                        var fields = sampler.GetType().GetFields();
+                        Debug.Log(fields.Length);
+                        foreach (var field in fields)
+                        {
+                            samplerObj.Add(new JProperty(field.Name, field.GetValue(sampler)));
+                        }
+                        parameterObj.Add(new JProperty(samplerField.Name, samplerObj));
+                    }
+                    if (parameterObj.Count > 0)
+                        randomizerObj.Add(new JProperty(parameterField.Name, parameterObj));
+                }
+                if (randomizerObj.Count > 0)
+                    randomizersObj.Add(new JProperty(randomizer.GetType().Name, randomizerObj));
+            }
+            Debug.Log(JsonConvert.SerializeObject(configObj, Formatting.Indented));
         }
 
         /// <summary>

@@ -130,6 +130,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <summary>
         /// Serializes the scenario's constants and randomizer configuration to a JSON string
         /// </summary>
+        /// <returns>The scenario configuration as a JSON string</returns>
         public abstract string Serialize();
 
         /// <summary>
@@ -143,8 +144,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Deserializes constants saved in a JSON file located at serializedConstantsFilePath
+        /// Deserializes this scenario's constants from a json file in the Unity StreamingAssets folder
         /// </summary>
+        /// <param name="configFilePath">The file path to the configuration file to deserialize</param>
         public abstract void Deserialize(string configFilePath);
 
         /// <summary>

@@ -20,14 +20,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// </summary>
         public T constants = new T();
 
-        /// <summary>
-        /// Returns this scenario's non-typed serialized constants
-        /// </summary>
+        /// <inheritdoc/>
         public override ScenarioConstants genericConstants => constants;
 
-        /// <summary>
-        /// Serializes the scenario's constants and randomizer configuration to a JSON string
-        /// </summary>
+        /// <inheritdoc/>
         public override string Serialize()
         {
             var configObj = new JObject
@@ -113,9 +109,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             return samplerObj;
         }
 
-        /// <summary>
-        /// Deserializes this scenario's constants from a json file in the Unity StreamingAssets folder
-        /// </summary>
+        /// <inheritdoc/>
         public override void Deserialize(string configFilePath)
         {
             if (string.IsNullOrEmpty(configFilePath))

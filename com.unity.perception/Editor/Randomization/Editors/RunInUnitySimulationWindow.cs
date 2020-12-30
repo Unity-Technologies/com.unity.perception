@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Unity.Simulation.Client;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
@@ -186,17 +188,22 @@ namespace UnityEngine.Perception.Randomization.Editor
         List<AppParam> GenerateAppParamIds(CancellationToken token)
         {
             var appParamIds = new List<AppParam>();
+            var scenario = (ScenarioBase)m_ScenarioField.value;
+            var configuration = JObject.Parse(scenario.Serialize());
+            var constants = configuration["constants"];
+
+            constants["totalIterations"] = m_TotalIterationsField.value;
+            constants["instanceCount"]= m_InstanceCountField.value;
+
             for (var i = 0; i < m_InstanceCountField.value; i++)
             {
                 if (token.IsCancellationRequested)
                     return null;
                 var appParamName = $"{m_RunNameField.value}_{i}";
-                var appParamId = API.UploadAppParam(appParamName, new UnitySimulationScenarioConstants
-                {
-                    totalIterations = m_TotalIterationsField.value,
-                    instanceCount = m_InstanceCountField.value,
-                    instanceIndex = i
-                });
+                constants["instanceIndex"]= i;
+
+                var appParamsString = JsonConvert.SerializeObject(configuration, Formatting.Indented);
+                var appParamId = API.UploadAppParam(appParamName, appParamsString);
                 appParamIds.Add(new AppParam()
                 {
                     id = appParamId,
@@ -204,6 +211,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                     num_instances = 1
                 });
             }
+
             return appParamIds;
         }
 

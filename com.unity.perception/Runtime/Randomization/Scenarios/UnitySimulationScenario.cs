@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public sealed override void Deserialize(string configFilePath)
         {
             base.Deserialize(Configuration.Instance.IsSimulationRunningInCloud()
-                ? Configuration.Instance.SimulationConfig.app_param_uri
+                ? new Uri(Configuration.Instance.SimulationConfig.app_param_uri).LocalPath
                 : configFilePath);
             currentIteration = constants.instanceIndex;
         }

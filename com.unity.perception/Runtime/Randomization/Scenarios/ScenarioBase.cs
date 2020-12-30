@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
@@ -127,9 +128,19 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
+        /// Serializes the scenario's constants and randomizer configuration to a JSON string
+        /// </summary>
+        public abstract string Serialize();
+
+        /// <summary>
         /// Serializes the scenario's constants to a JSON file located at serializedConstantsFilePath
         /// </summary>
-        public abstract void Serialize();
+        public virtual void SerializeToConfigFile()
+        {
+            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
+            using (var writer = new StreamWriter(defaultConfigFilePath, false))
+                writer.Write(Serialize());
+        }
 
         /// <summary>
         /// Deserializes constants saved in a JSON file located at serializedConstantsFilePath

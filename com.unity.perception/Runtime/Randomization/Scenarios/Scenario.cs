@@ -26,16 +26,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public override ScenarioConstants genericConstants => constants;
 
         /// <summary>
-        /// Serializes this scenario's constants to a json file in the Unity StreamingAssets folder
+        /// Serializes the scenario's constants and randomizer configuration to a JSON string
         /// </summary>
-        public override void Serialize()
-        {
-            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
-            using (var writer = new StreamWriter(defaultConfigFilePath, false))
-                writer.Write(SerializeConfig());
-        }
-
-        string SerializeConfig()
+        public override string Serialize()
         {
             var configObj = new JObject
             {
@@ -134,7 +127,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 DeserializeConfig(jsonText);
             }
             else
-                Debug.LogError($"A scenario configuration file does not exist at path {defaultConfigFilePath}");
+                Debug.LogError($"A scenario configuration file does not exist at path {configFilePath}");
         }
 
         void DeserializeConfig(string json)

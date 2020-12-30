@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <summary>
         /// The name of the Json file this scenario's constants are serialized to/from.
         /// </summary>
-        public virtual string serializedConstantsFileName => "constants";
+        public virtual string configFileName => "constants";
 
         /// <summary>
         /// Returns the active parameter scenario in the scene
@@ -76,10 +76,17 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Returns the file location of the JSON serialized constants
+        /// Returns the asset location of the JSON serialized constants.
+        /// This API is used for finding the config file using the AssetDatabase API.
         /// </summary>
-        public string serializedConstantsFilePath =>
-            Application.dataPath + "/StreamingAssets/" + serializedConstantsFileName + ".json";
+        public string defaultConfigFileAssetPath =>
+            "Assets/StreamingAssets/" + configFileName + ".json";
+
+        /// <summary>
+        /// Returns the absolute file path of the JSON serialized constants
+        /// </summary>
+        public string defaultConfigFilePath =>
+            Application.dataPath + "/StreamingAssets/" + configFileName + ".json";
 
         /// <summary>
         /// Returns this scenario's non-typed serialized constants
@@ -127,7 +134,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <summary>
         /// Deserializes constants saved in a JSON file located at serializedConstantsFilePath
         /// </summary>
-        public abstract void Deserialize();
+        public abstract void Deserialize(string configFilePath);
 
         /// <summary>
         /// This method executed directly after this scenario has been registered and initialized
@@ -162,6 +169,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             activeScenario = this;
         }
 
+
         void Start()
         {
             var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
@@ -169,7 +177,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.",
                 Guid.Parse("14adb394-46c0-47e8-a3f0-99e754483b76"));
             DatasetCapture.ReportMetric(randomSeedMetricDefinition, new[] { genericConstants.randomSeed });
-            Deserialize();
+#if !UNITY_EDITOR
+            Deserialize(defaultConfigFilePath);
+#endif
         }
 
         void Update()

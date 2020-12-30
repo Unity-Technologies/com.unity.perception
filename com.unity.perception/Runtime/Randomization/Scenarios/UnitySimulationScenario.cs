@@ -25,12 +25,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <summary>
         /// Deserializes this scenario's constants from the Unity Simulation AppParams Json file
         /// </summary>
-        public sealed override void Deserialize()
+        public sealed override void Deserialize(string configFilePath)
         {
-            if (Configuration.Instance.IsSimulationRunningInCloud())
-                constants = Configuration.Instance.GetAppParams<T>();
-            else
-                base.Deserialize();
+            base.Deserialize(Configuration.Instance.IsSimulationRunningInCloud()
+                ? Configuration.Instance.SimulationConfig.app_param_uri
+                : configFilePath);
             currentIteration = constants.instanceIndex;
         }
     }

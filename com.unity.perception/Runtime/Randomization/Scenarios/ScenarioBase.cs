@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <summary>
         /// The name of the Json file this scenario's constants are serialized to/from.
         /// </summary>
-        public virtual string configFileName => "constants";
+        public virtual string configFileName => "scenario_configuration";
 
         /// <summary>
         /// Returns the active parameter scenario in the scene
@@ -77,14 +77,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Returns the asset location of the JSON serialized constants.
+        /// Returns the asset location of the JSON serialized configuration.
         /// This API is used for finding the config file using the AssetDatabase API.
         /// </summary>
         public string defaultConfigFileAssetPath =>
             "Assets/StreamingAssets/" + configFileName + ".json";
 
         /// <summary>
-        /// Returns the absolute file path of the JSON serialized constants
+        /// Returns the absolute file path of the JSON serialized configuration
         /// </summary>
         public string defaultConfigFilePath =>
             Application.dataPath + "/StreamingAssets/" + configFileName + ".json";
@@ -128,13 +128,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Serializes the scenario's constants and randomizer configuration to a JSON string
+        /// Serializes the scenario's constants and randomizer settings to a JSON string
         /// </summary>
         /// <returns>The scenario configuration as a JSON string</returns>
         public abstract string SerializeToJson();
 
         /// <summary>
-        /// Serializes the scenario's constants to a JSON file located at serializedConstantsFilePath
+        /// Serializes the scenario's constants and randomizer settings to a JSON file located at the path resolved by
+        /// the defaultConfigFilePath scenario property
         /// </summary>
         public void SerializeToFile()
         {

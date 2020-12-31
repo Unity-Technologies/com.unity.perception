@@ -116,8 +116,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 throw new ArgumentNullException();
             if (!File.Exists(configFilePath))
                 throw new FileNotFoundException($"A scenario configuration file does not exist at path {configFilePath}");
-
+#if UNITY_EDITOR
+            Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>. " +
+                "Using undo in the editor will revert these changes to your scenario.");
+#else
             Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>");
+#endif
             var jsonText = File.ReadAllText(configFilePath);
             DeserializeFromJson(jsonText);
         }

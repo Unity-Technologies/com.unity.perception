@@ -189,7 +189,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         {
             var appParamIds = new List<AppParam>();
             var scenario = (ScenarioBase)m_ScenarioField.value;
-            var configuration = JObject.Parse(scenario.Serialize());
+            var configuration = JObject.Parse(scenario.SerializeToJson());
             var constants = configuration["constants"];
 
             constants["totalIterations"] = m_TotalIterationsField.value;

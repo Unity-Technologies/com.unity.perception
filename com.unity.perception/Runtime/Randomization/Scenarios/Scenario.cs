@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public override ScenarioConstants genericConstants => constants;
 
         /// <inheritdoc/>
-        public override string Serialize()
+        public override string SerializeToJson()
         {
             var configObj = new JObject
             {
@@ -110,21 +110,20 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <inheritdoc/>
-        public override void Deserialize(string configFilePath)
+        public override void DeserializeFromFile(string configFilePath)
         {
             if (string.IsNullOrEmpty(configFilePath))
-                Debug.Log("No configuration file specified. Running scenario with preset editor authored configuration.");
-            else if (File.Exists(configFilePath))
-            {
-                Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>");
-                var jsonText = File.ReadAllText(configFilePath);
-                DeserializeConfig(jsonText);
-            }
-            else
-                Debug.LogError($"A scenario configuration file does not exist at path {configFilePath}");
+                throw new ArgumentNullException();
+            if (!File.Exists(configFilePath))
+                throw new FileNotFoundException($"A scenario configuration file does not exist at path {configFilePath}");
+
+            Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>");
+            var jsonText = File.ReadAllText(configFilePath);
+            DeserializeFromJson(jsonText);
         }
 
-        void DeserializeConfig(string json)
+        /// <inheritdoc/>
+        public override void DeserializeFromJson(string json)
         {
             var jsonObj = JObject.Parse(json);
             var constantsObj = (JObject)jsonObj["constants"];

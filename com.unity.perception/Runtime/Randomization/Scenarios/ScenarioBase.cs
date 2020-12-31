@@ -131,23 +131,39 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// Serializes the scenario's constants and randomizer configuration to a JSON string
         /// </summary>
         /// <returns>The scenario configuration as a JSON string</returns>
-        public abstract string Serialize();
+        public abstract string SerializeToJson();
 
         /// <summary>
         /// Serializes the scenario's constants to a JSON file located at serializedConstantsFilePath
         /// </summary>
-        public virtual void SerializeToConfigFile()
+        public void SerializeToFile()
         {
             Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
             using (var writer = new StreamWriter(defaultConfigFilePath, false))
-                writer.Write(Serialize());
+                writer.Write(SerializeToJson());
         }
 
         /// <summary>
-        /// Deserializes this scenario's constants from a json file in the Unity StreamingAssets folder
+        /// Overwrites this scenario's randomizer settings and scenario constants from a JSON serialized configuration
+        /// </summary>
+        /// <param name="json">The JSON string to deserialize</param>
+        public abstract void DeserializeFromJson(string json);
+
+        /// <summary>
+        /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
+        /// the provided file path
         /// </summary>
         /// <param name="configFilePath">The file path to the configuration file to deserialize</param>
-        public abstract void Deserialize(string configFilePath);
+        public abstract void DeserializeFromFile(string configFilePath);
+
+        /// <summary>
+        /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
+        /// this scenario's defaultConfigFilePath
+        /// </summary>
+        public void DeserializeFromFile()
+        {
+            DeserializeFromFile(defaultConfigFilePath);
+        }
 
         /// <summary>
         /// This method executed directly after this scenario has been registered and initialized
@@ -191,7 +207,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 Guid.Parse("14adb394-46c0-47e8-a3f0-99e754483b76"));
             DatasetCapture.ReportMetric(randomSeedMetricDefinition, new[] { genericConstants.randomSeed });
 #if !UNITY_EDITOR
-            Deserialize(defaultConfigFilePath);
+            if (File.Exists(defaultConfigFilePath))
+                DeserializeFromFile();
+            else
+                Debug.Log($"No configuration file found at {defaultConfigFilePath}. " +
+                    "Proceeding with built in scenario constants and randomizer settings.");
 #endif
         }
 

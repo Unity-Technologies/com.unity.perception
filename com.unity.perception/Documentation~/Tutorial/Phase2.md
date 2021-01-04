@@ -52,7 +52,7 @@ If you return to your list of Randomizers in the _**Inspector**_ view of `Simula
 
 * **Action**: Add `MyLightRandomizer` to the list of Randomizers in `SimulationScenario`.
 
-You will notice that the Randomizer's UI snippet contains one Parameter named `Light Intensity Parameter`. This is the same Parameter we added in the code block above. Here, you can set the sampling distribution (`Value`), `Seed`, and `Range` for this float Parameter:
+You will notice that the Randomizer's UI snippet contains one Parameter named `Light Intensity Parameter`. This is the same Parameter we added in the code block above. Here, you can set the sampling distribution (`Value`) and `Range` for this float Parameter:
 
 <p align="center">
 <img src="Images/light_rand_1.png" width="420"/>
@@ -108,10 +108,6 @@ foreach (var taggedObject in taggedObjects)
 If you now check the UI snippet for `MyLightRandomizer`, you will notice that `Color Parameter` is added. This Parameter includes four separate randomized values for `Red`, `Green`, `Blue` and `Alpha`. Note that the meaningful range for all of these values is 0-1 (and not 0-255). You can see that the sampling range for red, green, and blue is currently also set to 0-1, which means the parameter covers a full range of colors. A color with (0,0,0) RGB components essentially emits no light. So, let's increase the minimum a bit to avoid such a scenario.
 
 * **Action**: Increase the minimum value for red, green, and blue components to 0.4 (this is an arbitrary number that typically produces good-looking results).
-
-Each value should also already have a unique `Seed` specified. This is the seed which the sampler will use to produce a random value from the specified distribution. If two random parameters have the same seed, range, and distribution, they will always have the same value. In the case of this color, this would lead to the red, green, and blue components having equal values, and thus the produced color always being a shade of grey. As such, in order to get varied colors and not just grey, we need to make sure the seed values are different for our red, green, and blue components. 
-
-* **Action**: In the UI snippet for `MyLightRandomizer`, make sure the red, green, and blue components have different `Seed` values. Set the distribution and value for Alpha to `Constant` and 1, as we do not want to randomize the alpha component of the color.
 
 The UI for `My Light Randomizer` should now look like this:
 

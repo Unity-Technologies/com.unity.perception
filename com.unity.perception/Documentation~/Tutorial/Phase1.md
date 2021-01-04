@@ -234,7 +234,7 @@ Since we have visualizations enabled on our `Perception Camera`, you should now 
 
 As mentioned earlier, one of the core ingredients of the perception workflow is the randomization of various aspects of the simulation, in order to introduce sufficient variation into the generated data. 
 
-To start randomizing your simulation you will first need to add a `Scenario` to your scene. Scenarios control the execution flow of your simulation by coordinating all `Randomizer` components added to them. The Perception package comes with a useful set of Randomizers that let you quickly place your foreground objects in the Scene, generate varied backgrounds, as well as randomize various parameters of the simulation over time, including things such as position, scale, and rotation of objects, number of objects within the camera's view, and so on. Randomizers achieve this through coordinating a number of `Parameter`s, which essentially define the most granular randomization behaviors. For instance, for continuous variable types such as floats, vectors, and colors, Parameters can define the range, sampling distribution, and seed for randomization. This is while another class of Parameters let you randomly select one out of a number of categorical options.  
+To start randomizing your simulation you will first need to add a `Scenario` to your scene. Scenarios control the execution flow of your simulation by coordinating all `Randomizer` components added to them. The Perception package comes with a useful set of Randomizers that let you quickly place your foreground objects in the Scene, generate varied backgrounds, as well as randomize various parameters of the simulation over time, including things such as position, scale, and rotation of objects, number of objects within the camera's view, and so on. Randomizers achieve this through coordinating a number of `Parameter`s, which essentially define the most granular randomization behaviors. For instance, for continuous variable types such as floats, vectors, and colors, Parameters can define the range and sampling distribution for randomization. This is while another class of Parameters let you randomly select one out of a number of categorical options.  
 
 To summarize, a sample `Scenario` could look like this:
 
@@ -267,7 +267,7 @@ This Randomizer uses Poisson-Disk sampling to select random positions from a giv
 
 The background Prefabs are primitive shapes devoid of color or texture. Later Randomizers will take care of those aspects. 
 
-* **Action**: Set the rest of the properties (except for `Seed`) according to the image below. That is, `Depth = 0, Layer Count = 2, Separation Distance = 0.5, Placement Area = (6,6)`. The `Seed` attribute is the seed used for the underlying random sampler and does not need to match the image shown.
+* **Action**: Set the rest of the properties according to the image below. That is, `Depth = 0, Layer Count = 2, Separation Distance = 0.5, Placement Area = (6,6)`.
 
 <p align="center">
 <img src="Images/background_randomizer.png" width = "400"/>
@@ -315,8 +315,6 @@ Your list of Randomizers should now look like the screenshot below:
 <p align="center">
 <img src="Images/all_back_rands.png" width = "400"/>
 </p>
-
-Note that the `Seed` values do not need to match the image above.
 
 There is one more important thing left to do, in order to make sure all the above Randomizers operate as expected. Since `BackgroundObjectPlacementRandomizer` spawns objects, it already knows which objects in the Scene it is dealing with; however, the rest of the Randomizers  we added are not yet aware of what objects they should target because they don't spawn their own objects.
 

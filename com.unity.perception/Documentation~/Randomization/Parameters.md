@@ -1,19 +1,8 @@
 # Parameters
 
-## Lookup Parameters
-
-To obtain a parameter from a paramter configuration, use the GetParameter() method:
-```
-// Get a reference to the parameter configuration attached to this GameObject
-var parameterConfiguration = GetComponent<ParameterConfiguration>();
-
-// Lookup the parameter "ObjectWidth" by name
-var parameter = GetComponent<FloatParameter>("ObjectWidth");
-``` 
-
 ## Creating and Sampling Parameters
 
-Parameters are typically managed by `ParameterConfigurations` in the Unity Editor. However, parameters can be instanced independently like a regular class too:
+Parameters are often defined as fields of a randomizer class, but they can also be instanced just like any other C# class:
 ```
 // Create a color parameter
 var colorParameter = new HsvaColorParameter();

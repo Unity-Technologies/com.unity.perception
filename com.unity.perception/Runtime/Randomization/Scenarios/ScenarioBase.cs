@@ -335,10 +335,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Generates and returns a new random seed
+        /// Generates a new random state and overwrites the old random state with the newly generated value
         /// </summary>
-        /// <returns>The generated random seed</returns>
-        public uint NextRandomSeed()
+        /// <returns>The newly generated random state</returns>
+        public uint NextRandomState()
         {
             m_RandomState = SamplerUtility.Hash32(m_RandomState);
             return m_RandomState;

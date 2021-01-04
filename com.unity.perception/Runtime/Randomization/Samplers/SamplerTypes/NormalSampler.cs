@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <returns>The generated sample</returns>
         public float Sample()
         {
-            var rng = new Unity.Mathematics.Random(ScenarioBase.activeScenario.NextRandomSeed());
+            var rng = new Unity.Mathematics.Random(ScenarioBase.activeScenario.NextRandomState());
             return SamplerUtility.TruncatedNormalSample(
                 rng.NextFloat(), range.minimum, range.maximum, mean, standardDeviation);
         }
@@ -71,7 +71,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
                 max = range.maximum,
                 mean = mean,
                 standardDeviation = standardDeviation,
-                seed = ScenarioBase.activeScenario.NextRandomSeed(),
+                seed = ScenarioBase.activeScenario.NextRandomState(),
                 samples = samples
             }.ScheduleBatch(sampleCount, SamplerUtility.samplingBatchSize);
             return samples;

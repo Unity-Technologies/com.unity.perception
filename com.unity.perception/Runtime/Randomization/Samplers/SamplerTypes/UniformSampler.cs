@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <returns>The generated sample</returns>
         public float Sample()
         {
-            var rng = new Unity.Mathematics.Random(ScenarioBase.activeScenario.NextRandomSeed());
+            var rng = new Unity.Mathematics.Random(ScenarioBase.activeScenario.NextRandomState());
             return math.lerp(range.minimum, range.maximum, rng.NextFloat());
         }
 
@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
             {
                 min = range.minimum,
                 max = range.maximum,
-                seed = ScenarioBase.activeScenario.NextRandomSeed(),
+                seed = ScenarioBase.activeScenario.NextRandomState(),
                 samples = samples
             }.ScheduleBatch(sampleCount, SamplerUtility.samplingBatchSize);
             return samples;

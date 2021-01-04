@@ -46,7 +46,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <param name="x">Unsigned integer to hash</param>
         /// <returns>The calculated hash value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint Hash32(uint x) {
+        public static uint Hash32(uint x)
+        {
             x = ((x >> 16) ^ x) * 0x45d9f3b;
             x = ((x >> 16) ^ x) * 0x45d9f3b;
             x = (x >> 16) ^ x;
@@ -59,7 +60,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <param name="x">64-bit value to hash</param>
         /// <returns>The calculated hash value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong Hash64(ulong x) {
+        public static ulong Hash64(ulong x)
+        {
             x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ul;
             x = (x ^ (x >> 27)) * 0x94d049bb133111ebul;
             x ^= (x >> 31);

@@ -123,11 +123,11 @@ namespace RandomizationTests
             yield return CreateNewScenario(3, 1);
             var seeds = new uint[3];
             for (var i = 0; i < 3; i++)
-                seeds[i] = m_Scenario.NextRandomSeed();
+                seeds[i] = m_Scenario.NextRandomState();
 
             yield return null;
             for (var i = 0; i < 3; i++)
-                Assert.AreNotEqual(seeds[i], m_Scenario.NextRandomSeed());
+                Assert.AreNotEqual(seeds[i], m_Scenario.NextRandomState());
         }
 
         PerceptionCamera SetupPerceptionCamera()

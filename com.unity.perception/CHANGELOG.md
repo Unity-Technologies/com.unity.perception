@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+Randomizers now access their parent scenario through the static activeScenario property
+
 ### Deprecated
 
 ### Removed

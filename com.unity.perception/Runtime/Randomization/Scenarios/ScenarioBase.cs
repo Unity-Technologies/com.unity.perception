@@ -163,6 +163,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 
         void Start()
         {
+            var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
+                "random-seed",
+                "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.",
+                Guid.Parse("A0B4Z92C-7420-4D9F-B5FC-854B8F7B75A0"));
+            DatasetCapture.ReportMetric(randomSeedMetricDefinition, new[] { genericConstants.randomSeed });
             Deserialize();
         }
 

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 {
@@ -166,7 +167,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
                 "random-seed",
                 "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.",
-                Guid.Parse("A0B4Z92C-7420-4D9F-B5FC-854B8F7B75A0"));
+                Guid.Parse("14adb394-46c0-47e8-a3f0-99e754483b76"));
             DatasetCapture.ReportMetric(randomSeedMetricDefinition, new[] { genericConstants.randomSeed });
             Deserialize();
         }

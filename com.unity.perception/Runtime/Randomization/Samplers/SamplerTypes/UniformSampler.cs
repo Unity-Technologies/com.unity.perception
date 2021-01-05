@@ -43,8 +43,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <returns>The generated sample</returns>
         public float Sample()
         {
-            var newRandomState = ScenarioBase.activeScenario.NextRandomState();
-            var rng = new Unity.Mathematics.Random(newRandomState);
+            var rng = new Unity.Mathematics.Random(ScenarioBase.activeScenario.NextRandomState());
             return rng.NextFloat(range.minimum, range.maximum);
         }
 

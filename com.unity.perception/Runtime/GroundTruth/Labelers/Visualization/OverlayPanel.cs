@@ -68,6 +68,8 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             }
 
+            m_OverlayImage.enabled = isEnabled;
+
             // Clear out the handle to the cached overlay texture if we are not isEnabled
             if (!isEnabled)
                 m_OverlayImage.texture = null;

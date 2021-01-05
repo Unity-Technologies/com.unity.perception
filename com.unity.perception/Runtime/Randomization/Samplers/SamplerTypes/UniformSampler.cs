@@ -20,6 +20,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         public FloatRange range { get; set; }
 
         /// <summary>
+        /// Constructs a UniformSampler
+        /// </summary>
+        public UniformSampler()
+        {
+            range = new FloatRange(0f, 1f);
+        }
+
+        /// <summary>
         /// Constructs a new uniform distribution sampler
         /// </summary>
         /// <param name="min">The smallest value contained within the range</param>

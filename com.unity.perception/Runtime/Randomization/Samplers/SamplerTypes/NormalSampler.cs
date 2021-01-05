@@ -32,6 +32,16 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <summary>
         /// Constructs a normal distribution sampler
         /// </summary>
+        public NormalSampler()
+        {
+            range = new FloatRange(-1f, 1f);
+            mean = 0;
+            standardDeviation = 1;
+        }
+
+        /// <summary>
+        /// Constructs a normal distribution sampler
+        /// </summary>
         /// <param name="min">The smallest value contained within the range</param>
         /// <param name="max">The largest value contained within the range</param>
         /// <param name="mean">The mean of the normal distribution to sample from</param>

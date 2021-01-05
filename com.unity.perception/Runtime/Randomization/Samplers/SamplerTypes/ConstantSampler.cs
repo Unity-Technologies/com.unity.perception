@@ -26,6 +26,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         }
 
         /// <summary>
+        /// Constructs a ConstantSampler
+        /// </summary>
+        public ConstantSampler()
+        {
+            value = 0f;
+        }
+
+        /// <summary>
         /// Constructs a new ConstantSampler
         /// </summary>
         /// <param name="value">The value from which samples will be generated</param>

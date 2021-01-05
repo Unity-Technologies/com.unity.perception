@@ -383,7 +383,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <returns>The newly generated random state</returns>
         public uint NextRandomState()
         {
-            m_RandomState = SamplerUtility.Hash32(m_RandomState);
+            m_RandomState = SamplerUtility.Hash32NonZero(m_RandomState);
             return m_RandomState;
         }
 

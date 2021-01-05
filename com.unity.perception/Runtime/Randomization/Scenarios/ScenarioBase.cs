@@ -199,7 +199,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             activeScenario = this;
         }
 
-
         void Start()
         {
             var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(

@@ -67,7 +67,16 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// </summary>
         public static ScenarioBase activeScenario
         {
-            get => s_ActiveScenario;
+            get
+            {
+#if UNITY_EDITOR
+                // This compiler define is required to allow samplers to
+                // iterate the scenario's random state in edit-mode
+                if (s_ActiveScenario == null)
+                    s_ActiveScenario = FindObjectOfType<ScenarioBase>();
+#endif
+                return s_ActiveScenario;
+            }
             private set
             {
                 if (value != null && s_ActiveScenario != null && value != s_ActiveScenario)
@@ -182,21 +191,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             // Don't skip the first frame if executing on Unity Simulation
             if (Configuration.Instance.IsSimulationRunningInCloud())
                 m_SkipFrame = false;
-        }
-
-        void OnEnable()
-        {
-            activeScenario = this;
-        }
-
-        void OnDisable()
-        {
-            s_ActiveScenario = null;
-        }
-
-        void Reset()
-        {
-            activeScenario = this;
         }
 
         void Start()

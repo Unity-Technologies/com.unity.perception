@@ -5,8 +5,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
     /// <summary>
     /// The base class of scenarios with serializable constants
     /// </summary>
-    /// <typeparam name="T">The type of constants to serialize</typeparam>
-    public abstract class Scenario<T> : ScenarioBase where T : new()
+    /// <typeparam name="T">The type of scenario constants to serialize</typeparam>
+    public abstract class Scenario<T> : ScenarioBase where T : ScenarioConstants, new()
     {
         /// <summary>
         /// A construct containing serializable constants that control the execution of this scenario
@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <summary>
         /// Returns this scenario's non-typed serialized constants
         /// </summary>
-        public override object genericConstants => constants;
+        public override ScenarioConstants genericConstants => constants;
 
         /// <summary>
         /// Serializes this scenario's constants to a json file in the Unity StreamingAssets folder

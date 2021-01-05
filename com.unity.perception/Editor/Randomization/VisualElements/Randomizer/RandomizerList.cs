@@ -15,8 +15,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
         ToolbarMenu m_AddRandomizerMenu;
         public HashSet<Type> randomizerTypeSet = new HashSet<Type>();
 
-        int m_PreviousListSize;
-
         ScenarioBase scenario => (ScenarioBase)m_Property.serializedObject.targetObject;
 
         VisualElement inspectorContainer
@@ -66,14 +64,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             randomizerTypeSet.Clear();
             foreach (var randomizer in scenario.randomizers)
                 randomizerTypeSet.Add(randomizer.GetType());
-            m_PreviousListSize = m_Property.arraySize;
         }
 
         public void AddRandomizer(Type randomizerType)
         {
             Undo.RegisterCompleteObjectUndo(m_Property.serializedObject.targetObject, "Add Randomizer");
-            var newRandomizer = scenario.CreateRandomizer(randomizerType);
-            newRandomizer.RandomizeParameterSeeds();
+            scenario.CreateRandomizer(randomizerType);
             m_Property.serializedObject.Update();
             RefreshList();
         }

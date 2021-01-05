@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// Constants describing the execution of this scenario
         /// </summary>
         [Serializable]
-        public class Constants : UnitySimulationConstants
+        public class Constants : UnitySimulationScenarioConstants
         {
             /// <summary>
             /// The number of frames to generate per iteration

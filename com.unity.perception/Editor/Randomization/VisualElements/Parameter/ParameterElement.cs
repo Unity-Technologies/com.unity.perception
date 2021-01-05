@@ -175,9 +175,6 @@ namespace UnityEngine.Perception.Randomization.Editor
             else
                 uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt => ToggleProbabilityFields(evt.newValue));
 
-            var seedField = template.Q<IntegerField>("seed");
-            seedField.BindProperty(m_SerializedProperty.FindPropertyRelative("m_Sampler.<baseSeed>k__BackingField"));
-
             m_PropertiesContainer.Add(template);
         }
 

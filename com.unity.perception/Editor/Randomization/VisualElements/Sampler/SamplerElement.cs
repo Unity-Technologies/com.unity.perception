@@ -56,7 +56,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
         void CreateSampler(Type samplerType)
         {
             var newSampler = (ISampler)Activator.CreateInstance(samplerType);
-            newSampler.baseSeed = SamplerUtility.GenerateRandomSeed();
 
             if (m_RangeProperty != null)
                 newSampler.range = new FloatRange(
@@ -83,11 +82,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
                 {
                     if (SerializedProperty.EqualContents(currentProperty, nextSiblingProperty))
                         break;
-                    if (currentProperty.name == "<baseSeed>k__BackingField")
-                    {
-                        m_Properties.Add(new RandomSeedField(currentProperty.Copy()));
-                    }
-                    else if (currentProperty.type == "FloatRange")
+                    if (currentProperty.type == "FloatRange")
                     {
                         m_RangeProperty = currentProperty.Copy();
                         m_Properties.Add(new FloatRangeElement(m_RangeProperty));

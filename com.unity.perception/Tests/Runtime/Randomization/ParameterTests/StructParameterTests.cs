@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using Object = UnityEngine.Object;
 
 namespace RandomizationTests.ParameterTests
@@ -16,6 +17,7 @@ namespace RandomizationTests.ParameterTests
         public void Setup()
         {
             m_TestObject = new GameObject();
+            m_TestObject.AddComponent<FixedLengthScenario>();
             m_Tests = new BaseStructParameterTest[]
             {
                 new NumericParameterTest<bool>(new BooleanParameter()),
@@ -35,7 +37,7 @@ namespace RandomizationTests.ParameterTests
         }
 
         [Test]
-        public void EquivalentManagedAndNativeSamples()
+        public void CorrectNumberOfNativeSamplesAreGenerated()
         {
             foreach (var test in m_Tests)
                 test.GeneratesNativeSamples();

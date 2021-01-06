@@ -91,9 +91,9 @@ public class Constants : UnitySimulationScenarioConstants
 ```
 
 There are a few key things to note here:
-1. The constants class will need to inherit from UnitySimulationScenarioConstants to be compatible with the Run in Unity Simulation window. Deriving from UnitySimulationScenarioConstants will add a few key properties to the constants class that are needed to coordinate a Unity Simulation run.
-2. Make sure to include the [Serializable] attribute on a constant class. This will ensure that the constants can be manipulated from the Unity inspector.
-3. A scenario class's Serialize() and Deserialized() methods can be overriden to implement custom serialization strategies.
+1. The constants class will need to inherit from `UnitySimulationScenarioConstants` to be compatible with the Run in Unity Simulation window. Deriving from `UnitySimulationScenarioConstants` will add a few key properties to the constants class that are needed to coordinate a Unity Simulation run.
+2. Make sure to include the `[Serializable]` attribute on a constant class. This will ensure that the constants can be manipulated from the Unity inspector.
+3. A scenario class's `SerializeToJson()` and `DeserializeFromJson()` methods can be overriden to implement custom serialization strategies.
 
 
 Follow the instructions below to generate a scenario configuration file to modify your scenario constants and randomizers in a built player:

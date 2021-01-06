@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
@@ -59,7 +60,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <summary>
         /// The name of the Json file this scenario's constants are serialized to/from.
         /// </summary>
-        public virtual string serializedConstantsFileName => "constants";
+        public virtual string configFileName => "scenario_configuration";
 
         /// <summary>
         /// Returns the active parameter scenario in the scene
@@ -76,10 +77,17 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Returns the file location of the JSON serialized constants
+        /// Returns the asset location of the JSON serialized configuration.
+        /// This API is used for finding the config file using the AssetDatabase API.
         /// </summary>
-        public string serializedConstantsFilePath =>
-            Application.dataPath + "/StreamingAssets/" + serializedConstantsFileName + ".json";
+        public string defaultConfigFileAssetPath =>
+            "Assets/StreamingAssets/" + configFileName + ".json";
+
+        /// <summary>
+        /// Returns the absolute file path of the JSON serialized configuration
+        /// </summary>
+        public string defaultConfigFilePath =>
+            Application.dataPath + "/StreamingAssets/" + configFileName + ".json";
 
         /// <summary>
         /// Returns this scenario's non-typed serialized constants
@@ -120,14 +128,43 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Serializes the scenario's constants to a JSON file located at serializedConstantsFilePath
+        /// Serializes the scenario's constants and randomizer settings to a JSON string
         /// </summary>
-        public abstract void Serialize();
+        /// <returns>The scenario configuration as a JSON string</returns>
+        public abstract string SerializeToJson();
 
         /// <summary>
-        /// Deserializes constants saved in a JSON file located at serializedConstantsFilePath
+        /// Serializes the scenario's constants and randomizer settings to a JSON file located at the path resolved by
+        /// the defaultConfigFilePath scenario property
         /// </summary>
-        public abstract void Deserialize();
+        public void SerializeToFile()
+        {
+            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
+            using (var writer = new StreamWriter(defaultConfigFilePath, false))
+                writer.Write(SerializeToJson());
+        }
+
+        /// <summary>
+        /// Overwrites this scenario's randomizer settings and scenario constants from a JSON serialized configuration
+        /// </summary>
+        /// <param name="json">The JSON string to deserialize</param>
+        public abstract void DeserializeFromJson(string json);
+
+        /// <summary>
+        /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
+        /// the provided file path
+        /// </summary>
+        /// <param name="configFilePath">The file path to the configuration file to deserialize</param>
+        public abstract void DeserializeFromFile(string configFilePath);
+
+        /// <summary>
+        /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
+        /// this scenario's defaultConfigFilePath
+        /// </summary>
+        public void DeserializeFromFile()
+        {
+            DeserializeFromFile(defaultConfigFilePath);
+        }
 
         /// <summary>
         /// This method executed directly after this scenario has been registered and initialized
@@ -169,7 +206,13 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.",
                 Guid.Parse("14adb394-46c0-47e8-a3f0-99e754483b76"));
             DatasetCapture.ReportMetric(randomSeedMetricDefinition, new[] { genericConstants.randomSeed });
-            Deserialize();
+#if !UNITY_EDITOR
+            if (File.Exists(defaultConfigFilePath))
+                DeserializeFromFile();
+            else
+                Debug.Log($"No configuration file found at {defaultConfigFilePath}. " +
+                    "Proceeding with built in scenario constants and randomizer settings.");
+#endif
         }
 
         void Update()

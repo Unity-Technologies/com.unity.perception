@@ -24,16 +24,26 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             m_Root = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/ScenarioBaseElement.uxml").CloneTree();
 
-            var serializeConstantsButton = m_Root.Q<Button>("serialize-constants");
-            serializeConstantsButton.clicked += () => m_Scenario.Serialize();
-
-            var deserializeConstantsButton = m_Root.Q<Button>("deserialize-constants");
-            deserializeConstantsButton.clicked += () => m_Scenario.Deserialize();
-
             m_RandomizerListPlaceholder = m_Root.Q<VisualElement>("randomizer-list-placeholder");
 
             CreatePropertyFields();
             CheckIfConstantsExist();
+
+            var serializeConstantsButton = m_Root.Q<Button>("serialize");
+            serializeConstantsButton.clicked += () =>
+            {
+                m_Scenario.SerializeToFile();
+                AssetDatabase.Refresh();
+                var newConfigFileAsset = AssetDatabase.LoadAssetAtPath<Object>(m_Scenario.defaultConfigFileAssetPath);
+                EditorGUIUtility.PingObject(newConfigFileAsset);
+            };
+
+            var deserializeConstantsButton = m_Root.Q<Button>("deserialize");
+            deserializeConstantsButton.clicked += () =>
+            {
+                Undo.RecordObject(m_Scenario, "Deserialized scenario configuration");
+                m_Scenario.DeserializeFromFile(m_Scenario.defaultConfigFilePath);
+            };
 
             return m_Root;
         }

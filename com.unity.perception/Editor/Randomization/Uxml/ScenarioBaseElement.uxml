@@ -13,8 +13,10 @@
                     tooltip="A list of parameters for this scenario that will be JSON serialized."/>
                 <editor:PropertyField name="configuration-file-name" label="Constants File Name" binding-path="serializedConstantsFileName"/>
                 <VisualElement style="flex-direction: row;">
-                    <Button name="serialize-constants" text="Serialize Constants" style="flex-grow: 1;"/>
-                    <Button name="deserialize-constants" text="Deserialize Constants" style="flex-grow: 1;"/>
+                    <Button name="serialize" text="Serialize To Config File" style="flex-grow: 1;"
+                        tooltip="Serializes scenario constants and randomizer settings to a JSON configuration file"/>
+                    <Button name="deserialize" text="Deserialize From Config File" style="flex-grow: 1;"
+                        tooltip="Deserializes scenario constants and randomizer settings from a scenario_configuration.json file located in the Assets/StreamingAssets project folder"/>
                 </VisualElement>
             </VisualElement>
         </VisualElement>

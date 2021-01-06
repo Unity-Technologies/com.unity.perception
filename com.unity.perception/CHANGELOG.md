@@ -11,13 +11,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 Added ScenarioConstants base class for all scenario constants objects
 
+Added ScenarioBase.SerializeToConfigFile()
+
 ### Changed
 
 Randomizers now access their parent scenario through the static activeScenario property
 
 Unique seeds per Sampler have been replaced with one global random seed configured via the ScenarioConstants of a Scenario
 
-Replaced ScenarioBase.GenerateRandomSeed() with ScenarioBase.NextRandomSeed()
+Replaced ScenarioBase.GenerateRandomSeed() with ScenarioBase.NextRandomState()
+
+ScenarioBase.Serialize() now directly returns the serialized scenario configuration JSON string instead of writing directly to a file (use SerializeToConfigFile() instead)
+
+ScenarioBase.Serialize() now not only serializes scenario constants, but also all sampler member fields on randomizers attached to the scenario
 
 ### Deprecated
 

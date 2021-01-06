@@ -9,28 +9,21 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
     /// <typeparam name="T">The type of constants to serialize</typeparam>
     public abstract class UnitySimulationScenario<T> : Scenario<T> where T : UnitySimulationScenarioConstants, new()
     {
-        /// <summary>
-        /// Returns whether the entire scenario has completed
-        /// </summary>
+        /// <inheritdoc/>
         public sealed override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 
-        /// <summary>
-        /// Progresses the current scenario iteration
-        /// </summary>
+        /// <inheritdoc/>
         protected sealed override void IncrementIteration()
         {
             currentIteration += constants.instanceCount;
         }
 
-        /// <summary>
-        /// Deserializes this scenario's constants from the Unity Simulation AppParams Json file
-        /// </summary>
-        public sealed override void Deserialize()
+        /// <inheritdoc/>
+        public sealed override void DeserializeFromFile(string configFilePath)
         {
-            if (Configuration.Instance.IsSimulationRunningInCloud())
-                constants = Configuration.Instance.GetAppParams<T>();
-            else
-                base.Deserialize();
+            base.DeserializeFromFile(Configuration.Instance.IsSimulationRunningInCloud()
+                ? new Uri(Configuration.Instance.SimulationConfig.app_param_uri).LocalPath
+                : configFilePath);
             currentIteration = constants.instanceIndex;
         }
     }

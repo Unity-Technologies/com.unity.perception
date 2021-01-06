@@ -17,7 +17,7 @@ From the newly opened editor window, customize the following settings to configu
 3. **Instance Count** - The number of Unity Simulation worker instances to distribute execution between
 4. **Main Scene** - The Unity scene to execute
 5. **Scenario** - The scenario to execute
-6. **Sys-Param** - The system parameters or the hardware configuration of Unity Simulation worker instance to execute the scenario with. Determines per instance specifications such as the number of CPU cores, amount of memory, and presence of a GPU for accelerated execution.
+6. **Sys-Param** - The system parameters or the hardware configuration of Unity Simulation worker instances to execute the scenario with. Determines per instance specifications such as the number of CPU cores, amount of memory, and presence of a GPU for accelerated execution.
 
 NOTE: To execute a scenario using the Run in Unity Simulation window, the scenario class must implement the UnitySimulationScenario class.
 

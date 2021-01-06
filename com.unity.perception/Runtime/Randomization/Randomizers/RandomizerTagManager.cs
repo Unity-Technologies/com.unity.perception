@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Entities;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
 {
@@ -9,7 +10,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
     /// </summary>
     public class RandomizerTagManager
     {
-        Dictionary<Type, HashSet<Type>> m_TypeCache = new Dictionary<Type, HashSet<Type>>();
+        Dictionary<Type, HashSet<Type>> m_TypeTree = new Dictionary<Type, HashSet<Type>>();
         Dictionary<Type, HashSet<GameObject>> m_TagMap = new Dictionary<Type, HashSet<GameObject>>();
 
         /// <summary>
@@ -26,38 +27,58 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
 
             if (returnSubclasses)
             {
-                foreach (var tagType in m_TypeCache[queriedTagType])
+                var typeStack = new Stack<Type>();
+                typeStack.Push(queriedTagType);
+                while (typeStack.Count > 0)
                 {
+                    var tagType = typeStack.Pop();
+                    foreach (var derivedType in m_TypeTree[tagType])
+                        typeStack.Push(derivedType);
                     foreach (var obj in m_TagMap[tagType])
                         yield return obj;
                 }
             }
             else
             {
-                foreach (var taggedObject in m_TagMap[queriedTagType])
-                    yield return taggedObject.gameObject;
+                foreach (var obj in m_TagMap[queriedTagType])
+                    yield return obj;
             }
         }
 
         internal void AddTag(Type tagType, GameObject obj)
         {
-            if (!m_TypeCache.ContainsKey(tagType))
-                AddTagTypeAndBaseTagTypesToCache(tagType);
+            AddTagTypeToTypeHierarchy(tagType);
             m_TagMap[tagType].Add(obj);
         }
 
-        void AddTagTypeAndBaseTagTypesToCache(Type tagType)
+        void AddTagTypeToTypeHierarchy(Type tagType)
         {
-            var recursiveTagType = tagType;
-            var inheritedTags = new HashSet<Type>();
-            while (recursiveTagType != null && recursiveTagType != typeof(RandomizerTag))
+            if (m_TypeTree.ContainsKey(tagType))
+                return;
+
+            if (tagType == null || !tagType.IsSubclassOf(typeof(RandomizerTag)))
+                throw new ArgumentException("Tag type is not a subclass of RandomizerTag");
+
+            m_TagMap.Add(tagType, new HashSet<GameObject>());
+            m_TypeTree.Add(tagType, new HashSet<Type>());
+
+            var baseType = tagType.BaseType;
+            while (baseType!= null && baseType != typeof(RandomizerTag))
             {
-                inheritedTags.Add(recursiveTagType);
-                if (!m_TagMap.ContainsKey(recursiveTagType))
-                    m_TagMap[recursiveTagType] = new HashSet<GameObject>();
-                recursiveTagType = recursiveTagType.BaseType;
+                if (!m_TypeTree.ContainsKey(baseType))
+                {
+                    m_TagMap.Add(baseType, new HashSet<GameObject>());
+                    m_TypeTree[baseType] = new HashSet<Type> { tagType };
+                }
+                else
+                {
+                    m_TypeTree[baseType].Add(tagType);
+                    break;
+                }
+
+                tagType = baseType;
+                baseType = tagType.BaseType;
             }
-            m_TypeCache[tagType] = inheritedTags;
         }
 
         internal void RemoveTag(Type tagType, GameObject obj)

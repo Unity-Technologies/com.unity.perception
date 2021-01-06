@@ -35,8 +35,19 @@ namespace RandomizationTests.RandomizerTests
             for (var i = 0; i < copyCount - 1; i++)
                 Object.Instantiate(gameObject);
 
+            var gameObject2 = new GameObject();
+            gameObject2.AddComponent<ExampleTag2>();
+            for (var i = 0; i < copyCount - 1; i++)
+                Object.Instantiate(gameObject2);
+
             var queriedObjects = m_Scenario.tagManager.Query<ExampleTag>().ToArray();
             Assert.AreEqual(queriedObjects.Length, copyCount);
+
+            queriedObjects = m_Scenario.tagManager.Query<ExampleTag2>().ToArray();
+            Assert.AreEqual(queriedObjects.Length, copyCount);
+
+            queriedObjects = m_Scenario.tagManager.Query<ExampleTag>(true).ToArray();
+            Assert.AreEqual(queriedObjects.Length, copyCount * 2);
         }
     }
 }

@@ -55,6 +55,18 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         }
 
         /// <summary>
+        /// Generates a 32-bit non-zero hash using an unsigned integer seed
+        /// </summary>
+        /// <param name="seed">The unsigned integer to hash</param>
+        /// <returns>The calculated hash value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint Hash32NonZero(uint seed)
+        {
+            var hash = Hash32(seed);
+            return hash == 0u ? largePrime : hash;
+        }
+
+        /// <summary>
         /// Based on splitmix64: http://xorshift.di.unimi.it/splitmix64.c
         /// </summary>
         /// <param name="x">64-bit value to hash</param>

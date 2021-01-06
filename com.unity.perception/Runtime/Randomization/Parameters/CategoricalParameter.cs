@@ -97,6 +97,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         public override void Validate()
         {
             base.Validate();
+            if (m_Categories.Count == 0)
+                throw new ParameterValidationException("No options added to categorical parameter");
             if (!uniform)
             {
                 if (probabilities.Count != m_Categories.Count)

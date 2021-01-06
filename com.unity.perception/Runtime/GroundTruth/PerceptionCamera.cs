@@ -129,6 +129,8 @@ namespace UnityEngine.Perception.GroundTruth
             AsyncRequest.maxJobSystemParallelism = 0; // Jobs are not chained to one another in any way, maximizing parallelism
             AsyncRequest.maxAsyncRequestFrameAge = 4; // Ensure that readbacks happen before Allocator.TempJob allocations get stale
 
+            Application.runInBackground = true;
+
             SetupInstanceSegmentation();
             m_AttachedCamera = GetComponent<Camera>();
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.Experimental.Perception.Randomization.Samplers;
 
@@ -12,8 +13,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     [AddRandomizerMenu("Perception/Background Object Placement Randomizer")]
     public class BackgroundObjectPlacementRandomizer : Randomizer
     {
-        List<GameObject> m_SpawnedObjects = new List<GameObject>();
-
         /// <summary>
         /// The Z offset component applied to all generated background layers
         /// </summary>
@@ -39,26 +38,32 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         public GameObjectParameter prefabs;
 
+        GameObject m_Container;
+        GameObjectOneWayCache m_GameObjectOneWayCache;
+
+        protected override void OnCreate()
+        {
+            m_Container = new GameObject("BackgroundContainer");
+            m_Container.transform.parent = scenario.transform;
+            m_GameObjectOneWayCache = new GameObjectOneWayCache(
+                m_Container.transform, prefabs.categories.Select((element) => element.Item1).ToArray());
+        }
+
         /// <summary>
         /// Generates background layers of objects at the start of each scenario iteration
         /// </summary>
         protected override void OnIterationStart()
         {
-            if (m_SpawnedObjects == null)
-                m_SpawnedObjects = new List<GameObject>();
-
             for (var i = 0; i < layerCount; i++)
             {
                 var seed = scenario.NextRandomState();
                 var placementSamples = PoissonDiskSampling.GenerateSamples(
                     placementArea.x, placementArea.y, separationDistance, seed);
                 var offset = new Vector3(placementArea.x, placementArea.y, 0f) * -0.5f;
-                var parent = scenario.transform;
                 foreach (var sample in placementSamples)
                 {
-                    var instance = Object.Instantiate(prefabs.Sample(), parent);
+                    var instance = m_GameObjectOneWayCache.GetOrInstantiate(prefabs.Sample());
                     instance.transform.position = new Vector3(sample.x, sample.y, separationDistance * i + depth) + offset;
-                    m_SpawnedObjects.Add(instance);
                 }
                 placementSamples.Dispose();
             }
@@ -69,9 +74,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationEnd()
         {
-            foreach (var spawnedObject in m_SpawnedObjects)
-                Object.Destroy(spawnedObject);
-            m_SpawnedObjects.Clear();
+            m_GameObjectOneWayCache.ResetAllObjects();
         }
     }
 }

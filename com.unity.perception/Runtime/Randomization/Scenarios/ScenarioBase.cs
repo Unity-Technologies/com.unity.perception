@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Unity.Simulation;
 using UnityEngine;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
@@ -391,7 +392,16 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         {
             foreach (var randomizer in m_Randomizers)
             foreach (var parameter in randomizer.parameters)
-                parameter.Validate();
+            {
+                try
+                {
+                    parameter.Validate();
+                }
+                catch (ParameterValidationException exception)
+                {
+                    Debug.LogException(exception, this);
+                }
+            }
         }
     }
 }

@@ -32,7 +32,7 @@ For use cases where the scenario should run for an arbitrary number of frames, i
 
 ## JSON Configuration
 
-Scenarios can be serialized to JSON, modified, and reimported at runtime to configure simulation behavior even after a Unity player has been built. Constants and randomizer sampler settings are the two primary sections generated when serializing a scenario. Below is the contents of a JSON configuration file created when serializing the scenario used in Phase 1 of the [Perception Tutorial](../Tutorial/TUTORIAL.md):
+Scenarios can be serialized to JSON, modified, and reimported at runtime to configure simulation behavior even after a Unity player has been built. Constants and randomizer sampler settings are the two primary sections generated when serializing a scenario. Note that currently, only numerical samplers are serialized. Below is the contents of a JSON configuration file created when serializing the scenario used in Phase 1 of the [Perception Tutorial](../Tutorial/TUTORIAL.md):
 ```
 {
   "constants": {

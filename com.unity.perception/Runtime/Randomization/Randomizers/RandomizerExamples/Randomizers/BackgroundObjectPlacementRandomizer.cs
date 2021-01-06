@@ -38,14 +38,15 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         public GameObjectParameter prefabs;
 
-        GameObject container;
-        GameObjectOneWayCache gameObjectOneWayCache;
+        GameObject m_Container;
+        GameObjectOneWayCache m_GameObjectOneWayCache;
 
         protected override void OnCreate()
         {
-            container = new GameObject("BackgroundContainer");
-            container.transform.parent = scenario.transform;
-            gameObjectOneWayCache = new GameObjectOneWayCache(container.transform, prefabs.categories.Select((element) => element.Item1).ToArray());
+            m_Container = new GameObject("BackgroundContainer");
+            m_Container.transform.parent = scenario.transform;
+            m_GameObjectOneWayCache = new GameObjectOneWayCache(
+                m_Container.transform, prefabs.categories.Select((element) => element.Item1).ToArray());
         }
 
         /// <summary>
@@ -61,7 +62,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
                 var offset = new Vector3(placementArea.x, placementArea.y, 0f) * -0.5f;
                 foreach (var sample in placementSamples)
                 {
-                    var instance = gameObjectOneWayCache.GetOrInstantiate(prefabs.Sample());
+                    var instance = m_GameObjectOneWayCache.GetOrInstantiate(prefabs.Sample());
                     instance.transform.position = new Vector3(sample.x, sample.y, separationDistance * i + depth) + offset;
                 }
                 placementSamples.Dispose();
@@ -73,7 +74,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationEnd()
         {
-            gameObjectOneWayCache.ResetAllObjects();
+            m_GameObjectOneWayCache.ResetAllObjects();
         }
     }
 }

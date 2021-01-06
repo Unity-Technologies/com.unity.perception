@@ -38,10 +38,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         protected override void OnCreate()
         {
             m_Container = new GameObject("Foreground Objects");
-            var scenarioTransform = scenario.transform;
-            m_Container.transform.parent = scenarioTransform;
+            m_Container.transform.parent = scenario.transform;
             m_GameObjectOneWayCache = new GameObjectOneWayCache(
-                scenarioTransform, prefabs.categories.Select(element => element.Item1).ToArray());
+                m_Container.transform, prefabs.categories.Select(element => element.Item1).ToArray());
         }
 
         /// <summary>

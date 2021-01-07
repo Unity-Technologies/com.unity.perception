@@ -10,7 +10,7 @@ sampler.range = new FloatRange(-10, 10);
 var sample = sampler.NextSample();
 ```
 
-Four Samplers are included with the perception package:
+Three Samplers are included with the perception package:
 1. Constant Sampler
 2. Uniform Sampler
 3. Normal Sampler 
@@ -23,6 +23,12 @@ Samples uniformly from a specified range
 
 #### Normal Sampler
 Generates random samples from a truncated normal distribution bounded by a specified range
+
+
+## Random Seeding
+Samplers generate random values that are seeded by the active scenario's current random state. Changing the scenario's random seed will result in samplers generating different values. Changing the order of samplers, parameters, or randomizers will also result in different values being sampled during a simulation.
+
+It is recommend that users do not generate random values using the UnityEngine.Random() class or the System.Random() class within a simulation since both of these classes can potentially generate non-determinisitic or improperly seeded random values. Using only Perception Samplers to generate random values will help ensure that Perception simulations generate consistent results during local execution and on Unity Simulation in the cloud.
 
 
 ## Custom Samplers

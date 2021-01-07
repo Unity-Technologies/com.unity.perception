@@ -224,7 +224,7 @@ namespace UnityEngine.Perception.GroundTruth
             // Currently there is an issue in the perception camera that causes the UI layer not to be visualized
             // if we are utilizing async readback and we have to flip our captured image. We have created a jira
             // issue for this (aisv-779) and have notified the engine team about this.
-            anyVisualizing = true;
+            anyVisualizing = false;
 
             if (m_ShowingVisualizations)
                 CaptureOptions.useAsyncReadbackIfSupported = !anyVisualizing;
@@ -373,8 +373,11 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             };
 
+#if SIMULATION_CAPTURE_0_0_10_PREVIEW_16_OR_NEWER
+            CaptureCamera.Capture(cam, colorFunctor, forceFlip: ForceFlip.None);
+#else
             CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
-
+#endif
             Profiler.EndSample();
         }
 

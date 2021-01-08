@@ -43,6 +43,8 @@ Fixed the simulation stopping while the editor/player is not focused
 
 Fixed memory leak or crash occurring at the end of long simulations when using BackgroundObjectPlacementRandomizer or ForegroundObjectPlacementRandomizer
 
+Randomizer.OnCreate() is no longer called in edit-mode when adding a randomizer to a scenario
+
 ## [0.6.0-preview.1] - 2020-12-03
 
 ### Added

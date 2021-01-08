@@ -1,7 +1,9 @@
+using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using Object = UnityEngine.Object;
 
 namespace EditorTests
 {
@@ -36,6 +38,7 @@ namespace EditorTests
         }
     }
 
+    [Serializable]
     [AddRandomizerMenu("Test Randomizers/Errors OnCreate Test Randomizer")]
     class ErrorsOnCreateTestRandomizer : Randomizer
     {
@@ -45,11 +48,6 @@ namespace EditorTests
         {
             // This line should throw a NullReferenceException
             testGameObject.transform.position = Vector3.zero;
-        }
-
-        protected override void OnIterationStart()
-        {
-            testGameObject = new GameObject("Test");
         }
     }
 }

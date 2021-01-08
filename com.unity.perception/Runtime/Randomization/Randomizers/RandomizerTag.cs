@@ -10,14 +10,16 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
     [Serializable]
     public abstract class RandomizerTag : MonoBehaviour
     {
+        ScenarioBase scenario => ScenarioBase.activeScenario;
+
         void Awake()
         {
-            ScenarioBase.activeScenario.tagManager.AddTag(GetType(), gameObject);
+            if (scenario)
+                scenario.tagManager.AddTag(GetType(), gameObject);
         }
 
         void OnDestroy()
         {
-            var scenario = ScenarioBase.activeScenario;
             if (scenario)
                 scenario.tagManager.RemoveTag(GetType(), gameObject);
         }

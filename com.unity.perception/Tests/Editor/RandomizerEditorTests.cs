@@ -46,5 +46,10 @@ namespace EditorTests
             // This line should throw a NullReferenceException
             testGameObject.transform.position = Vector3.zero;
         }
+
+        protected override void OnIterationStart()
+        {
+            testGameObject = new GameObject("Test");
+        }
     }
 }

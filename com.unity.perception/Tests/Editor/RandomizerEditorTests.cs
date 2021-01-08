@@ -43,6 +43,7 @@ namespace EditorTests
 
         protected override void OnCreate()
         {
+            // This line should throw a NullReferenceException
             testGameObject.transform.position = Vector3.zero;
         }
     }

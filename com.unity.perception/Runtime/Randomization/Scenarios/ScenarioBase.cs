@@ -194,6 +194,16 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 m_SkipFrame = false;
         }
 
+        void OnEnable()
+        {
+            activeScenario = this;
+        }
+
+        void OnDisable()
+        {
+            activeScenario = null;
+        }
+
         void Start()
         {
             var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(

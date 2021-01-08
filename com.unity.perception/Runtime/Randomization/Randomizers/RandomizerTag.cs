@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
 {
@@ -10,18 +9,16 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
     [Serializable]
     public abstract class RandomizerTag : MonoBehaviour
     {
-        ScenarioBase scenario => ScenarioBase.activeScenario;
+        RandomizerTagManager tagManager => RandomizerTagManager.singleton;
 
         void Awake()
         {
-            if (scenario)
-                scenario.tagManager.AddTag(GetType(), gameObject);
+            tagManager.AddTag(GetType(), gameObject);
         }
 
         void OnDestroy()
         {
-            if (scenario)
-                scenario.tagManager.RemoveTag(GetType(), gameObject);
+            tagManager.RemoveTag(GetType(), gameObject);
         }
     }
 }

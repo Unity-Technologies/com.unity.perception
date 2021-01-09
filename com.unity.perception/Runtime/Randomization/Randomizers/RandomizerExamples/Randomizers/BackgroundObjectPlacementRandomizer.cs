@@ -41,6 +41,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         GameObject m_Container;
         GameObjectOneWayCache m_GameObjectOneWayCache;
 
+        /// <inheritdoc/>
         protected override void OnCreate()
         {
             m_Container = new GameObject("BackgroundContainer");

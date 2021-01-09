@@ -310,7 +310,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                         $"Two Randomizers of the same type ({randomizerType.Name}) cannot both be active simultaneously");
             var newRandomizer = (Randomizer)Activator.CreateInstance(randomizerType);
             m_Randomizers.Add(newRandomizer);
+#if UNITY_EDITOR
+            if (Application.isPlaying)
+                newRandomizer.Create();
+#else
             newRandomizer.Create();
+#endif
             return newRandomizer;
         }
 

@@ -7,7 +7,6 @@ using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 {
@@ -23,7 +22,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         bool m_SkipFrame = true;
         bool m_FirstScenarioFrame = true;
         bool m_WaitingForFinalUploads;
-        RandomizerTagManager m_TagManager = new RandomizerTagManager();
 
         IEnumerable<Randomizer> activeRandomizers
         {
@@ -37,11 +35,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 
         // ReSharper disable once InconsistentNaming
         [SerializeReference] internal List<Randomizer> m_Randomizers = new List<Randomizer>();
-
-        /// <summary>
-        /// The RandomizerTagManager attached to this scenario
-        /// </summary>
-        public RandomizerTagManager tagManager => m_TagManager;
 
         /// <summary>
         /// Return the list of randomizers attached to this scenario
@@ -194,6 +187,16 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 m_SkipFrame = false;
         }
 
+        void OnEnable()
+        {
+            activeScenario = this;
+        }
+
+        void OnDisable()
+        {
+            activeScenario = null;
+        }
+
         void Start()
         {
             var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
@@ -310,7 +313,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                         $"Two Randomizers of the same type ({randomizerType.Name}) cannot both be active simultaneously");
             var newRandomizer = (Randomizer)Activator.CreateInstance(randomizerType);
             m_Randomizers.Add(newRandomizer);
+#if UNITY_EDITOR
+            if (Application.isPlaying)
+                newRandomizer.Create();
+#else
             newRandomizer.Create();
+#endif
             return newRandomizer;
         }
 

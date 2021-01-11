@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         /// <summary>
         /// Retrieves the RandomizerTagManager of the scenario containing this Randomizer
         /// </summary>
-        public RandomizerTagManager tagManager => scenario.tagManager;
+        public RandomizerTagManager tagManager => RandomizerTagManager.singleton;
 
         internal IEnumerable<Parameter> parameters
         {

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using Assert = Unity.Assertions.Assert;
 
@@ -40,13 +41,14 @@ namespace RandomizationTests.RandomizerTests
             for (var i = 0; i < copyCount - 1; i++)
                 Object.Instantiate(gameObject2);
 
-            var queriedObjects = m_Scenario.tagManager.Query<ExampleTag>().ToArray();
+            var tagManager = RandomizerTagManager.singleton;
+            var queriedObjects = tagManager.Query<ExampleTag>().ToArray();
             Assert.AreEqual(queriedObjects.Length, copyCount);
 
-            queriedObjects = m_Scenario.tagManager.Query<ExampleTag2>().ToArray();
+            queriedObjects = tagManager.Query<ExampleTag2>().ToArray();
             Assert.AreEqual(queriedObjects.Length, copyCount);
 
-            queriedObjects = m_Scenario.tagManager.Query<ExampleTag>(true).ToArray();
+            queriedObjects = tagManager.Query<ExampleTag>(true).ToArray();
             Assert.AreEqual(queriedObjects.Length, copyCount * 2);
         }
     }

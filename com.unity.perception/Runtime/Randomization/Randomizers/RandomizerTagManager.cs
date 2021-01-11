@@ -10,6 +10,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
     /// </summary>
     public class RandomizerTagManager
     {
+        /// <summary>
+        /// Returns the singleton RandomizerTagManager instance
+        /// </summary>
+        public static RandomizerTagManager singleton { get; } = new RandomizerTagManager();
+
         Dictionary<Type, HashSet<Type>> m_TypeTree = new Dictionary<Type, HashSet<Type>>();
         Dictionary<Type, HashSet<GameObject>> m_TagMap = new Dictionary<Type, HashSet<GameObject>>();
 

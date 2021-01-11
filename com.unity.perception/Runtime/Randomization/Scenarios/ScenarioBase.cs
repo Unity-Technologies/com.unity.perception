@@ -403,5 +403,13 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 }
             }
         }
+
+        void OnApplicationQuit()
+        {
+            foreach (var randomizer in m_Randomizers)
+            {
+                randomizer.CleanupSamplers();
+            }
+        }
     }
 }

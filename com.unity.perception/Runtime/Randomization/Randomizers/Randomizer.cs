@@ -73,7 +73,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         /// <summary>
         /// OnScenarioComplete is called the after the entire scenario has completed
         /// </summary>
-        protected virtual void OnScenarioComplete() { }
+        protected virtual void OnScenarioComplete()
+        {
+            CleanupSamplers();
+        }
 
         /// <summary>
         /// OnStartRunning is called on the first frame a Randomizer is enabled
@@ -125,6 +128,22 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
             {
                 m_PreviouslyEnabled = false;
                 OnStopRunning();
+            }
+        }
+
+        internal void CleanupSamplers()
+        {
+            foreach (var parameter in parameters)
+            {
+                parameter.CleanupSamplers();
+            }
+        }
+
+        internal void InitializeSamplers()
+        {
+            foreach (var parameter in parameters)
+            {
+                parameter.InitializeSamplers();
             }
         }
     }

@@ -28,5 +28,15 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <param name="jobHandle">The handle of the scheduled job</param>
         /// <returns>A NativeArray of generated samples</returns>
         NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle);
+
+        /// <summary>
+        /// Used for performing sampler specific clean-up tasks (e.g. once the scenario is complete).
+        /// </summary>
+        void Cleanup();
+
+        /// <summary>
+        /// Used for performing sampler specific initialization tasks.
+        /// </summary>
+        void Initialize();
     }
 }

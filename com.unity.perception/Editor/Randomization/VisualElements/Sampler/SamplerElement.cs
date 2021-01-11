@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
@@ -91,6 +92,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
                     {
                         var propertyField = new PropertyField(currentProperty.Copy());
                         propertyField.Bind(m_Property.serializedObject);
+                        var originalField = m_Sampler.GetType().GetField(currentProperty.name);
+                        var tooltipAttribute = originalField.GetCustomAttributes(true).ToList().Find(att => att.GetType() == typeof(TooltipAttribute));
+                        if (tooltipAttribute != null)
+                        {
+                            propertyField.tooltip = (tooltipAttribute as TooltipAttribute)?.tooltip;
+                        }
                         m_Properties.Add(propertyField);
                     }
                 }

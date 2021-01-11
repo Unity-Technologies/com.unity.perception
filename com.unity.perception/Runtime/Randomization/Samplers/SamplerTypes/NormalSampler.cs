@@ -109,5 +109,15 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
                 }
             }
         }
+
+        /// <summary>
+        /// Used for performing sampler specific clean-up tasks (e.g. once the scenario is complete).
+        /// </summary>
+        public void Cleanup() { }
+
+        /// <summary>
+        /// Used for performing sampler specific clean-up tasks (e.g. once the scenario is complete).
+        /// </summary>
+        public void Initialize() { }
     }
 }

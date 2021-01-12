@@ -21,6 +21,7 @@ namespace RandomizationTests.SamplerTests
         public void Setup()
         {
             m_Sampler = m_BaseSampler;
+            m_BaseSampler.Initialize();
             m_ScenarioObj = new GameObject("Scenario");
             m_ScenarioObj.AddComponent<FixedLengthScenario>();
         }
@@ -28,6 +29,7 @@ namespace RandomizationTests.SamplerTests
         [TearDown]
         public void TearDown()
         {
+            m_BaseSampler.Cleanup();
             Object.DestroyImmediate(m_ScenarioObj);
         }
 

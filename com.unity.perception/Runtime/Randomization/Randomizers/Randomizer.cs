@@ -58,7 +58,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         /// <summary>
         /// OnCreate is called when the Randomizer is added or loaded to a scenario
         /// </summary>
-        protected virtual void OnCreate() { }
+        protected virtual void OnCreate()
+        {
+            InitializeSamplers();
+        }
 
         /// <summary>
         /// OnIterationStart is called at the start of a new scenario iteration

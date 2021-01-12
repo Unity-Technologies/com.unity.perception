@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 
@@ -78,6 +80,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         [BurstCompile]
         struct SampleJob : IJobParallelForBatch
         {
+            [ReadOnly]
             public NativeArray<float> integratedCurve;
             public float interval;
             public float startTime;
@@ -91,14 +94,19 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
                 var endIndex = startIndex + count;
                 var batchIndex = startIndex / SamplerUtility.samplingBatchSize;
                 var rng = new Unity.Mathematics.Random(SamplerUtility.IterateSeed((uint)batchIndex, seed));
+
                 if (!curveValid)
                 {
                     Debug.LogError("The distribution curve provided for an Animation Curve sampler is empty.");
                     return;
                 }
+
                 for (var i = startIndex; i < endIndex; i++)
+                {
                     samples[i] = SamplerUtility.AnimationCurveSample(integratedCurve, rng.NextFloat(), interval, startTime, endTime);
+                }
             }
+
         }
 
         /// <summary>

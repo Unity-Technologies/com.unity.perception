@@ -15,6 +15,9 @@ Added ScenarioBase.SerializeToConfigFile()
 
 Randomizer tags now support inheritance
 
+Added AnimationCurveSampler, which returns random values according to a range and probability distribution denoted by a user provided AnimationCurve. 
+
+
 ### Changed
 
 Randomizers now access their parent scenario through the static activeScenario property

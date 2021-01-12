@@ -200,12 +200,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
                     var valueDifference = integratedCurve[i + 1] - integratedCurve[i];
                     var upperWeight = (scaledSample - integratedCurve[i]) / valueDifference;
                     var lowerWeight = 1 - upperWeight;
-                    var matchingIndex = ((i * lowerWeight) + (i + 1 * upperWeight)) / 2;
+                    var matchingIndex = i * lowerWeight + (i + 1) * upperWeight;
                     var matchingTimeStamp = startTime + matchingIndex * interval;
                     return matchingTimeStamp;
                 }
             }
-            Debug.LogError("Could not find matching timestamp");
+            Debug.LogError("Could not find matching timestamp.");
             return -1;
         }
 

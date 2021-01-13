@@ -188,12 +188,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <param name="interval">The interval at which the original AnimationCurve was sampled in order to produce integratedCurve</param>
         /// <param name="startTime">The time attribute of the first key of the original AnimationCurve</param>
         /// <param name="endTime">The time attribute of the last key of the original AnimationCurve</param>
-        /// <returns></returns>
+        /// <returns>The generated sample</returns>
         public static float AnimationCurveSample(float[] integratedCurve, float uniformSample, float interval, float startTime, float endTime)
         {
             var scaledSample = uniformSample * integratedCurve[integratedCurve.Length - 1];
 
-            for (int i = 0; i < integratedCurve.Length - 1; i++)
+            for (var i = 0; i < integratedCurve.Length - 1; i++)
             {
                 if (scaledSample > integratedCurve[i] && scaledSample < integratedCurve[i + 1])
                 {
@@ -205,8 +205,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
                     return matchingTimeStamp;
                 }
             }
-            Debug.LogError("Could not find matching timestamp.");
-            return -1;
+            throw new ArithmeticException("Could not find matching timestamp.");
         }
 
         /// <summary>
@@ -214,6 +213,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// Based on https://en.wikipedia.org/wiki/Numerical_integration and http://blog.s-schoener.com/2018-05-05-animation-curves/
         /// Using the trapezoidal rule for numerical interpolation
         /// </summary>
+        /// <param name="array">The array to fill with integrated values</param>
+        /// <param name="curve">The animation curve to sample integrate</param>
+        /// <exception cref="ArgumentException"></exception>
         public static void IntegrateCurve(float[] array, AnimationCurve curve)
         {
             if (curve.length == 0)
@@ -227,7 +229,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
             array[0] = 0;
             var previousValue = curve.Evaluate(startTime);
 
-            for (int i = 1; i < array.Length; i++)
+            for (var i = 1; i < array.Length; i++)
             {
                 if (curve.length == 1)
                 {

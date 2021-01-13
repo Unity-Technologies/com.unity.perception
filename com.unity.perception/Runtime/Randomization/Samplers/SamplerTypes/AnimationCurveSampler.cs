@@ -22,8 +22,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// The Animation Curve associated with this sampler
         /// </summary>
         [Tooltip("Probability distribution curve used for this sampler. The X axis corresponds to the values this sampler will pick from, and the Y axis corresponds to the relative probability of the values. The relative probabilities (Y axis) do not need to max out at 1 as only the shape of the curve matters. The Y values cannot however be negative.")]
-        public AnimationCurve distributionCurve = new AnimationCurve(
-            new Keyframe(0, 0), new Keyframe(0.5f, 1), new Keyframe(1, 0));
+        public AnimationCurve distributionCurve;
 
         /// <summary>
         /// Number of samples used for integrating over the provided AnimationCurve.
@@ -37,6 +36,26 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         float m_StartTime;
         float m_EndTime;
         float m_Interval;
+
+        /// <summary>
+        /// Constructs a default AnimationCurveSampler
+        /// </summary>
+        public AnimationCurveSampler()
+        {
+            distributionCurve = new AnimationCurve(
+                new Keyframe(0, 0), new Keyframe(0.5f, 1), new Keyframe(1, 0));
+        }
+
+        /// <summary>
+        /// Constructs an AnimationCurveSampler with a given animation curve
+        /// </summary>
+        /// <param name="curve">The animation curve to sample from</param>
+        /// <param name="numberOfSamples">Number of samples used for integrating over the provided AnimationCurve</param>
+        public AnimationCurveSampler(AnimationCurve curve, int numberOfSamples=500)
+        {
+            distributionCurve = curve;
+            numOfSamplesForIntegration = numberOfSamples;
+        }
 
         /// <summary>
         /// Generates one sample
@@ -58,6 +77,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         {
             if (distributionCurve.length == 0)
                 throw new SamplerValidationException("The distribution curve provided is empty");
+
+            if (numOfSamplesForIntegration < 2)
+                throw new SamplerValidationException("Insufficient number of integration samples");
         }
 
         void Initialize()

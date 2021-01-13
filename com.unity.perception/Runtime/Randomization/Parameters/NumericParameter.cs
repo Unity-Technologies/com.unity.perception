@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         {
             base.Validate();
             foreach (var sampler in samplers)
-                sampler.range.Validate();
+                sampler.Validate();
         }
     }
 }

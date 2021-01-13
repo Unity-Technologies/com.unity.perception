@@ -9,45 +9,34 @@ using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 namespace UnityEngine.Experimental.Perception.Randomization.Samplers
 {
     /// <summary>
-    /// Returns random values according to a range and probability distribution denoted by a user provided AnimationCurve. The X axis of the AnimationCurve corresponds to the values this sampler will pick from, and the Y axis corresponds to the relative probability of the values. The relative probabilities (Y axis) do not need to max out at 1, as only the shape of the curve matters. The Y values cannot however be negative.
+    /// Returns random values according to a range and probability distribution denoted by a user provided AnimationCurve.
+    /// The X axis of the AnimationCurve corresponds to the values this sampler will pick from,
+    /// and the Y axis corresponds to the relative probability of the values.
+    /// The relative probabilities (Y axis) do not need to max out at 1, as only the shape of the curve matters.
+    /// The Y values cannot however be negative.
     /// </summary>
     [Serializable]
     public class AnimationCurveSampler : ISampler
     {
         /// <summary>
-        /// The range field is not used by the AnimationCurve sampler.
-        /// </summary>
-        [field: NonSerialized]
-        public FloatRange range { get; set; }
-
-        /// <summary>
         /// The Animation Curve associated with this sampler
         /// </summary>
         [Tooltip("Probability distribution curve used for this sampler. The X axis corresponds to the values this sampler will pick from, and the Y axis corresponds to the relative probability of the values. The relative probabilities (Y axis) do not need to max out at 1 as only the shape of the curve matters. The Y values cannot however be negative.")]
-        public AnimationCurve distributionCurve;
+        public AnimationCurve distributionCurve = new AnimationCurve(
+            new Keyframe(0, 0), new Keyframe(0.5f, 1), new Keyframe(1, 0));
 
         /// <summary>
-        /// Number of samples used for integrating over the provided AnimationCurve. The larger the number of samples, the more accurate the resulting probability distribution will be.
+        /// Number of samples used for integrating over the provided AnimationCurve.
+        /// The larger the number of samples, the more accurate the resulting probability distribution will be.
         /// </summary>
         [Tooltip("Number of internal samples used for integrating over the provided AnimationCurve. The larger the number of samples, the more accurately the resulting probability distribution will follow the provided AnimationCurve. Increase this if the default value proves insufficient.")]
-        public int numOfSamplesForIntegration = 1000;
+        public int numOfSamplesForIntegration = 500;
 
         float[] m_IntegratedCurve;
-        bool m_CurveValid;
+        bool m_Initialized;
         float m_StartTime;
         float m_EndTime;
         float m_Interval;
-
-        /// <summary>
-        /// Constructs an Animation Curve Sampler
-        /// </summary>
-        public AnimationCurveSampler()
-        {
-            distributionCurve = new AnimationCurve();
-            distributionCurve.AddKey(0, 0);
-            distributionCurve.AddKey(0.5f, 1);
-            distributionCurve.AddKey(1, 0);
-        }
 
         /// <summary>
         /// Generates one sample
@@ -56,37 +45,33 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         public float Sample()
         {
             Initialize();
-            if (!m_CurveValid)
-            {
-                return 0;
-            }
-
             var rng = new Unity.Mathematics.Random(ScenarioBase.activeScenario.NextRandomState());
-            return SamplerUtility.AnimationCurveSample(m_IntegratedCurve, rng.NextFloat(), m_Interval, m_StartTime, m_EndTime);
+            return SamplerUtility.AnimationCurveSample(
+                m_IntegratedCurve, rng.NextFloat(), m_Interval, m_StartTime, m_EndTime);
+        }
+
+        /// <summary>
+        /// Validates that the sampler is configured properly
+        /// </summary>
+        /// <exception cref="SamplerValidationException"></exception>
+        public void Validate()
+        {
+            if (distributionCurve.length == 0)
+                throw new SamplerValidationException("The distribution curve provided is empty");
         }
 
         void Initialize()
         {
-            m_CurveValid = false;
-
-            if (distributionCurve.length == 0)
-            {
-                Debug.LogError("The distribution curve provided for an Animation Curve sampler is empty.");
+            if (m_Initialized)
                 return;
-            }
 
-            m_CurveValid = true;
-
-            if (m_IntegratedCurve == null)
-            {
-                m_IntegratedCurve = new float[numOfSamplesForIntegration];
-
-                SamplerUtility.IntegrateCurve(m_IntegratedCurve, distributionCurve);
-
-                m_StartTime = distributionCurve.keys[0].time;
-                m_EndTime = distributionCurve.keys[distributionCurve.length - 1].time;
-                m_Interval = (m_EndTime - m_StartTime) / (numOfSamplesForIntegration - 1);
-            }
+            Validate();
+            m_IntegratedCurve = new float[numOfSamplesForIntegration];
+            SamplerUtility.IntegrateCurve(m_IntegratedCurve, distributionCurve);
+            m_StartTime = distributionCurve.keys[0].time;
+            m_EndTime = distributionCurve.keys[distributionCurve.length - 1].time;
+            m_Interval = (m_EndTime - m_StartTime) / (numOfSamplesForIntegration - 1);
+            m_Initialized = true;
         }
     }
 }

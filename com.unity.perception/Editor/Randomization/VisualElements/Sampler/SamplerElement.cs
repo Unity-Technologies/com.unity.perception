@@ -57,16 +57,25 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
         void CreateSampler(Type samplerType)
         {
             var newSampler = (ISampler)Activator.CreateInstance(samplerType);
-
-            if (m_RangeProperty != null)
-                newSampler.range = new FloatRange(
-                    m_RangeProperty.FindPropertyRelative("minimum").floatValue,
-                    m_RangeProperty.FindPropertyRelative("maximum").floatValue);
-
-
+            CopyFloatRangeToNewSampler(newSampler);
             m_Sampler = newSampler;
             m_Property.managedReferenceValue = newSampler;
             m_Property.serializedObject.ApplyModifiedProperties();
+        }
+
+        void CopyFloatRangeToNewSampler(ISampler newSampler)
+        {
+            if (m_RangeProperty == null)
+                return;
+
+            var rangeField = newSampler.GetType().GetField(m_RangeProperty.name);
+            if (rangeField == null)
+                return;
+
+            var range = new FloatRange(
+                m_RangeProperty.FindPropertyRelative("minimum").floatValue,
+                m_RangeProperty.FindPropertyRelative("maximum").floatValue);
+            rangeField.SetValue(newSampler, range);
         }
 
         void CreatePropertyFields()

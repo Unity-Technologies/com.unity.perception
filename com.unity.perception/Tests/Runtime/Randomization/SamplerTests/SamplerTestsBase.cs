@@ -8,11 +8,11 @@ using Object = UnityEngine.Object;
 
 namespace RandomizationTests.SamplerTests
 {
-    public abstract class RangedSamplerTests<T> where T : ISampler
+    public abstract class SamplerTestsBase<T> where T : ISampler
     {
-        const int k_TestSampleCount = 30;
+        protected const int k_TestSampleCount = 30;
         protected T m_BaseSampler;
-        T m_Sampler;
+        protected T m_Sampler;
         GameObject m_ScenarioObj;
 
         static ScenarioBase activeScenario => ScenarioBase.activeScenario;
@@ -29,23 +29,6 @@ namespace RandomizationTests.SamplerTests
         public void TearDown()
         {
             Object.DestroyImmediate(m_ScenarioObj);
-        }
-
-        [Test]
-        public void SamplesInRange()
-        {
-            var samples = new float[k_TestSampleCount];
-            for (var i = 0; i < samples.Length; i++)
-            {
-                samples[i] = m_Sampler.Sample();
-            }
-            Assert.AreEqual(samples.Length, k_TestSampleCount);
-
-            for (var i = 0; i < samples.Length; i++)
-            {
-                Assert.GreaterOrEqual(samples[i], m_Sampler.range.minimum);
-                Assert.LessOrEqual(samples[i], m_Sampler.range.maximum);
-            }
         }
 
         [Test]

@@ -195,8 +195,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 if (samplerFieldPair.Key == "range")
                 {
                     var rangeObj = (JObject)samplerFieldPair.Value;
-                    sampler.range = new FloatRange(
-                        rangeObj["minimum"].ToObject<float>(), rangeObj["maximum"].ToObject<float>());
+                    var field = sampler.GetType().GetField(samplerFieldPair.Key);
+                    var range = new FloatRange(rangeObj["minimum"].ToObject<float>(), rangeObj["maximum"].ToObject<float>());
+                    field.SetValue(sampler, range);
                 }
                 else
                 {

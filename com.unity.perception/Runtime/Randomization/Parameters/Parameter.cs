@@ -44,27 +44,5 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         /// Validates parameter settings
         /// </summary>
         public virtual void Validate() { }
-
-        /// <summary>
-        /// Perform clean-up tasks for all samplers
-        /// </summary>
-        public virtual void CleanupSamplers()
-        {
-            foreach (var sampler in samplers)
-            {
-                sampler.Cleanup();
-            }
-        }
-
-        /// <summary>
-        /// Perform initialization tasks for all samplers
-        /// </summary>
-        public virtual void InitializeSamplers()
-        {
-            foreach (var sampler in samplers)
-            {
-                sampler.Initialize();
-            }
-        }
     }
 }

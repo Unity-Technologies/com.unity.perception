@@ -189,7 +189,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <param name="startTime">The time attribute of the first key of the original AnimationCurve</param>
         /// <param name="endTime">The time attribute of the last key of the original AnimationCurve</param>
         /// <returns></returns>
-        public static float AnimationCurveSample(NativeArray<float> integratedCurve, float uniformSample, float interval, float startTime, float endTime)
+        public static float AnimationCurveSample(float[] integratedCurve, float uniformSample, float interval, float startTime, float endTime)
         {
             var scaledSample = uniformSample * integratedCurve[integratedCurve.Length - 1];
 
@@ -214,7 +214,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// Based on https://en.wikipedia.org/wiki/Numerical_integration and http://blog.s-schoener.com/2018-05-05-animation-curves/
         /// Using the trapezoidal rule for numerical interpolation
         /// </summary>
-        public static void IntegrateCurve(NativeArray<float> array, AnimationCurve curve)
+        public static void IntegrateCurve(float[] array, AnimationCurve curve)
         {
             if (curve.length == 0)
             {

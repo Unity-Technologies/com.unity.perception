@@ -58,10 +58,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         /// <summary>
         /// OnCreate is called when the Randomizer is added or loaded to a scenario
         /// </summary>
-        protected virtual void OnCreate()
-        {
-            InitializeSamplers();
-        }
+        protected virtual void OnCreate() { }
 
         /// <summary>
         /// OnIterationStart is called at the start of a new scenario iteration
@@ -76,10 +73,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         /// <summary>
         /// OnScenarioComplete is called the after the entire scenario has completed
         /// </summary>
-        protected virtual void OnScenarioComplete()
-        {
-            CleanupSamplers();
-        }
+        protected virtual void OnScenarioComplete() { }
 
         /// <summary>
         /// OnStartRunning is called on the first frame a Randomizer is enabled
@@ -131,22 +125,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
             {
                 m_PreviouslyEnabled = false;
                 OnStopRunning();
-            }
-        }
-
-        internal void CleanupSamplers()
-        {
-            foreach (var parameter in parameters)
-            {
-                parameter.CleanupSamplers();
-            }
-        }
-
-        internal void InitializeSamplers()
-        {
-            foreach (var parameter in parameters)
-            {
-                parameter.InitializeSamplers();
             }
         }
     }

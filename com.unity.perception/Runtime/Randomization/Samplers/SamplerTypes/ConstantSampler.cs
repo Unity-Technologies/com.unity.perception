@@ -50,46 +50,5 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         {
             return value;
         }
-
-        /// <summary>
-        /// Schedules a job to generate an array of samples
-        /// </summary>
-        /// <param name="sampleCount">The number of samples to generate</param>
-        /// <param name="jobHandle">The handle of the scheduled job</param>
-        /// <returns>A NativeArray of generated samples</returns>
-        public NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle)
-        {
-            var samples = new NativeArray<float>(
-                sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            jobHandle = new SampleJob
-            {
-                value = value,
-                samples = samples
-            }.Schedule();
-            return samples;
-        }
-
-        [BurstCompile]
-        struct SampleJob : IJob
-        {
-            public float value;
-            public NativeArray<float> samples;
-
-            public void Execute()
-            {
-                for (var i = 0; i < samples.Length; i++)
-                    samples[i] = value;
-            }
-        }
-
-        /// <summary>
-        /// Used for performing sampler specific clean-up tasks (e.g. once the scenario is complete).
-        /// </summary>
-        public void Cleanup() { }
-
-        /// <summary>
-        /// Used for performing sampler specific clean-up tasks (e.g. once the scenario is complete).
-        /// </summary>
-        public void Initialize() { }
     }
 }

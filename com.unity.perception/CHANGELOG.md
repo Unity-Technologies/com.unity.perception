@@ -36,6 +36,8 @@ ScenarioBase.Serialize() now not only serializes scenario constants, but also al
 
 Removed ScenarioBase.GenerateRandomSeedFromIndex()
 
+Removed native sampling (through jobs) capability from all samplers and parameters as it introduced additional complexity to the code and was not a common usage pattern
+
 ### Fixed
 
 Fixed an issue where the overlay panel would display a full screen semi-transparent image over the entire screen when the overlay panel is disabled in the UI

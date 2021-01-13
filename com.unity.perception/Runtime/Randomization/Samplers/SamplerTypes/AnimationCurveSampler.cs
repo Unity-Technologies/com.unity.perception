@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         [Tooltip("Probability distribution curve used for this sampler. The X axis corresponds to the values this sampler will pick from, and the Y axis corresponds to the relative probability of the values. The relative probabilities (Y axis) do not need to max out at 1 as only the shape of the curve matters. The Y values cannot however be negative.")]
         public AnimationCurve distributionCurve;
 
-        NativeArray<float> m_IntegratedCurve;
+        float[] m_IntegratedCurve;
         bool m_CurveValid;
         float m_StartTime;
         float m_EndTime;
@@ -50,80 +50,17 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <returns>The generated sample</returns>
         public float Sample()
         {
+            Initialize();
+            if (!m_CurveValid)
+            {
+                return 0;
+            }
+
             var rng = new Unity.Mathematics.Random(ScenarioBase.activeScenario.NextRandomState());
             return SamplerUtility.AnimationCurveSample(m_IntegratedCurve, rng.NextFloat(), m_Interval, m_StartTime, m_EndTime);
         }
 
-        /// <summary>
-        /// Schedules a job to generate an array of samples
-        /// </summary>
-        /// <param name="sampleCount">The number of samples to generate</param>
-        /// <param name="jobHandle">The handle of the scheduled job</param>
-        /// <returns>A NativeArray of generated samples</returns>
-        public NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle)
-        {
-            var samples = new NativeArray<float>(
-                sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            jobHandle = new SampleJob
-            {
-                integratedCurve = m_IntegratedCurve,
-                interval = m_Interval,
-                startTime = m_StartTime,
-                endTime = m_EndTime,
-                seed = ScenarioBase.activeScenario.NextRandomState(),
-                curveValid = m_CurveValid,
-                samples = samples
-            }.ScheduleBatch(sampleCount, SamplerUtility.samplingBatchSize);
-            return samples;
-        }
-
-        [BurstCompile]
-        struct SampleJob : IJobParallelForBatch
-        {
-            [ReadOnly]
-            public NativeArray<float> integratedCurve;
-            public float interval;
-            public float startTime;
-            public float endTime;
-            public uint seed;
-            public NativeArray<float> samples;
-            public bool curveValid;
-
-            public void Execute(int startIndex, int count)
-            {
-                var endIndex = startIndex + count;
-                var batchIndex = startIndex / SamplerUtility.samplingBatchSize;
-                var rng = new Unity.Mathematics.Random(SamplerUtility.IterateSeed((uint)batchIndex, seed));
-
-                if (!curveValid)
-                {
-                    Debug.LogError("The distribution curve provided for an Animation Curve sampler is empty.");
-                    return;
-                }
-
-                for (var i = startIndex; i < endIndex; i++)
-                {
-                    samples[i] = SamplerUtility.AnimationCurveSample(integratedCurve, rng.NextFloat(), interval, startTime, endTime);
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// Used for performing sampler specific clean-up tasks (e.g. once the scenario is complete).
-        /// </summary>
-        public void Cleanup()
-        {
-            if (m_IntegratedCurve.IsCreated)
-            {
-                m_IntegratedCurve.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// Used for performing sampler specific clean-up tasks (e.g. once the scenario is complete).
-        /// </summary>
-        public void Initialize()
+        void Initialize()
         {
             m_CurveValid = false;
 
@@ -135,9 +72,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
 
             m_CurveValid = true;
 
-            if (!m_IntegratedCurve.IsCreated)
+            if (m_IntegratedCurve == null)
             {
-                m_IntegratedCurve = new NativeArray<float>(m_NumOfSamples, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+                m_IntegratedCurve = new float[m_NumOfSamples];
+
                 SamplerUtility.IntegrateCurve(m_IntegratedCurve, distributionCurve);
 
                 m_StartTime = distributionCurve.keys[0].time;

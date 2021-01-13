@@ -24,15 +24,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         public abstract T Sample();
 
         /// <summary>
-        /// Schedules a job to generate an array of parameter samples.
-        /// Call Complete() on the JobHandle returned by this function to wait on the job generating the parameter samples.
-        /// </summary>
-        /// <param name="sampleCount">Number of parameter samples to generate</param>
-        /// <param name="jobHandle">The JobHandle returned from scheduling the sampling job</param>
-        /// <returns>A NativeArray containing generated samples</returns>
-        public abstract NativeArray<T> Samples(int sampleCount, out JobHandle jobHandle);
-
-        /// <summary>
         /// Generates a generic sample
         /// </summary>
         /// <returns>The generated sample</returns>

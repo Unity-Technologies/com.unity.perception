@@ -4,16 +4,19 @@ using UnityEngine.Experimental.Perception.Randomization.Samplers;
 namespace RandomizationTests.SamplerTests
 {
     [TestFixture]
-    public class UniformSamplerTestsBase : SamplerTestsBase<UniformSampler>
+    public class AnimationCurveSamplerTestsBase : SamplerTestsBase<AnimationCurveSampler>
     {
-        public UniformSamplerTestsBase()
+        public AnimationCurveSamplerTestsBase()
         {
-            m_BaseSampler = new UniformSampler(0f, 1f);
+            m_BaseSampler = new AnimationCurveSampler();
         }
 
         [Test]
         public void SamplesInRange()
         {
+            var min = m_Sampler.distributionCurve.keys[0].time;
+            var max = m_Sampler.distributionCurve.keys[m_Sampler.distributionCurve.length - 1].time;
+
             var samples = new float[k_TestSampleCount];
             for (var i = 0; i < samples.Length; i++)
             {
@@ -23,8 +26,8 @@ namespace RandomizationTests.SamplerTests
 
             for (var i = 0; i < samples.Length; i++)
             {
-                Assert.GreaterOrEqual(samples[i], m_Sampler.range.minimum);
-                Assert.LessOrEqual(samples[i], m_Sampler.range.maximum);
+                Assert.GreaterOrEqual(samples[i], min);
+                Assert.LessOrEqual(samples[i], max);
             }
         }
     }

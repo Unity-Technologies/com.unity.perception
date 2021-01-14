@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using Unity.Collections;
 using Unity.Mathematics;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Samplers
@@ -177,6 +178,71 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
 
             var stdTruncNorm = NormalCdfInverse(c);
             return stdTruncNorm * stdDev + mean;
+        }
+
+        /// <summary>
+        /// Generate samples from probability distribution derived from a given AnimationCurve.
+        /// </summary>
+        /// <param name="integratedCurve">Numerical integration representing the AnimationCurve</param>
+        /// <param name="uniformSample">A sample value between 0 and 1 generated from a uniform distribution</param>
+        /// <param name="interval">The interval at which the original AnimationCurve was sampled in order to produce integratedCurve</param>
+        /// <param name="startTime">The time attribute of the first key of the original AnimationCurve</param>
+        /// <param name="endTime">The time attribute of the last key of the original AnimationCurve</param>
+        /// <returns>The generated sample</returns>
+        public static float AnimationCurveSample(float[] integratedCurve, float uniformSample, float interval, float startTime, float endTime)
+        {
+            var scaledSample = uniformSample * integratedCurve[integratedCurve.Length - 1];
+
+            for (var i = 0; i < integratedCurve.Length - 1; i++)
+            {
+                if (scaledSample > integratedCurve[i] && scaledSample < integratedCurve[i + 1])
+                {
+                    var valueDifference = integratedCurve[i + 1] - integratedCurve[i];
+                    var upperWeight = (scaledSample - integratedCurve[i]) / valueDifference;
+                    var lowerWeight = 1 - upperWeight;
+                    var matchingIndex = i * lowerWeight + (i + 1) * upperWeight;
+                    var matchingTimeStamp = startTime + matchingIndex * interval;
+                    return matchingTimeStamp;
+                }
+            }
+            throw new ArithmeticException("Could not find matching timestamp.");
+        }
+
+        /// <summary>
+        /// Numerically integrate a given AnimationCurve using the specified number of samples.
+        /// Based on https://en.wikipedia.org/wiki/Numerical_integration and http://blog.s-schoener.com/2018-05-05-animation-curves/
+        /// Using the trapezoidal rule for numerical interpolation
+        /// </summary>
+        /// <param name="array">The array to fill with integrated values</param>
+        /// <param name="curve">The animation curve to sample integrate</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void IntegrateCurve(float[] array, AnimationCurve curve)
+        {
+            if (curve.length == 0)
+            {
+                throw new ArgumentException("The provided Animation Curve includes no keys.");
+            }
+            var startTime = curve.keys[0].time;
+            var endTime = curve.keys[curve.length - 1].time;
+            var interval = (endTime - startTime) / (array.Length - 1);
+
+            array[0] = 0;
+            var previousValue = curve.Evaluate(startTime);
+
+            for (var i = 1; i < array.Length; i++)
+            {
+                if (curve.length == 1)
+                {
+                    array[i] = previousValue;
+                }
+                else
+                {
+                    var currentTime = startTime + i * interval;
+                    var currentValue = curve.Evaluate(currentTime);
+                    array[i] = array[i-1] + (previousValue + currentValue) * interval / 2;
+                    previousValue = currentValue;
+                }
+            }
         }
     }
 }

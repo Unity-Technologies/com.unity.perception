@@ -45,35 +45,3 @@ namespace UnityEngine.Perception.Randomization.Parameters
 ### Numeric Parameters
 
 Numeric parameters use samplers to generate randomized structs. Take a look at the [ColorHsvaParameter]() class included in the perception package for an example on how to implement a numeric parameter.
-
-## Improving Sampling Performance
-For numeric parameters, it is recommended to use the JobHandle overload of the Samples() method when generating a large number of samples. The JobHandle overload will utilize the Unity Burst Compiler and Job System to automatically optimize and multithread parameter sampling jobs. The code block below is an example of how to use this overload to sample two parameters in parallel:
-```
-// Get a reference to the parameter configuration attached to this GameObject
-var parameterConfiguration = GetComponent<ParameterConfiguration>();
-
-// Lookup parameters
-var cubeColorParameter = parameterConfiguration.GetParameter<HsvaColorParameter>("CubeColor");
-var cubePositionParameter = parameterConfiguration.GetParameter<Vector3Parameter>("CubePosition");
-
-// Schedule sampling jobs
-var cubeColors = cubeColorParameter.Samples(constants.cubeCount, out var colorHandle);
-var cubePositions = cubePositionParameter.Samples(constants.cubeCount, out var positionHandle);
-
-// Combine job handles
-var handles = JobHandle.CombineDependencies(colorHandle, positionHandle);
-
-// Wait for the jobs to complete
-handles.Complete();
-
-// Use the created samples
-for (var i = 0; i < constants.cubeCount; i++)
-{
-    m_ObjectMaterials[i].SetColor(k_BaseColorProperty, cubeColors[i]);
-    m_Objects[i].transform.position = cubePositions[i];
-}
-
-// Dispose of the generated samples
-cubeColors.Dispose();
-cubePositions.Dispose();
-```

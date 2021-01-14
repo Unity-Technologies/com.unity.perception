@@ -33,16 +33,5 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         {
             return value.Sample();
         }
-
-        /// <summary>
-        /// Schedules a job to generate an array of samples
-        /// </summary>
-        /// <param name="sampleCount">The number of samples to generate</param>
-        /// <param name="jobHandle">The handle of the scheduled job</param>
-        /// <returns>A NativeArray of samples</returns>
-        public override NativeArray<float> Samples(int sampleCount, out JobHandle jobHandle)
-        {
-            return value.Samples(sampleCount, out jobHandle);
-        }
     }
 }

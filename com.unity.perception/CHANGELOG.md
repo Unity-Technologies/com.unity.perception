@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Upgrade Notes
+
+Before upgrading a project to this version of the Perception package, make sure to keep a record of **all sampler ranges** in your added Randomizers. Due to a change in how sampler ranges are serialized, **after upgrading to this version, ranges for all stock Perception samplers (Uniform and Normal Samplers) will be reset**, and will need to be manually reverted by the user.
+
 ### Added
 
 Added ScenarioConstants base class for all scenario constants objects
@@ -14,6 +18,9 @@ Added ScenarioConstants base class for all scenario constants objects
 Added ScenarioBase.SerializeToConfigFile()
 
 Randomizer tags now support inheritance
+
+Added AnimationCurveSampler, which returns random values according to a range and probability distribution denoted by a user provided AnimationCurve. 
+
 
 ### Changed
 
@@ -32,6 +39,10 @@ ScenarioBase.Serialize() now not only serializes scenario constants, but also al
 ### Removed
 
 Removed ScenarioBase.GenerateRandomSeedFromIndex()
+
+Removed native sampling (through jobs) capability from all samplers and parameters as it introduced additional complexity to the code and was not a common usage pattern
+
+Removed `range` as a required ISampler interface property.
 
 ### Fixed
 

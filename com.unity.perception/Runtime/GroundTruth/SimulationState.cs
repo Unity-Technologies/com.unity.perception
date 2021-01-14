@@ -143,8 +143,11 @@ namespace UnityEngine.Perception.GroundTruth
             public string description;
             public float period;
             public float firstCaptureTime;
+            public bool autoCapture;
+            public bool controlSimulationTiming;
 
-            public float sequenceTimeNextCapture;
+            public bool externalCaptureRequestPending;
+            public float sequenceTimeOfNextCapture;
             public int lastCaptureFrameCount;
             public EgoHandle egoHandle;
         }
@@ -350,7 +353,7 @@ namespace UnityEngine.Perception.GroundTruth
             foreach (var kvp in m_Sensors.ToArray())
             {
                 var sensorData = kvp.Value;
-                sensorData.sequenceTimeNextCapture = SequenceTimeOfNextCapture(sensorData);
+                sensorData.sequenceTimeOfNextCapture = GetSequenceTimeOfNextCapture(sensorData);
                 m_Sensors[kvp.Key] = sensorData;
             }
 
@@ -365,7 +368,7 @@ namespace UnityEngine.Perception.GroundTruth
             m_LastTimeScale = Time.timeScale;
         }
 
-        public void AddSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, SensorHandle sensor)
+        public void AddSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, bool autoCapture, bool controlSimulationTiming, SensorHandle sensor)
         {
             var sensorData = new SensorData()
             {
@@ -373,21 +376,24 @@ namespace UnityEngine.Perception.GroundTruth
                 description = description,
                 period = period,
                 firstCaptureTime = firstCaptureTime,
+                autoCapture = autoCapture,
+                controlSimulationTiming = controlSimulationTiming,
                 egoHandle = egoHandle,
                 lastCaptureFrameCount = -1
             };
-            sensorData.sequenceTimeNextCapture = SequenceTimeOfNextCapture(sensorData);
+            sensorData.externalCaptureRequestPending = false;
+            sensorData.sequenceTimeOfNextCapture = GetSequenceTimeOfNextCapture(sensorData);
             m_ActiveSensors.Add(sensor);
             m_Sensors.Add(sensor, sensorData);
             m_Ids.Add(sensor.Id);
         }
 
-        float SequenceTimeOfNextCapture(SensorData sensorData)
+        float GetSequenceTimeOfNextCapture(SensorData sensorData)
         {
             // If the first capture hasn't happened yet, sequenceTimeNextCapture field won't be valid
             if (sensorData.firstCaptureTime >= UnscaledSequenceTime)
                 return sensorData.firstCaptureTime;
-            return sensorData.sequenceTimeNextCapture;
+            return sensorData.sequenceTimeOfNextCapture;
         }
 
         public bool Contains(Guid id) => m_Ids.Contains(id);
@@ -431,21 +437,26 @@ namespace UnityEngine.Perception.GroundTruth
                 m_HasStarted = true;
             }
 
+            EnsureSequenceTimingsUpdated();
+
             //update the active sensors sequenceTimeNextCapture and lastCaptureFrameCount
             foreach (var activeSensor in m_ActiveSensors)
             {
                 var sensorData = m_Sensors[activeSensor];
-                if (!activeSensor.ShouldCaptureThisFrame)
-                    continue;
+                if (sensorData.autoCapture)
+                {
+                    if (!activeSensor.ShouldCaptureThisFrame)
+                        continue;
 
-                // TODO: AISV-845 This is an errant modification of this record that can lead to undefined behavior
-                // Leaving as-is for now because too many components depend on this logic
-                sensorData.sequenceTimeNextCapture += sensorData.period;
-                Debug.Assert(sensorData.sequenceTimeNextCapture > UnscaledSequenceTime,
-                    $"Next scheduled capture should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeNextCapture}");
-                // sensorData.sequenceTimeNextCapture = SequenceTimeOfNextCapture(sensorData);
-                sensorData.lastCaptureFrameCount = Time.frameCount;
-                m_Sensors[activeSensor] = sensorData;
+                    // TODO: AISV-845 This is an errant modification of this record that can lead to undefined behavior
+                    // Leaving as-is for now because too many components depend on this logic
+                    sensorData.sequenceTimeOfNextCapture += sensorData.period;
+                    Debug.Assert(sensorData.sequenceTimeOfNextCapture > UnscaledSequenceTime,
+                        $"Next scheduled capture should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeOfNextCapture}");
+                    // sensorData.sequenceTimeNextCapture = SequenceTimeOfNextCapture(sensorData);
+                    sensorData.lastCaptureFrameCount = Time.frameCount;
+                    m_Sensors[activeSensor] = sensorData;
+                }
             }
 
             //find the deltatime required to land on the next active sensor that needs simulation
@@ -453,17 +464,36 @@ namespace UnityEngine.Perception.GroundTruth
             foreach (var activeSensor in m_ActiveSensors)
             {
                 var sensorData = m_Sensors[activeSensor];
-                var thisSensorNextFrameDt = sensorData.sequenceTimeNextCapture - UnscaledSequenceTime;
+                if (sensorData.controlSimulationTiming)
+                {
+                    var thisSensorNextFrameDt = sensorData.sequenceTimeOfNextCapture - UnscaledSequenceTime;
 
-                Debug.Assert(thisSensorNextFrameDt > 0f, "Sensor was scheduled to run in the past but got skipped over.");
-                if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
-                    nextFrameDt = thisSensorNextFrameDt;
+                    Debug.Assert(thisSensorNextFrameDt > 0f, "Sensor was scheduled to run in the past but got skipped over.");
+                    if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
+                        nextFrameDt = thisSensorNextFrameDt;
+                }
+            }
+
+            if (Math.Abs(nextFrameDt - k_MaxDeltaTime) < 0.00001)
+            {
+                //means no sensor is controlling simulation timing, default to 60fps
+                nextFrameDt = 1f/60;
             }
 
             WritePendingCaptures();
             WritePendingMetrics();
 
             Time.captureDeltaTime = nextFrameDt;
+        }
+
+        public void ExternalCaptureRequestForSensor(SensorHandle sensorHandle)
+        {
+            if (!m_Sensors.ContainsKey(sensorHandle))
+                return;
+
+            var data = m_Sensors[sensorHandle];
+            data.externalCaptureRequestPending = true;
+            m_Sensors[sensorHandle] = data;
         }
 
         public bool ShouldCaptureThisFrame(SensorHandle sensorHandle)
@@ -475,7 +505,15 @@ namespace UnityEngine.Perception.GroundTruth
             if (data.lastCaptureFrameCount == Time.frameCount)
                 return true;
 
-            return (data.sequenceTimeNextCapture - UnscaledSequenceTime) < k_IncludeInFrameThreshold;
+            bool captureRequested = data.externalCaptureRequestPending;
+            if (captureRequested)
+            {
+                data.externalCaptureRequestPending = false;
+                m_Sensors[sensorHandle] = data;
+            }
+
+            return (data.autoCapture && (data.sequenceTimeOfNextCapture - UnscaledSequenceTime) < k_IncludeInFrameThreshold)
+                || captureRequested;
         }
 
         public void End()

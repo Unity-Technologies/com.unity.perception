@@ -63,7 +63,7 @@ namespace GroundTruthTests
             var ego = DatasetCapture.RegisterEgo("ego");
             var firstCaptureTime = 1.5f;
             var period = .4f;
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime, true, true);
 
             float[] sequenceTimesExpected =
             {
@@ -87,7 +87,7 @@ namespace GroundTruthTests
             var ego = DatasetCapture.RegisterEgo("ego");
             var firstCaptureTime = 1.5f;
             var period = .4f;
-            DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime);
+            DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime, true, true);
 
             float[] deltaTimeSamplesExpected =
             {
@@ -113,7 +113,7 @@ namespace GroundTruthTests
 
             var timeScale = 2;
             Time.timeScale = timeScale;
-            DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime);
+            DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime, true, true);
 
             float[] deltaTimeSamplesExpected =
             {
@@ -134,7 +134,7 @@ namespace GroundTruthTests
         public IEnumerator ChangingTimeScale_CausesDebugError()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            DatasetCapture.RegisterSensor(ego, "cam", "", 1f, 2f);
+            DatasetCapture.RegisterSensor(ego, "cam", "", 1f, 2f, true, true);
 
             yield return null;
             Time.timeScale = 5;
@@ -146,7 +146,7 @@ namespace GroundTruthTests
         public IEnumerator ChangingTimeScale_DuringStartNewSequence_Succeeds()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            DatasetCapture.RegisterSensor(ego, "cam", "", 1f, 2f);
+            DatasetCapture.RegisterSensor(ego, "cam", "", 1f, 2f, true, true);
 
             yield return null;
             Time.timeScale = 1;
@@ -168,7 +168,7 @@ namespace GroundTruthTests
                 .01f,
                 1f
             };
-            DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime);
+            DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime, true, true);
 
             float[] deltaTimeSamplesExpected =
             {
@@ -190,7 +190,7 @@ namespace GroundTruthTests
         public IEnumerator ResetSimulation_ResetsCaptureDeltaTime()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            DatasetCapture.RegisterSensor(ego, "cam", "", 4, 10);
+            DatasetCapture.RegisterSensor(ego, "cam", "", 4, 10, true, true);
             yield return null;
             Assert.AreEqual(10, Time.captureDeltaTime);
             DatasetCapture.ResetSimulation();
@@ -203,13 +203,13 @@ namespace GroundTruthTests
             var ego = DatasetCapture.RegisterEgo("ego");
             var firstCaptureTime1 = 10;
             var frequencyInMs1 = 4;
-            var sensor1 = DatasetCapture.RegisterSensor(ego, "cam", "1", frequencyInMs1, firstCaptureTime1);
+            var sensor1 = DatasetCapture.RegisterSensor(ego, "cam", "1", frequencyInMs1, firstCaptureTime1, true, true);
 
             var firstCaptureTime2 = 10;
             var frequencyInMs2 = 6;
-            var sensor2 = DatasetCapture.RegisterSensor(ego, "cam", "2", frequencyInMs2, firstCaptureTime2);
+            var sensor2 = DatasetCapture.RegisterSensor(ego, "cam", "2", frequencyInMs2, firstCaptureTime2, true, true);
 
-            var sensor3 = DatasetCapture.RegisterSensor(ego, "cam", "3", 1, 1);
+            var sensor3 = DatasetCapture.RegisterSensor(ego, "cam", "3", 1, 1, true, true);
             sensor3.Enabled = false;
 
             (float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture)[] samplesExpected =
@@ -233,7 +233,7 @@ namespace GroundTruthTests
         [Test]
         public void Enabled_StartsTrue()
         {
-            var sensor1 = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "cam", "1", 1, 1);
+            var sensor1 = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "cam", "1", 1, 1, true, true);
             Assert.IsTrue(sensor1.Enabled);
         }
     }

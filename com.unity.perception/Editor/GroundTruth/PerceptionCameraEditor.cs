@@ -85,6 +85,8 @@ namespace UnityEditor.Perception.GroundTruth
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)), new GUIContent("Start Time","Time at which this perception camera starts rendering and capturing (seconds)."));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)), new GUIContent("Show Labeler Visualizations", "Display realtime visualizations for labelers that are currently active on this perception camera."));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)),new GUIContent("Save Camera Output to Disk", "For each captured frame, save an RGB image of the perception camera's output to disk."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.scheduledCapture)),new GUIContent("Scheduled Capture", ""));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.affectSimulationTiming)),new GUIContent("Affect Simulation Timings", ""));
                 serializedObject.ApplyModifiedProperties();
 
                 //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(PerceptionCamera.labelers)));

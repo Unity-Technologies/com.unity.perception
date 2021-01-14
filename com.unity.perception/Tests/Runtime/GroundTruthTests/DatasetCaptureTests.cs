@@ -52,7 +52,7 @@ namespace GroundTruthTests
 }}";
 
             var ego = DatasetCapture.RegisterEgo(egoDescription);
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, modality, sensorDescription, 1, 1);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, modality, sensorDescription, 1, 1, true, true);
             Assert.IsTrue(sensorHandle.IsValid);
             DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
@@ -151,7 +151,7 @@ namespace GroundTruthTests
 }}";
 
             var ego = DatasetCapture.RegisterEgo("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "camera", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "camera", "", 1, 0, true, true);
             var sensorSpatialData = new SensorSpatialData(new Pose(egoPosition, egoRotation), new Pose(position, rotation), egoVelocity, null);
             sensorHandle.ReportCapture(filename, sensorSpatialData, ("camera_intrinsic", intrinsics));
 
@@ -177,7 +177,7 @@ namespace GroundTruthTests
             };
 
             var ego = DatasetCapture.RegisterEgo("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 2, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 2, 0, true, true);
             var sensorSpatialData = new SensorSpatialData(default, default, null, null);
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
             sensorHandle.ReportCapture("f", sensorSpatialData);
@@ -263,7 +263,7 @@ namespace GroundTruthTests
       ]";
 
             var ego = DatasetCapture.RegisterEgo("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0, true, true);
             sensorHandle.ReportCapture(filename, default);
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("semantic segmentation", "pixel-wise semantic segmentation label", "PNG", annotationDefinitionGuid);
             sensorHandle.ReportAnnotationFile(annotationDefinition, "annotations/semantic_segmentation_000.png");
@@ -317,7 +317,7 @@ namespace GroundTruthTests
 
             var ego = DatasetCapture.RegisterEgo("");
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0, true, true);
 
             sensorHandle.ReportAnnotationValues(annotationDefinition, values);
             DatasetCapture.ResetSimulation();
@@ -333,7 +333,7 @@ namespace GroundTruthTests
         {
             var ego = DatasetCapture.RegisterEgo("");
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100, true, true);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationFile(annotationDefinition, ""));
         }
 
@@ -342,7 +342,7 @@ namespace GroundTruthTests
         {
             var ego = DatasetCapture.RegisterEgo("");
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100, true, true);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationValues(annotationDefinition, new int[0]));
         }
 
@@ -351,7 +351,7 @@ namespace GroundTruthTests
         {
             var ego = DatasetCapture.RegisterEgo("");
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100, true, true);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationAsync(annotationDefinition));
         }
 
@@ -360,7 +360,7 @@ namespace GroundTruthTests
         {
             var ego = DatasetCapture.RegisterEgo("");
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0, true, true);
             sensorHandle.ReportAnnotationAsync(annotationDefinition);
             DatasetCapture.ResetSimulation();
             LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending .*"));
@@ -383,7 +383,7 @@ namespace GroundTruthTests
 
             var ego = DatasetCapture.RegisterEgo("");
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0, true, true);
             var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
 
             Assert.IsTrue(asyncAnnotation.IsValid);
@@ -404,7 +404,7 @@ namespace GroundTruthTests
 
             var ego = DatasetCapture.RegisterEgo("");
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0, true, true);
             var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
 
             Assert.IsTrue(asyncAnnotation.IsPending);
@@ -460,7 +460,7 @@ namespace GroundTruthTests
 
             var ego = DatasetCapture.RegisterEgo("");
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0, true, true);
             var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
 
             Assert.IsTrue(asyncAnnotation.IsPending);
@@ -490,7 +490,7 @@ namespace GroundTruthTests
 
             var ego = DatasetCapture.RegisterEgo("");
             var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0, true, true);
 
             // Record one capture for this frame
             sensorHandle.ReportCapture(fileName, default);
@@ -579,7 +579,7 @@ namespace GroundTruthTests
         {
             var ego = DatasetCapture.RegisterEgo("");
             var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100, true, true);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetric(metricDefinition, new int[0]));
         }
 
@@ -588,7 +588,7 @@ namespace GroundTruthTests
         {
             var ego = DatasetCapture.RegisterEgo("");
             var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 100, true, true);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetricAsync(metricDefinition));
         }
 
@@ -597,7 +597,7 @@ namespace GroundTruthTests
         {
             var ego = DatasetCapture.RegisterEgo("");
             var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0, true, true);
             sensorHandle.ReportMetricAsync(metricDefinition);
             DatasetCapture.ResetSimulation();
             LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending .*"));
@@ -610,7 +610,7 @@ namespace GroundTruthTests
 
             var ego = DatasetCapture.RegisterEgo("");
             var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0);
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 1, 0, true, true);
             var asyncMetric = sensorHandle.ReportMetricAsync(metricDefinition);
 
             Assert.IsTrue(asyncMetric.IsValid);
@@ -633,7 +633,7 @@ namespace GroundTruthTests
             var expectedLine = @"""step"": 0";
 
             var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 1, 0);
+            DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 1, 0, true, true);
 
             yield return null;
             yield return null;
@@ -653,7 +653,7 @@ namespace GroundTruthTests
             var expectedLine = @"""step"": 0";
 
             var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensor = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 1, 0);
+            var sensor = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 1, 0, true, true);
 
             yield return null;
             sensor.ReportMetric(metricDefinition, values);
@@ -710,7 +710,7 @@ namespace GroundTruthTests
 }}";
 
             var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensor = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 1, 0);
+            var sensor = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 1, 0, true, true);
             var annotation = sensor.ReportAnnotationFile(DatasetCapture.RegisterAnnotationDefinition(""), "");
             var valuesJsonArray = JArray.FromObject(values).ToString(Formatting.Indented);
             if (async)

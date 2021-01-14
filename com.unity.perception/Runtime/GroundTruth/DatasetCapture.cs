@@ -51,16 +51,18 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="description">A human-readable description of the sensor (ex. "front-left rgb camera")</param>
         /// <param name="period">The period, in seconds, on which the sensor should capture. Frames will be scheduled in the simulation such that each sensor is triggered every _period_ seconds.</param>
         /// <param name="firstCaptureTime">The time, in seconds, from the start of the sequence on which this sensor should first be scheduled.</param>
+        /// <param name="autoCapture"></param>
+        /// <param name="controlSimulationTiming"></param>
         /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
         /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
         /// <exception cref="ArgumentException">Thrown if ego is invalid.</exception>
-        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime)
+        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, bool autoCapture, bool controlSimulationTiming)
         {
             if (!SimulationState.Contains(egoHandle.Id))
                 throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(egoHandle));
 
             var sensor = new SensorHandle(Guid.NewGuid());
-            SimulationState.AddSensor(egoHandle, modality, description, period, firstCaptureTime, sensor);
+            SimulationState.AddSensor(egoHandle, modality, description, period, firstCaptureTime, autoCapture, controlSimulationTiming, sensor);
             return sensor;
         }
 
@@ -223,8 +225,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
         public Annotation ReportAnnotationFile(AnnotationDefinition annotationDefinition, string filename)
         {
-            if (!ShouldCaptureThisFrame)
-                throw new InvalidOperationException("Annotation reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
+            // if (!ShouldCaptureThisFrame)
+            //     throw new InvalidOperationException("Annotation reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
             if (!annotationDefinition.IsValid)
                 throw new ArgumentException("The given annotationDefinition is invalid", nameof(annotationDefinition));
 
@@ -242,8 +244,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
         public Annotation ReportAnnotationValues<T>(AnnotationDefinition annotationDefinition, T[] values)
         {
-            if (!ShouldCaptureThisFrame)
-                throw new InvalidOperationException("Annotation reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
+            // if (!ShouldCaptureThisFrame)
+            //     throw new InvalidOperationException("Annotation reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
             if (!annotationDefinition.IsValid)
                 throw new ArgumentException("The given annotationDefinition is invalid", nameof(annotationDefinition));
 
@@ -259,8 +261,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
         public AsyncAnnotation ReportAnnotationAsync(AnnotationDefinition annotationDefinition)
         {
-            if (!ShouldCaptureThisFrame)
-                throw new InvalidOperationException("Annotation reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
+            // if (!ShouldCaptureThisFrame)
+            //     throw new InvalidOperationException("Annotation reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
             if (!annotationDefinition.IsValid)
                 throw new ArgumentException("The given annotationDefinition is invalid", nameof(annotationDefinition));
 
@@ -276,10 +278,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// <exception cref="InvalidOperationException">Thrown if ReportCapture is being called when ShouldCaptureThisFrame is false or it has already been called this frame.</exception>
         public void ReportCapture(string filename, SensorSpatialData sensorSpatialData, params(string, object)[] additionalSensorValues)
         {
-            if (!ShouldCaptureThisFrame)
-            {
-                throw new InvalidOperationException("Capture reported in frame when ShouldCaptureThisFrame is false.");
-            }
+            // if (!ShouldCaptureThisFrame)
+            // {
+            //     throw new InvalidOperationException("Capture reported in frame when ShouldCaptureThisFrame is false.");
+            // }
 
             DatasetCapture.SimulationState.ReportCapture(this, filename, sensorSpatialData, additionalSensorValues);
         }
@@ -289,6 +291,11 @@ namespace UnityEngine.Perception.GroundTruth
         /// they should capture during the frame. Captures should only be reported when this is true.
         /// </summary>
         public bool ShouldCaptureThisFrame => DatasetCapture.SimulationState.ShouldCaptureThisFrame(this);
+
+        public void CaptureOnNextUpdate()
+        {
+            DatasetCapture.SimulationState.ExternalCaptureRequestForSensor(this);
+        }
 
         /// <summary>
         /// Report a metric regarding this sensor in the current frame.
@@ -303,8 +310,8 @@ namespace UnityEngine.Perception.GroundTruth
             if (values == null)
                 throw new ArgumentNullException(nameof(values));
 
-            if (!ShouldCaptureThisFrame)
-                throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
+            // if (!ShouldCaptureThisFrame)
+            //     throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
 
             DatasetCapture.SimulationState.ReportMetric(metricDefinition, values, this, default);
         }
@@ -318,8 +325,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// <exception cref="InvalidOperationException">Thrown if <see cref="ShouldCaptureThisFrame"/> is false.</exception>
         public void ReportMetric(MetricDefinition metricDefinition, [NotNull] string valuesJsonArray)
         {
-            if (!ShouldCaptureThisFrame)
-                throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
+            // if (!ShouldCaptureThisFrame)
+            //     throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
 
             DatasetCapture.SimulationState.ReportMetric(metricDefinition, new JRaw(valuesJsonArray), this, default);
         }
@@ -332,8 +339,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// <returns>An <see cref="AsyncMetric"/> which should be used to report the metric values, potentially in a later frame</returns>
         public AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition)
         {
-            if (!ShouldCaptureThisFrame)
-                throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
+            // if (!ShouldCaptureThisFrame)
+            //     throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
 
             return DatasetCapture.SimulationState.CreateAsyncMetric(metricDefinition, this);
         }

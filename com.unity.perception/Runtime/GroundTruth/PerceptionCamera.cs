@@ -50,6 +50,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public Camera attachedCamera => m_AttachedCamera;
 
+        public bool scheduledCapture;
+
+        public bool affectSimulationTiming;
+
         /// <summary>
         /// Event invoked after the camera finishes rendering during a frame.
         /// </summary>
@@ -146,7 +150,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 m_EgoMarker = GetComponentInParent<Ego>();
                 var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
-                SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime);
+                SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime, scheduledCapture, affectSimulationTiming);
             }
         }
 
@@ -206,7 +210,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!SensorHandle.IsValid)
                 return;
 
-            m_AttachedCamera.enabled = SensorHandle.ShouldCaptureThisFrame;
+            //m_AttachedCamera.enabled = SensorHandle.ShouldCaptureThisFrame;
 
             bool anyVisualizing = false;
             foreach (var labeler in m_Labelers)
@@ -426,6 +430,7 @@ namespace UnityEngine.Perception.GroundTruth
                 return;
 #endif
             CaptureRgbData(cam);
+            Debug.Log("===================== CAPTURING");
 
             foreach (var labeler in m_Labelers)
             {

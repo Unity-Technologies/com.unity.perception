@@ -54,28 +54,28 @@ To read more about scenarios and how to customize them, navigate over to the [sc
 
 Randomizers encapsulate specific randomization activities to perform during the lifecycle of a randomized simulation. For example, randomizers exist for spawning objects, repositioning lights, varying the color of objects, etc. Randomizers expose random parameters to their inspector interface to further customize these variations.
 
-To read more about how to create custom parameter types, navigate over to the [randomizers doc](Randomizers.md).
+To read more about how to create custom parameter types, navigate over to the **[Randomizers doc](Randomizers.md)**.
 
 
 ## Randomizer Tags
 
 RandomizerTags are the primary mechanism by which randomizers query for a certain subset of GameObjects to randoize within a simulation. For example, a rotation randomizer could query for all GameObjects with a RotationRandomizerTag component to obtain an array of all objects the randomizer should vary for the given simulation iteration.
 
-To read more about how to use RandomizerTags, navigate over to the [RandomizerTags doc](RandomizerTags.md).
+To read more about how to use RandomizerTags, navigate over to the **[RandomizerTags doc](RandomizerTags.md)**.
 
 
 ## Parameters
 
 Parameters are classes that utilize samplers to deterministically generate random typed values. Parameters are often exposed within the inspector interface of randomizers to allow users to customize said randomizer's behavior. To accomplish this, parameters combine and transform the float values produced by one or more samplers into various C# types. For example, a Vector3 parameter can be used to map three samplers to the x, y, and z dimensions of a GameObject. Or a material parameter can utilize a sampler to randomly select one material from a list of possible options.
 
-To read more about how to create custom parameter types, navigate over to the [parameters doc](Parameters.md).
+To read more about how to create custom parameter types, navigate over to the **[Parameters doc](Parameters.md)**.
 
 
 ## Samplers
 
 Samplers generate bounded random float values by sampling from probability distributions. They are considered bounded since each random sampler generates float values within a range defined by a minumum and maximum value.
 
-Take a look at the [samplers doc](Samplers.md) to learn more about implementing custom probability distributions and samplers that can integrate with the perception package.
+Take a look at the **[Samplers doc](Samplers.md)** to learn more about implementing custom probability distributions and samplers that can integrate with the perception package.
 
 
 ## Getting Started

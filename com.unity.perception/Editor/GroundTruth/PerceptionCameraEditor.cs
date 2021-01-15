@@ -81,17 +81,39 @@ namespace UnityEditor.Perception.GroundTruth
             using(new EditorGUI.DisabledScope(EditorApplication.isPlaying))
             {
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)), new GUIContent("Description", "Provide a description for this perception camera (optional)."));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)), new GUIContent("Capture Interval", "The interval at which the perception camera should render and capture (seconds)."));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)), new GUIContent("Start Time","Time at which this perception camera starts rendering and capturing (seconds)."));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)), new GUIContent("Show Labeler Visualizations", "Display realtime visualizations for labelers that are currently active on this perception camera."));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)),new GUIContent("Save Camera Output to Disk", "For each captured frame, save an RGB image of the perception camera's output to disk."));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.scheduledCapture)),new GUIContent("Scheduled Capture", ""));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.affectSimulationTiming)),new GUIContent("Affect Simulation Timings", ""));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureTriggerMode)),new GUIContent("Scheduled Capture", ""));
+
+                if (perceptionCamera.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled))
+                {
+                    GUILayout.BeginVertical("Box");
+                    GUILayout.Label("Scheduled Capture Properties");
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)), new GUIContent("Start Time","Time at which this perception camera starts rendering and capturing (seconds)."));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)), new GUIContent("Capture Interval", "The interval at which the perception camera should render and capture (seconds)."));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.onlyRenderCapturedFrames)),new GUIContent("Only Render Captured Frames", ""));
+                    GUILayout.EndVertical();
+                }
+                else
+                {
+                    perceptionCamera.onlyRenderCapturedFrames = false;
+                }
+
+                if (perceptionCamera.onlyRenderCapturedFrames)
+                {
+
+                }
+                else
+                {
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.renderingDeltaTime)),new GUIContent("Rendering Frame Time", ""));
+                }
+
                 serializedObject.ApplyModifiedProperties();
 
                 //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(PerceptionCamera.labelers)));
                 m_LabelersList.DoLayoutList();
             }
+
             if (EditorSettings.asyncShaderCompilation)
             {
                 EditorGUILayout.HelpBox("Asynchronous shader compilation may result in invalid data in beginning frames. " +

@@ -146,6 +146,13 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal void OnDrawGUI(float x, float y, float width, float height)
         {
+
+            if (GUILayout.Button("Capture"))
+            {
+                perceptionCamera.SensorHandle.CaptureOnNextUpdate();
+            }
+
+
             var any = perceptionCamera.labelers.Any(l => l is IOverlayPanelProvider && l.enabled);
 
             // If there used to be active providers, but they have been turned off, remove
@@ -235,11 +242,6 @@ namespace UnityEngine.Perception.GroundTruth
             GUILayout.Label("Background Alpha:", m_LabelStyle);
             m_BackgroundTransparency = GUILayout.HorizontalSlider(m_BackgroundTransparency, 0.0f, 1.0f, m_SliderStyle, GUI.skin.horizontalSliderThumb);
             GUI.skin.label.padding.left = 0;
-
-            if (GUILayout.Button("Capture"))
-            {
-                perceptionCamera.SensorHandle.CaptureOnNextUpdate();
-            }
 
             // Grab the overlay image from the active provider
             m_OverlayImage.texture = m_ActiveProvider?.overlayImage;

@@ -143,8 +143,9 @@ namespace UnityEngine.Perception.GroundTruth
             public string description;
             public float period;
             public float firstCaptureTime;
-            public bool autoCapture;
-            public bool controlSimulationTiming;
+            public PerceptionCamera.CaptureTriggerMode captureTriggerMode;
+            public bool onlyRenderCapturedFrames;
+            public float renderingDeltaTime;
 
             public bool externalCaptureRequestPending;
             public float sequenceTimeOfNextCapture;
@@ -368,7 +369,7 @@ namespace UnityEngine.Perception.GroundTruth
             m_LastTimeScale = Time.timeScale;
         }
 
-        public void AddSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, bool autoCapture, bool controlSimulationTiming, SensorHandle sensor)
+        public void AddSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, PerceptionCamera.CaptureTriggerMode captureTriggerMode, bool controlSimulationTiming, float renderingDeltaTime, SensorHandle sensor)
         {
             var sensorData = new SensorData()
             {
@@ -376,8 +377,9 @@ namespace UnityEngine.Perception.GroundTruth
                 description = description,
                 period = period,
                 firstCaptureTime = firstCaptureTime,
-                autoCapture = autoCapture,
-                controlSimulationTiming = controlSimulationTiming,
+                captureTriggerMode = captureTriggerMode,
+                onlyRenderCapturedFrames = controlSimulationTiming,
+                renderingDeltaTime = renderingDeltaTime,
                 egoHandle = egoHandle,
                 lastCaptureFrameCount = -1
             };
@@ -443,7 +445,7 @@ namespace UnityEngine.Perception.GroundTruth
             foreach (var activeSensor in m_ActiveSensors)
             {
                 var sensorData = m_Sensors[activeSensor];
-                if (sensorData.autoCapture)
+                if (sensorData.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled))
                 {
                     if (!activeSensor.ShouldCaptureThisFrame)
                         continue;
@@ -451,7 +453,8 @@ namespace UnityEngine.Perception.GroundTruth
                     // TODO: AISV-845 This is an errant modification of this record that can lead to undefined behavior
                     // Leaving as-is for now because too many components depend on this logic
                     sensorData.sequenceTimeOfNextCapture += sensorData.period;
-                    Debug.Assert(sensorData.sequenceTimeOfNextCapture > UnscaledSequenceTime,
+                    //Debug.Log($"unscaled : {UnscaledSequenceTime}, seqNext {sensorData.sequenceTimeOfNextCapture}");
+                    Debug.Assert(!sensorData.onlyRenderCapturedFrames || sensorData.sequenceTimeOfNextCapture > UnscaledSequenceTime,
                         $"Next scheduled capture should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeOfNextCapture}");
                     // sensorData.sequenceTimeNextCapture = SequenceTimeOfNextCapture(sensorData);
                     sensorData.lastCaptureFrameCount = Time.frameCount;
@@ -464,7 +467,7 @@ namespace UnityEngine.Perception.GroundTruth
             foreach (var activeSensor in m_ActiveSensors)
             {
                 var sensorData = m_Sensors[activeSensor];
-                if (sensorData.controlSimulationTiming)
+                if (sensorData.onlyRenderCapturedFrames)
                 {
                     var thisSensorNextFrameDt = sensorData.sequenceTimeOfNextCapture - UnscaledSequenceTime;
 
@@ -472,13 +475,20 @@ namespace UnityEngine.Perception.GroundTruth
                     if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
                         nextFrameDt = thisSensorNextFrameDt;
                 }
+                else
+                {
+                    var thisSensorNextFrameDt = sensorData.renderingDeltaTime;
+
+                    if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
+                        nextFrameDt = thisSensorNextFrameDt;
+                }
             }
 
-            if (Math.Abs(nextFrameDt - k_MaxDeltaTime) < 0.00001)
-            {
-                //means no sensor is controlling simulation timing, default to 60fps
-                nextFrameDt = 1f/60;
-            }
+            // if (Math.Abs(nextFrameDt - k_MaxDeltaTime) < 0.00001)
+            // {
+            //     //means no sensor is controlling simulation timing, default to 60fps
+            //     nextFrameDt = 1f/60;
+            // }
 
             WritePendingCaptures();
             WritePendingMetrics();
@@ -512,7 +522,7 @@ namespace UnityEngine.Perception.GroundTruth
                 m_Sensors[sensorHandle] = data;
             }
 
-            return (data.autoCapture && (data.sequenceTimeOfNextCapture - UnscaledSequenceTime) < k_IncludeInFrameThreshold)
+            return (data.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled) && (data.sequenceTimeOfNextCapture - UnscaledSequenceTime) < k_IncludeInFrameThreshold)
                 || captureRequested;
         }
 

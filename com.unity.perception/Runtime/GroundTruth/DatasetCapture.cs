@@ -51,18 +51,19 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="description">A human-readable description of the sensor (ex. "front-left rgb camera")</param>
         /// <param name="period">The period, in seconds, on which the sensor should capture. Frames will be scheduled in the simulation such that each sensor is triggered every _period_ seconds.</param>
         /// <param name="firstCaptureTime">The time, in seconds, from the start of the sequence on which this sensor should first be scheduled.</param>
-        /// <param name="autoCapture"></param>
-        /// <param name="controlSimulationTiming"></param>
+        /// <param name="captureTriggerMode"></param>
+        /// <param name="onlyRenderCapturedFrames"></param>
+        /// <param name="renderingDeltaTime"></param>
         /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
         /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
         /// <exception cref="ArgumentException">Thrown if ego is invalid.</exception>
-        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, bool autoCapture, bool controlSimulationTiming)
+        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, PerceptionCamera.CaptureTriggerMode captureTriggerMode, bool onlyRenderCapturedFrames, float renderingDeltaTime = -1)
         {
             if (!SimulationState.Contains(egoHandle.Id))
                 throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(egoHandle));
 
             var sensor = new SensorHandle(Guid.NewGuid());
-            SimulationState.AddSensor(egoHandle, modality, description, period, firstCaptureTime, autoCapture, controlSimulationTiming, sensor);
+            SimulationState.AddSensor(egoHandle, modality, description, period, firstCaptureTime, captureTriggerMode, onlyRenderCapturedFrames, renderingDeltaTime, sensor);
             return sensor;
         }
 

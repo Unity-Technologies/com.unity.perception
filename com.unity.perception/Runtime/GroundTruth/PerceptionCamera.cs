@@ -50,9 +50,16 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public Camera attachedCamera => m_AttachedCamera;
 
-        public bool scheduledCapture;
+        public enum CaptureTriggerMode
+        {
+            Scheduled,
+            Manual
+        }
+        public CaptureTriggerMode captureTriggerMode;
 
-        public bool affectSimulationTiming;
+        public bool onlyRenderCapturedFrames;
+
+        public float renderingDeltaTime = 0.0166f;
 
         /// <summary>
         /// Event invoked after the camera finishes rendering during a frame.
@@ -150,7 +157,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 m_EgoMarker = GetComponentInParent<Ego>();
                 var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
-                SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime, scheduledCapture, affectSimulationTiming);
+                SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime, captureTriggerMode, onlyRenderCapturedFrames, renderingDeltaTime);
             }
         }
 

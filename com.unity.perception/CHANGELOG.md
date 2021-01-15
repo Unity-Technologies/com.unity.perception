@@ -56,6 +56,8 @@ Fixed memory leak or crash occurring at the end of long simulations when using B
 
 Randomizer.OnCreate() is no longer called in edit-mode when adding a randomizer to a scenario
 
+Fixed a bug where removing all randomizers from a scenario caused the randomizer container UI element to overflow over the end of Scenario component UI
+
 ## [0.6.0-preview.1] - 2020-12-03
 
 ### Added

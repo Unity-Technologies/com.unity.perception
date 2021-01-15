@@ -6,11 +6,22 @@ using Unity.Entities;
 
 namespace UnityEngine.Perception.GroundTruth
 {
+    /// <summary>
+    /// Produces keypoint annotations for a humanoid model. This labeler supports generic
+    /// <see cref="KeyPointTemplate"/>. Template values are mapped to rigged
+    /// <see cref="Animator"/> <seealso cref="Avatar"/>. Custom joints can be
+    /// created by applying <see cref="JointLabel"/> to empty game objects at a body
+    /// part's location.
+    /// </summary>
     [Serializable]
     public sealed class KeyPointLabeler : CameraLabeler
     {
+        /// <summary>
+        /// The active keypoint template. Required to annotate keypoint data.
+        /// </summary>
         public KeyPointTemplate activeTemplate;
 
+        /// <inheritdoc/>
         public override string description
         {
             get => "Produces keypoint annotations for all visible labeled objects that have a humanoid animation avatar component.";
@@ -21,7 +32,13 @@ namespace UnityEngine.Perception.GroundTruth
         protected override bool supportsVisualization => true;
 
         // ReSharper disable MemberCanBePrivate.Global
+        /// <summary>
+        /// The GUID id to associate with the annotations produced by this labeler.
+        /// </summary>
         public string annotationId = "8b3ef246-daa7-4dd5-a0e8-a943f6e7f8c2";
+        /// <summary>
+        /// The <see cref="IdLabelConfig"/> which associates objects with labels.
+        /// </summary>
         public IdLabelConfig idLabelConfig;
         // ReSharper restore MemberCanBePrivate.Global
 
@@ -29,6 +46,7 @@ namespace UnityEngine.Perception.GroundTruth
         EntityQuery m_EntityQuery;
         Texture2D m_MissingTexture;
 
+        /// <inheritdoc/>
         protected override void Setup()
         {
             if (idLabelConfig == null)
@@ -41,11 +59,13 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_KeyPointEntries = new List<KeyPointEntry>();
 
+            // Texture to use in case the template does not contain a texture for the joints or the skeletal connections
             m_MissingTexture = new Texture2D(1, 1);
 
             m_KnownStatus = new Dictionary<uint, CachedData>();
         }
 
+        /// <inheritdoc/>
         protected override void OnBeginRendering()
         {
             var reporter = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
@@ -67,11 +87,13 @@ namespace UnityEngine.Perception.GroundTruth
 
         // ReSharper disable InconsistentNaming
         // ReSharper disable NotAccessedField.Global
+        // ReSharper disable NotAccessedField.Local
         [Serializable]
-        public struct KeyPointEntry
+        struct KeyPointEntry
         {
-
-
+            /// <summary>
+            /// The id of the labeled entity
+            /// </summary>
             public int label_id;
             public uint instance_id;
             public string template_guid;
@@ -79,7 +101,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         [Serializable]
-        public struct KeyPoint
+        struct KeyPoint
         {
             public int index;
             public float x;
@@ -88,7 +110,9 @@ namespace UnityEngine.Perception.GroundTruth
         }
         // ReSharper restore InconsistentNaming
         // ReSharper restore NotAccessedField.Global
+        // ReSharper restore NotAccessedField.Local
 
+        // Converts a coordinate from world space into pixel space
         Vector3 ConvertToScreenSpace(Vector3 worldLocation)
         {
             var pt = perceptionCamera.attachedCamera.WorldToScreenPoint(worldLocation);
@@ -145,6 +169,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         void ProcessEntity(Labeling labeledEntity)
         {
+            // Cache out the data of a labeled game object the first time we see it, this will
+            // save performance each frame. Also checks to see if a labeled game object can be annotated.
             if (!m_KnownStatus.ContainsKey(labeledEntity.instanceId))
             {
                 var cached = new CachedData()
@@ -268,6 +294,7 @@ namespace UnityEngine.Perception.GroundTruth
             GUI.color = oldColor;
         }
 
+        /// <inheritdoc/>
         protected override void OnVisualize()
         {
             var jointTexture = activeTemplate.jointTexture;

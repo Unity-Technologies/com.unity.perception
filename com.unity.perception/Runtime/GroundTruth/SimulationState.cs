@@ -476,28 +476,32 @@ namespace UnityEngine.Perception.GroundTruth
             foreach (var activeSensor in m_ActiveSensors)
             {
                 var sensorData = m_Sensors[activeSensor];
-                if (sensorData.onlyRenderCapturedFrames)
+                if (sensorData.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled))
                 {
-                    var thisSensorNextFrameDt = sensorData.sequenceTimeOfNextCapture - UnscaledSequenceTime;
+                    //if the sensor is not scheduled, it does not need to force the simulation to produce frames at a specific rate, so we will not need to touch Time.captureDeltaTime.
+                    if (sensorData.onlyRenderCapturedFrames)
+                    {
+                        var thisSensorNextFrameDt = sensorData.sequenceTimeOfNextCapture - UnscaledSequenceTime;
 
-                    Debug.Assert(thisSensorNextFrameDt > 0f, "Sensor was scheduled to run in the past but got skipped over.");
-                    if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
-                        nextFrameDt = thisSensorNextFrameDt;
-                }
-                else
-                {
-                    var thisSensorNextFrameDt = sensorData.renderingDeltaTime;
+                        Debug.Assert(thisSensorNextFrameDt > 0f, "Sensor was scheduled to run in the past but got skipped over.");
+                        if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
+                            nextFrameDt = thisSensorNextFrameDt;
+                    }
+                    else
+                    {
+                        var thisSensorNextFrameDt = sensorData.renderingDeltaTime;
 
-                    if (thisSensorNextFrameDt < nextFrameDt)
-                        nextFrameDt = thisSensorNextFrameDt;
+                        if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
+                            nextFrameDt = thisSensorNextFrameDt;
+                    }
                 }
             }
 
-            // if (Math.Abs(nextFrameDt - k_MaxDeltaTime) < 0.00001)
-            // {
-            //     //means no sensor is controlling simulation timing, default to 60fps
-            //     nextFrameDt = 1f/60;
-            // }
+            if (Math.Abs(nextFrameDt - k_MaxDeltaTime) < 0.00001)
+            {
+                //means no sensor is controlling simulation timing, so we set Time.captureDeltaTime to 0 (default) to render normally
+                nextFrameDt = 0;
+            }
 
             WritePendingCaptures();
             WritePendingMetrics();

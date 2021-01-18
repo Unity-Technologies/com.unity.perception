@@ -79,8 +79,8 @@ namespace UnityEditor.Perception.GroundTruth
 
 
         string onlyRenderCaptTitle = "Only Render Captured Frames";
-        string periodTilte = "Capture and Render Interval";
-        string frametimeTitle = "Rendering Frame Time";
+        string periodTilte = "Capture and Render Delta Time";
+        string frametimeTitle = "Rendering Delta Time";
         int startFrame;
         public override void OnInspectorGUI()
         {
@@ -102,11 +102,11 @@ namespace UnityEditor.Perception.GroundTruth
                         EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)), new GUIContent("Start Time","Time at which this perception camera starts rendering and capturing (seconds)."));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)), new GUIContent(periodTilte, "The interval at which the perception camera should render and capture (seconds)."));
 
-                        EditorGUILayout.HelpBox($"First capture at {perceptionCamera.startTime} seconds and consecutive captures every {perceptionCamera.period} seconds", MessageType.None);
+                        EditorGUILayout.HelpBox($"First capture at {perceptionCamera.startTime} seconds and consecutive captures every {perceptionCamera.period} seconds of simulation time.", MessageType.None);
                     }
                     else
                     {
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.renderingDeltaTime)),new GUIContent(frametimeTitle, "The rendering frame time (seconds). E.g. 0.0166 translates to 60 frames per second."));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.renderingDeltaTime)),new GUIContent(frametimeTitle, "The rendering delta time (seconds of simulation time). E.g. 0.0166 translates to roughly 60 frames per second. Note that if the hardware is not capable of rendering, capturing, and saving the required number of frames per second, the simulation will slow down in real time in order to produce the exact number of required frames per each second of simulation time. Thus, the results will always be correct with regard to simulation time but may look slow in real time."));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startFrame)), new GUIContent("Start at Frame",$"Frame number at which this camera starts capturing."));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.framesBetweenCaptures)),new GUIContent("Frames between captures", "The number of frames to render between the camera's scheduled captures. Setting this to 0 makes the camera capture every rendered frame."));
 
@@ -114,8 +114,8 @@ namespace UnityEditor.Perception.GroundTruth
                         //we calculate the time of the next capture every time based on the values given for captureEveryXFrames and renderingDeltaTime, in order to preserve accuracy.
                         perceptionCamera.startTime = perceptionCamera.startFrame * perceptionCamera.renderingDeltaTime;
 
-                        var interval = perceptionCamera.framesBetweenCaptures * (perceptionCamera.renderingDeltaTime + 1);
-                        EditorGUILayout.HelpBox($"First capture at {perceptionCamera.startTime} seconds and consecutive captures every {interval} seconds", MessageType.None);
+                        var interval = (perceptionCamera.framesBetweenCaptures + 1) * perceptionCamera.renderingDeltaTime;
+                        EditorGUILayout.HelpBox($"First capture at {perceptionCamera.startTime} seconds and consecutive captures every {interval} seconds of simulation time.", MessageType.None);
                     }
 
 
@@ -124,14 +124,12 @@ namespace UnityEditor.Perception.GroundTruth
                 else
                 {
                     perceptionCamera.onlyRenderCapturedFrames = false;
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.renderingDeltaTime)),new GUIContent(frametimeTitle, ""));
-                    EditorGUILayout.HelpBox($"Captures should be triggered manually through calling the {nameof(perceptionCamera.CaptureOnNextUpdate)} method of {nameof(PerceptionCamera)}", MessageType.None);
+                    EditorGUILayout.HelpBox($"Captures should be triggered manually through calling the {nameof(perceptionCamera.CaptureOnNextUpdate)} method of {nameof(PerceptionCamera)}. Framerate will not be modified by this camera.", MessageType.None);
                 }
 
 
                 serializedObject.ApplyModifiedProperties();
 
-                //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(PerceptionCamera.labelers)));
                 m_LabelersList.DoLayoutList();
             }
 

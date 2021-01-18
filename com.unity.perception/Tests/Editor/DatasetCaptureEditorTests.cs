@@ -35,7 +35,7 @@ namespace GroundTruthTests
             yield return new EnterPlayMode();
             DatasetCapture.ResetSimulation();
             var ego = DatasetCapture.RegisterEgo("ego");
-            var sensor = DatasetCapture.RegisterSensor(ego, "camera", "", 0.1f, 0, true, true);
+            var sensor = DatasetCapture.RegisterSensor(ego, "camera", "", 0.1f, 0, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
             sensor.ReportCapture("file.txt", new SensorSpatialData());
             expectedDatasetPath = DatasetCapture.OutputDirectory;
             yield return new ExitPlayMode();

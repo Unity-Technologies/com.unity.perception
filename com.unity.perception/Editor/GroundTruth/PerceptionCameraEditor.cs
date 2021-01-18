@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -76,6 +77,11 @@ namespace UnityEditor.Perception.GroundTruth
             serializedObject.ApplyModifiedProperties();
         }
 
+
+        string onlyRenderCaptTitle = "Only Render Captured Frames";
+        string periodTilte = "Capture and Render Interval";
+        string frametimeTitle = "Rendering Frame Time";
+        int startFrame;
         public override void OnInspectorGUI()
         {
             using(new EditorGUI.DisabledScope(EditorApplication.isPlaying))
@@ -83,30 +89,45 @@ namespace UnityEditor.Perception.GroundTruth
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)), new GUIContent("Description", "Provide a description for this perception camera (optional)."));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)), new GUIContent("Show Labeler Visualizations", "Display realtime visualizations for labelers that are currently active on this perception camera."));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)),new GUIContent("Save Camera Output to Disk", "For each captured frame, save an RGB image of the perception camera's output to disk."));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureTriggerMode)),new GUIContent("Scheduled Capture", ""));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureTriggerMode)),new GUIContent("Capture Trigger Mode", $"The method of triggering captures for this camera. In {nameof(PerceptionCamera.CaptureTriggerMode.Scheduled)} mode, captures happen automatically based on a start time/frame and time/frame interval. In {nameof(PerceptionCamera.CaptureTriggerMode.Manual)} mode, captures should be triggered manually through calling the {nameof(perceptionCamera.CaptureOnNextUpdate)} method of {nameof(PerceptionCamera)}."));
 
                 if (perceptionCamera.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled))
                 {
-                    GUILayout.BeginVertical("Box");
+                    GUILayout.BeginVertical("TextArea");
                     GUILayout.Label("Scheduled Capture Properties");
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)), new GUIContent("Start Time","Time at which this perception camera starts rendering and capturing (seconds)."));
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)), new GUIContent("Capture Interval", "The interval at which the perception camera should render and capture (seconds)."));
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.onlyRenderCapturedFrames)),new GUIContent("Only Render Captured Frames", ""));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.onlyRenderCapturedFrames)),new GUIContent(onlyRenderCaptTitle, $"If this checkbox is enabled, the attached camera will only render those frames that it needs to capture. In addition, the global frame delta time will be altered to match this camera's capture period, thus, the scene will not be visually updated in-between captures (physics simulation is unaffected). Therefore, if you have more than one {nameof(PerceptionCamera)} active, this flag should be either disabled or enabled for all of them, otherwise the cameras will not capture and synchronize properly."));
+
+                    if (perceptionCamera.onlyRenderCapturedFrames)
+                    {
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)), new GUIContent("Start Time","Time at which this perception camera starts rendering and capturing (seconds)."));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)), new GUIContent(periodTilte, "The interval at which the perception camera should render and capture (seconds)."));
+
+                        EditorGUILayout.HelpBox($"First capture at {perceptionCamera.startTime} seconds and consecutive captures every {perceptionCamera.period} seconds", MessageType.None);
+                    }
+                    else
+                    {
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.renderingDeltaTime)),new GUIContent(frametimeTitle, "The rendering frame time (seconds). E.g. 0.0166 translates to 60 frames per second."));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startFrame)), new GUIContent("Start at Frame",$"Frame number at which this camera starts capturing."));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.framesBetweenCaptures)),new GUIContent("Frames between captures", "The number of frames to render between the camera's scheduled captures. Setting this to 0 makes the camera capture every rendered frame."));
+
+                        //Because start time only needs to be calculated once, we can do it here. But for scheduling consecutive captures,
+                        //we calculate the time of the next capture every time based on the values given for captureEveryXFrames and renderingDeltaTime, in order to preserve accuracy.
+                        perceptionCamera.startTime = perceptionCamera.startFrame * perceptionCamera.renderingDeltaTime;
+
+                        var interval = perceptionCamera.framesBetweenCaptures * (perceptionCamera.renderingDeltaTime + 1);
+                        EditorGUILayout.HelpBox($"First capture at {perceptionCamera.startTime} seconds and consecutive captures every {interval} seconds", MessageType.None);
+                    }
+
+
                     GUILayout.EndVertical();
                 }
                 else
                 {
                     perceptionCamera.onlyRenderCapturedFrames = false;
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.renderingDeltaTime)),new GUIContent(frametimeTitle, ""));
+                    EditorGUILayout.HelpBox($"Captures should be triggered manually through calling the {nameof(perceptionCamera.CaptureOnNextUpdate)} method of {nameof(PerceptionCamera)}", MessageType.None);
                 }
 
-                if (perceptionCamera.onlyRenderCapturedFrames)
-                {
-
-                }
-                else
-                {
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.renderingDeltaTime)),new GUIContent("Rendering Frame Time", ""));
-                }
 
                 serializedObject.ApplyModifiedProperties();
 

@@ -50,16 +50,50 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public Camera attachedCamera => m_AttachedCamera;
 
+        /// <summary>
+        /// Frame number at which this camera starts capturing.
+        /// </summary>
+        public int startFrame;
+
+        /// <summary>
+        /// The method of triggering captures for this camera. In <see cref="PerceptionCamera.CaptureTriggerMode.Scheduled"/> mode, captures happen automatically based on a start time/frame and time/frame interval. In <see cref="PerceptionCamera.CaptureTriggerMode.Scheduled"/> mode, captures should be triggered manually through calling the <see cref="PerceptionCamera.CaptureOnNextUpdate"/> method of <see cref="PerceptionCamera"/>."
+        /// </summary>
         public enum CaptureTriggerMode
         {
             Scheduled,
             Manual
         }
-        public CaptureTriggerMode captureTriggerMode;
+        public CaptureTriggerMode captureTriggerMode = CaptureTriggerMode.Scheduled;
 
-        public bool onlyRenderCapturedFrames;
+        /// <summary>
+        /// When enabled, the camera will only render those frames that it needs to capture. In addition, the global frame delta time (<see cref="Time.captureDeltaTime"/>) will be altered to match this camera's capture period, thus, the scene will not be visually updated in-between captures (physics simulation is unaffected). If there is more than one <see cref="PerceptionCamera"/> active, this flag should be either disabled or enabled for all of them, otherwise the cameras will not capture and synchronize properly.
+        /// </summary>
+        public bool onlyRenderCapturedFrames = true;
 
+        /// <summary>
+        /// The rendering frame time (seconds). E.g. 0.0166 translates to 60 frames per second.
+        /// </summary>
         public float renderingDeltaTime = 0.0166f;
+
+        /// <summary>
+        /// "The number of frames to render between the camera's scheduled captures when the rendering delta time is not controlled by this camera (i.e. <see cref="onlyRenderCapturedFrames"/> is false). Setting this to 0 makes the camera capture every rendered frame.
+        /// </summary>
+        public int framesBetweenCaptures = 0;
+
+        /// <summary>
+        /// Requests a capture from this camera on the next rendered frame. Can only be used when using <see cref="PerceptionCamera.CaptureTriggerMode.Manual"/> capture mode.
+        /// </summary>
+        public void CaptureOnNextUpdate()
+        {
+            if (captureTriggerMode.Equals(CaptureTriggerMode.Manual))
+            {
+                SensorHandle.CaptureOnNextUpdate();
+            }
+            else
+            {
+                Debug.LogError($"{nameof(CaptureOnNextUpdate)} can only be used if the camera is in {nameof(CaptureTriggerMode.Manual)} capture mode.");
+            }
+        }
 
         /// <summary>
         /// Event invoked after the camera finishes rendering during a frame.
@@ -157,7 +191,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 m_EgoMarker = GetComponentInParent<Ego>();
                 var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
-                SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime, captureTriggerMode, onlyRenderCapturedFrames, renderingDeltaTime);
+                SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, period, startTime, captureTriggerMode, onlyRenderCapturedFrames, renderingDeltaTime, framesBetweenCaptures);
             }
         }
 
@@ -437,7 +471,7 @@ namespace UnityEngine.Perception.GroundTruth
                 return;
 #endif
             CaptureRgbData(cam);
-            Debug.Log("===================== CAPTURING");
+            //Debug.Log("===================== CAPTURING");
 
             foreach (var labeler in m_Labelers)
             {

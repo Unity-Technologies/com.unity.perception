@@ -57,13 +57,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
         /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
         /// <exception cref="ArgumentException">Thrown if ego is invalid.</exception>
-        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, PerceptionCamera.CaptureTriggerMode captureTriggerMode, bool onlyRenderCapturedFrames, float renderingDeltaTime = -1)
+        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, PerceptionCamera.CaptureTriggerMode captureTriggerMode, bool onlyRenderCapturedFrames, float renderingDeltaTime = -1, int framesBetweenCaptures = 0)
         {
             if (!SimulationState.Contains(egoHandle.Id))
                 throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(egoHandle));
 
             var sensor = new SensorHandle(Guid.NewGuid());
-            SimulationState.AddSensor(egoHandle, modality, description, period, firstCaptureTime, captureTriggerMode, onlyRenderCapturedFrames, renderingDeltaTime, sensor);
+            SimulationState.AddSensor(egoHandle, modality, description, period, firstCaptureTime, captureTriggerMode, onlyRenderCapturedFrames, renderingDeltaTime, framesBetweenCaptures, sensor);
             return sensor;
         }
 

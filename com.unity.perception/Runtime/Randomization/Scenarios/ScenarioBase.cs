@@ -335,7 +335,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         {
             if (!randomizerType.IsSubclassOf(typeof(Randomizer)))
                 throw new ScenarioException(
-                    $"Cannot add non-randomizer type {randomizerType.Name} to randomizer list");
+                    $"Cannot remove non-randomizer type {randomizerType.Name} from randomizer list");
             var removed = false;
             for (var i = 0; i < m_Randomizers.Count; i++)
             {

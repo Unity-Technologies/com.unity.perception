@@ -94,7 +94,7 @@ namespace UnityEditor.Perception.GroundTruth
                 if (perceptionCamera.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled))
                 {
                     GUILayout.BeginVertical("TextArea");
-                    GUILayout.Label("Scheduled Capture Properties");
+                    EditorGUILayout.LabelField("Scheduled Capture Properties", EditorStyles.boldLabel);
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.onlyRenderCapturedFrames)),new GUIContent(onlyRenderCaptTitle, $"If this checkbox is enabled, the attached camera will only render those frames that it needs to capture. In addition, the global frame delta time will be altered to match this camera's capture period, thus, the scene will not be visually updated in-between captures (physics simulation is unaffected). Therefore, if you have more than one {nameof(PerceptionCamera)} active, this flag should be either disabled or enabled for all of them, otherwise the cameras will not capture and synchronize properly."));
 
                     if (perceptionCamera.onlyRenderCapturedFrames)
@@ -108,7 +108,7 @@ namespace UnityEditor.Perception.GroundTruth
                     {
                         EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.renderingDeltaTime)),new GUIContent(frametimeTitle, "The rendering delta time (seconds of simulation time). E.g. 0.0166 translates to roughly 60 frames per second. Note that if the hardware is not capable of rendering, capturing, and saving the required number of frames per second, the simulation will slow down in real time in order to produce the exact number of required frames per each second of simulation time. Thus, the results will always be correct with regard to simulation time but may look slow in real time."));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startFrame)), new GUIContent("Start at Frame",$"Frame number at which this camera starts capturing."));
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.framesBetweenCaptures)),new GUIContent("Frames between captures", "The number of frames to render between the camera's scheduled captures. Setting this to 0 makes the camera capture every rendered frame."));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.framesBetweenCaptures)),new GUIContent("Frames Between Captures", "The number of frames to render between the camera's scheduled captures. Setting this to 0 makes the camera capture every rendered frame."));
 
                         //Because start time only needs to be calculated once, we can do it here. But for scheduling consecutive captures,
                         //we calculate the time of the next capture every time based on the values given for captureEveryXFrames and renderingDeltaTime, in order to preserve accuracy.
@@ -124,7 +124,7 @@ namespace UnityEditor.Perception.GroundTruth
                 else
                 {
                     perceptionCamera.onlyRenderCapturedFrames = false;
-                    EditorGUILayout.HelpBox($"Captures should be triggered manually through calling the {nameof(perceptionCamera.CaptureOnNextUpdate)} method of {nameof(PerceptionCamera)}. Framerate will not be modified by this camera.", MessageType.None);
+                    EditorGUILayout.HelpBox($"Captures should be triggered manually through calling the {nameof(perceptionCamera.CaptureOnNextUpdate)} method of {nameof(PerceptionCamera)}. Framerate or simulation timings will not be modified by this camera.", MessageType.None);
                 }
 
 

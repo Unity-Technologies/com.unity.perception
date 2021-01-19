@@ -38,12 +38,6 @@
     background-image: resource("Packages/com.unity.perception/Editor/Icons/ChevronRight.png");
 }
 
-.title-label {
-    -unity-font-style: bold;
-    margin-bottom: 5px;
-    color: #CACACA;
-}
-
 /* Scenario classes */
 .scenario__info-box {
     border-width: 1px;
@@ -51,8 +45,7 @@
     padding: 7px;
     border-radius: 4px;
     white-space: normal;
-    margin-top: 4px;
-    margin-bottom: 4px;
+    margin: 3px 3px 3px 3px;
 }
 
 .scenario__dark-viewport {
@@ -61,6 +54,11 @@
     padding: 2px;
 }
 
+.scenario__title-label {
+    -unity-font-style: bold;
+    margin: 3px 3px 3px 3px;
+    color: #CACACA;
+}
 
 /* Randomizer classes */
 .randomizer__drag-bar {

@@ -64,7 +64,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             {
                 do
                 {
-                    Debug.Log(iterator.name);
                     switch (iterator.name)
                     {
                         case "m_Script":

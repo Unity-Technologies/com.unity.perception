@@ -8,9 +8,7 @@
         <VisualElement class="scenario__dark-viewport" style="padding-left: 16px">
             <Toggle label="Quit On Complete" tooltip="Quit the application when the scenario completes" binding-path="quitOnComplete"/>
             <VisualElement name="constants-container">
-                <editor:PropertyField
-                    binding-path="constants"
-                    tooltip="A list of parameters for this scenario that will be JSON serialized."/>
+                <Foldout text="Constants" name="constants-list" tooltip="A list of parameters for this scenario that will be JSON serialized in the configuration file."/>
                 <editor:PropertyField name="configuration-file-name" label="Constants File Name" binding-path="serializedConstantsFileName"/>
                 <VisualElement style="flex-direction: row;">
                     <Button name="serialize" text="Serialize To Config File" style="flex-grow: 1;"
@@ -20,6 +18,6 @@
                 </VisualElement>
             </VisualElement>
         </VisualElement>
-        <VisualElement name="randomizer-list-placeholder"/>
+        <VisualElement name="randomizer-list-placeholder" style = "margin-top: 10px"/>
     </VisualElement>
 </UXML>

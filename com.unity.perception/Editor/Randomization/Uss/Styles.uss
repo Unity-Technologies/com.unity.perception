@@ -38,6 +38,11 @@
     background-image: resource("Packages/com.unity.perception/Editor/Icons/ChevronRight.png");
 }
 
+.title-label {
+    -unity-font-style: bold;
+    margin-bottom: 5px;
+    color: #CACACA;
+}
 
 /* Scenario classes */
 .scenario__info-box {
@@ -55,6 +60,7 @@
     background-color: #191919;
     padding: 2px;
 }
+
 
 /* Randomizer classes */
 .randomizer__drag-bar {
@@ -167,3 +173,5 @@
     min-width: auto;
     margin-right: 4px;
 }
+
+

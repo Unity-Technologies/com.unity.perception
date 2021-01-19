@@ -5,7 +5,7 @@
             <TextElement
                 class="scenario__info-box"
                 text="Randomizers are executed in the order below. You can change the order by dragging Randomizers up or down using the handle bar to their left."
-                style="margin-left: 3px; margin-right: 3px"/>
+                style="margin-left: 3px; margin-right: 3px; margin-top: 3px"/>
             <VisualElement name="randomizers-container" style="margin-top: 3px; min-height: 100px;"/>
             <VisualElement style="flex-direction: row; align-items: center; justify-content: center; margin-top: 2px;">
                 <Button name="add-randomizer-button" text="Add Randomizer"/>

@@ -19,7 +19,7 @@ Note that while _**Visual Studio**_ is the default option, you can choose any te
 
 * **Action**: Remove the contents of the class and copy/paste the code below:
 
-```
+```C#
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
@@ -69,7 +69,7 @@ The `OnIterationStart()` function is used for telling the Randomizer what action
 
 * **Action**: Open `MyLightRandomizerTag.cs` and replace its contents with the code below:
 
-```
+```C#
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 
@@ -96,7 +96,7 @@ Let's now add more variation to our light by randomizing its color as well.
 
 * **Action**: Inside the code block that intensity was previously applied, add code for sampling color from the above Parameter and applying it:
 
-```
+```C#
 foreach (var taggedObject in taggedObjects)
 {
     var light = taggedObject.GetComponent<Light>();            
@@ -140,7 +140,7 @@ Let's try this approach with our `Directional Light` object. We will create a du
 This makes the two lights illuminate the scene from opposing angles, each having a 30-degree angle with the background and foreground planes. Note that the position of Directional Lights in Unity does not affect how they illuminate the scene, so you do not need to use the same position as the screenshot above.
 
 * **Action**: Open `MyLightRandomizerTag.cs` and modify it to match the code below:
-```
+```C#
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 
@@ -175,7 +175,7 @@ We also need to make a minor change to `MyLightRandomizer.cs` in order to make i
 
 * **Action**: Open `MyLightRandomizer.cs` and modify it as seen below:
 
-```
+```C#
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;

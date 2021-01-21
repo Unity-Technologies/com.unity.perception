@@ -174,7 +174,7 @@ namespace GroundTruthTests
             };
 
             var template = ScriptableObject.CreateInstance<KeyPointTemplate>();
-            template.templateID = guid;
+            template.templateID = guid.ToString();
             template.templateName = label;
             template.jointTexture = null;
             template.skeletonTexture = null;

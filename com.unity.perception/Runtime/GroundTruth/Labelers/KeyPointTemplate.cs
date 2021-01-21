@@ -55,7 +55,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The <see cref="Guid"/> of the template
         /// </summary>
-        public Guid templateID;
+        public string templateID = Guid.NewGuid().ToString();
         /// <summary>
         /// The name of the template
         /// </summary>

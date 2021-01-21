@@ -20,7 +20,7 @@ Get your local Perception workspace up and running quickly. Recommended for user
 Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
 **[Documentation](com.unity.perception/Documentation~/index.md)**  
-Sample projects and in-depth documentation for various components of the SDK, including [Labeling](com.unity.perception/Documentation~/GroundTruthLabeling.md), [LabelConfig](com.unity.perception/Documentation~/GroundTruthLabeling.md#label-config), [Perception Camera](com.unity.perception/Documentation~/PerceptionCamera.md), [DatasetCapture](com.unity.perception/Documentation~/DatasetCapture.md), and [Randomization](com.unity.perception/Documentation~/Randomization/Index.md).
+Sample projects and in-depth documentation for various components of the SDK, including **Labeling, LabelConfig, Perception Camera, DatasetCapture, and Randomization**.
 
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.

@@ -36,12 +36,12 @@ In-depth documentation on inidividual components of the package.
 
 ### SynthDet
 
-<img src="images/synthdet.png"/>
+<img src="com.unity.perception/Documentation~/images/synthdet.png"/>
 
 [SynthDet](https://github.com/Unity-Technologies/SynthDet) is an end-to-end solution for training a 2D object detection model using synthetic data.
 
 ### Unity Simulation Smart Camera example
-<img src="images/smartcamera.png"/>
+<img src="com.unity.perception/Documentation~/images/smartcamera.png"/>
 
 The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how Perception could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
 

@@ -19,20 +19,8 @@ Get your local Perception workspace up and running quickly. Recommended for user
 **[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
 Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
-**[Example Projects](com.unity.perception/Documentation~/index.md)**  
-Sample projects and documentation of the SDK.
-
-## Package Documentation
-
-In-depth documentation on inidividual components of the Perception package. 
-
-|Feature|Description|
-|---|---|
-|[Labeling](GroundTruthLabeling.md)|A component that marks a GameObject and its descendants with a set of labels|
-|[LabelConfig](GroundTruthLabeling.md#label-config)|An asset that defines a taxonomy of labels for ground truth generation|
-|[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html).|
-|[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
-|[Randomization (Experimental)](Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|
+**[Documentation](com.unity.perception/Documentation~/index.md)**  
+Sample projects and in-depth documentation for various components of the SDK, including [Labeling](GroundTruthLabeling.md), [LabelConfig](GroundTruthLabeling.md#label-config), [Perception Camera](PerceptionCamera.md), [DatasetCapture](DatasetCapture.md), and [Randomization](Randomization/Index.md).
 
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.

@@ -19,7 +19,7 @@ Get your local Perception workspace up and running quickly. Recommended for user
 **[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
 Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
-**[Perception Manual](com.unity.perception/Documentation~/index.md)**  
+**[Example Projects](com.unity.perception/Documentation~/index.md)**  
 Sample projects and documentation of the SDK.
 
 ## Package Documentation

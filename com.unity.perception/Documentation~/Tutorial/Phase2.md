@@ -209,4 +209,4 @@ Notice how we now fetch the `MyLightRandomizerTag` component from the tagged obj
 
 By this point in the tutorial, we have learned how to set-up a Perception Scene, randomize our simulation, and verify our generated datasets using Dataset Insights. That said, the size of the dataset we created was only 100 captures, which is not sufficient for model-training purposes. It is now time to generate a large-scale synthetic dataset with tens of thousands of frames using Unity Simulation. 
 
-[Click here to continue to Phase 3: Cloud](Phase3.md)
+**[Continue to Phase 3: Cloud](Phase3.md)**

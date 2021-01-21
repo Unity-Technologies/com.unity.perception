@@ -13,14 +13,37 @@
 
 The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
 
+## Getting Started
+
 **[Quick Installation Instructions](com.unity.perception/Documentation~/SetupSteps.md)**  
 Get your local Perception workspace up and running quickly. Recommended for users with prior Unity experience.
 
 **[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
 Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
-**[Documentation](com.unity.perception/Documentation~/index.md)**  
-Sample projects and in-depth documentation for various components of the SDK, including **Labeling, LabelConfig, Perception Camera, DatasetCapture, and Randomization**.
+## Documentation
+In-depth documentation on inidividual components of the package. 
+
+|Feature|Description|
+|---|---|
+|[Labeling](GroundTruthLabeling.md)|A component that marks a GameObject and its descendants with a set of labels|
+|[LabelConfig](GroundTruthLabeling.md#label-config)|An asset that defines a taxonomy of labels for ground truth generation|
+|[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html).|
+|[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
+|[Randomization (Experimental)](Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|
+
+## Example Projects
+
+### SynthDet
+
+<img src="images/synthdet.png"/>
+
+[SynthDet](https://github.com/Unity-Technologies/SynthDet) is an end-to-end solution for training a 2D object detection model using synthetic data.
+
+### Unity Simulation Smart Camera example
+<img src="images/smartcamera.png"/>
+
+The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how Perception could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
 
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.
@@ -28,6 +51,10 @@ The repository includes two projects for local development in `TestProjects` fol
 ### Suggested IDE Setup
 For closest standards conformity and best experience overall, JetBrains Rider or Visual Studio w/ JetBrains Resharper are suggested. For optimal experience, perform the following additional steps:
 * To allow navigating to code in all packages included in your project, in your Unity Editor, navigate to `Edit -> Preferences... -> External Tools` and check `Generate all .csproj files.` 
+
+## Known issues
+
+* The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1
 
 ## License
 * [License](com.unity.perception/LICENSE.md)

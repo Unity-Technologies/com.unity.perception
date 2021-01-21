@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+Added keypoint ground truth labeling
+
+Added animation randomization
+
 Added ScenarioConstants base class for all scenario constants objects
 
 Added ScenarioBase.SerializeToConfigFile()

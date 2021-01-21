@@ -1,6 +1,6 @@
 * [Unity Perception Package](index.md)
-  * [Installation instructions](SetupSteps.md)
-  * [Getting started](GettingStarted.md)
+  * [Quick Installation Instructions](SetupSteps.md)
+  * [Perception Tutorial](GettingStarted.md)
   * [Labeling](GroundTruthLabeling.md)
   * [Perception Camera](PerceptionCamera.md)
   * [Dataset capture](DatasetCapture.md)

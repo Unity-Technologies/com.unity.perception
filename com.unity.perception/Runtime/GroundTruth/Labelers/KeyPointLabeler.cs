@@ -46,6 +46,29 @@ namespace UnityEngine.Perception.GroundTruth
         EntityQuery m_EntityQuery;
         Texture2D m_MissingTexture;
 
+        /// <summary>
+        /// Action that gets triggered when a new frame of key points are computed.
+        /// </summary>
+        public event Action<List<KeyPointEntry>> KeyPointsComputed;
+
+        /// <summary>
+        /// Creates a new key point labeler. This constructor creates a labeler that
+        /// is not valid until a <see cref="IdLabelConfig"/> and <see cref="KeyPointTemplate"/>
+        /// are assigned.
+        /// </summary>
+        public KeyPointLabeler() { }
+
+        /// <summary>
+        /// Creates a new key point labeler.
+        /// </summary>
+        /// <param name="config">The Id label config for the labeler</param>
+        /// <param name="template">The active keypoint template</param>
+        public KeyPointLabeler(IdLabelConfig config, KeyPointTemplate template)
+        {
+            this.idLabelConfig = config;
+            this.activeTemplate = template;
+        }
+
         /// <inheritdoc/>
         protected override void Setup()
         {
@@ -82,30 +105,58 @@ namespace UnityEngine.Perception.GroundTruth
 
             entities.Dispose();
 
+            KeyPointsComputed?.Invoke(m_KeyPointEntries);
             reporter.ReportValues(m_KeyPointEntries);
         }
 
         // ReSharper disable InconsistentNaming
         // ReSharper disable NotAccessedField.Global
         // ReSharper disable NotAccessedField.Local
+        /// <summary>
+        /// Record storing all of the keypoint data of a labeled gameobject.
+        /// </summary>
         [Serializable]
-        struct KeyPointEntry
+        public class KeyPointEntry
         {
             /// <summary>
-            /// The id of the labeled entity
+            /// The label id of the entity
             /// </summary>
             public int label_id;
+            /// <summary>
+            /// The instance id of the entity
+            /// </summary>
             public uint instance_id;
+            /// <summary>
+            /// The template that the points are based on
+            /// </summary>
             public string template_guid;
+            /// <summary>
+            /// Array of all of the keypoints
+            /// </summary>
             public KeyPoint[] keypoints;
         }
 
+        /// <summary>
+        /// The values of a specific keypoint
+        /// </summary>
         [Serializable]
-        struct KeyPoint
+        public class KeyPoint
         {
+            /// <summary>
+            /// The index of the keypoint in the template file
+            /// </summary>
             public int index;
+            /// <summary>
+            /// The keypoint's x-coordinate pixel location
+            /// </summary>
             public float x;
+            /// <summary>
+            /// The keypoint's y-coordinate pixel location
+            /// </summary>
             public float y;
+            /// <summary>
+            /// The state of the point, 0 = not present, 1 = keypoint is present
+            /// </summary>
             public int state;
         }
         // ReSharper restore InconsistentNaming
@@ -177,12 +228,24 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     status = false,
                     animator = null,
-                    keyPoints = new KeyPointEntry()
+                    keyPoints = new KeyPointEntry(),
+                    overrides = new List<(JointLabel, int)>()
                 };
 
                 if (idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
                 {
                     var entityGameObject = labeledEntity.gameObject;
+
+                    cached.keyPoints.instance_id = labeledEntity.instanceId;
+                    cached.keyPoints.label_id = labelEntry.id;
+                    cached.keyPoints.template_guid = activeTemplate.templateID.ToString();
+
+                    cached.keyPoints.keypoints = new KeyPoint[activeTemplate.keyPoints.Length];
+                    for (var i = 0; i < cached.keyPoints.keypoints.Length; i++)
+                    {
+                        cached.keyPoints.keypoints[i] = new KeyPoint { index = i, state = 0 };
+                    }
+
                     var animator = entityGameObject.transform.GetComponentInChildren<Animator>();
                     if (animator != null)
                     {
@@ -190,27 +253,16 @@ namespace UnityEngine.Perception.GroundTruth
                         if (avatar.isValid && avatar.isHuman)
                         {
                             cached.animator = animator;
-                            cached.keyPoints.instance_id = labeledEntity.instanceId;
-                            cached.keyPoints.label_id = labelEntry.id;
-                            cached.keyPoints.template_guid = activeTemplate.templateID.ToString();
-                            cached.keyPoints.keypoints = new KeyPoint[activeTemplate.keyPoints.Length];
-
-                            for (var i = 0; i < cached.keyPoints.keypoints.Length; i++)
-                            {
-                                cached.keyPoints.keypoints[i].index = i;
-                                cached.keyPoints.keypoints[i].state = 0;
-                            }
-
-                            cached.overrides = new List<(JointLabel, int)>();
                             cached.status = true;
+                        }
+                    }
 
-                            foreach (var joint in entityGameObject.transform.GetComponentsInChildren<JointLabel>())
-                            {
-                                if (TryToGetTemplateIndexForJoint(activeTemplate, joint, out var idx))
-                                {
-                                    cached.overrides.Add((joint, idx));
-                                }
-                            }
+                    foreach (var joint in entityGameObject.transform.GetComponentsInChildren<JointLabel>())
+                    {
+                        if (TryToGetTemplateIndexForJoint(activeTemplate, joint, out var idx))
+                        {
+                            cached.overrides.Add((joint, idx));
+                            cached.status = true;
                         }
                     }
                 }
@@ -254,46 +306,6 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        Rect ToBoxRect(float x, float y, float halfSize = 3.0f)
-        {
-            return new Rect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2);
-        }
-
-        void DrawPoint(float x, float y, Color color, Texture2D texture)
-        {
-            var oldColor = GUI.color;
-            GUI.color = color;
-            GUI.DrawTexture(ToBoxRect(x, y, 4), texture);
-            GUI.color = oldColor;
-        }
-
-        float Magnitude(float p1X, float p1Y, float p2X, float p2Y)
-        {
-            var x = p2X - p1X;
-            var y = p2Y - p1Y;
-            return Mathf.Sqrt(x * x + y * y);
-        }
-
-        void DrawLine (float p1X, float p1Y, float p2X, float p2Y, Color color, Texture texture)
-        {
-            var oldColor = GUI.color;
-
-            GUI.color = color;
-
-            var matrixBackup = GUI.matrix;
-            const float width = 8.0f;
-            var angle = Mathf.Atan2 (p2Y - p1Y, p2X - p1X) * 180f / Mathf.PI;
-
-            var length = Magnitude(p1X, p1Y, p2X, p2Y);
-
-            GUIUtility.RotateAroundPivot (angle, new Vector2(p1X, p1Y));
-            const float halfWidth = width * 0.5f;
-            GUI.DrawTexture (new Rect (p1X - halfWidth, p1Y - halfWidth, length, width), texture);
-
-            GUI.matrix = matrixBackup;
-            GUI.color = oldColor;
-        }
-
         /// <inheritdoc/>
         protected override void OnVisualize()
         {
@@ -312,14 +324,14 @@ namespace UnityEngine.Perception.GroundTruth
 
                     if (joint1.state != 0 && joint2.state != 0)
                     {
-                        DrawLine(joint1.x, joint1.y, joint2.x, joint2.y, bone.color, skeletonTexture);
+                        VisualizationHelper.DrawLine(joint1.x, joint1.y, joint2.x, joint2.y, bone.color, 8, skeletonTexture);
                     }
                 }
 
                 foreach (var keypoint in entry.keypoints)
                 {
                     if (keypoint.state != 0)
-                        DrawPoint(keypoint.x, keypoint.y, activeTemplate.keyPoints[keypoint.index].color, jointTexture);
+                        VisualizationHelper.DrawPoint(keypoint.x, keypoint.y, activeTemplate.keyPoints[keypoint.index].color, 8, jointTexture);
                 }
             }
         }

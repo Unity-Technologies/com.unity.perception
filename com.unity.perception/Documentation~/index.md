@@ -1,6 +1,6 @@
 <img src="images/banner2.PNG" align="middle"/>
 
-# Unity Perception package (com.unity.perception)
+# Unity Perception Package (com.unity.perception)
 The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning, training and validation. It is focused on capturing ground truth for Camera-based use cases. In the future, the Perception package will include other types of sensors and machine learning tasks.
 
 Visit the pages below for in-depth documentation on inidividual components of the package. 

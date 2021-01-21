@@ -2,10 +2,6 @@
 
 # Unity Perception Package Documentation (com.unity.perception)
 
-## Preview package
-
-This package is available as a preview, so it is not ready for production use. The features and documentation in this package might change before it is verified for release.
-
 Visit the pages below for in-depth documentation on inidividual components of the package. 
 
 |Feature|Description|
@@ -16,10 +12,13 @@ Visit the pages below for in-depth documentation on inidividual components of th
 |[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
 |[Randomization (Experimental)](Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|
 
+## Preview package
+
+This package is available as a preview, so it is not ready for production use. The features and documentation in this package might change before it is verified for release.
+
 ## Known issues
 
 * The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1
-
 
 ## Other Resources
 

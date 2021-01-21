@@ -191,7 +191,7 @@ namespace GroundTruthTests
             const string label = "TestTemplate";
             var template = CreateTestTemplate(guid, label);
 
-            Assert.AreEqual(template.templateID, guid);
+            Assert.AreEqual(template.templateID, guid.ToString());
             Assert.AreEqual(template.templateName, label);
             Assert.IsNull(template.jointTexture);
             Assert.IsNull(template.skeletonTexture);

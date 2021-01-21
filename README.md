@@ -12,9 +12,6 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 > com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.
 
-
-## Documentation 
-
 **[Quick Installation Instructions](com.unity.perception/Documentation~/SetupSteps.md)**  
 Get your local Perception workspace up and running quickly. Recommended for users with prior Unity experience.
 
@@ -23,6 +20,18 @@ Detailed instructions covering all the important steps from installing Unity Edi
 
 **[Perception Manual](com.unity.perception/Documentation~/index.md)**  
 Sample projects and documentation of the SDK.
+
+## Package Documentation
+
+This section contains in-depth documentation on inidividual components of the Perception package. 
+
+|Feature|Description|
+|---|---|
+|[Labeling](GroundTruthLabeling.md)|A component that marks a GameObject and its descendants with a set of labels|
+|[LabelConfig](GroundTruthLabeling.md#label-config)|An asset that defines a taxonomy of labels for ground truth generation|
+|[Perception Camera](PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html).|
+|[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
+|[Randomization (Experimental)](Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|
 
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.

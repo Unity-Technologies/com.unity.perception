@@ -1,7 +1,10 @@
 <img src="images/banner2.PNG" align="middle"/>
 
-# Unity Perception Package (com.unity.perception)
-The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning, training and validation. It is focused on capturing ground truth for Camera-based use cases. In the future, the Perception package will include other types of sensors and machine learning tasks.
+# Unity Perception Package Documentation (com.unity.perception)
+
+## Preview package
+
+This package is available as a preview, so it is not ready for production use. The features and documentation in this package might change before it is verified for release.
 
 Visit the pages below for in-depth documentation on inidividual components of the package. 
 
@@ -13,7 +16,12 @@ Visit the pages below for in-depth documentation on inidividual components of th
 |[DatasetCapture](DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
 |[Randomization (Experimental)](Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|
 
-## Getting Started
+## Known issues
+
+* The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1
+
+
+## Other Resources
 
 **[Quick Installation Instructions](com.unity.perception/Documentation~/SetupSteps.md)**  
 Get your local Perception workspace up and running quickly. Recommended for users with prior Unity experience.
@@ -21,24 +29,15 @@ Get your local Perception workspace up and running quickly. Recommended for user
 **[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
 Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
-## Preview package
+### Example projects using Perception
 
-This package is available as a preview, so it is not ready for production use. The features and documentation in this package might change before it is verified for release.
-
-## Example projects using Perception
-
-### SynthDet
+#### SynthDet
 
 <img src="images/synthdet.png"/>
 
 [SynthDet](https://github.com/Unity-Technologies/SynthDet) is an end-to-end solution for training a 2D object detection model using synthetic data.
 
-### Unity Simulation Smart Camera example
+#### Unity Simulation Smart Camera example
 <img src="images/smartcamera.png"/>
 
 The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how Perception could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
-
-
-## Known issues
-
-* The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1

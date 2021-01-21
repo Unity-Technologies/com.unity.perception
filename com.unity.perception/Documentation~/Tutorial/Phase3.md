@@ -96,7 +96,7 @@ To keep track of the progress of your Unity Simulation run, you will need to use
 
 * **Action**: Download the latest version of `unity_simulation_bundle.zip` from [here](https://github.com/Unity-Technologies/Unity-Simulation-Docs/releases).
 
-**Note**: If you are using a MacOS computer, we recommend using the _**curl**_ command from the Terminal to download the file, in order to avoid issues caused by the MacOS Gatekeeper when using the CLI. You can use these commands:
+> :information_source: If you are using a MacOS computer, we recommend using the _**curl**_ command from the Terminal to download the file, in order to avoid issues caused by the MacOS Gatekeeper when using the CLI. You can use these commands:
 ```
 curl -Lo ~/Downloads/unity_simulation_bundle.zip <URL-unity_simulation_bundle.zip>
 unzip ~/Downloads/unity_simulation_bundle.zip -d ~/Downloads/unity_simulation_bundle
@@ -146,10 +146,9 @@ Once you have logged you will see this page:
 <img src="Images/usim_login.png" width="400"/>
 </p>
 
-**Note**: On MacOS, you might get errors related to permissions. In these cases, try running your commands with the `sudo` qualifier. For example:
-`sudo USimCLI/mac/usim login auth`. This will ask for your MacOS account's password and should help overcome the permission issues.
+> :warning: On MacOS, you might get errors related to permissions. If that is the case, modify the permissions on the `~/.usim` folder and its contents to give your user full read and write permission.
 
-**Note : From this point on we will only include MacOS formatted commands in the tutorial, but all the `usim` commands we use will work in all supported operating systems.**
+> :information_source: From this point on we will only include MacOS formatted commands in the tutorial, but all the `usim` commands we use will work in all supported operating systems.**
 
 * **Action**: Return to your command-line interface. Get a list of cloud projects associated with your Unity account using the `usim get projects` command:
 

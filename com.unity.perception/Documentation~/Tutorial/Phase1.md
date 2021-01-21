@@ -110,7 +110,7 @@ We will now add the necessary components to the camera in order to equip it for 
 
 * **Action**: Click on this script to add it as a component. Your camera is now a `Perception` camera.
 
-**Note:** You may now see a warning regarding asynchronous shader compilation in the UI for the `Perception Camera` component. To fix this issue, from the top menu bar go to _**Edit -> Project Settings… -> Editor**_ and under _**Shader Compilation**_ settings, disable _**Asynchronous Shader Compilation**_.
+> :information_source: You may now see a warning regarding asynchronous shader compilation in the UI for the `Perception Camera` component. To fix this issue, from the top menu bar go to _**Edit -> Project Settings… -> Editor**_ and under _**Shader Compilation**_ settings, disable _**Asynchronous Shader Compilation**_.
 
 Adding components is the standard way in which objects can have various kinds of logic and data attached to them in Unity. This includes objects placed within the Scene (called GameObjects), such as the camera above, or objects outside of a Scene, in your project folders (called Prefabs).
 
@@ -186,7 +186,7 @@ Note that each object can have multiple labels assigned, and thus appear as diff
 
 For this tutorial, we have already prepared the foreground Prefabs for you and added the `Labeling` component to all of them. These Prefabs were based on 3D scans of the actual grocery items. If you are making your own Prefabs, you can easily add a `Labeling` component to them using the _**Add Component**_ button visible in the bottom right corner of the screenshot above.
 
-**Note:** If you are interested in knowing more about the process of creating Unity compatible 3D models for use in Perception, you can visit [this page](https://github.com/Unity-Technologies/SynthDet/blob/master/docs/CreatingAssets.md). Once you have 3D models in `.fbx` format, the Perception package lets you quickly create Prefabs from multiple models. Just select all your models and from the top menu bar select _**Assets -> Perception -> Create Prefabs from Selected Models**_. The newly created Prefabs will be placed in the same folders as their corresponding models.
+> :information_source: If you are interested in knowing more about the process of creating Unity compatible 3D models for use in Perception, you can visit [this page](https://github.com/Unity-Technologies/SynthDet/blob/master/docs/CreatingAssets.md). Once you have 3D models in `.fbx` format, the Perception package lets you quickly create Prefabs from multiple models. Just select all your models and from the top menu bar select _**Assets -> Perception -> Create Prefabs from Selected Models**_. The newly created Prefabs will be placed in the same folders as their corresponding models.
 
 Even though the sample Prefabs already have a label manually added, to learn more about how to use the Labeling component, we will now use automatic labeling to label all our foreground objects. This will overwrite their manually added labels.
 
@@ -216,7 +216,7 @@ Here, you can also open either of the configurations by clicking the _**Open**_ 
 <img src="Images/labelconfigs.png" width="800"/>
 </p>
 
-**Note:** Since we used automatic labels here and added them to our configurations, we are confident that the labels in the configurations match the labels of our objects. In cases where you decide to add manual labels to objects and configurations, make sure you use the exact same labels, otherwise, the objects for which a matching label is not found in your configurations will not be detected by the labelers that are using those configurations.
+> :information_source: Since we used automatic labels here and added them to our configurations, we are confident that the labels in the configurations match the labels of our objects. In cases where you decide to add manual labels to objects and configurations, make sure you use the exact same labels, otherwise, the objects for which a matching label is not found in your configurations will not be detected by the labelers that are using those configurations.
 
 Now that we have labelled all our foreground objects and setup our label configurations, let's briefly test things.
 
@@ -294,9 +294,9 @@ To generate data as fast as possible, the simulation utilizes asynchronous proce
 
 As seen in the image above, what we have now is just a beige-colored wall of shapes. This is because so far, we are only spawning them, and the beige color of our light is what gives them their current look. To make this background more useful, let's add a couple more `Randomizers`. 
 
-**Note:** If at this point you don't see any objects being displayed, make sure the Separation Distance for `BackgroundObjectPlacementRandomizer` is (6,6) and not (0,0).
+> :information_source: If at this point you don't see any objects being displayed, make sure the Separation Distance for `BackgroundObjectPlacementRandomizer` is (6,6) and not (0,0).
 
-**Note:** If your _**Game**_ tab has a different field of view than the one shown here, change the aspect ratio of your _**Game**_ tab to `4:3`, as shown below:
+> :information_source: If your _**Game**_ tab has a different field of view than the one shown here, change the aspect ratio of your _**Game**_ tab to `4:3`, as shown below:
 
 <p align="center">
 <img src="Images/game_aspect.png" width = "400"/>

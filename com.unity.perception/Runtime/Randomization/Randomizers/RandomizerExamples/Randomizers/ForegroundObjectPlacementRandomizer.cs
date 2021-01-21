@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers
 {
@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationStart()
         {
-            var seed = scenario.NextRandomState();
+            var seed = SamplerState.NextRandomState();
             var placementSamples = PoissonDiskSampling.GenerateSamples(
                 placementArea.x, placementArea.y, separationDistance, seed);
             var offset = new Vector3(placementArea.x, placementArea.y, 0f) * -0.5f;

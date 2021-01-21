@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <returns>The generated sample</returns>
         public float Sample()
         {
-            var rng = new Unity.Mathematics.Random(ScenarioBase.activeScenario.NextRandomState());
+            var rng = SamplerState.CreateGenerator();
             return SamplerUtility.TruncatedNormalSample(
                 rng.NextFloat(), range.minimum, range.maximum, mean, standardDeviation);
         }

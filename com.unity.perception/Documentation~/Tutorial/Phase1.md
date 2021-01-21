@@ -4,7 +4,7 @@
 
 In this phase of the Perception tutorial, you will start from downloading and installing Unity Editor and the Perception package. You will then use our sample assets and provided components to easily generate a synthetic dataset for training an object-detection model. 
 
-Through-out the tutorial, lines starting with bullet points followed by **"Action:"** denote the individual actions you will need to perform in order to progress through the tutorial. This is while non-bulleted lines will provide additional context and explanation around the actions. If in a hurry, you can just follow the actions!
+Through-out the tutorial, lines starting with bullet points followed by **":green_circle:Action:"** denote the individual actions you will need to perform in order to progress through the tutorial. This is while non-bulleted lines will provide additional context and explanation around the actions. If in a hurry, you can just follow the actions!
 
 Steps included this phase of the tutorial:
 - [Step 1: Download Unity Editor and Create a New Project](#step-1)

@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         public float Sample()
         {
             Initialize();
-            var rng = new Unity.Mathematics.Random(ScenarioBase.activeScenario.NextRandomState());
+            var rng = SamplerState.CreateGenerator();
             return SamplerUtility.AnimationCurveSample(
                 m_IntegratedCurve, rng.NextFloat(), m_Interval, m_StartTime, m_EndTime);
         }

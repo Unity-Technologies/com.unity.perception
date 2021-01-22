@@ -34,11 +34,11 @@ namespace RandomizationTests.SamplerTests
         [Test]
         public void ConsecutiveSamplesChangesState()
         {
-            var state0 = activeScenario.randomState;
+            var state0 = SamplerState.randomState;
             m_Sampler.Sample();
-            var state1 = activeScenario.randomState;
+            var state1 = SamplerState.randomState;
             m_Sampler.Sample();
-            var state2 = activeScenario.randomState;;
+            var state2 = SamplerState.randomState;;
 
             Assert.AreNotEqual(state0, state1);
             Assert.AreNotEqual(state1, state2);

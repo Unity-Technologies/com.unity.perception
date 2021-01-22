@@ -18,7 +18,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
     {
         static ScenarioBase s_ActiveScenario;
 
-        uint m_RandomState = SamplerUtility.largePrime;
         bool m_SkipFrame = true;
         bool m_FirstScenarioFrame = true;
         bool m_WaitingForFinalUploads;
@@ -45,11 +44,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// If true, this scenario will quit the Unity application when it's finished executing
         /// </summary>
         [HideInInspector] public bool quitOnComplete = true;
-
-        /// <summary>
-        /// The random state of the scenario
-        /// </summary>
-        public uint randomState => m_RandomState;
 
         /// <summary>
         /// The name of the Json file this scenario's constants are serialized to/from.
@@ -268,7 +262,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             if (currentIterationFrame == 0)
             {
                 DatasetCapture.StartNewSequence();
-                m_RandomState = SamplerUtility.IterateSeed((uint)currentIteration, genericConstants.randomSeed);
+                SamplerState.randomState = SamplerUtility.IterateSeed((uint)currentIteration, genericConstants.randomSeed);
                 foreach (var randomizer in activeRandomizers)
                     randomizer.IterationStart();
             }
@@ -384,16 +378,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             var randomizer = m_Randomizers[currentIndex];
             m_Randomizers.RemoveAt(currentIndex);
             m_Randomizers.Insert(nextIndex, randomizer);
-        }
-
-        /// <summary>
-        /// Generates a new random state and overwrites the old random state with the newly generated value
-        /// </summary>
-        /// <returns>The newly generated random state</returns>
-        public uint NextRandomState()
-        {
-            m_RandomState = SamplerUtility.Hash32NonZero(m_RandomState);
-            return m_RandomState;
         }
 
         void ValidateParameters()

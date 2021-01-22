@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System.Collections;
+using System.Linq;
+using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using UnityEngine.Experimental.Perception.Randomization.VisualElements;
@@ -9,13 +11,13 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
     [CustomEditor(typeof(ScenarioBase), true)]
     class ScenarioBaseEditor : UnityEditor.Editor
     {
+        bool m_HasConstantsField;
         ScenarioBase m_Scenario;
         SerializedObject m_SerializedObject;
         VisualElement m_Root;
         VisualElement m_InspectorPropertiesContainer;
-        VisualElement m_ConstantsContainer;
+        VisualElement m_ConstantsListVisualContainer;
         VisualElement m_RandomizerListPlaceholder;
-        SerializedProperty m_ConstantsProperty;
 
         public override VisualElement CreateInspectorGUI()
         {
@@ -53,8 +55,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             m_InspectorPropertiesContainer = m_Root.Q<VisualElement>("inspector-properties");
             m_InspectorPropertiesContainer.Clear();
 
+            m_ConstantsListVisualContainer = m_Root.Q<VisualElement>("constants-list");
+            m_ConstantsListVisualContainer.Clear();
+
             var iterator = m_SerializedObject.GetIterator();
             var foundProperties = false;
+            m_HasConstantsField = false;
             if (iterator.NextVisible(true))
             {
                 do
@@ -63,11 +69,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
                     {
                         case "m_Script":
                             break;
-                        case "constants":
-                            m_ConstantsProperty = iterator.Copy();
-                            break;
                         case "m_Randomizers":
                             m_RandomizerListPlaceholder.Add(new RandomizerList(iterator.Copy()));
+                            break;
+                        case "constants":
+                            m_HasConstantsField = true;
+                            CreateConstantsFieldsWithToolTips(iterator.Copy());
                             break;
                         default:
                         {
@@ -87,12 +94,30 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
 
         void CheckIfConstantsExist()
         {
-            m_ConstantsContainer = m_Root.Q<VisualElement>("constants-container");
-            if (m_ConstantsProperty == null)
+            m_ConstantsListVisualContainer = m_Root.Q<VisualElement>("constants-container");
+            if (!m_HasConstantsField)
             {
                 m_InspectorPropertiesContainer.style.marginBottom = 0;
-                m_ConstantsContainer.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
+                m_ConstantsListVisualContainer.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
             }
+        }
+
+        void CreateConstantsFieldsWithToolTips(SerializedProperty constantsProperty)
+        {
+            constantsProperty.NextVisible(true);
+            do
+            {
+                var constantsPropertyField = new PropertyField(constantsProperty.Copy());
+                constantsPropertyField.Bind(m_SerializedObject);
+
+                var originalField = target.GetType().GetField("constants").FieldType.GetField(constantsProperty.name);
+                var tooltipAttribute = originalField.GetCustomAttributes(true).ToList().Find(att => att.GetType() == typeof(TooltipAttribute));
+                if (tooltipAttribute != null)
+                    constantsPropertyField.tooltip = (tooltipAttribute as TooltipAttribute)?.tooltip;
+
+                m_ConstantsListVisualContainer.Add(constantsPropertyField);
+
+            } while (constantsProperty.NextVisible(true));
         }
     }
 }

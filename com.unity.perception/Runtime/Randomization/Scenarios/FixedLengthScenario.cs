@@ -15,8 +15,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         public class Constants : UnitySimulationScenarioConstants
         {
             /// <summary>
-            /// The number of frames to generate per iteration
+            /// The number of frames to render per iteration.
             /// </summary>
+            [Tooltip("The number of frames to render per iteration.")]
             public int framesPerIteration = 1;
         }
 

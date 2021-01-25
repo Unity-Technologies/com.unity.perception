@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
 Added instance segmentation labeler
 Added support for full screen visual overlays and overlay manager
+Added analytics for Unity Simulation runs
 
 ### Changed
 

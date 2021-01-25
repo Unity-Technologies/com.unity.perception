@@ -38,7 +38,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         const string k_SemanticSegmentationDirectory = "SemanticSegmentation";
         const string k_SegmentationFilePrefix = "segmentation_";
-        string m_SemanticSegmentationDirectory;
+        internal string m_SemanticSegmentationDirectory;
 
         /// <summary>
         /// The id to associate with semantic segmentation annotations in the dataset.

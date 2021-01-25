@@ -37,3 +37,4 @@ CodeCoverage
 /.download
 **/Build/**
 **/Builds/**
+/utr

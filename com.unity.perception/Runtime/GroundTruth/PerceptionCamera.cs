@@ -49,15 +49,24 @@ namespace UnityEngine.Perception.GroundTruth
         public int firstCaptureFrame = 0;
 
         /// <summary>
-        /// The method of triggering captures for this camera. In <see cref="PerceptionCamera.CaptureTriggerMode.Scheduled"/> mode, captures happen automatically based on a start time/frame and time/frame interval. In <see cref="PerceptionCamera.CaptureTriggerMode.Scheduled"/> mode, captures should be triggered manually through calling the <see cref="PerceptionCamera.CaptureOnNextUpdate"/> method of <see cref="PerceptionCamera"/>."
+        /// Capture trigger modes for <see cref="PerceptionCamera"/>.
         /// </summary>
         public enum CaptureTriggerMode
         {
+            /// <summary>
+            /// Captures happen automatically based on a start frame and frame delta time.
+            /// </summary>
             Scheduled,
+            /// <summary>
+            /// Captures should be triggered manually through calling the <see cref="PerceptionCamera.CaptureOnNextUpdate"/> method of <see cref="PerceptionCamera"/>.
+            /// </summary>
             Manual
         }
-        public CaptureTriggerMode captureTriggerMode = CaptureTriggerMode.Scheduled;
 
+        /// <summary>
+        /// The method of triggering captures for this camera.
+        /// </summary>
+        public CaptureTriggerMode captureTriggerMode = CaptureTriggerMode.Scheduled;
 
         /// <summary>
         /// Have this unscheduled (manual capture) camera affect simulation timings (similar to a scheduled camera) by requesting a specific frame delta time
@@ -70,7 +79,7 @@ namespace UnityEngine.Perception.GroundTruth
         public float simulationDeltaTime = 0.0166f;
 
         /// <summary>
-        /// "The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture frame.
+        /// The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame.
         /// </summary>
         public int framesBetweenCaptures = 0;
 

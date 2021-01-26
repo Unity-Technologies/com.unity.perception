@@ -50,9 +50,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="modality">The kind of the sensor (ex. "camera", "lidar")</param>
         /// <param name="description">A human-readable description of the sensor (ex. "front-left rgb camera")</param>
         /// <param name="firstCaptureFrame">The time, in seconds, from the start of the sequence on which this sensor should first be scheduled.</param>
-        /// <param name="captureTriggerMode"></param>
-        /// <param name="simulationDeltaTime"></param>
-        /// <param name="framesBetweenCaptures"></param>
+        /// <param name="captureTriggerMode">The method of triggering captures for this sensor.</param>
+        /// <param name="simulationDeltaTime">The simulation frame time (seconds) requested by this sensor.</param>
+        /// <param name="framesBetweenCaptures">The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame.</param>
         /// <param name="manualSensorAffectSimulationTiming"></param>
         /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
         /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
@@ -293,6 +293,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public bool ShouldCaptureThisFrame => DatasetCapture.SimulationState.ShouldCaptureThisFrame(this);
 
+        /// <summary>
+        /// Requests a capture from this sensor on the next rendered frame. Can only be used with manual capture mode (<see cref="PerceptionCamera.CaptureTriggerMode.Manual"/>).
+        /// </summary>
         public void CaptureOnNextUpdate()
         {
             DatasetCapture.SimulationState.SetNextCaptureTimeToNowForSensor(this);

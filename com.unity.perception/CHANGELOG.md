@@ -21,6 +21,10 @@ Randomizer tags now support inheritance
 
 Added AnimationCurveSampler, which returns random values according to a range and probability distribution denoted by a user provided AnimationCurve. 
 
+Added new capture options to Perception Camera:
+* Can now render intermediate frames between captures.
+* Capture can now be triggered manually using a function call, instead of automatic capturing on a schedule.
+
 
 ### Changed
 

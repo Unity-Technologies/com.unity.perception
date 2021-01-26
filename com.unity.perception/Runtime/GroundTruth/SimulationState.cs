@@ -456,12 +456,10 @@ namespace UnityEngine.Perception.GroundTruth
                     sensorData.sequenceTimeOfNextRender += sensorData.renderingDeltaTime;
                 }
 
-
                 if (activeSensor.ShouldCaptureThisFrame)
                 {
                     if (sensorData.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled))
                     {
-                        //In this case, the sensor is scheduled but does not affect simulation timings, so it has to capture on specific rendered frames.
                         sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + 1);
                         Debug.Assert(sensorData.sequenceTimeOfNextCapture > UnscaledSequenceTime,
                             $"Next scheduled capture should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeOfNextCapture}");
@@ -507,7 +505,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             WritePendingCaptures();
             WritePendingMetrics();
-            
+
             Time.captureDeltaTime = nextFrameDt;
         }
 

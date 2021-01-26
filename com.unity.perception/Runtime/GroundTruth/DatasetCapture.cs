@@ -53,7 +53,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="captureTriggerMode">The method of triggering captures for this sensor.</param>
         /// <param name="simulationDeltaTime">The simulation frame time (seconds) requested by this sensor.</param>
         /// <param name="framesBetweenCaptures">The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame.</param>
-        /// <param name="manualSensorAffectSimulationTiming"></param>
+        /// <param name="manualSensorAffectSimulationTiming">Have this unscheduled (manual capture) camera affect simulation timings (similar to a scheduled camera) by requesting a specific frame delta time</param>
         /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
         /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
         /// <exception cref="ArgumentException">Thrown if ego is invalid.</exception>

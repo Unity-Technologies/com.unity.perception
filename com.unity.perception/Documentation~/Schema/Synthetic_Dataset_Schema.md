@@ -172,21 +172,21 @@ A grayscale PNG file that stores integer values (label pixel_value in [annotatio
 
 #### capture.annotation.values
 
-<!-- Not yet implemented annotations
-##### instance segmentation - polygon
+##### instance segmentation - color image
 
-A json object that stores collections of polygons. Each polygon record maps a tuple of (instance, label) to a list of 
-K pixel coordinates that forms a polygon. This object can be directly stored in annotation.values 
+A color png file that stores instance ids as a color value per pixel. The png files are located in the "filename" location.
 
 ```
-semantic_segmentation_polygon {
-  label_id:     <int> -- Integer identifier of the label
-  label_name:   <str> -- String identifier of the label
-  instance_id:  <str> -- UUID of the instance.
-  polygon:      [<int, int>,...] -- List of points in pixel coordinates of the outer edge. Connecting these points in order should create a polygon that identifies the object. 
+instance_segmentation {
+  instance_id:  <int> -- The instance ID of the labeled object
+  color {             -- The pixel color that correlates with the instance ID
+    r:          <int> -- The red value of the pixel between 0 and 255
+    g:          <int> -- The green value of the pixel between 0 and 255
+    b:          <int> -- The blue value of the pixel between 0 and 255
+    a:          <int> -- The alpha value of the pixel between 0 and 255
+  } 
 }
 ```
--->
 
 ##### 2D bounding box
 

@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 1
+  m_UseShadowmask: 0
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -156,8 +156,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   labels:
   - Crate
-  useAutoLabeling: 0
-  autoLabelingSchemeType: 
 --- !u!65 &411238278
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -385,8 +383,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   labels:
   - Cube
-  useAutoLabeling: 0
-  autoLabelingSchemeType: 
 --- !u!65 &934158984
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -474,7 +470,6 @@ GameObject:
   - component: {fileID: 963194226}
   - component: {fileID: 963194230}
   - component: {fileID: 963194231}
-  - component: {fileID: 963194229}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -547,23 +542,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &963194229
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isGlobal: 1
-  priority: 0
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: f416044e9f33b4211898fb62f3da67d3, type: 2}
 --- !u!114 &963194230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -577,17 +555,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   description: The main camera
-  period: 0.016
-  startTime: 4.4
+  period: 0.0166
+  startTime: 0
   captureRgbImages: 1
-  scheduledCapture: 0
-  ControlSimulationTiming: 0
   m_Labelers:
   - id: 0
   - id: 1
   - id: 2
   - id: 3
-  showVisualizations: 0
+  showVisualizations: 1
   references:
     version: 1
     00000000:
@@ -643,7 +619,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
-  m_RenderPostProcessing: 1
+  m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -687,8 +663,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   labels:
   - Box
-  useAutoLabeling: 0
-  autoLabelingSchemeType: 
 --- !u!65 &1640252280
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -867,5 +841,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   labels:
   - Terrain
-  useAutoLabeling: 0
-  autoLabelingSchemeType: 

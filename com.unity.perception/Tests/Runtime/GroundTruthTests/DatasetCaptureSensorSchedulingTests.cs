@@ -20,7 +20,7 @@ namespace GroundTruthTests
         internal SimulationStateTestHelper()
         {
             var bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
-            m_SequenceTimeOfNextCaptureMethod = m_State.GetType().GetMethod("SequenceTimeOfNextCapture", bindingFlags);
+            m_SequenceTimeOfNextCaptureMethod = m_State.GetType().GetMethod("GetSequenceTimeOfNextCapture", bindingFlags);
             Debug.Assert(m_SequenceTimeOfNextCaptureMethod != null, "Couldn't find sequence time method.");
             var sensorsField = m_State.GetType().GetField("m_Sensors", bindingFlags);
             Debug.Assert(sensorsField != null, "Couldn't find internal sensors field");
@@ -61,40 +61,95 @@ namespace GroundTruthTests
         public IEnumerator SequenceTimeOfNextCapture_ReportsCorrectTime()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            var firstCaptureTime = 1.5f;
-            var period = .4f;
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            var firstCaptureFrame = 2f;
+            var simulationDeltaTime = .4f;
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "cam", "", firstCaptureFrame, PerceptionCamera.CaptureTriggerMode.Scheduled, simulationDeltaTime, 0);
 
+            var startTime = firstCaptureFrame * simulationDeltaTime;
             float[] sequenceTimesExpected =
             {
-                firstCaptureTime,
-                period + firstCaptureTime,
-                period * 2 + firstCaptureTime,
-                period * 3 + firstCaptureTime
+                startTime,
+                simulationDeltaTime + startTime,
+                simulationDeltaTime * 2 + startTime,
+                simulationDeltaTime * 3 + startTime
             };
+
+            for (var i = 0; i < firstCaptureFrame; i++)
+            {
+                //render the non-captured frames before firstCaptureFrame
+                yield return null;
+            }
             for (var i = 0; i < sequenceTimesExpected.Length; i++)
             {
-                yield return null;
                 var sensorData = m_TestHelper.GetSensorData(sensorHandle);
                 var sequenceTimeActual = m_TestHelper.CallSequenceTimeOfNextCapture(sensorData);
                 Assert.AreEqual(sequenceTimesExpected[i], sequenceTimeActual, 0.0001f);
+                yield return null;
             }
+        }
+
+        [UnityTest]
+        public IEnumerator SequenceTimeOfNextCapture_WithInBetweenFrames_ReportsCorrectTime()
+        {
+            var ego = DatasetCapture.RegisterEgo("ego");
+            var firstCaptureFrame = 2;
+            var simulationDeltaTime = .4f;
+            var framesBetweenCaptures = 2;
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "cam", "", firstCaptureFrame, PerceptionCamera.CaptureTriggerMode.Scheduled, simulationDeltaTime, framesBetweenCaptures);
+            var startingFrame = Time.frameCount;
+
+            var startTime = firstCaptureFrame * simulationDeltaTime;
+            var interval = (framesBetweenCaptures + 1) * simulationDeltaTime;
+            float[] sequenceTimesExpected =
+            {
+                startTime,
+                interval + startTime,
+                interval * 2 + startTime,
+                interval * 3 + startTime
+            };
+
+            int[] simulationFramesToCheck =
+            {
+                firstCaptureFrame,
+                firstCaptureFrame + (framesBetweenCaptures + 1),
+                firstCaptureFrame + (framesBetweenCaptures + 1) * 2,
+                firstCaptureFrame + (framesBetweenCaptures + 1) * 3,
+            };
+
+            int checkedFrame = 0;
+            var currentSimFrame = Time.frameCount - startingFrame;
+            while (currentSimFrame <= simulationFramesToCheck[simulationFramesToCheck.Length-1] && checkedFrame < simulationFramesToCheck.Length)
+            {
+                currentSimFrame = Time.frameCount - startingFrame;
+                if (currentSimFrame == simulationFramesToCheck[checkedFrame])
+                {
+                    var sensorData = m_TestHelper.GetSensorData(sensorHandle);
+                    var sequenceTimeActual = m_TestHelper.CallSequenceTimeOfNextCapture(sensorData);
+                    Assert.AreEqual(sequenceTimesExpected[checkedFrame], sequenceTimeActual, 0.0001f);
+                    checkedFrame++;
+                }
+                else
+                {
+                    yield return null;
+                }
+            }
+
         }
 
         [UnityTest]
         public IEnumerator FramesScheduledBySensorConfig()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            var firstCaptureTime = 1.5f;
-            var period = .4f;
-            DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            var firstCaptureFrame = 2f;
+            var simulationDeltaTime = .4f;
+            DatasetCapture.RegisterSensor(ego, "cam", "", firstCaptureFrame, PerceptionCamera.CaptureTriggerMode.Scheduled, simulationDeltaTime, 0);
 
             float[] deltaTimeSamplesExpected =
             {
-                firstCaptureTime,
-                period,
-                period,
-                period
+                simulationDeltaTime,
+                simulationDeltaTime,
+                simulationDeltaTime,
+                simulationDeltaTime
             };
             float[] deltaTimeSamples = new float[deltaTimeSamplesExpected.Length];
             for (int i = 0; i < deltaTimeSamples.Length; i++)
@@ -108,19 +163,19 @@ namespace GroundTruthTests
         public IEnumerator FramesScheduled_WithTimeScale_ResultsInProperDeltaTime()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            var firstCaptureTime = 2f;
-            var period = 1f;
+            var firstCaptureFrame = 2f;
+            var simulationDeltaTime = 1f;
 
             var timeScale = 2;
             Time.timeScale = timeScale;
-            DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            DatasetCapture.RegisterSensor(ego, "cam", "", firstCaptureFrame, PerceptionCamera.CaptureTriggerMode.Scheduled, simulationDeltaTime, 0);
 
             float[] deltaTimeSamplesExpected =
             {
-                timeScale * firstCaptureTime,
-                timeScale * period,
-                timeScale * period,
-                timeScale * period
+                timeScale * simulationDeltaTime,
+                timeScale * simulationDeltaTime,
+                timeScale * simulationDeltaTime,
+                timeScale * simulationDeltaTime
             };
             float[] deltaTimeSamples = new float[deltaTimeSamplesExpected.Length];
             for (int i = 0; i < deltaTimeSamples.Length; i++)
@@ -134,7 +189,7 @@ namespace GroundTruthTests
         public IEnumerator ChangingTimeScale_CausesDebugError()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            DatasetCapture.RegisterSensor(ego, "cam", "", 1f, 2f, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            DatasetCapture.RegisterSensor(ego, "cam", "", 2f, PerceptionCamera.CaptureTriggerMode.Scheduled, 1, 0);
 
             yield return null;
             Time.timeScale = 5;
@@ -146,7 +201,7 @@ namespace GroundTruthTests
         public IEnumerator ChangingTimeScale_DuringStartNewSequence_Succeeds()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            DatasetCapture.RegisterSensor(ego, "cam", "", 1f, 2f, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            DatasetCapture.RegisterSensor(ego, "cam", "", 2f, PerceptionCamera.CaptureTriggerMode.Scheduled, 1, 0);
 
             yield return null;
             Time.timeScale = 1;
@@ -159,8 +214,8 @@ namespace GroundTruthTests
         public IEnumerator FramesScheduled_WithChangingTimeScale_ResultsInProperDeltaTime()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            var firstCaptureTime = 2f;
-            var period = 1f;
+            var firstCaptureFrame = 2f;
+            var simulationDeltaTime = 1f;
             float[] newTimeScalesPerFrame =
             {
                 2f,
@@ -168,14 +223,14 @@ namespace GroundTruthTests
                 .01f,
                 1f
             };
-            DatasetCapture.RegisterSensor(ego, "cam", "", period, firstCaptureTime, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            DatasetCapture.RegisterSensor(ego, "cam", "", firstCaptureFrame, PerceptionCamera.CaptureTriggerMode.Scheduled, 1, 0);
 
             float[] deltaTimeSamplesExpected =
             {
-                newTimeScalesPerFrame[0] * firstCaptureTime,
-                newTimeScalesPerFrame[1] * period,
-                newTimeScalesPerFrame[2] * period,
-                newTimeScalesPerFrame[3] * period
+                newTimeScalesPerFrame[0] * simulationDeltaTime,
+                newTimeScalesPerFrame[1] * simulationDeltaTime,
+                newTimeScalesPerFrame[2] * simulationDeltaTime,
+                newTimeScalesPerFrame[3] * simulationDeltaTime
             };
             float[] deltaTimeSamples = new float[deltaTimeSamplesExpected.Length];
             for (int i = 0; i < deltaTimeSamples.Length; i++)
@@ -190,9 +245,9 @@ namespace GroundTruthTests
         public IEnumerator ResetSimulation_ResetsCaptureDeltaTime()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            DatasetCapture.RegisterSensor(ego, "cam", "", 4, 10, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            DatasetCapture.RegisterSensor(ego, "cam", "", 0, PerceptionCamera.CaptureTriggerMode.Scheduled, 5, 0);
             yield return null;
-            Assert.AreEqual(10, Time.captureDeltaTime);
+            Assert.AreEqual(5, Time.captureDeltaTime);
             DatasetCapture.ResetSimulation();
             Assert.AreEqual(0, Time.captureDeltaTime);
         }
@@ -201,24 +256,26 @@ namespace GroundTruthTests
         public IEnumerator ShouldCaptureThisFrame_ReturnsTrueOnProperFrames()
         {
             var ego = DatasetCapture.RegisterEgo("ego");
-            var firstCaptureTime1 = 10;
-            var frequencyInMs1 = 4;
-            var sensor1 = DatasetCapture.RegisterSensor(ego, "cam", "1", frequencyInMs1, firstCaptureTime1, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            var firstCaptureFrame1 = 2;
+            var simDeltaTime1 = 4;
+            var framesBetweenCaptures1 = 2;
+            var sensor1 = DatasetCapture.RegisterSensor(ego, "cam", "1", firstCaptureFrame1, PerceptionCamera.CaptureTriggerMode.Scheduled, simDeltaTime1, framesBetweenCaptures1);
 
-            var firstCaptureTime2 = 10;
-            var frequencyInMs2 = 6;
-            var sensor2 = DatasetCapture.RegisterSensor(ego, "cam", "2", frequencyInMs2, firstCaptureTime2, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            var firstCaptureFrame2 = 1;
+            var simDeltaTime2 = 6;
+            var framesBetweenCaptures2 = 1;
+            var sensor2 = DatasetCapture.RegisterSensor(ego, "cam", "2", firstCaptureFrame2, PerceptionCamera.CaptureTriggerMode.Scheduled, simDeltaTime2, framesBetweenCaptures2);
 
-            var sensor3 = DatasetCapture.RegisterSensor(ego, "cam", "3", 1, 1, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
-            sensor3.Enabled = false;
 
             (float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture)[] samplesExpected =
             {
-                ((float)firstCaptureTime1, true, true),
-                (4, true, false),
+                (4, false, false),
                 (2, false, true),
                 (2, true, false),
-                (4, true, true)
+                (4, false, false),
+                (4, false, false),
+                (2, false, true),
+                (2, true, false)
             };
             var samplesActual = new(float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture)[samplesExpected.Length];
             for (int i = 0; i < samplesActual.Length; i++)
@@ -233,7 +290,7 @@ namespace GroundTruthTests
         [Test]
         public void Enabled_StartsTrue()
         {
-            var sensor1 = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "cam", "1", 1, 1, PerceptionCamera.CaptureTriggerMode.Scheduled, true);
+            var sensor1 = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "cam", "1", 1, PerceptionCamera.CaptureTriggerMode.Scheduled, 1, 0);
             Assert.IsTrue(sensor1.Enabled);
         }
     }

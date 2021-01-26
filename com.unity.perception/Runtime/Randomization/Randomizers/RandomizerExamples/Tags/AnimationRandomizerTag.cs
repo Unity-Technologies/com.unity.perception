@@ -1,3 +1,6 @@
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Perception.GroundTruth;
+
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers.Tags
 {
     /// <summary>
@@ -11,6 +14,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// <summary>
         /// A list of animation clips from which to choose
         /// </summary>
-        public AnimationClip[] animationClips;
+        public AnimationClipParameter animationClips;
+
+
     }
 }

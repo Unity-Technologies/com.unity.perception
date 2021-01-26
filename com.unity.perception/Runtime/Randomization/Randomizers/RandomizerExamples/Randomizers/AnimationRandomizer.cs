@@ -5,37 +5,66 @@ using UnityEngine.Animations;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
 using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Playables;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers
 {
     /// <summary>
-    /// Chooses a random of frame of a random clip for a gameobject
+    /// Chooses a random of frame of a random clip for a game object
     /// </summary>
     [Serializable]
     [AddRandomizerMenu("Perception/Animation Randomizer")]
     public class AnimationRandomizer : Randomizer
     {
         FloatParameter m_FloatParameter = new FloatParameter{ value = new UniformSampler(0, 1) };
-        Dictionary<GameObject, (PlayableGraph, Animator)> m_GraphMap;
+
+        class CachedData
+        {
+            public PlayableGraph graph;
+            public AnimationPlayableOutput output;
+            public Dictionary<string, AnimationClipPlayable> playables = new Dictionary<string, AnimationClipPlayable>();
+            public PoseStateGroundTruthInfo poseState;
+        }
+        Dictionary<GameObject, CachedData> m_CacheMap;
 
         /// <inheritdoc/>
         protected override void OnCreate()
         {
-            m_GraphMap = new Dictionary<GameObject, (PlayableGraph, Animator)>();
+            m_CacheMap = new Dictionary<GameObject, CachedData>();
         }
 
-        (PlayableGraph, Animator) GetGraph(GameObject gameObject)
+        CachedData InitializeCacheData(AnimationRandomizerTag tag)
         {
-            if (!m_GraphMap.ContainsKey(gameObject))
+            var cachedData = new CachedData { graph = PlayableGraph.Create() };
+            cachedData.graph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
+            var animator = tag.gameObject.GetComponent<Animator>();
+            cachedData.output = AnimationPlayableOutput.Create(cachedData.graph, "Animation", animator);
+
+            for (var i = 0; i < tag.animationClips.GetCategoryCount(); i++)
             {
-                var graph = PlayableGraph.Create();
-                graph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
-                var animator = gameObject.GetComponent<Animator>();
-                m_GraphMap[gameObject] = (graph, animator);
+                var clip = tag.animationClips.GetCategory(i);
+                var playable = AnimationClipPlayable.Create(cachedData.graph, clip.animationClip);
+                cachedData.playables[clip.animationClip.name] = playable;
             }
 
-            return m_GraphMap[gameObject];
+            cachedData.poseState = tag.gameObject.GetComponent<PoseStateGroundTruthInfo>();
+            if (cachedData.poseState == null)
+            {
+                cachedData.poseState = tag.gameObject.AddComponent<PoseStateGroundTruthInfo>();
+            }
+
+            return cachedData;
+        }
+
+        CachedData GetGraph(AnimationRandomizerTag tag)
+        {
+            if (!m_CacheMap.ContainsKey(tag.gameObject))
+            {
+                m_CacheMap[tag.gameObject] = InitializeCacheData(tag);
+
+            }
+            return m_CacheMap[tag.gameObject];
         }
 
         /// <inheritdoc/>
@@ -44,23 +73,35 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
             var taggedObjects = tagManager.Query<AnimationRandomizerTag>();
             foreach (var taggedObject in taggedObjects)
             {
-                var (graph, animator) = GetGraph(taggedObject.gameObject);
-
                 var tag = taggedObject.GetComponent<AnimationRandomizerTag>();
+                var cached = GetGraph(tag);
 
                 var clips = tag.animationClips;
-                CategoricalParameter<AnimationClip> param = new AnimationClipParameter();
-                param.SetOptions(clips);
-                var clip = param.Sample();
+                var animationPoseLabel = clips.Sample();
+                var clip = animationPoseLabel.animationClip;
 
-                var output = AnimationPlayableOutput.Create(graph, "Animation", animator);
-                var playable = AnimationClipPlayable.Create(graph, clip);
-                output.SetSourcePlayable(playable);
-                var l = clip.length;
-                var t = m_FloatParameter.Sample();
-                playable.SetTime(t * l);
+                var playable = cached.playables[clip.name];
+                cached.output.SetSourcePlayable(cached.playables[clip.name]);
+                var t = m_FloatParameter.Sample() * clip.length;
+
+                playable.SetTime(t);
                 playable.SetSpeed(0);
-                graph.Play();
+
+                cached.graph.Play();
+
+                cached.poseState.poseState = animationPoseLabel.GetPoseAtTime(t);
+            }
+        }
+
+        protected override void OnScenarioComplete()
+        {
+            foreach (var cache in m_CacheMap.Values)
+            {
+                foreach (var p in cache.playables.Values)
+                    cache.graph.DestroyPlayable(p);
+
+                cache.graph.DestroyOutput(cache.output);
+                cache.graph.Destroy();
             }
         }
     }

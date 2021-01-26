@@ -131,6 +131,10 @@ namespace UnityEngine.Perception.GroundTruth
             /// </summary>
             public string template_guid;
             /// <summary>
+            /// Pose ground truth for the current set of keypoints
+            /// </summary>
+            public string pose = "unset";
+            /// <summary>
             /// Array of all of the keypoints
             /// </summary>
             public KeyPoint[] keypoints;
@@ -301,6 +305,11 @@ namespace UnityEngine.Perception.GroundTruth
                     keyPoints[idx].y = loc.y;
                     keyPoints[idx].state = 1;
                 }
+
+                // check if the model has a pose state component, if so we will add that to our model, this value
+                // is purposely not cached, because it could be added during runtime
+                var poseState = labeledEntity.GetComponent<PoseStateGroundTruthInfo>();
+                cachedData.keyPoints.pose = poseState != null ? poseState.poseState : "unset";
 
                 m_KeyPointEntries.Add(cachedData.keyPoints);
             }

@@ -16,6 +16,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         public AnimationClipParameter animationClips;
 
+        /// <summary>
+        /// Apply the root motion to the animator. If true, if an animation has a rotation translation and/or rotation
+        /// that will be applied to the labeled model, which means that the model maybe move to a new position.
+        /// If false, then the model will stay at its current position/rotation.
+        /// </summary>
+        public bool applyRootMotion = false;
 
     }
 }

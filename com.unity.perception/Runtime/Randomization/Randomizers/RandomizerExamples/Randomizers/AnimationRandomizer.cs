@@ -39,6 +39,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
             var cachedData = new CachedData { graph = PlayableGraph.Create() };
             cachedData.graph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
             var animator = tag.gameObject.GetComponent<Animator>();
+            animator.applyRootMotion = tag.applyRootMotion;
+
             cachedData.output = AnimationPlayableOutput.Create(cachedData.graph, "Animation", animator);
 
             for (var i = 0; i < tag.animationClips.GetCategoryCount(); i++)

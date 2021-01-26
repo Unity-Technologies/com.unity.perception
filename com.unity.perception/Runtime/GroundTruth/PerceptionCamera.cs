@@ -254,8 +254,6 @@ namespace UnityEngine.Perception.GroundTruth
             if (!SensorHandle.IsValid)
                 return;
 
-            //m_AttachedCamera.enabled = SensorHandle.ShouldCaptureThisFrame;
-
             bool anyVisualizing = false;
             foreach (var labeler in m_Labelers)
             {
@@ -474,7 +472,6 @@ namespace UnityEngine.Perception.GroundTruth
                 return;
 #endif
             CaptureRgbData(cam);
-            //Debug.Log("===================== CAPTURING");
 
             foreach (var labeler in m_Labelers)
             {

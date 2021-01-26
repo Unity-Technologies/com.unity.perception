@@ -507,8 +507,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             WritePendingCaptures();
             WritePendingMetrics();
-
-            Debug.Log("next fdt: " + nextFrameDt);
+            
             Time.captureDeltaTime = nextFrameDt;
         }
 

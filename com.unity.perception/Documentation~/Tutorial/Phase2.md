@@ -11,15 +11,15 @@ Steps included this phase of the tutorial:
 
 We need to create two C# classes for our light randomization, `MyLightRandomizer` and `MyLightRandomizerTag`. The first of these will sample random values and assign them to the intensity and color of the light, and the second class will be the component that will be added to `Directional Light`, making it a target of `MyLightRandomizer`.
 
-* **Action**: In the _**Project**_ tab, right-click on the `Scripts` folder and select _**Create -> C# Script**_. Name your new script file `MyLightRandomizer.cs`.
-* **Action**: Create another script and name it `MyLightRandomizerTag.cs`.
-* **Action**: Double-click `MyLightRandomizer.cs` to open it in _**Visual Studio**_.
+* **:green_circle: Action**: In the _**Project**_ tab, right-click on the `Scripts` folder and select _**Create -> C# Script**_. Name your new script file `MyLightRandomizer.cs`.
+* **:green_circle: Action**: Create another script and name it `MyLightRandomizerTag.cs`.
+* **:green_circle: Action**: Double-click `MyLightRandomizer.cs` to open it in _**Visual Studio**_.
 
 Note that while _**Visual Studio**_ is the default option, you can choose any text editor of your choice. You can change this setting in _**Preferences -> External Tools -> External Script Editor**_.
 
-* **Action**: Remove the contents of the class and copy/paste the code below:
+* **:green_circle: Action**: Remove the contents of the class and copy/paste the code below:
 
-```
+```C#
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
@@ -46,11 +46,11 @@ public class MyLightRandomizer : Randomizer
 
 The purpose of this piece of code is to obtain a random float parameter and assign it to the light's `Intensity` field on the start of every Iteration. Let's go through the code above and understand each part. The `FloatParameter` field makes it possible for us to define a randomized float parameter and modify its properties from the editor UI, similar to how we already modified the properties for the previous Randomizers we used. 
 
-**Note:** If you look at the _**Console**_ tab of the editor now, you will see an error regarding `MyLightRandomizerTag` not being found. This is to be expected, since we have not yet created this class; the error will go away once we create the class later.
+> :information_source: If you look at the _**Console**_ tab of the editor now, you will see an error regarding `MyLightRandomizerTag` not being found. This is to be expected, since we have not yet created this class; the error will go away once we create the class later.
 
 If you return to your list of Randomizers in the _**Inspector**_ view of `SimulationScenario`, you can now add this new Randomizer.
 
-* **Action**: Add `MyLightRandomizer` to the list of Randomizers in `SimulationScenario`.
+* **:green_circle: Action**: Add `MyLightRandomizer` to the list of Randomizers in `SimulationScenario`.
 
 You will notice that the Randomizer's UI snippet contains one Parameter named `Light Intensity Parameter`. This is the same Parameter we added in the code block above. Here, you can set the sampling distribution (`Value`) and `Range` for this float Parameter:
 
@@ -59,7 +59,7 @@ You will notice that the Randomizer's UI snippet contains one Parameter named `L
 </p>
 
 
-* **Action**:  In the UI snippet for `MyLightRandomzier`, set the minimum and maximum for range to 0.5 and 3.
+* **:green_circle: Action**:  In the UI snippet for `MyLightRandomzier`, set the minimum and maximum for range to 0.5 and 3.
 
 This range of intensities is arbitrary but will give us a typically nice lighting without excessive darkness or burnt-out highlights.
 
@@ -67,9 +67,9 @@ The `MyLightRandomizer` class extends `Randomizer`, which is the base class for 
 
 The `OnIterationStart()` function is used for telling the Randomizer what actions to perform at the start of each Iteration of the Scenario. As seen in the code block, at the start of each Iteration, this class queries the `tagManager` object for all objects that carry the `MyLightRandomizerTag` component. Then, for each object inside the queried list, it first retrieves the `Light` component, and then sets its intensity to a new random float sampled from `lightIntensityParameter`. 
 
-* **Action**: Open `MyLightRandomizerTag.cs` and replace its contents with the code below:
+* **:green_circle: Action**: Open `MyLightRandomizerTag.cs` and replace its contents with the code below:
 
-```
+```C#
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 
@@ -85,18 +85,18 @@ Yes, a RandomizerTag can be this simple if you just need it for helping Randomiz
 
 Notice there is a `RequireComponent(typeof(Light))` line at the top. This line makes it so that you can only add the `MyLightRandomizerTag` component to an object that already has a `Light` component attached. This way, the Randomizers that query for this tag can be confident that the found objects have a `Light` component and can thus be Randomized.
 
-* **Action**: Select `Directional Light` in the Scene's _**Hierarchy**_, and in the _**Inspector**_ tab, add a `My Light Randomizer Tag` component.
-* **Action**: Run the simulation again and inspect how `Directional Light` now switches between different intensities. You can pause the simulation and then use the step button (to the right of the pause button) to move the simulation one frame forward and clearly see the varying light intensity
+* **:green_circle: Action**: Select `Directional Light` in the Scene's _**Hierarchy**_, and in the _**Inspector**_ tab, add a `My Light Randomizer Tag` component.
+* **:green_circle: Action**: Run the simulation again and inspect how `Directional Light` now switches between different intensities. You can pause the simulation and then use the step button (to the right of the pause button) to move the simulation one frame forward and clearly see the varying light intensity
 
 Let's now add more variation to our light by randomizing its color as well. 
 
-* **Action**: Back inside `MyLightRandomizer.cs`, define a new `ColorRgbParameter`:
+* **:green_circle: Action**: Back inside `MyLightRandomizer.cs`, define a new `ColorRgbParameter`:
 
 `public ColorRgbParameter lightColorParameter;`
 
-* **Action**: Inside the code block that intensity was previously applied, add code for sampling color from the above Parameter and applying it:
+* **:green_circle: Action**: Inside the code block that intensity was previously applied, add code for sampling color from the above Parameter and applying it:
 
-```
+```C#
 foreach (var taggedObject in taggedObjects)
 {
     var light = taggedObject.GetComponent<Light>();            
@@ -107,7 +107,7 @@ foreach (var taggedObject in taggedObjects)
 
 If you now check the UI snippet for `MyLightRandomizer`, you will notice that `Color Parameter` is added. This Parameter includes four separate randomized values for `Red`, `Green`, `Blue` and `Alpha`. Note that the meaningful range for all of these values is 0-1 (and not 0-255). You can see that the sampling range for red, green, and blue is currently also set to 0-1, which means the parameter covers a full range of colors. A color with (0,0,0) RGB components essentially emits no light. So, let's increase the minimum a bit to avoid such a scenario.
 
-* **Action**: Increase the minimum value for red, green, and blue components to 0.4 (this is an arbitrary number that typically produces good-looking results).
+* **:green_circle: Action**: Increase the minimum value for red, green, and blue components to 0.4 (this is an arbitrary number that typically produces good-looking results).
 
 The UI for `My Light Randomizer` should now look like this:
 
@@ -116,7 +116,7 @@ The UI for `My Light Randomizer` should now look like this:
 </p>
 
 
-* **Action**: Run the simulation for a few frames to observe the lighting color changing on each iteration.
+* **:green_circle: Action**: Run the simulation for a few frames to observe the lighting color changing on each iteration.
 
 
 ### <a name="step-2">Step 2: Bundle Data and Logic Inside RandomizerTags</a> 
@@ -128,19 +128,19 @@ There are also cases where you may need to include certain logic within your obj
 
 Let's try this approach with our `Directional Light` object. We will create a duplicate of this light and then have the two lights use different ranges of intensity while both using the exact same float Parameter from `MyLightRandomizer.cs`.
 
-* **Action**: Right-click on `Directional Light` in the Scene _**Hierarchy**_ and select _**Duplicate**_. The new light will automatically be named `Directional Light (1)`.
-* **Action**: Change the Y rotation of `Directional Light (1)` to 60, as shown below:
+* **:green_circle: Action**: Right-click on `Directional Light` in the Scene _**Hierarchy**_ and select _**Duplicate**_. The new light will automatically be named `Directional Light (1)`.
+* **:green_circle: Action**: Change the Y rotation of `Directional Light (1)` to 60, as shown below:
 
 <p align="center">
 <img src="Images/light_2.png" width="420"/>
 </p>
 
-* **Action**: Change the Y rotation of `Directional Light` to -60.
+* **:green_circle: Action**: Change the Y rotation of `Directional Light` to -60.
 
 This makes the two lights illuminate the scene from opposing angles, each having a 30-degree angle with the background and foreground planes. Note that the position of Directional Lights in Unity does not affect how they illuminate the scene, so you do not need to use the same position as the screenshot above.
 
-* **Action**: Open `MyLightRandomizerTag.cs` and modify it to match the code below:
-```
+* **:green_circle: Action**: Open `MyLightRandomizerTag.cs` and modify it to match the code below:
+```C#
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 
@@ -164,18 +164,18 @@ In the above code, we have created a new `SetIntensity` function that first scal
 
 This component is already added to both our lights. We now need to set our desired minimum and maximum intensities, and this can be done through the _**Inspector**_ view.
 
-* **Action**: Select `Directional Light` and from the **Inspector** UI for the `MyLightRandomizerTag` component, set `Min Intensity` to 0.5 and `Max Intensity` to 3.
-* **Action**: Repeat the above step for `Directional Light (1)` and set `Min Intensity` to 0 and `Max Intensity` to 0.4.
+* **:green_circle: Action**: Select `Directional Light` and from the **Inspector** UI for the `MyLightRandomizerTag` component, set `Min Intensity` to 0.5 and `Max Intensity` to 3.
+* **:green_circle: Action**: Repeat the above step for `Directional Light (1)` and set `Min Intensity` to 0 and `Max Intensity` to 0.4.
 
 Note that with this change, we fully transfer the responsibility for the light's intensity range to `MyLightRandomizerTag.cs` and assume the intensity value coming from `My Light Randomizer` is always between 0 and 1. Therefore, we now need to change the range for the corresponding Parameter in `My Light Randomizer` to (0,1). 
 
-* **Action**: Select `SimulationScenario` and from the UI snippet for `My Light Randomizer`, change the range for `Light Intensity Parameter` from (0.5,3.5) to (0,1).
+* **:green_circle: Action**: Select `SimulationScenario` and from the UI snippet for `My Light Randomizer`, change the range for `Light Intensity Parameter` from (0.5,3.5) to (0,1).
 
 We also need to make a minor change to `MyLightRandomizer.cs` in order to make it compatible with this new approach.
 
-* **Action**: Open `MyLightRandomizer.cs` and modify it as seen below:
+* **:green_circle: Action**: Open `MyLightRandomizer.cs` and modify it as seen below:
 
-```
+```C#
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
@@ -205,8 +205,8 @@ public class MyLightRandomizer : Randomizer
 
 Notice how we now fetch the `MyLightRandomizerTag` component from the tagged object and use its `SetIntensity` function instead of directly setting the intensity of the `Light` component.
 
-* **Action**: Run your simulation, then pause it. Go to the _**Scene**_ view and inspect the color and intensity of each of the lights. Try turning each on and off to see how they affect the current frame. 
+* **:green_circle: Action**: Run your simulation, then pause it. Go to the _**Scene**_ view and inspect the color and intensity of each of the lights. Try turning each on and off to see how they affect the current frame. 
 
 By this point in the tutorial, we have learned how to set-up a Perception Scene, randomize our simulation, and verify our generated datasets using Dataset Insights. That said, the size of the dataset we created was only 100 captures, which is not sufficient for model-training purposes. It is now time to generate a large-scale synthetic dataset with tens of thousands of frames using Unity Simulation. 
 
-[Click here to continue to Phase 3: Cloud](Phase3.md)
+**[Continue to Phase 3: Cloud](Phase3.md)**

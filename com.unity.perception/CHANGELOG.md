@@ -28,7 +28,9 @@ Randomizers now access their parent scenario through the static activeScenario p
 
 Unique seeds per Sampler have been replaced with one global random seed configured via the ScenarioConstants of a Scenario
 
-Replaced ScenarioBase.GenerateRandomSeed() with ScenarioBase.NextRandomState()
+Samplers now derive their random state from the static SamplerState class instead of individual scenarios to allow parameters and samplers to be used outside of the context of a scenario
+
+Replaced ScenarioBase.GenerateRandomSeed() with SamplerState.NextRandomState() and SamplerState.CreateGenerator()
 
 ScenarioBase.Serialize() now directly returns the serialized scenario configuration JSON string instead of writing directly to a file (use SerializeToConfigFile() instead)
 

@@ -253,12 +253,8 @@ namespace UnityEngine.Perception.GroundTruth
                     var animator = entityGameObject.transform.GetComponentInChildren<Animator>();
                     if (animator != null)
                     {
-                        var avatar = animator.avatar;
-                        if (avatar.isValid && avatar.isHuman)
-                        {
-                            cached.animator = animator;
-                            cached.status = true;
-                        }
+                        cached.animator = animator;
+                        cached.status = true;
                     }
 
                     foreach (var joint in entityGameObject.transform.GetComponentsInChildren<JointLabel>())

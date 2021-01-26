@@ -69,7 +69,7 @@ namespace UnityEngine.Perception.GroundTruth
         const float k_SimulationTimingAccuracy = 0.01f;
         const int k_MinPendingCapturesBeforeWrite = 150;
         const int k_MinPendingMetricsBeforeWrite = 150;
-        const float k_maxDeltaTime = 100f;
+        const float k_MaxDeltaTime = 100f;
 
         public SimulationState(string outputDirectory)
         {
@@ -478,7 +478,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             //find the deltatime required to land on the next active sensor that needs simulation
-            float nextFrameDt = k_maxDeltaTime;
+            float nextFrameDt = k_MaxDeltaTime;
             foreach (var activeSensor in m_ActiveSensors)
             {
                 float thisSensorNextFrameDt = -1;
@@ -499,7 +499,7 @@ namespace UnityEngine.Perception.GroundTruth
                     nextFrameDt = thisSensorNextFrameDt;
             }
 
-            if (Math.Abs(nextFrameDt - k_maxDeltaTime) < 0.0001)
+            if (Math.Abs(nextFrameDt - k_MaxDeltaTime) < 0.0001)
             {
                 //means no sensor is controlling simulation timing, so we set Time.captureDeltaTime to 0 (default) which means the setting does not do anything
                 nextFrameDt = 0;

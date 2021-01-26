@@ -146,13 +146,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal void OnDrawGUI(float x, float y, float width, float height)
         {
-
-            if (GUILayout.Button("Capture"))
-            {
-                perceptionCamera.SensorHandle.CaptureOnNextUpdate();
-            }
-
-
             var any = perceptionCamera.labelers.Any(l => l is IOverlayPanelProvider && l.enabled);
 
             // If there used to be active providers, but they have been turned off, remove

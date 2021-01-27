@@ -12,18 +12,18 @@ namespace UnityEngine.Perception.Randomization.Editor
         const string k_VendorKey = "unity.perception";
         const string k_RunInUnitySimulationName = "runinunitysimulation";
 
-        static bool k_IsRegistered = false;
+        static bool s_IsRegistered = false;
 
         static bool TryRegisterEvents()
         {
-            if (k_IsRegistered)
+            if (s_IsRegistered)
                 return true;
 
             bool success = true;
             success &= EditorAnalytics.RegisterEventWithLimit(k_RunInUnitySimulationName, k_MaxEventsPerHour, k_MaxItems,
                 k_VendorKey) == AnalyticsResult.Ok;
 
-            k_IsRegistered = success;
+            s_IsRegistered = success;
             return success;
         }
 

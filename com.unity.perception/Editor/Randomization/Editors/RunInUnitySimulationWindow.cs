@@ -138,9 +138,23 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         async void RunInUnitySimulation()
         {
-            ValidateSettings();
-            CreateLinuxBuildAndZip();
-            await StartUnitySimulationRun();
+            var runGuid = Guid.NewGuid();
+            PerceptionEditorAnalytics.ReportRunInUnitySimulationStarted(
+                runGuid,
+                m_TotalIterationsField.value,
+                m_InstanceCountField.value,
+                existingBuildId: null);
+            try
+            {
+                ValidateSettings();
+                CreateLinuxBuildAndZip();
+                await StartUnitySimulationRun(runGuid);
+            }
+            catch (Exception e)
+            {
+                PerceptionEditorAnalytics.ReportRunInUnitySimulationFailed(runGuid, e.Message);
+                throw;
+            }
         }
 
         void ValidateSettings()
@@ -215,7 +229,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             return appParamIds;
         }
 
-        async Task StartUnitySimulationRun()
+        async Task StartUnitySimulationRun(Guid runGuid)
         {
             m_RunButton.SetEnabled(false);
             var cancellationTokenSource = new CancellationTokenSource();
@@ -250,6 +264,8 @@ namespace UnityEngine.Perception.Randomization.Editor
             cancellationTokenSource.Dispose();
             Debug.Log($"Executing run: {run.executionId}");
             m_RunButton.SetEnabled(true);
+
+            PerceptionEditorAnalytics.ReportRunInUnitySimulationSucceeded(runGuid, run.executionId);
         }
     }
 }

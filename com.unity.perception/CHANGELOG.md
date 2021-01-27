@@ -69,6 +69,7 @@ Semantic Segmentation Labeler now produces output in the proper form for distrib
 ### Added
 
 Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
+Added analytics for Unity Simulation runs
 
 Added instance segmentation labeler.
 

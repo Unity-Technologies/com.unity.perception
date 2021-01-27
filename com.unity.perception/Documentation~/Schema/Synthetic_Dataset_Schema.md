@@ -365,7 +365,7 @@ annotation_definition.spec {
 }
 ```
 ##### label enumeration spec
-This spec is used for annotations like [bounding box 2d](#2d-bounding-box). This might be a subset of all labels used in simulation ([see bounding box 2D](#2Dboundingbox)).
+This spec is used for annotations like [bounding box 2d](#2d-bounding-box). This might be a subset of all labels used in simulation.
 ```
 annotation_definition.spec {
   label_id:          <int>           -- Integer identifier of the label

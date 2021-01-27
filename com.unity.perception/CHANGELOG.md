@@ -36,6 +36,7 @@ ScenarioBase.Serialize() now directly returns the serialized scenario configurat
 
 ScenarioBase.Serialize() now not only serializes scenario constants, but also all sampler member fields on randomizers attached to the scenario
 
+RandomizerTagManager.Query<T>() now returns RandomizerTags directly instead of the GameObjects attached to said tags
 
 ### Deprecated
 

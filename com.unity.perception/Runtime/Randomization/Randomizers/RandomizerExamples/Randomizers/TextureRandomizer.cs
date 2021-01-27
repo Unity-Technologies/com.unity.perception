@@ -23,10 +23,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationStart()
         {
-            var taggedObjects = tagManager.Query<TextureRandomizerTag>();
-            foreach (var taggedObject in taggedObjects)
+            var tags = tagManager.Query<TextureRandomizerTag>();
+            foreach (var tag in tags)
             {
-                var renderer = taggedObject.GetComponent<MeshRenderer>();
+                var renderer = tag.GetComponent<MeshRenderer>();
                 renderer.material.SetTexture(k_BaseTexture, texture.Sample());
             }
         }

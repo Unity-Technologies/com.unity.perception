@@ -90,6 +90,26 @@ namespace UnityEditor.Perception.GroundTruth
                 //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(PerceptionCamera.labelers)));
                 m_LabelersList.DoLayoutList();
             }
+
+            var dir = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey, string.Empty);
+            if (dir != string.Empty)
+            {
+                EditorGUILayout.LabelField("Latest Output Folder");
+                GUILayout.BeginVertical("TextArea");
+                EditorGUILayout.HelpBox(dir, MessageType.None);
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Show Folder"))
+                {
+                    EditorUtility.RevealInFinder(dir);
+                }
+                if (GUILayout.Button("Copy Path"))
+                {
+                    GUIUtility.systemCopyBuffer = dir;
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.EndVertical();
+            }
+
             if (EditorSettings.asyncShaderCompilation)
             {
                 EditorGUILayout.HelpBox("Asynchronous shader compilation may result in invalid data in beginning frames. " +

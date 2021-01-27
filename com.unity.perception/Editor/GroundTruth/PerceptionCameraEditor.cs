@@ -94,7 +94,7 @@ namespace UnityEditor.Perception.GroundTruth
             var dir = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey, string.Empty);
             if (dir != string.Empty)
             {
-                EditorGUILayout.LabelField("Latest Output Folder:");
+                EditorGUILayout.LabelField("Latest Output Folder");
                 GUILayout.BeginVertical("TextArea");
                 EditorGUILayout.HelpBox(dir, MessageType.None);
                 GUILayout.BeginHorizontal();

@@ -42,38 +42,5 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         {
             return Sample(value.Sample());
         }
-
-        /// <summary>
-        /// Schedules a job to generate an array of samples
-        /// </summary>
-        /// <param name="sampleCount">The number of samples to generate</param>
-        /// <param name="jobHandle">The handle of the scheduled job</param>
-        /// <returns>A NativeArray of samples</returns>
-        public override NativeArray<bool> Samples(int sampleCount, out JobHandle jobHandle)
-        {
-            var samples = new NativeArray<bool>(sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var rngSamples = value.Samples(sampleCount, out jobHandle);
-            jobHandle = new SamplesJob
-            {
-                rngSamples = rngSamples,
-                samples = samples,
-                threshold = threshold
-            }.Schedule(jobHandle);
-            return samples;
-        }
-
-        [BurstCompile]
-        struct SamplesJob : IJob
-        {
-            [DeallocateOnJobCompletion] public NativeArray<float> rngSamples;
-            public NativeArray<bool> samples;
-            public float threshold;
-
-            public void Execute()
-            {
-                for (var i = 0; i < samples.Length; i++)
-                    samples[i] = rngSamples[i] >= threshold;
-            }
-        }
     }
 }

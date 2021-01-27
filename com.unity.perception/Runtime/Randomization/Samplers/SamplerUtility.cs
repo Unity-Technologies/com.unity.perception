@@ -1,8 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
-using Unity.Burst;
 using Unity.Collections;
-using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Samplers
@@ -12,8 +10,15 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
     /// </summary>
     public static class SamplerUtility
     {
-        internal const uint largePrime = 0x202A96CF;
-        const int k_SamplingBatchSize = 64;
+        /// <summary>
+        /// A large prime number
+        /// </summary>
+        public const uint largePrime = 0x202A96CF;
+
+        /// <summary>
+        /// The number of samples to generate per job batch in an IJobParallelForBatch job
+        /// </summary>
+        public const int samplingBatchSize = 64;
 
         /// <summary>
         /// Returns the sampler's display name
@@ -42,11 +47,24 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <param name="x">Unsigned integer to hash</param>
         /// <returns>The calculated hash value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static uint Hash32(uint x) {
+        public static uint Hash32(uint x)
+        {
             x = ((x >> 16) ^ x) * 0x45d9f3b;
             x = ((x >> 16) ^ x) * 0x45d9f3b;
             x = (x >> 16) ^ x;
             return x;
+        }
+
+        /// <summary>
+        /// Generates a 32-bit non-zero hash using an unsigned integer seed
+        /// </summary>
+        /// <param name="seed">The unsigned integer to hash</param>
+        /// <returns>The calculated hash value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint Hash32NonZero(uint seed)
+        {
+            var hash = Hash32(seed);
+            return hash == 0u ? largePrime : hash;
         }
 
         /// <summary>
@@ -55,7 +73,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         /// <param name="x">64-bit value to hash</param>
         /// <returns>The calculated hash value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static ulong Hash64(ulong x) {
+        public static ulong Hash64(ulong x)
+        {
             x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9ul;
             x = (x ^ (x >> 27)) * 0x94d049bb133111ebul;
             x ^= (x >> 31);
@@ -73,43 +92,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
         {
             var state = (uint)Hash64(((ulong)index << 32) | baseSeed);
             return state == 0u ? largePrime : state;
-        }
-
-        /// <summary>
-        /// Schedules a multi-threaded job to generate an array of samples
-        /// </summary>
-        /// <param name="sampler">The sampler to generate samples from</param>
-        /// <param name="sampleCount">The number of samples to generate</param>
-        /// <param name="jobHandle">The handle of the scheduled job</param>
-        /// <typeparam name="T">The type of sampler to sample</typeparam>
-        /// <returns>A NativeArray of generated samples</returns>
-        public static NativeArray<float> GenerateSamples<T>(
-            T sampler, int sampleCount, out JobHandle jobHandle) where T : struct, ISampler
-        {
-            var samples = new NativeArray<float>(
-                sampleCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            jobHandle = new SampleJob<T>
-            {
-                sampler = sampler,
-                samples = samples
-            }.ScheduleBatch(sampleCount, k_SamplingBatchSize);
-            return samples;
-        }
-
-        [BurstCompile]
-        struct SampleJob<T> : IJobParallelForBatch where T : ISampler
-        {
-            public T sampler;
-            public NativeArray<float> samples;
-
-            public void Execute(int startIndex, int count)
-            {
-                var endIndex = startIndex + count;
-                var batchIndex = startIndex / k_SamplingBatchSize;
-                sampler.IterateState(batchIndex);
-                for (var i = startIndex; i < endIndex; i++)
-                    samples[i] = sampler.Sample();
-            }
         }
 
         /// <summary>
@@ -196,6 +178,71 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
 
             var stdTruncNorm = NormalCdfInverse(c);
             return stdTruncNorm * stdDev + mean;
+        }
+
+        /// <summary>
+        /// Generate samples from probability distribution derived from a given AnimationCurve.
+        /// </summary>
+        /// <param name="integratedCurve">Numerical integration representing the AnimationCurve</param>
+        /// <param name="uniformSample">A sample value between 0 and 1 generated from a uniform distribution</param>
+        /// <param name="interval">The interval at which the original AnimationCurve was sampled in order to produce integratedCurve</param>
+        /// <param name="startTime">The time attribute of the first key of the original AnimationCurve</param>
+        /// <param name="endTime">The time attribute of the last key of the original AnimationCurve</param>
+        /// <returns>The generated sample</returns>
+        public static float AnimationCurveSample(float[] integratedCurve, float uniformSample, float interval, float startTime, float endTime)
+        {
+            var scaledSample = uniformSample * integratedCurve[integratedCurve.Length - 1];
+
+            for (var i = 0; i < integratedCurve.Length - 1; i++)
+            {
+                if (scaledSample > integratedCurve[i] && scaledSample < integratedCurve[i + 1])
+                {
+                    var valueDifference = integratedCurve[i + 1] - integratedCurve[i];
+                    var upperWeight = (scaledSample - integratedCurve[i]) / valueDifference;
+                    var lowerWeight = 1 - upperWeight;
+                    var matchingIndex = i * lowerWeight + (i + 1) * upperWeight;
+                    var matchingTimeStamp = startTime + matchingIndex * interval;
+                    return matchingTimeStamp;
+                }
+            }
+            throw new ArithmeticException("Could not find matching timestamp.");
+        }
+
+        /// <summary>
+        /// Numerically integrate a given AnimationCurve using the specified number of samples.
+        /// Based on https://en.wikipedia.org/wiki/Numerical_integration and http://blog.s-schoener.com/2018-05-05-animation-curves/
+        /// Using the trapezoidal rule for numerical interpolation
+        /// </summary>
+        /// <param name="array">The array to fill with integrated values</param>
+        /// <param name="curve">The animation curve to sample integrate</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void IntegrateCurve(float[] array, AnimationCurve curve)
+        {
+            if (curve.length == 0)
+            {
+                throw new ArgumentException("The provided Animation Curve includes no keys.");
+            }
+            var startTime = curve.keys[0].time;
+            var endTime = curve.keys[curve.length - 1].time;
+            var interval = (endTime - startTime) / (array.Length - 1);
+
+            array[0] = 0;
+            var previousValue = curve.Evaluate(startTime);
+
+            for (var i = 1; i < array.Length; i++)
+            {
+                if (curve.length == 1)
+                {
+                    array[i] = previousValue;
+                }
+                else
+                {
+                    var currentTime = startTime + i * interval;
+                    var currentValue = curve.Evaluate(currentTime);
+                    array[i] = array[i-1] + (previousValue + currentValue) * interval / 2;
+                    previousValue = currentValue;
+                }
+            }
         }
     }
 }

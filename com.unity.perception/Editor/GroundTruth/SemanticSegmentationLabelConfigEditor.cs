@@ -36,6 +36,8 @@ namespace UnityEditor.Perception.GroundTruth
                         .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.label)));
                     addedLabel.colorField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
                         .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)));
+                    addedLabel.hexLabel.text = "#"+ColorUtility.ToHtmlStringRGBA(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                        .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)).colorValue);
                 }
             }
 
@@ -91,6 +93,7 @@ namespace UnityEditor.Perception.GroundTruth
         protected override string UxmlPath => k_UxmlDir + "ColoredLabelElementInLabelConfig.uxml";
 
         public ColorField colorField;
+        public Label hexLabel;
 
         public ColoredLabelElementInLabelConfig(LabelConfigEditor<SemanticSegmentationLabelEntry> editor, SerializedProperty labelsArray) : base(editor, labelsArray)
         { }
@@ -98,6 +101,7 @@ namespace UnityEditor.Perception.GroundTruth
         protected override void InitExtended()
         {
             colorField = this.Q<ColorField>("label-color-value");
+            hexLabel = this.Q<Label>("label-color-hex");
 
             colorField.RegisterValueChangedCallback((cEvent) =>
             {
@@ -111,6 +115,8 @@ namespace UnityEditor.Perception.GroundTruth
 
                     Debug.LogWarning("A label with the chosen color " + cEvent.newValue + " has already been added to this label configuration.");
                 }
+
+                hexLabel.text = "#"+ColorUtility.ToHtmlStringRGBA(colorField.value);
             });
 
         }

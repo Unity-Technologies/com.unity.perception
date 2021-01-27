@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Unity.Simulation;
 using UnityEngine;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
@@ -19,7 +21,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         bool m_SkipFrame = true;
         bool m_FirstScenarioFrame = true;
         bool m_WaitingForFinalUploads;
-        RandomizerTagManager m_TagManager = new RandomizerTagManager();
 
         IEnumerable<Randomizer> activeRandomizers
         {
@@ -35,11 +36,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         [SerializeReference] internal List<Randomizer> m_Randomizers = new List<Randomizer>();
 
         /// <summary>
-        /// The RandomizerTagManager attached to this scenario
-        /// </summary>
-        public RandomizerTagManager tagManager => m_TagManager;
-
-        /// <summary>
         /// Return the list of randomizers attached to this scenario
         /// </summary>
         public IReadOnlyList<Randomizer> randomizers => m_Randomizers.AsReadOnly();
@@ -52,14 +48,23 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// <summary>
         /// The name of the Json file this scenario's constants are serialized to/from.
         /// </summary>
-        [HideInInspector] public string serializedConstantsFileName = "constants";
+        public virtual string configFileName => "scenario_configuration";
 
         /// <summary>
         /// Returns the active parameter scenario in the scene
         /// </summary>
         public static ScenarioBase activeScenario
         {
-            get => s_ActiveScenario;
+            get
+            {
+#if UNITY_EDITOR
+                // This compiler define is required to allow samplers to
+                // iterate the scenario's random state in edit-mode
+                if (s_ActiveScenario == null)
+                    s_ActiveScenario = FindObjectOfType<ScenarioBase>();
+#endif
+                return s_ActiveScenario;
+            }
             private set
             {
                 if (value != null && s_ActiveScenario != null && value != s_ActiveScenario)
@@ -69,15 +74,22 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Returns the file location of the JSON serialized constants
+        /// Returns the asset location of the JSON serialized configuration.
+        /// This API is used for finding the config file using the AssetDatabase API.
         /// </summary>
-        public string serializedConstantsFilePath =>
-            Application.dataPath + "/StreamingAssets/" + serializedConstantsFileName + ".json";
+        public string defaultConfigFileAssetPath =>
+            "Assets/StreamingAssets/" + configFileName + ".json";
+
+        /// <summary>
+        /// Returns the absolute file path of the JSON serialized configuration
+        /// </summary>
+        public string defaultConfigFilePath =>
+            Application.dataPath + "/StreamingAssets/" + configFileName + ".json";
 
         /// <summary>
         /// Returns this scenario's non-typed serialized constants
         /// </summary>
-        public abstract object genericConstants { get; }
+        public abstract ScenarioConstants genericConstants { get; }
 
         /// <summary>
         /// The number of frames that have elapsed since the current scenario iteration was Setup
@@ -113,14 +125,43 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Serializes the scenario's constants to a JSON file located at serializedConstantsFilePath
+        /// Serializes the scenario's constants and randomizer settings to a JSON string
         /// </summary>
-        public abstract void Serialize();
+        /// <returns>The scenario configuration as a JSON string</returns>
+        public abstract string SerializeToJson();
 
         /// <summary>
-        /// Deserializes constants saved in a JSON file located at serializedConstantsFilePath
+        /// Serializes the scenario's constants and randomizer settings to a JSON file located at the path resolved by
+        /// the defaultConfigFilePath scenario property
         /// </summary>
-        public abstract void Deserialize();
+        public void SerializeToFile()
+        {
+            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
+            using (var writer = new StreamWriter(defaultConfigFilePath, false))
+                writer.Write(SerializeToJson());
+        }
+
+        /// <summary>
+        /// Overwrites this scenario's randomizer settings and scenario constants from a JSON serialized configuration
+        /// </summary>
+        /// <param name="json">The JSON string to deserialize</param>
+        public abstract void DeserializeFromJson(string json);
+
+        /// <summary>
+        /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
+        /// the provided file path
+        /// </summary>
+        /// <param name="configFilePath">The file path to the configuration file to deserialize</param>
+        public abstract void DeserializeFromFile(string configFilePath);
+
+        /// <summary>
+        /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
+        /// this scenario's defaultConfigFilePath
+        /// </summary>
+        public void DeserializeFromFile()
+        {
+            DeserializeFromFile(defaultConfigFilePath);
+        }
 
         /// <summary>
         /// This method executed directly after this scenario has been registered and initialized
@@ -131,8 +172,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         {
             activeScenario = this;
             OnAwake();
-            foreach (var randomizer in m_Randomizers)
-                randomizer.Initialize(this, tagManager);
             foreach (var randomizer in m_Randomizers)
                 randomizer.Create();
             ValidateParameters();
@@ -149,12 +188,23 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
 
         void OnDisable()
         {
-            s_ActiveScenario = null;
+            activeScenario = null;
         }
 
         void Start()
         {
-            Deserialize();
+            var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
+                "random-seed",
+                "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.",
+                Guid.Parse("14adb394-46c0-47e8-a3f0-99e754483b76"));
+            DatasetCapture.ReportMetric(randomSeedMetricDefinition, new[] { genericConstants.randomSeed });
+#if !UNITY_EDITOR
+            if (File.Exists(defaultConfigFilePath))
+                DeserializeFromFile();
+            else
+                Debug.Log($"No configuration file found at {defaultConfigFilePath}. " +
+                    "Proceeding with built in scenario constants and randomizer settings.");
+#endif
         }
 
         void Update()
@@ -212,7 +262,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             if (currentIterationFrame == 0)
             {
                 DatasetCapture.StartNewSequence();
-                IterateParameterStates();
+                SamplerState.randomState = SamplerUtility.IterateSeed((uint)currentIteration, genericConstants.randomSeed);
                 foreach (var randomizer in activeRandomizers)
                     randomizer.IterationStart();
             }
@@ -257,8 +307,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                         $"Two Randomizers of the same type ({randomizerType.Name}) cannot both be active simultaneously");
             var newRandomizer = (Randomizer)Activator.CreateInstance(randomizerType);
             m_Randomizers.Add(newRandomizer);
-            newRandomizer.Initialize(this, tagManager);
+#if UNITY_EDITOR
+            if (Application.isPlaying)
+                newRandomizer.Create();
+#else
             newRandomizer.Create();
+#endif
             return newRandomizer;
         }
 
@@ -275,7 +329,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         {
             if (!randomizerType.IsSubclassOf(typeof(Randomizer)))
                 throw new ScenarioException(
-                    $"Cannot add non-randomizer type {randomizerType.Name} to randomizer list");
+                    $"Cannot remove non-randomizer type {randomizerType.Name} from randomizer list");
             var removed = false;
             for (var i = 0; i < m_Randomizers.Count; i++)
             {
@@ -326,46 +380,18 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             m_Randomizers.Insert(nextIndex, randomizer);
         }
 
-        /// <summary>
-        /// Generates a random seed by hashing the current scenario iteration with a given base random seed
-        /// </summary>
-        /// <param name="baseSeed">Used to offset the seed generator</param>
-        /// <returns>The generated random seed</returns>
-        public uint GenerateRandomSeed(uint baseSeed = SamplerUtility.largePrime)
-        {
-            var seed = SamplerUtility.IterateSeed((uint)currentIteration, baseSeed);
-            return SamplerUtility.IterateSeed((uint)currentIteration, seed);
-        }
-
-        /// <summary>
-        /// Generates a random seed by hashing three values together: an arbitrary index value,
-        /// the current scenario iteration, and a base random seed. This method is useful for deterministically
-        /// generating random seeds from within a for-loop.
-        /// </summary>
-        /// <param name="iteration">An offset value hashed inside the seed generator</param>
-        /// <param name="baseSeed">An offset value hashed inside the seed generator</param>
-        /// <returns>The generated random seed</returns>
-        public uint GenerateRandomSeedFromIndex(int iteration, uint baseSeed = SamplerUtility.largePrime)
-        {
-            var seed =  SamplerUtility.IterateSeed((uint)iteration, baseSeed);
-            return SamplerUtility.IterateSeed((uint)currentIteration, seed);
-        }
-
         void ValidateParameters()
         {
             foreach (var randomizer in m_Randomizers)
             foreach (var parameter in randomizer.parameters)
-                parameter.Validate();
-        }
-
-        void IterateParameterStates()
-        {
-            foreach (var randomizer in m_Randomizers)
             {
-                foreach (var parameter in randomizer.parameters)
+                try
                 {
-                    parameter.ResetState();
-                    parameter.IterateState(currentIteration);
+                    parameter.Validate();
+                }
+                catch (ParameterValidationException exception)
+                {
+                    Debug.LogException(exception, this);
                 }
             }
         }

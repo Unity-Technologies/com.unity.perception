@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using Object = UnityEngine.Object;
 
 namespace RandomizationTests.ParameterTests
@@ -16,6 +17,7 @@ namespace RandomizationTests.ParameterTests
         public void Setup()
         {
             m_TestObject = new GameObject();
+            m_TestObject.AddComponent<FixedLengthScenario>();
             m_Tests = new BaseStructParameterTest[]
             {
                 new NumericParameterTest<bool>(new BooleanParameter()),
@@ -35,16 +37,16 @@ namespace RandomizationTests.ParameterTests
         }
 
         [Test]
-        public void EquivalentManagedAndNativeSamples()
+        public void CorrectNumberOfSamplesAreGenerated()
         {
             foreach (var test in m_Tests)
-                test.GeneratesNativeSamples();
+                test.GeneratesSamples();
         }
     }
 
     public abstract class BaseStructParameterTest
     {
-        public abstract void GeneratesNativeSamples();
+        public abstract void GeneratesSamples();
     }
 
     public class NumericParameterTest<T> : BaseStructParameterTest where T : struct
@@ -56,12 +58,15 @@ namespace RandomizationTests.ParameterTests
             m_Parameter = parameter;
         }
 
-        public override void GeneratesNativeSamples()
+        public override void GeneratesSamples()
         {
-            var nativeSamples = m_Parameter.Samples(TestValues.TestSampleCount, out var handle);
-            handle.Complete();
-            Assert.AreEqual(nativeSamples.Length, TestValues.TestSampleCount);
-            nativeSamples.Dispose();
+            var samples = new T[TestValues.TestSampleCount];
+            for (var i = 0; i < samples.Length; i++)
+            {
+                samples[i] = m_Parameter.Sample();
+            }
+
+            Assert.AreEqual(samples.Length, TestValues.TestSampleCount);
         }
     }
 }

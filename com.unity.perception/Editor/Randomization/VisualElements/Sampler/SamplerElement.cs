@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
@@ -56,17 +57,25 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
         void CreateSampler(Type samplerType)
         {
             var newSampler = (ISampler)Activator.CreateInstance(samplerType);
-            newSampler.baseSeed = SamplerUtility.GenerateRandomSeed();
-
-            if (m_RangeProperty != null)
-                newSampler.range = new FloatRange(
-                    m_RangeProperty.FindPropertyRelative("minimum").floatValue,
-                    m_RangeProperty.FindPropertyRelative("maximum").floatValue);
-
-
+            CopyFloatRangeToNewSampler(newSampler);
             m_Sampler = newSampler;
             m_Property.managedReferenceValue = newSampler;
             m_Property.serializedObject.ApplyModifiedProperties();
+        }
+
+        void CopyFloatRangeToNewSampler(ISampler newSampler)
+        {
+            if (m_RangeProperty == null)
+                return;
+
+            var rangeField = newSampler.GetType().GetField(m_RangeProperty.name);
+            if (rangeField == null)
+                return;
+
+            var range = new FloatRange(
+                m_RangeProperty.FindPropertyRelative("minimum").floatValue,
+                m_RangeProperty.FindPropertyRelative("maximum").floatValue);
+            rangeField.SetValue(newSampler, range);
         }
 
         void CreatePropertyFields()
@@ -83,11 +92,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
                 {
                     if (SerializedProperty.EqualContents(currentProperty, nextSiblingProperty))
                         break;
-                    if (currentProperty.name == "<baseSeed>k__BackingField")
-                    {
-                        m_Properties.Add(new RandomSeedField(currentProperty.Copy()));
-                    }
-                    else if (currentProperty.type == "FloatRange")
+                    if (currentProperty.type == "FloatRange")
                     {
                         m_RangeProperty = currentProperty.Copy();
                         m_Properties.Add(new FloatRangeElement(m_RangeProperty));
@@ -96,6 +101,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
                     {
                         var propertyField = new PropertyField(currentProperty.Copy());
                         propertyField.Bind(m_Property.serializedObject);
+                        var originalField = m_Sampler.GetType().GetField(currentProperty.name);
+                        var tooltipAttribute = originalField.GetCustomAttributes(true).ToList().Find(att => att.GetType() == typeof(TooltipAttribute));
+                        if (tooltipAttribute != null)
+                        {
+                            propertyField.tooltip = (tooltipAttribute as TooltipAttribute)?.tooltip;
+                        }
                         m_Properties.Add(propertyField);
                     }
                 }

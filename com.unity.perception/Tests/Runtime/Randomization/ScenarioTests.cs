@@ -3,6 +3,8 @@ using System.Collections;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using UnityEngine.TestTools;
@@ -40,10 +42,40 @@ namespace RandomizationTests
         }
 
         [UnityTest]
-        public IEnumerator OverwritesConstantsOnSerialization()
+        public IEnumerator ScenarioConfigurationSerializesProperly()
         {
             yield return CreateNewScenario(10, 10);
-            m_Scenario.serializedConstantsFileName = "perception_serialization_test";
+            var scenario = m_Scenario.GetComponent<FixedLengthScenario>();
+            scenario.CreateRandomizer<HueOffsetRandomizer>();
+
+            const string expectedConfig = @"{
+  ""constants"": {
+    ""framesPerIteration"": 10,
+    ""totalIterations"": 10,
+    ""instanceCount"": 1,
+    ""instanceIndex"": 0,
+    ""randomSeed"": 539662031
+  },
+  ""randomizers"": {
+    ""HueOffsetRandomizer"": {
+      ""hueOffset"": {
+        ""value"": {
+          ""range"": {
+            ""minimum"": -180.0,
+            ""maximum"": 180.0
+          }
+        }
+      }
+    }
+  }
+}";
+            Assert.AreEqual(expectedConfig, scenario.SerializeToJson());
+        }
+
+        [UnityTest]
+        public IEnumerator ScenarioConfigurationOverwrittenDuringDeserialization()
+        {
+            yield return CreateNewScenario(10, 10);
 
             var constants = new FixedLengthScenario.Constants
             {
@@ -59,18 +91,15 @@ namespace RandomizationTests
 
             // Serialize some values
             m_Scenario.constants = constants;
-            m_Scenario.Serialize();
+            var serializedConfig = m_Scenario.SerializeToJson();
 
             // Change the values
             m_Scenario.constants = changedConstants;
-            m_Scenario.Deserialize();
+            m_Scenario.DeserializeFromJson(serializedConfig);
 
             // Check if the values reverted correctly
             Assert.AreEqual(m_Scenario.constants.framesPerIteration, constants.framesPerIteration);
             Assert.AreEqual(m_Scenario.constants.totalIterations, constants.totalIterations);
-
-            // Clean up serialized constants
-            File.Delete(m_Scenario.serializedConstantsFilePath);
 
             yield return null;
         }
@@ -122,15 +151,13 @@ namespace RandomizationTests
         public IEnumerator GeneratedRandomSeedsChangeWithScenarioIteration()
         {
             yield return CreateNewScenario(3, 1);
-            var seed = m_Scenario.GenerateRandomSeed();
             var seeds = new uint[3];
             for (var i = 0; i < 3; i++)
-                seeds[i] = m_Scenario.GenerateRandomSeedFromIndex(i);
+                seeds[i] = SamplerState.NextRandomState();
 
             yield return null;
-            Assert.AreNotEqual(seed, m_Scenario.GenerateRandomSeed());
             for (var i = 0; i < 3; i++)
-                Assert.AreNotEqual(seeds[i], m_Scenario.GenerateRandomSeedFromIndex(i));
+                Assert.AreNotEqual(seeds[i], SamplerState.NextRandomState());
         }
 
         PerceptionCamera SetupPerceptionCamera()

@@ -1,6 +1,5 @@
 ﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
     <Toggle label="Uniform" name="uniform"/>
-    <editor:IntegerField label="Seed" name="seed"/>
     <VisualElement class="parameter__categorical-options-list">
         <ListView name="options"/>
     </VisualElement>

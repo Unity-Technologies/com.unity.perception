@@ -7,20 +7,86 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Upgrade Notes
+
+Before upgrading a project to this version of the Perception package, make sure to keep a record of **all sampler ranges** in your added Randomizers. Due to a change in how sampler ranges are serialized, **after upgrading to this version, ranges for all stock Perception samplers (Uniform and Normal Samplers) will be reset**, and will need to be manually reverted by the user.
+
 ### Added
-Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
-Added instance segmentation labeler
-Added support for full screen visual overlays and overlay manager
-Added analytics for Unity Simulation runs
+
+Added ScenarioConstants base class for all scenario constants objects
+
+Added ScenarioBase.SerializeToConfigFile()
+
+Randomizer tags now support inheritance
+
+Added AnimationCurveSampler, which returns random values according to a range and probability distribution denoted by a user provided AnimationCurve. 
+
 
 ### Changed
 
-Updated perception to use burst 1.3.9
-Changed InstanceSegmentationImageReadback event to provide a NativeArray\<Color32\> instead of NativeArray\<uint\>
-Expanded all Unity Simulation references from USim to Unity Simulation
-Uniform and Normal samplers now serialize their random seeds
+Randomizers now access their parent scenario through the static activeScenario property
 
-The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to GenerateRandomSeedFromIndex()
+Unique seeds per Sampler have been replaced with one global random seed configured via the ScenarioConstants of a Scenario
+
+Samplers now derive their random state from the static SamplerState class instead of individual scenarios to allow parameters and samplers to be used outside of the context of a scenario
+
+Replaced ScenarioBase.GenerateRandomSeed() with SamplerState.NextRandomState() and SamplerState.CreateGenerator()
+
+ScenarioBase.Serialize() now directly returns the serialized scenario configuration JSON string instead of writing directly to a file (use SerializeToConfigFile() instead)
+
+ScenarioBase.Serialize() now not only serializes scenario constants, but also all sampler member fields on randomizers attached to the scenario
+
+
+### Deprecated
+
+### Removed
+
+Removed ScenarioBase.GenerateRandomSeedFromIndex()
+
+Removed native sampling (through jobs) capability from all samplers and parameters as it introduced additional complexity to the code and was not a common usage pattern
+
+Removed `range` as a required ISampler interface property.
+
+### Fixed
+
+Fixed an issue where the overlay panel would display a full screen semi-transparent image over the entire screen when the overlay panel is disabled in the UI
+
+Fixed a bug in instance segmentation labeler that erroneously logged that object ID 255 was not supported
+
+Fixed the simulation stopping while the editor/player is not focused
+
+Fixed memory leak or crash occurring at the end of long simulations when using BackgroundObjectPlacementRandomizer or ForegroundObjectPlacementRandomizer
+
+Randomizer.OnCreate() is no longer called in edit-mode when adding a randomizer to a scenario
+
+Fixed a bug where removing all randomizers from a scenario caused the randomizer container UI element to overflow over the end of Scenario component UI
+
+## [0.6.0-preview.1] - 2020-12-03
+
+### Added
+
+Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
+Added analytics for Unity Simulation runs
+
+Added instance segmentation labeler.
+
+Added support for full screen visual overlays and overlay manager.
+
+All-new editor interface for the Labeling component and Label Configuration assets. The new UI improves upon various parts of the label specification and configuration workflow, making it more efficient and less error-prone to setup a new Perception project.
+
+Added Assets->Perception menu for current and future asset preparation and validation tools. Currently contains one function which lets the user create prefabs out of multiple selected models with one click, removing the need for going through all models individually.
+
+### Changed
+
+Updated dependencies to com.unity.simulation.capture:0.0.10-preview.14, com.unity.simulation.core:0.0.10-preview.20, and com.unity.burst:1.3.9.
+
+Changed InstanceSegmentationImageReadback event to provide a NativeArray\<Color32\> instead of NativeArray\<uint\>.
+
+Expanded all Unity Simulation references from USim to Unity Simulation.
+
+Uniform and Normal samplers now serialize their random seeds.
+
+The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to GenerateRandomSeedFromIndex().
 
 ### Deprecated
 
@@ -28,17 +94,19 @@ The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to Gene
 
 ### Fixed
 
-UnitySimulationScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation
 
-Fixed Unity Simulation nodes generating one extra empty image before generating their share of the randomization scenario iterations
+UnitySimulationScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation.
 
-Fixed enumeration in the CategoricalParameter.categories property
+Fixed Unity Simulation nodes generating one extra empty image before generating their share of the randomization scenario iterations.
 
-The GenerateRandomSeedFromIndex method now correctly hashes the current scenario iteration into the random seed it generates
+Fixed enumeration in the CategoricalParameter.categories property.
 
-Corrupted .meta files have been rebuilt and replaced
+The GenerateRandomSeedFromIndex method now correctly hashes the current scenario iteration into the random seed it generates.
 
-The randomizer list inspector UI now updates appropriately when a user clicks undo
+Corrupted .meta files have been rebuilt and replaced.
+
+The Randomizer list inspector UI now updates appropriately when a user clicks undo.
+    
 
 ## [0.5.0-preview.1] - 2020-10-14
 

@@ -62,6 +62,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         void CheckForModelChanges()
         {
+            serializedObject.Update();
             if (ChangesHappeningInForeground)
             {
                 ChangesHappeningInForeground = false;

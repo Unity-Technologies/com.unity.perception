@@ -246,7 +246,7 @@ bounding_box_3d {
 ```
 ##### Keypoints
 
-Keypoints data (commonly used for human pose estimation). A keypoint capture is associated to a template that defines the keypoints (see annotation.definition file).
+Keypoint data, commonly used for human pose estimation. A keypoint capture is associated to a template that defines the keypoints (see annotation.definition file).
 Each keypoint record maps a tuple of (instance, label) to template, pose, and an array of keypoints. A keypoint will exist in this record for each keypoint defined in the template file.
 If a given keypoint doesn't exist in the labeled gameobject, then that keypoint will have a state value of 0; if it does exist then it will have a keypoint value of 1.
 ```

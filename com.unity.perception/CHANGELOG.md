@@ -66,6 +66,7 @@ Fixed a bug where removing all randomizers from a scenario caused the randomizer
 ### Added
 
 Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
+Added analytics for Unity Simulation runs
 
 Added instance segmentation labeler.
 

@@ -355,7 +355,7 @@ annotation_definition {
 }
 ```
 ##### semantic segmentation
-Annotation spec for semantic segmentation labeler([see semantic segmentation](#####semantic segmentation))
+Annotation spec for semantic segmentation labeler([see semantic segmentation](#semanticsegmentation)).
 ```
 annotation_definition.spec {        
   label_id:          <int>           -- Integer identifier of the label
@@ -365,7 +365,7 @@ annotation_definition.spec {
 }
 ```
 ##### label enumeration spec
-This spec is used for annotations like bounding box 2d. This might be a subset of all labels used in simulation ([see bounding box 2D](#####2D bounding box)).
+This spec is used for annotations like bounding box 2d. This might be a subset of all labels used in simulation ([see bounding box 2D](#2Dboundingbox)).
 ```
 annotation_definition.spec {
   label_id:          <int>           -- Integer identifier of the label
@@ -373,7 +373,7 @@ annotation_definition.spec {
 }
 ```
 ##### keypoint template
-keypoint templates are used to define the keypoints and skeletal connections captured by the keypoint labeler ([see keypoint](#####keypoints)).
+keypoint templates are used to define the keypoints and skeletal connections captured by the keypoint labeler ([see keypoint](#keypoints)).
 ```
 annotation_definition.spec {
   template_id:       <str>           -- The UUID of the template

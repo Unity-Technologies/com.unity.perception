@@ -237,7 +237,7 @@ bounding_box_3d {
     y:           <float> -- The y coordinate
     z:           <float> -- The z coordinate
   } 
-  acceleration {         -- 3d bounding box acceleration in meters per second^2.
+  acceleration {         -- [Optional] 3d bounding box acceleration in meters per second^2.
     x:           <float> -- The x coordinate
     y:           <float> -- The y coordinate
     z:           <float> -- The z coordinate
@@ -344,6 +344,7 @@ Each record describes a particular type of annotation and contains an annotation
 Typically, the `spec` key describes all labels_id and label_name used by the annotation. 
 Some special cases like semantic segmentation might assign additional values (e.g. pixel value) to record the mapping between label_id/label_name and pixel color in the annotated PNG files.
 
+##### annotation definition header
 ```
 annotation_definition {
   id:                <int>           -- Integer identifier of the annotation definition.
@@ -352,22 +353,28 @@ annotation_definition {
   format:            <str>           -- The format of the annotation files. (e.g. png, json, etc.)
   spec:              [<obj>...]      -- Format-specific specification for the annotation values (ex. label-value mappings for semantic segmentation images)
 }
-
-# semantic segmentation
+```
+##### semantic segmentation
+Annotation spec for semantic segmentation labeler([see semantic segmentation](#####semantic segmentation))
+```
 annotation_definition.spec {        
   label_id:          <int>           -- Integer identifier of the label
   label_name:        <str>           -- String identifier of the label
   pixel_value:       <int>           -- Grayscale pixel value
   color_pixel_value: <int, int, int> -- [Optional] Color pixel value
 }
-
-# label enumeration spec, used for annotations like bounding box 2d. This might be a subset of all labels used in simulation.
+```
+##### label enumeration spec
+This spec is used for annotations like bounding box 2d. This might be a subset of all labels used in simulation ([see bounding box 2D](#####2D bounding box)).
+```
 annotation_definition.spec {
   label_id:          <int>           -- Integer identifier of the label
   label_name:        <str>           -- String identifier of the label
 }
-
-# keypoint template used to define the keypoints and skeletal connections captured by the keypoint labeler.
+```
+##### keypoint template
+keypoint templates are used to define the keypoints and skeletal connections captured by the keypoint labeler ([see keypoint](#####keypoints)).
+```
 annotation_definition.spec {
   template_id:       <str>           -- The UUID of the template
   template_name:     <str>           -- Human readable name of the template

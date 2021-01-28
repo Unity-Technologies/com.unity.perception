@@ -26,7 +26,7 @@ All parameters derive from the `Parameter` abstract class, but all included perc
 
 ## Using Parameters outside of Randomizers (ie: in MonoBehaviours and ScriptableObjects)
 
-After adding a public Parameter field to a Monobehavior or ScriptableObject, you may have noticed that the parameter's UI doesn't look the same as it does on when added to a Randomizer. This is because the Inspector UI for most Perception randomization components are authored using Unity's relatively new UI Elements framework, though by default, Unity uses the old IMGUI framework to render default inspector editors.
+After adding a public Parameter field to a MonoBehaviour or ScriptableObject, you may have noticed that the Parameter's UI doesn't look the same as it does when added to a Randomizer. This is because the Inspector UI for most Perception randomization components is authored using Unity's relatively new UI Elements framework, though by default, Unity uses the old IMGUI framework to render default inspector editors.
 
 Say you have the following CustomMonoBehaviour that has a public GameObjectParameter field:
 ```
@@ -39,7 +39,7 @@ public class CustomMonoBehaviour : MonoBehaviour
 }
 ```
 
-To force Unity to use UI Elements to render your CustomMonoBehaviour's inspector window, create a custom inspector for your Monobehaviour by deriving the DefaultUIElementsEditor class like so:
+To force Unity to use UI Elements to render your CustomMonoBehaviour's inspector window, create a custom editor for your MonoBehaviour by deriving the ParameterUIElementsEditor class like so:
 
 ```
 using UnityEditor;

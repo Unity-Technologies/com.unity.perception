@@ -21,7 +21,7 @@ Randomizer tags now support inheritance
 
 Added AnimationCurveSampler, which returns random values according to a range and probability distribution denoted by a user provided AnimationCurve. 
 
-Added DefaultUIElementsEditor class to allow custom ScriptableObjects to render Parameter and Sampler typed public fields correctly in their inspector windows
+Added ParameterUIElementsEditor class to allow custom ScriptableObjects and MonoBehaviours to render Parameter and Sampler typed public fields correctly in their inspector windows.
 
 ### Changed
 

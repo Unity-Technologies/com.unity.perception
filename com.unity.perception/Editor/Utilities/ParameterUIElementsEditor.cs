@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 namespace UnityEngine.Experimental.Perception.Editor
 {
     /// <summary>
-    /// Derive this class to force the Unity Editor to render an Object's default inspector using UIElements
+    /// Derive this class to force the Unity Editor to render the default inspector using UIElements for an Object that includes a Parameter field. 
     /// to allow parameter UIs to render properly
     /// </summary>
     public abstract class ParameterUIElementsEditor : UnityEditor.Editor

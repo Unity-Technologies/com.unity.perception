@@ -40,7 +40,7 @@
   agent:
     type: Unity::VM::GPU
     model: rtx2080
-    image: package-ci/win10:stable
+    image: graphics-foundation/win10-dxr:stable
     flavor: b1.large
   commands:
     - git submodule update --init --recursive

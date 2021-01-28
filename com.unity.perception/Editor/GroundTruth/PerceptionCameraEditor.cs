@@ -85,10 +85,10 @@ namespace UnityEditor.Perception.GroundTruth
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)), new GUIContent("Description", "Provide a description for this camera (optional)."));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)), new GUIContent("Show Labeler Visualizations", "Display realtime visualizations for labelers that are currently active on this camera."));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)),new GUIContent("Save Camera RGB Output to Disk", "For each captured frame, save an RGB image of the camera's output to disk."));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureTriggerMode)),new GUIContent("Capture Trigger Mode", $"The method of triggering captures for this camera. In {nameof(PerceptionCamera.CaptureTriggerMode.Scheduled)} mode, captures happen automatically based on a start frame and frame delta time. In {nameof(PerceptionCamera.CaptureTriggerMode.Manual)} mode, captures should be triggered manually through calling the {nameof(perceptionCamera.CaptureOnNextUpdate)} method of {nameof(PerceptionCamera)}."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureTriggerMode)),new GUIContent("Capture Trigger Mode", $"The method of triggering captures for this camera. In {nameof(CaptureTriggerMode.Scheduled)} mode, captures happen automatically based on a start frame and frame delta time. In {nameof(CaptureTriggerMode.Manual)} mode, captures should be triggered manually through calling the {nameof(perceptionCamera.RequestCapture)} method of {nameof(PerceptionCamera)}."));
 
                 GUILayout.Space(5);
-                if (perceptionCamera.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled))
+                if (perceptionCamera.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
                 {
                     GUILayout.BeginVertical("TextArea");
                     EditorGUILayout.LabelField("Scheduled Capture Properties", EditorStyles.boldLabel);
@@ -115,7 +115,7 @@ namespace UnityEditor.Perception.GroundTruth
                         EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.simulationDeltaTime)),new GUIContent(k_FrametimeTitle, $"Sets Unity's Time.{nameof(Time.captureDeltaTime)} to the specified number, causing a fixed number of frames to be generated for each second of elapsed simulation time regardless of the capabilities of the underlying hardware. Thus, simulation time and real time will not be synchronized."));
                     }
 
-                    EditorGUILayout.HelpBox($"Captures should be triggered manually through calling the {nameof(perceptionCamera.CaptureOnNextUpdate)} method of {nameof(PerceptionCamera)}.", MessageType.None);
+                    EditorGUILayout.HelpBox($"Captures should be triggered manually through calling the {nameof(perceptionCamera.RequestCapture)} method of {nameof(PerceptionCamera)}.", MessageType.None);
                     GUILayout.EndVertical();
                 }
 

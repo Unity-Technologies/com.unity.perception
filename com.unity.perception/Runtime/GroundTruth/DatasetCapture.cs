@@ -57,7 +57,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
         /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
         /// <exception cref="ArgumentException">Thrown if ego is invalid.</exception>
-        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float firstCaptureFrame, PerceptionCamera.CaptureTriggerMode captureTriggerMode, float simulationDeltaTime, int framesBetweenCaptures, bool manualSensorAffectSimulationTiming = false)
+        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float simulationDeltaTime, int framesBetweenCaptures, bool manualSensorAffectSimulationTiming = false)
         {
             if (!SimulationState.Contains(egoHandle.Id))
                 throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(egoHandle));
@@ -187,6 +187,22 @@ namespace UnityEngine.Perception.GroundTruth
         }
     }
 
+
+    /// <summary>
+    /// Capture trigger modes for sensors.
+    /// </summary>
+    public enum CaptureTriggerMode
+    {
+        /// <summary>
+        /// Captures happen automatically based on a start frame and frame delta time.
+        /// </summary>
+        Scheduled,
+        /// <summary>
+        /// Captures should be triggered manually through calling the manual capture method of the sensor using this trigger mode.
+        /// </summary>
+        Manual
+    }
+
     /// <summary>
     /// A handle to a sensor managed by the <see cref="DatasetCapture"/>. It can be used to check whether the sensor
     /// is expected to capture this frame and report captures, annotations, and metrics regarding the sensor.
@@ -296,7 +312,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Requests a capture from this sensor on the next rendered frame. Can only be used with manual capture mode (<see cref="PerceptionCamera.CaptureTriggerMode.Manual"/>).
         /// </summary>
-        public void CaptureOnNextUpdate()
+        public void RequestCapture()
         {
             DatasetCapture.SimulationState.SetNextCaptureTimeToNowForSensor(this);
         }

@@ -49,21 +49,6 @@ namespace UnityEngine.Perception.GroundTruth
         public int firstCaptureFrame = 0;
 
         /// <summary>
-        /// Capture trigger modes for <see cref="PerceptionCamera"/>.
-        /// </summary>
-        public enum CaptureTriggerMode
-        {
-            /// <summary>
-            /// Captures happen automatically based on a start frame and frame delta time.
-            /// </summary>
-            Scheduled,
-            /// <summary>
-            /// Captures should be triggered manually through calling the <see cref="PerceptionCamera.CaptureOnNextUpdate"/> method of <see cref="PerceptionCamera"/>.
-            /// </summary>
-            Manual
-        }
-
-        /// <summary>
         /// The method of triggering captures for this camera.
         /// </summary>
         public CaptureTriggerMode captureTriggerMode = CaptureTriggerMode.Scheduled;
@@ -86,15 +71,15 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Requests a capture from this camera on the next rendered frame. Can only be used when using <see cref="PerceptionCamera.CaptureTriggerMode.Manual"/> capture mode.
         /// </summary>
-        public void CaptureOnNextUpdate()
+        public void RequestCapture()
         {
             if (captureTriggerMode.Equals(CaptureTriggerMode.Manual))
             {
-                SensorHandle.CaptureOnNextUpdate();
+                SensorHandle.RequestCapture();
             }
             else
             {
-                Debug.LogError($"{nameof(CaptureOnNextUpdate)} can only be used if the camera is in {nameof(CaptureTriggerMode.Manual)} capture mode.");
+                Debug.LogError($"{nameof(RequestCapture)} can only be used if the camera is in {nameof(CaptureTriggerMode.Manual)} capture mode.");
             }
         }
 

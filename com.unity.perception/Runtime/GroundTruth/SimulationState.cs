@@ -142,7 +142,7 @@ namespace UnityEngine.Perception.GroundTruth
             public string modality;
             public string description;
             public float firstCaptureTime;
-            public PerceptionCamera.CaptureTriggerMode captureTriggerMode;
+            public CaptureTriggerMode captureTriggerMode;
             public float renderingDeltaTime;
             public int framesBetweenCaptures;
             public bool manualSensorAffectSimulationTiming;
@@ -370,7 +370,7 @@ namespace UnityEngine.Perception.GroundTruth
             m_LastTimeScale = Time.timeScale;
         }
 
-        public void AddSensor(EgoHandle egoHandle, string modality, string description, float firstCaptureFrame, PerceptionCamera.CaptureTriggerMode captureTriggerMode, float renderingDeltaTime, int framesBetweenCaptures, bool manualSensorAffectSimulationTiming, SensorHandle sensor)
+        public void AddSensor(EgoHandle egoHandle, string modality, string description, float firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float renderingDeltaTime, int framesBetweenCaptures, bool manualSensorAffectSimulationTiming, SensorHandle sensor)
         {
             var sensorData = new SensorData()
             {
@@ -396,7 +396,7 @@ namespace UnityEngine.Perception.GroundTruth
             // If the first capture hasn't happened yet, sequenceTimeNextCapture field won't be valid
             if (sensorData.firstCaptureTime >= UnscaledSequenceTime)
             {
-                return sensorData.captureTriggerMode == PerceptionCamera.CaptureTriggerMode.Scheduled? sensorData.firstCaptureTime : float.MaxValue;
+                return sensorData.captureTriggerMode == CaptureTriggerMode.Scheduled? sensorData.firstCaptureTime : float.MaxValue;
             }
 
             return sensorData.sequenceTimeOfNextCapture;
@@ -458,13 +458,13 @@ namespace UnityEngine.Perception.GroundTruth
 
                 if (activeSensor.ShouldCaptureThisFrame)
                 {
-                    if (sensorData.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled))
+                    if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
                     {
                         sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + 1);
                         Debug.Assert(sensorData.sequenceTimeOfNextCapture > UnscaledSequenceTime,
                             $"Next scheduled capture should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeOfNextCapture}");
                     }
-                    else if (sensorData.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Manual))
+                    else if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Manual))
                     {
                         sensorData.sequenceTimeOfNextCapture = float.MaxValue;
                     }
@@ -482,13 +482,13 @@ namespace UnityEngine.Perception.GroundTruth
                 float thisSensorNextFrameDt = -1;
 
                 var sensorData = m_Sensors[activeSensor];
-                if (sensorData.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Scheduled))
+                if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
                 {
                     thisSensorNextFrameDt = sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime;
 
                     Debug.Assert(thisSensorNextFrameDt > 0f, "Sensor was scheduled to capture in the past but got skipped over.");
                 }
-                else if (sensorData.captureTriggerMode.Equals(PerceptionCamera.CaptureTriggerMode.Manual) && sensorData.manualSensorAffectSimulationTiming)
+                else if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Manual) && sensorData.manualSensorAffectSimulationTiming)
                 {
                     thisSensorNextFrameDt = sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime;
                 }

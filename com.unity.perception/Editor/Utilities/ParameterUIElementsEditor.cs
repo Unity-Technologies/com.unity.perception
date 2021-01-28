@@ -5,8 +5,9 @@ namespace UnityEngine.Experimental.Perception.Editor
 {
     /// <summary>
     /// Derive this class to force the Unity Editor to render an Object's default inspector using UIElements
+    /// to allow parameter UIs to render properly
     /// </summary>
-    public abstract class DefaultUIElementsEditor : UnityEditor.Editor
+    public abstract class ParameterUIElementsEditor : UnityEditor.Editor
     {
         public override VisualElement CreateInspectorGUI()
         {

@@ -9,17 +9,17 @@
 > com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.
 
 
-# Perception
+# Computer Vision
 
-The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
+The Computer Vision package provides a toolkit for generating large-scale datasets for machine learning training and validation in computer vision tasks. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
 
 ## Getting Started
 
 **[Quick Installation Instructions](com.unity.perception/Documentation~/SetupSteps.md)**  
-Get your local Perception workspace up and running quickly. Recommended for users with prior Unity experience.
+Get your local Computer Vision workspace up and running quickly. Recommended for users with prior Unity experience.
 
-**[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
-Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
+**[Computer Vision Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
+Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Computer Vision project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of [Unity Simulation](https://unity.com/products/unity-simulation).  No prior Unity experience required.
 
 ## Documentation
 In-depth documentation on inidividual components of the package. 
@@ -43,7 +43,7 @@ In-depth documentation on inidividual components of the package.
 ### Unity Simulation Smart Camera example
 <img src="com.unity.perception/Documentation~/images/smartcamera.png"/>
 
-The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how Perception could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
+The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how Unity Computer Vision can be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
 
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.
@@ -60,10 +60,10 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 * [License](com.unity.perception/LICENSE.md)
 
 ## Citation
-If you find this package useful, consider citing it using:
+If you find this package useful, please consider citing it using:
 ```
-@misc{com.unity.perception2020,
-    title={Unity {P}erception Package},
+@misc{com.unity.perception2021,
+    title={Unity {C}omputer {V}ision Package},
     author={{Unity Technologies}},
     howpublished={\url{https://github.com/Unity-Technologies/com.unity.perception}},
     year={2020}

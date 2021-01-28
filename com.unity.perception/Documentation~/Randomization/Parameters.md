@@ -33,7 +33,7 @@ Say you have the following CustomMonoBehaviour that has a public GameObjectParam
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 
-public class TestestCluster : MonoBehaviour
+public class CustomMonoBehaviour : MonoBehaviour
 {
     public GameObjectParameter prefabs;
 }

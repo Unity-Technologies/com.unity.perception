@@ -21,10 +21,11 @@ Randomizer tags now support inheritance
 
 Added AnimationCurveSampler, which returns random values according to a range and probability distribution denoted by a user provided AnimationCurve. 
 
+Added ParameterUIElementsEditor class to allow custom ScriptableObjects and MonoBehaviours to render Parameter and Sampler typed public fields correctly in their inspector windows.
+
 Added new capture options to Perception Camera:
 * Can now render intermediate frames between captures.
 * Capture can now be triggered manually using a function call, instead of automatic capturing on a schedule.
-
 
 ### Changed
 
@@ -40,6 +41,7 @@ ScenarioBase.Serialize() now directly returns the serialized scenario configurat
 
 ScenarioBase.Serialize() now not only serializes scenario constants, but also all sampler member fields on randomizers attached to the scenario
 
+Semantic Segmentation Labeler now places data in folders with randomized filenames
 
 ### Deprecated
 
@@ -64,6 +66,8 @@ Fixed memory leak or crash occurring at the end of long simulations when using B
 Randomizer.OnCreate() is no longer called in edit-mode when adding a randomizer to a scenario
 
 Fixed a bug where removing all randomizers from a scenario caused the randomizer container UI element to overflow over the end of Scenario component UI
+
+Semantic Segmentation Labeler now produces output in the proper form for distributed data generation on Unity Simulation by placing output in randomized directory names
 
 ## [0.6.0-preview.1] - 2020-12-03
 

@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEngine.Experimental.Perception.Randomization.Parameters
 {
@@ -7,5 +6,5 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
     /// A categorical parameter for animation clips
     /// </summary>
     [Serializable]
-    public class AnimationClipParameter : CategoricalParameter<AnimationPoseLabel> { }
+    public class AnimationClipParameter : CategoricalParameter<AnimationClip> { }
 }

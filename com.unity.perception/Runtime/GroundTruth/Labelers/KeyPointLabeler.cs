@@ -69,6 +69,11 @@ namespace UnityEngine.Perception.GroundTruth
             this.activeTemplate = template;
         }
 
+        /// <summary>
+        /// Array of animation pose labels which map animation clip times to ground truth pose labels.
+        /// </summary>
+        public AnimationPoseLabel[] poseStateConfigs;
+
         /// <inheritdoc/>
         protected override void Setup()
         {
@@ -283,11 +288,15 @@ namespace UnityEngine.Perception.GroundTruth
                     var pt = activeTemplate.keyPoints[i];
                     if (pt.associateToRig)
                     {
-                        var loc = ConvertToScreenSpace(animator.GetBoneTransform(pt.rigLabel).position);
-                        keyPoints[i].index = i;
-                        keyPoints[i].x = loc.x;
-                        keyPoints[i].y = loc.y;
-                        keyPoints[i].state = 1;
+                        var bone = animator.GetBoneTransform(pt.rigLabel);
+                        if (bone != null)
+                        {
+                            var loc = ConvertToScreenSpace(bone.position);
+                            keyPoints[i].index = i;
+                            keyPoints[i].x = loc.x;
+                            keyPoints[i].y = loc.y;
+                            keyPoints[i].state = 1;
+                        }
                     }
                 }
 
@@ -302,13 +311,37 @@ namespace UnityEngine.Perception.GroundTruth
                     keyPoints[idx].state = 1;
                 }
 
-                // check if the model has a pose state component, if so we will add that to our model, this value
-                // is purposely not cached, because it could be added during runtime
-                var poseState = labeledEntity.GetComponent<PoseStateGroundTruthInfo>();
-                cachedData.keyPoints.pose = poseState != null ? poseState.poseState : "unset";
+                cachedData.keyPoints.pose = "unset";
+
+                if (cachedData.animator != null)
+                {
+                    cachedData.keyPoints.pose = GetPose(cachedData.animator);
+                }
 
                 m_KeyPointEntries.Add(cachedData.keyPoints);
             }
+        }
+
+        string GetPose(Animator animator)
+        {
+            var info = animator.GetCurrentAnimatorClipInfo(0);
+            var clip = info[0].clip;
+            var timeOffset = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+
+            if (poseStateConfigs != null)
+            {
+                foreach (var p in poseStateConfigs)
+                {
+                    if (p.animationClip == clip)
+                    {
+                        var time = clip.length * timeOffset;
+                        var label = p.GetPoseAtTime(time);
+                        return label;
+                    }
+                }
+            }
+
+            return "unset";
         }
 
         /// <inheritdoc/>

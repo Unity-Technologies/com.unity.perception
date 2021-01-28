@@ -23,5 +23,26 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         public bool applyRootMotion = false;
 
+        /// <summary>
+        /// Gets the animation override controller for an animation randomization. The controller is loaded from
+        /// resources.
+        /// </summary>
+        public AnimatorOverrideController animatorOverrideController
+        {
+            get
+            {
+                if (m_Controller == null)
+                {
+                    var animator = gameObject.GetComponent<Animator>();
+                    var runtimeAnimatorController = Resources.Load<RuntimeAnimatorController>("AnimationRandomizerController");
+                    m_Controller = new AnimatorOverrideController(runtimeAnimatorController);
+                    animator.runtimeAnimatorController = m_Controller;
+                }
+
+                return m_Controller;
+            }
+        }
+
+        AnimatorOverrideController m_Controller;
     }
 }

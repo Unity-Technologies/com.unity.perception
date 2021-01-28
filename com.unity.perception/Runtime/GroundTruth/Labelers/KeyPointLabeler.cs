@@ -334,7 +334,7 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     if (p.animationClip == clip)
                     {
-                        var time = clip.length * timeOffset;
+                        var time = timeOffset;
                         var label = p.GetPoseAtTime(time);
                         return label;
                     }

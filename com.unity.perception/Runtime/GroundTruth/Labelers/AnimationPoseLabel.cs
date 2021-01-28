@@ -11,9 +11,9 @@ namespace UnityEngine.Perception.GroundTruth
     public class PoseTimestampRecord
     {
         /// <summary>
-        /// The duration to use for this timestamp in seconds
+        /// The point in the clip that the pose starts, a value from 0 (beginning) to 1 (end)
         /// </summary>
-        public float duration;
+        public float startOffset;
         /// <summary>
         /// The label to use for any captures inside of this time period
         /// </summary>
@@ -46,17 +46,15 @@ namespace UnityEngine.Perception.GroundTruth
         /// <returns>The pose for the passed in time</returns>
         public string GetPoseAtTime(float time)
         {
-            var totalTime = 0f;
+            if (time < 0 || time > 1) return "unset";
 
-            // The amount of timestamps are expected to be small, so at the current time
-            // no performance improvements are deemed necesssary
-            foreach (var t in timestamps)
+            var i = 1;
+            for (i = 1; i < timestamps.Count; i++)
             {
-                totalTime += t.duration;
-                if (time < totalTime) return t.poseLabel;
+                if (timestamps[i].startOffset > time) break;
             }
 
-            return timestamps.Last().poseLabel;
+            return timestamps[i - 1].poseLabel;
         }
     }
 }

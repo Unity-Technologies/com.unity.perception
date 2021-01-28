@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
             animator.applyRootMotion = tag.applyRootMotion;
 
             var overrider = tag.animatorOverrideController;
-            if (overrider != null)
+            if (overrider != null && tag.animationClips.GetCategoryCount() > 0)
             {
                 overrider[clipName] = tag.animationClips.Sample();
                 animator.Play(stateName, 0, m_FloatParameter.Sample());

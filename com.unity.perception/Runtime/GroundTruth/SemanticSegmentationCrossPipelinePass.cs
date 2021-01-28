@@ -49,9 +49,7 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
         {
             if (s_LastFrameExecuted == Time.frameCount)
-            {
-                Debug.LogError("Semantic segmentation was run twice in the same frame. Multiple semantic segmentations are not currently supported.");
-            }
+                return;
 
             s_LastFrameExecuted = Time.frameCount;
             var renderList = CreateRendererListDesc(camera, cullingResult, "FirstPass", 0, m_OverrideMaterial, -1);

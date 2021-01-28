@@ -66,9 +66,11 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator EnableSemanticSegmentation_GeneratesCorrectDataset([Values(true, false)] bool enabled)
         {
+            SemanticSegmentationLabeler semanticSegmentationLabeler = null;
             SetupCamera(pc =>
             {
-                pc.AddLabeler(new SemanticSegmentationLabeler(CreateSemanticSegmentationLabelConfig()));
+                semanticSegmentationLabeler = new SemanticSegmentationLabeler(CreateSemanticSegmentationLabelConfig());
+                pc.AddLabeler(semanticSegmentationLabeler);
             }, enabled);
 
             string expectedImageFilename = $"segmentation_{Time.frameCount}.png";
@@ -81,7 +83,7 @@ namespace GroundTruthTests
             {
                 var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
                 var capturesJson = File.ReadAllText(capturesPath);
-                var imagePath = $"SemanticSegmentation/{expectedImageFilename}";
+                var imagePath = $"{semanticSegmentationLabeler.m_SemanticSegmentationDirectory}/{expectedImageFilename}";
                 StringAssert.Contains(imagePath, capturesJson);
             }
             else
@@ -93,9 +95,11 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Disabled_GeneratesCorrectDataset()
         {
+            SemanticSegmentationLabeler semanticSegmentationLabeler = null;
             SetupCamera(pc =>
             {
-                pc.AddLabeler(new SemanticSegmentationLabeler(CreateSemanticSegmentationLabelConfig()));
+                semanticSegmentationLabeler = new SemanticSegmentationLabeler(CreateSemanticSegmentationLabelConfig());
+                pc.AddLabeler(semanticSegmentationLabeler);
             });
 
             string expectedImageFilename = $"segmentation_{Time.frameCount}.png";
@@ -106,7 +110,7 @@ namespace GroundTruthTests
 
             var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
-            var imagePath = $"SemanticSegmentation/{expectedImageFilename}";
+            var imagePath = $"{semanticSegmentationLabeler.m_SemanticSegmentationDirectory}/{expectedImageFilename}";
             StringAssert.Contains(imagePath, capturesJson);
         }
 

@@ -50,6 +50,7 @@ namespace UnityEngine.Perception.GroundTruth
         float m_LastTimeScale;
         readonly string m_OutputDirectoryName;
         string m_OutputDirectoryPath;
+        public const string latestOutputDirectoryKey = "latestOutputDirectory";
 
         JsonSerializer m_AnnotationSerializer;
         public bool IsRunning { get; private set; }
@@ -77,6 +78,9 @@ namespace UnityEngine.Perception.GroundTruth
             m_AnnotationSerializer.Converters.Add(new Vector3Converter());
             m_AnnotationSerializer.Converters.Add(new QuaternionConverter());
             m_OutputDirectoryName = outputDirectory;
+
+            PlayerPrefs.SetString(latestOutputDirectoryKey, Manager.Instance.GetDirectoryFor("",""));
+
             IsRunning = true;
         }
 

@@ -52,14 +52,13 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
 
         internal void AddTag<T>(T tag) where T : RandomizerTag
         {
-            var tagType = typeof(T);
-            AddTagTypeToTypeHierarchy<T>();
+            var tagType = tag.GetType();
+            AddTagTypeToTypeHierarchy(tagType);
             m_TagMap[tagType].Add(tag);
         }
 
-        void AddTagTypeToTypeHierarchy<T>() where T : RandomizerTag
+        void AddTagTypeToTypeHierarchy(Type tagType)
         {
-            var tagType = typeof(T);
             if (m_TypeTree.ContainsKey(tagType))
                 return;
 
@@ -67,7 +66,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
             m_TypeTree.Add(tagType, new HashSet<Type>());
 
             var baseType = tagType.BaseType;
-            while (baseType!= null && baseType != typeof(RandomizerTag))
+            while (baseType != null && baseType != typeof(RandomizerTag))
             {
                 if (!m_TypeTree.ContainsKey(baseType))
                 {

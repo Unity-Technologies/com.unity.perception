@@ -38,6 +38,9 @@ ScenarioBase.Serialize() now not only serializes scenario constants, but also al
 
 RandomizerTagManager.Query<T>() now returns RandomizerTags directly instead of the GameObjects attached to said tags
 
+Semantic Segmentation Labeler now places data in folders with randomized filenames
+
+
 ### Deprecated
 
 ### Removed
@@ -61,6 +64,8 @@ Fixed memory leak or crash occurring at the end of long simulations when using B
 Randomizer.OnCreate() is no longer called in edit-mode when adding a randomizer to a scenario
 
 Fixed a bug where removing all randomizers from a scenario caused the randomizer container UI element to overflow over the end of Scenario component UI
+
+Semantic Segmentation Labeler now produces output in the proper form for distributed data generation on Unity Simulation by placing output in randomized directory names
 
 ## [0.6.0-preview.1] - 2020-12-03
 

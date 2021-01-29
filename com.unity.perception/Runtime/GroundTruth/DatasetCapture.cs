@@ -49,18 +49,21 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="egoHandle">The ego container for the sensor. Sensor orientation will be reported in the context of the given ego.</param>
         /// <param name="modality">The kind of the sensor (ex. "camera", "lidar")</param>
         /// <param name="description">A human-readable description of the sensor (ex. "front-left rgb camera")</param>
-        /// <param name="period">The period, in seconds, on which the sensor should capture. Frames will be scheduled in the simulation such that each sensor is triggered every _period_ seconds.</param>
-        /// <param name="firstCaptureTime">The time, in seconds, from the start of the sequence on which this sensor should first be scheduled.</param>
+        /// <param name="firstCaptureFrame">The time, in seconds, from the start of the sequence on which this sensor should first be scheduled.</param>
+        /// <param name="captureTriggerMode">The method of triggering captures for this sensor.</param>
+        /// <param name="simulationDeltaTime">The simulation frame time (seconds) requested by this sensor.</param>
+        /// <param name="framesBetweenCaptures">The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame.</param>
+        /// <param name="manualSensorAffectSimulationTiming">Have this unscheduled (manual capture) camera affect simulation timings (similar to a scheduled camera) by requesting a specific frame delta time</param>
         /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
         /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
         /// <exception cref="ArgumentException">Thrown if ego is invalid.</exception>
-        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime)
+        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float simulationDeltaTime, int framesBetweenCaptures, bool manualSensorAffectSimulationTiming = false)
         {
             if (!SimulationState.Contains(egoHandle.Id))
                 throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(egoHandle));
 
             var sensor = new SensorHandle(Guid.NewGuid());
-            SimulationState.AddSensor(egoHandle, modality, description, period, firstCaptureTime, sensor);
+            SimulationState.AddSensor(egoHandle, modality, description, firstCaptureFrame, captureTriggerMode, simulationDeltaTime, framesBetweenCaptures, manualSensorAffectSimulationTiming, sensor);
             return sensor;
         }
 
@@ -184,6 +187,22 @@ namespace UnityEngine.Perception.GroundTruth
         }
     }
 
+
+    /// <summary>
+    /// Capture trigger modes for sensors.
+    /// </summary>
+    public enum CaptureTriggerMode
+    {
+        /// <summary>
+        /// Captures happen automatically based on a start frame and frame delta time.
+        /// </summary>
+        Scheduled,
+        /// <summary>
+        /// Captures should be triggered manually through calling the manual capture method of the sensor using this trigger mode.
+        /// </summary>
+        Manual
+    }
+
     /// <summary>
     /// A handle to a sensor managed by the <see cref="DatasetCapture"/>. It can be used to check whether the sensor
     /// is expected to capture this frame and report captures, annotations, and metrics regarding the sensor.
@@ -289,6 +308,14 @@ namespace UnityEngine.Perception.GroundTruth
         /// they should capture during the frame. Captures should only be reported when this is true.
         /// </summary>
         public bool ShouldCaptureThisFrame => DatasetCapture.SimulationState.ShouldCaptureThisFrame(this);
+
+        /// <summary>
+        /// Requests a capture from this sensor on the next rendered frame. Can only be used with manual capture mode (<see cref="PerceptionCamera.CaptureTriggerMode.Manual"/>).
+        /// </summary>
+        public void RequestCapture()
+        {
+            DatasetCapture.SimulationState.SetNextCaptureTimeToNowForSensor(this);
+        }
 
         /// <summary>
         /// Report a metric regarding this sensor in the current frame.

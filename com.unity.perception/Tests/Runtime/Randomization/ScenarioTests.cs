@@ -140,7 +140,7 @@ namespace RandomizationTests
 
             // Second frame, first iteration
             yield return null;
-            Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, perceptionCamera.period);
+            Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, perceptionCamera.simulationDeltaTime);
 
             // Third frame, second iteration, SequenceTime has been reset
             yield return null;

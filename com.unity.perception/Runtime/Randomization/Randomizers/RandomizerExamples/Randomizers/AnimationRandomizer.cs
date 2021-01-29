@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
@@ -16,8 +15,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     {
         FloatParameter m_FloatParameter = new FloatParameter{ value = new UniformSampler(0, 1) };
 
-        const string clipName = "PlayerIdle";
-        const string stateName = "Base Layer.RandomState";
+        const string k_ClipName = "PlayerIdle";
+        const string k_StateName = "Base Layer.RandomState";
 
         void RandomizeAnimation(AnimationRandomizerTag tag)
         {
@@ -27,8 +26,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
             var overrider = tag.animatorOverrideController;
             if (overrider != null && tag.animationClips.GetCategoryCount() > 0)
             {
-                overrider[clipName] = tag.animationClips.Sample();
-                animator.Play(stateName, 0, m_FloatParameter.Sample());
+                overrider[k_ClipName] = tag.animationClips.Sample();
+                animator.Play(k_StateName, 0, m_FloatParameter.Sample());
             }
         }
 

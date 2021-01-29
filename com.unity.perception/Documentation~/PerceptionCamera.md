@@ -62,6 +62,85 @@ _Example rendered object info for a single object_
 
 The RenderedObjectInfoLabeler records a list of all objects visible in the Camera image, including its instance ID, resolved label ID and visible pixels. If Unity cannot resolve objects to a label in the IdLabelConfig, it does not record these objects.
 
+### KeypointLabeler
+
+The keypoint labeler captures keypoints of a labeled gameobject. The typical use of this labeler is capturing human pose
+estimation data. The labeler uses a [keypoint template](#KeypointTemplate) which defines the keypoints to capture for the
+model and the skeletal connections between those keypoints. The positions of the keypoints are recorded in pixel coordinates
+and saved to the captures json file.
+
+```
+keypoints {
+  label_id:      <int>   -- Integer identifier of the label
+  instance_id:   <str>   -- UUID of the instance.
+  template_guid: <str>   -- UUID of the keypoint template
+  pose:          <str>   -- Pose ground truth information
+  keypoints [            -- Array of keypoint data, one entry for each keypoint defined in associated template file.
+    {
+      index:     <int>   -- Index of keypoint in template
+      x:         <float> -- X pixel coordinate of keypoint
+      y:         <float> -- Y pixel coordinate of keypoint
+      state:     <int>   -- 0: keypoint does not exist, 1 keypoint exists
+    }, ...
+  ]
+}
+```
+
+#### Keypoint Template
+
+keypoint templates are used to define the keypoints and skeletal connections captured by the KeypointLabeler. The keypoint
+template takes advantage of Unity's humanoid animation rig, and allows the user to automatically associate template keypoints
+to animation rig joints. Additionally, the user can choose to ignore the rigged points, or add points not defined in the rig.
+A Coco keypoint template is included in the perception package.
+
+##### Editor
+
+The keypoint template editor allows the user to create/modify a keypoint template. The editor consists of the header information,
+the keypoint array, and the skeleton array.
+
+![Header section of the keypoint template](images/keypoint_template_header.png)
+<br/>_Header section of the keypoint template_
+
+In the header section, a user can change the name of the template and supply textures that they would like to use for the keypoint
+visualization.
+
+![The keypoint section of the keypoint template](images/keypoint_template_keypoints.png)
+<br/>_Keypoint section of the keypoint template_
+
+The keypoint section allows the user to create/edit keypoints and associate them with Unity animation rig points. Each keypoint record
+has 4 fields: label (the name of the keypoint), Associate to Rig (a boolean value which, if true, automatically maps the keypoint to
+the gameobject defined by the rig), Rig Label (only needed if Associate To Rig is true, defines which rig component to associate with
+the keypoint), and Color (RGB color value of the keypoint in the visualization).
+
+![Skeleton section of the keypoint template](images/keypoint_template_skeleton.png)
+<br/>_Skeleton section of the keypoint template_
+
+The skeleton section allows the user to create connections between joints, basically defining the skeleton of a labeled object.
+
+##### Format
+```
+annotation_definition.spec {
+  template_id:       <str>           -- The UUID of the template
+  template_name:     <str>           -- Human readable name of the template
+  key_points [                       -- Array of joints defined in this template
+    {
+      label:         <str>           -- The label of the joint
+      index:         <int>           -- The index of the joint
+    }, ...
+  ]
+  skeleton [                         -- Array of skeletal connections (which joints have connections between one another) defined in this template
+    {
+      joint1:        <int>           -- The first joint of the connection
+      joint2:        <int>           -- The second joint of the connection
+    }, ...
+  ]
+}
+```
+
+#### Animation Pose Label
+
+This file is used to define timestamps in an animation to a pose label.
+
 ## Limitations
 
 Ground truth is not compatible with all rendering features, especially those that modify the visibility or shape of objects in the frame.

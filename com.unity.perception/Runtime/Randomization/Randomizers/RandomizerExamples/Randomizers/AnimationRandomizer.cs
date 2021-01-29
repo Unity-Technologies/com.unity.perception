@@ -40,8 +40,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
             var taggedObjects = tagManager.Query<AnimationRandomizerTag>();
             foreach (var taggedObject in taggedObjects)
             {
-                var tag = taggedObject.GetComponent<AnimationRandomizerTag>();
-                RandomizeAnimation(tag);
+                RandomizeAnimation(taggedObject);
             }
         }
     }

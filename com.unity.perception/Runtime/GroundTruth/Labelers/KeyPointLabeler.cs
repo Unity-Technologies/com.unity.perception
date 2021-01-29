@@ -295,7 +295,7 @@ namespace UnityEngine.Perception.GroundTruth
                             keyPoints[i].index = i;
                             keyPoints[i].x = loc.x;
                             keyPoints[i].y = loc.y;
-                            keyPoints[i].state = 1;
+                            keyPoints[i].state = 2;
                         }
                     }
                 }

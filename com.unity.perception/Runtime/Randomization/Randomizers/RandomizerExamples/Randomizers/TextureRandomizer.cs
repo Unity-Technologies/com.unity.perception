@@ -11,7 +11,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     [AddRandomizerMenu("Perception/Texture Randomizer")]
     public class TextureRandomizer : Randomizer
     {
+#if HDRP_PRESENT
+        static readonly int k_BaseTexture = Shader.PropertyToID("_BaseColorMap");
+#else
         static readonly int k_BaseTexture = Shader.PropertyToID("_BaseMap");
+#endif
 
         /// <summary>
         /// The list of textures to sample and apply to tagged objects

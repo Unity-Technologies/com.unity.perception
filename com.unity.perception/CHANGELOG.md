@@ -72,6 +72,9 @@ Fixed a bug where removing all randomizers from a scenario caused the randomizer
 
 Semantic Segmentation Labeler now produces output in the proper form for distributed data generation on Unity Simulation by placing output in randomized directory names
 
+Texture Randomizer is now compatible works with HDRP
+
+
 ## [0.6.0-preview.1] - 2020-12-03
 
 ### Added

@@ -11,7 +11,7 @@
 
 # Perception Package (Unity Computer Vision)
 
-The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
+The Perception package provides a toolkit for generating large-scale datasets for computer vision training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
 
 ## Getting Started
 
@@ -19,10 +19,10 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 Get your local Perception workspace up and running quickly. Recommended for users with prior Unity experience.
 
 **[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
-Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
+Detailed instructions covering all the important steps from installing Unity Editor, to creating your first computer vision data generation project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
 ## Documentation
-In-depth documentation on inidividual components of the package. 
+In-depth documentation on individual components of the package. 
 
 |Feature|Description|
 |---|---|

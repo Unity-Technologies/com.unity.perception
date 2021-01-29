@@ -1,7 +1,7 @@
 # The Perception Camera component
 The Perception Camera component ensures that the [Camera](https://docs.unity3d.com/Manual/class-Camera.html) runs at deterministic rates. It also ensures that the Camera uses [DatasetCapture](DatasetCapture.md) to capture RGB and other Camera-related ground truth in the [JSON dataset](Schema/Synthetic_Dataset_Schema.md). You can use the Perception Camera component on the High Definition Render Pipeline (HDRP) or the Universal Render Pipeline (URP).
 
-![Perception Camera component](images/PerceptionCameraFinished.png)
+<img src="images/PerceptionCameraFinished.png" align="center" width="600"/>
 <br/>_Perception Camera component_
 
 ## Properties

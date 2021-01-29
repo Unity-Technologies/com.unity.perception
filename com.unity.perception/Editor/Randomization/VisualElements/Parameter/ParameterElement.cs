@@ -105,6 +105,17 @@ namespace UnityEngine.Perception.Randomization.Editor
             {
                 probabilitiesProperty.arraySize++;
                 optionsProperty.arraySize++;
+                var newOption = optionsProperty.GetArrayElementAtIndex(optionsProperty.arraySize - 1);
+                switch (newOption.propertyType)
+                {
+                    case SerializedPropertyType.ObjectReference:
+                        newOption.objectReferenceValue = null;
+                        break;
+                    case SerializedPropertyType.String:
+                        newOption.stringValue = string.Empty;
+                        break;
+                }
+
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = categoricalParameter.probabilities;
                 listView.Refresh();
@@ -162,18 +173,33 @@ namespace UnityEngine.Perception.Randomization.Editor
             var uniformToggle = template.Q<Toggle>("uniform");
             var uniformProperty = m_SerializedProperty.FindPropertyRelative("uniform");
             uniformToggle.BindProperty(uniformProperty);
-            void ToggleProbabilityFields(bool toggle)
-            {
-                if (toggle)
-                    listView.AddToClassList("collapsed");
-                else
-                    listView.RemoveFromClassList("collapsed");
-            }
-            ToggleProbabilityFields(uniformToggle.value);
+
+            if (uniformToggle.value)
+                listView.AddToClassList("collapsed");
+            else
+                listView.RemoveFromClassList("collapsed");
+
             if (Application.isPlaying)
                 uniformToggle.SetEnabled(false);
             else
-                uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt => ToggleProbabilityFields(evt.newValue));
+            {
+                uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt =>
+                {
+                    listView.ToggleInClassList("collapsed");
+                    if (!evt.newValue)
+                        return;
+                    var numOptions = optionsProperty.arraySize;
+                    var uniformProbabilityValue = 1f / numOptions;
+                    for (var i = 0; i < numOptions; i++)
+                    {
+                        var probability = probabilitiesProperty.GetArrayElementAtIndex(i);
+                        probability.floatValue = uniformProbabilityValue;
+                    }
+                    m_SerializedProperty.serializedObject.ApplyModifiedProperties();
+                    listView.itemsSource = categoricalParameter.probabilities;
+                    listView.Refresh();
+                });
+            }
 
             m_PropertiesContainer.Add(template);
         }

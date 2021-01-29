@@ -1,5 +1,6 @@
 ﻿using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.Perception.Editor;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 
 namespace RandomizationTests.ParameterTests
@@ -25,12 +26,20 @@ namespace RandomizationTests.ParameterTests
         public void NegativeProbabilities()
         {
             var parameter = new StringParameter();
-            var optionsArray = new [] { ("option1", 1f), ("option1", -1f) };
+            var optionsArray = new [] { ("option1", 1f), ("option2", -1f) };
             Assert.Throws<ParameterValidationException>(() => parameter.SetOptions(optionsArray));
         }
 
         [Test]
         public void ZeroSumProbability()
+        {
+            var parameter = new StringParameter();
+            var optionsArray = new [] { ("option1", 0f), ("option2", 0f) };
+            Assert.Throws<ParameterValidationException>(() => parameter.SetOptions(optionsArray));
+        }
+
+        [Test]
+        public void DuplicateCategoriesTest()
         {
             var parameter = new StringParameter();
             var optionsArray = new [] { ("option1", 0f), ("option1", 0f) };

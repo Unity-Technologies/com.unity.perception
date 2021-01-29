@@ -27,6 +27,8 @@ Added new capture options to Perception Camera:
 * Can now render intermediate frames between captures.
 * Capture can now be triggered manually using a function call, instead of automatic capturing on a schedule.
 
+Categorical Parameters will now validate that their specified options are unique at runtime
+
 ### Changed
 
 Randomizers now access their parent scenario through the static activeScenario property
@@ -45,6 +47,7 @@ RandomizerTagManager.Query<T>() now returns RandomizerTags directly instead of t
 
 Semantic Segmentation Labeler now places data in folders with randomized filenames
 
+The uniform toggle on Categorical Parameters will now reset the parameter's probability weights to be uniform
 
 ### Deprecated
 
@@ -73,6 +76,8 @@ Fixed a bug where removing all randomizers from a scenario caused the randomizer
 Semantic Segmentation Labeler now produces output in the proper form for distributed data generation on Unity Simulation by placing output in randomized directory names
 
 Texture Randomizer is now compatible with HDRP
+
+Categorical Parameters no longer error when deleting items from long options lists
 
 
 ## [0.6.0-preview.1] - 2020-12-03

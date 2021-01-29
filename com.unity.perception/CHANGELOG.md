@@ -77,7 +77,7 @@ Semantic Segmentation Labeler now produces output in the proper form for distrib
 
 Texture Randomizer is now compatible with HDRP.
 
-Categorical Parameters no longer error when deleting items from long options lists
+Categorical Parameters no longer produce errors when deleting items from long options lists.
 
 
 ## [0.6.0-preview.1] - 2020-12-03

@@ -14,7 +14,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// The percentage within the clip that the pose starts, a value from 0 (beginning) to 1 (end)
         /// </summary>
         [Tooltip("The percentage within the clip that the pose starts, a value from 0 (beginning) to 1 (end)")]
-        public float startOffsetPercentage;
+        public float startOffsetPercent;
         /// <summary>
         /// The label to use for any captures inside of this time period
         /// </summary>
@@ -52,7 +52,7 @@ namespace UnityEngine.Perception.GroundTruth
             var i = 1;
             for (i = 1; i < timestamps.Count; i++)
             {
-                if (timestamps[i].startOffsetPercentage > time) break;
+                if (timestamps[i].startOffsetPercent > time) break;
             }
 
             return timestamps[i - 1].poseLabel;

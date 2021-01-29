@@ -16,12 +16,15 @@ The Perception Camera component ensures that the [Camera](https://docs.unity3d.c
 | Camera Labelers | A list of labelers that generate data derived from this Camera. |
 
 ### Properties for Scheduled Capture Mode
-
+| Property: | Function: |
+|--|--|
 | Simulation Delta Time | The simulation frame time (seconds) for this camera. E.g. 0.0166 translates to 60 frames per second. This will be used as Unity's `Time.captureDeltaTime`, causing a fixed number of frames to be generated for each second of elapsed simulation time regardless of the capabilities of the underlying hardware. For more information on sensor scheduling, see [DatasetCapture](DatasetCapture.md). |
 | First Capture Frame | Frame number at which this camera starts capturing. |
 | Frames Between Captures | The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame. |
 
 ### Properties for Manual Capture Mode
+| Property: | Function: |
+|--|--|
 | Affect Simulation Timing | Have this camera affect simulation timings (similar to a scheduled camera) by requesting a specific frame delta time. Enabling this option will let you set the `Simulation Delta Time` property described above.|
 
 

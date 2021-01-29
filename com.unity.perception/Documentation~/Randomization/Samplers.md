@@ -26,7 +26,7 @@ Generates random samples from a truncated normal distribution bounded by a speci
 
 
 ## Random Seeding
-Samplers generate random values that are seeded by the active scenario's current random state. Changing the scenario's random seed will result in Samplers generating different values. Changing the order of Samplers, Parameters, or Randomizers will also result in different values being sampled during a simulation.
+Samplers generate random values that are seeded by the active Scenario's current random state. Changing the Scenario's random seed will result in Samplers generating different values. Changing the order of Samplers, Parameters, or Randomizers will also result in different values being sampled during a simulation.
 
 It is recommended that users do not generate random values using the UnityEngine.Random() class or the System.Random() class within a simulation since both of these classes can potentially generate non-deterministic or improperly seeded random values. Using only Perception Samplers to generate random values will help ensure that Perception simulations generate consistent results during local execution and on Unity Simulation in the cloud.
 

@@ -7,10 +7,10 @@ To define an entirely new Randomizer, derive the Randomizer class and implement 
 
 ## Randomizer Hooks
 
-1. OnCreate() - called when the Randomizer is added or loaded to a scenario
-2. OnIterationStart() - called at the start of a new scenario iteration
-3. OnIterationEnd() - called the after a scenario iteration has completed
-4. OnScenarioComplete() - called the after the entire scenario has completed
+1. OnCreate() - called when the Randomizer is added or loaded to a Scenario
+2. OnIterationStart() - called at the start of a new Scenario Iteration
+3. OnIterationEnd() - called the after a Scenario Iteration has completed
+4. OnScenarioComplete() - called the after the entire Scenario has completed
 5. OnStartRunning() - called on the first frame a Randomizer is enabled
 6. OnStopRunning() - called on the first frame a disabled Randomizer is updated
 7. OnUpdate() - executed every frame for enabled Randomizers
@@ -38,5 +38,5 @@ public class RotationRandomizer : Randomizer
 
 There are a few key things to note from this example:
 1. Make sure to add the [Serializable] tag to all Randomizer implementations to ensure that the Randomizer can be customized and saved within the Unity Editor.
-2. The [AddRandomizerMenu] attribute customizes the "Add Randomizer" sub menu path in the scenario inspector for a particular randomizer. In this example, the RotationRandomizer can be added to a scenario by opening the _**Add Randomizer**_ menu and clicking `Perception -> Rotation Randomizer`.
+2. The [AddRandomizerMenu] attribute customizes the "Add Randomizer" sub menu path in the Scenario inspector for a particular Randomizer. In this example, the RotationRandomizer can be added to a Scenario by opening the _**Add Randomizer**_ menu and clicking `Perception -> Rotation Randomizer`.
 3. The line `var taggedObjects = tagManager.Query<RotationRandomizerTag>();` uses RandomizerTags in combination with the current Scenario's tagManager to query for all objects with RotationRandomizerTags and obtain the subset of GameObjects within the simulation that need to have their rotations randomzied. To learn more about how RandomizerTags work, visit the [RandomizerTags documentation page](RandomizerTags.md).

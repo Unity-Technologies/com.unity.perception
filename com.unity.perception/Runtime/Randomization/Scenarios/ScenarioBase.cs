@@ -18,10 +18,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
     {
         static ScenarioBase s_ActiveScenario;
 
-        uint m_RandomState = SamplerUtility.largePrime;
+        const string k_ScenarioIterationMetricDefinitionId = "DB1B258E-D1D0-41B6-8751-16F601A2E230";
         bool m_SkipFrame = true;
         bool m_FirstScenarioFrame = true;
         bool m_WaitingForFinalUploads;
+        MetricDefinition m_IterationMetricDefinition;
 
         IEnumerable<Randomizer> activeRandomizers
         {
@@ -45,11 +46,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         /// If true, this scenario will quit the Unity application when it's finished executing
         /// </summary>
         [HideInInspector] public bool quitOnComplete = true;
-
-        /// <summary>
-        /// The random state of the scenario
-        /// </summary>
-        public uint randomState => m_RandomState;
 
         /// <summary>
         /// The name of the Json file this scenario's constants are serialized to/from.
@@ -185,6 +181,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             // Don't skip the first frame if executing on Unity Simulation
             if (Configuration.Instance.IsSimulationRunningInCloud())
                 m_SkipFrame = false;
+
+            m_IterationMetricDefinition = DatasetCapture.RegisterMetricDefinition("scenario_iteration", "Iteration information for dataset sequences",
+                Guid.Parse(k_ScenarioIterationMetricDefinitionId));
         }
 
         void OnEnable()
@@ -211,6 +210,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 Debug.Log($"No configuration file found at {defaultConfigFilePath}. " +
                     "Proceeding with built in scenario constants and randomizer settings.");
 #endif
+        }
+
+        struct IterationMetricData
+        {
+            public int iteration;
         }
 
         void Update()
@@ -268,7 +272,15 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             if (currentIterationFrame == 0)
             {
                 DatasetCapture.StartNewSequence();
-                m_RandomState = SamplerUtility.IterateSeed((uint)currentIteration, genericConstants.randomSeed);
+                SamplerState.randomState = SamplerUtility.IterateSeed((uint)currentIteration, genericConstants.randomSeed);
+
+                DatasetCapture.ReportMetric(m_IterationMetricDefinition, new[]
+                {
+                    new IterationMetricData()
+                    {
+                        iteration = currentIteration
+                    }
+                });
                 foreach (var randomizer in activeRandomizers)
                     randomizer.IterationStart();
             }
@@ -335,7 +347,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
         {
             if (!randomizerType.IsSubclassOf(typeof(Randomizer)))
                 throw new ScenarioException(
-                    $"Cannot add non-randomizer type {randomizerType.Name} to randomizer list");
+                    $"Cannot remove non-randomizer type {randomizerType.Name} from randomizer list");
             var removed = false;
             for (var i = 0; i < m_Randomizers.Count; i++)
             {
@@ -384,16 +396,6 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             var randomizer = m_Randomizers[currentIndex];
             m_Randomizers.RemoveAt(currentIndex);
             m_Randomizers.Insert(nextIndex, randomizer);
-        }
-
-        /// <summary>
-        /// Generates a new random state and overwrites the old random state with the newly generated value
-        /// </summary>
-        /// <returns>The newly generated random state</returns>
-        public uint NextRandomState()
-        {
-            m_RandomState = SamplerUtility.Hash32NonZero(m_RandomState);
-            return m_RandomState;
         }
 
         void ValidateParameters()

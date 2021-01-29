@@ -37,16 +37,16 @@ namespace RandomizationTests.ParameterTests
         }
 
         [Test]
-        public void CorrectNumberOfNativeSamplesAreGenerated()
+        public void CorrectNumberOfSamplesAreGenerated()
         {
             foreach (var test in m_Tests)
-                test.GeneratesNativeSamples();
+                test.GeneratesSamples();
         }
     }
 
     public abstract class BaseStructParameterTest
     {
-        public abstract void GeneratesNativeSamples();
+        public abstract void GeneratesSamples();
     }
 
     public class NumericParameterTest<T> : BaseStructParameterTest where T : struct
@@ -58,12 +58,15 @@ namespace RandomizationTests.ParameterTests
             m_Parameter = parameter;
         }
 
-        public override void GeneratesNativeSamples()
+        public override void GeneratesSamples()
         {
-            var nativeSamples = m_Parameter.Samples(TestValues.TestSampleCount, out var handle);
-            handle.Complete();
-            Assert.AreEqual(nativeSamples.Length, TestValues.TestSampleCount);
-            nativeSamples.Dispose();
+            var samples = new T[TestValues.TestSampleCount];
+            for (var i = 0; i < samples.Length; i++)
+            {
+                samples[i] = m_Parameter.Sample();
+            }
+
+            Assert.AreEqual(samples.Length, TestValues.TestSampleCount);
         }
     }
 }

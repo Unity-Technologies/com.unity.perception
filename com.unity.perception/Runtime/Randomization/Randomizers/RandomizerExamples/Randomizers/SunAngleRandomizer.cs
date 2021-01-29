@@ -32,15 +32,15 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationStart()
         {
-            var lightObjects = tagManager.Query<SunAngleRandomizerTag>();
-            foreach (var lightObject in lightObjects)
+            var tags = tagManager.Query<SunAngleRandomizerTag>();
+            foreach (var tag in tags)
             {
                 var earthSpin = Quaternion.AngleAxis((hour.Sample() + 12f) / 24f * 360f, Vector3.down);
                 var timeOfYearRads = dayOfTheYear.Sample() / 365f * Mathf.PI * 2f;
                 var earthTilt = Quaternion.Euler(Mathf.Cos(timeOfYearRads) * 23.5f, 0, Mathf.Sin(timeOfYearRads) * 23.5f);
                 var earthLat = Quaternion.AngleAxis(latitude.Sample(), Vector3.right);
                 var lightRotation = earthTilt * earthSpin * earthLat;
-                lightObject.transform.rotation = Quaternion.Euler(90,0,0) * Quaternion.Inverse(lightRotation);
+                tag.transform.rotation = Quaternion.Euler(90,0,0) * Quaternion.Inverse(lightRotation);
             }
         }
     }

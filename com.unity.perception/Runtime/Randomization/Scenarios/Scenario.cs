@@ -91,7 +91,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
             var samplerObj = new JObject();
             var fields = sampler.GetType().GetFields();
             foreach (var field in fields)
-                samplerObj.Add(new JProperty(field.Name, field.GetValue(sampler)));
+            {
+                samplerObj.Add(new JProperty(field.Name, JToken.FromObject(field.GetValue(sampler))));
+            }
+
             if (sampler.GetType() != typeof(ConstantSampler))
             {
                 var rangeProperty = sampler.GetType().GetProperty("range");
@@ -191,14 +194,17 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
                 if (samplerFieldPair.Key == "range")
                 {
                     var rangeObj = (JObject)samplerFieldPair.Value;
-                    sampler.range = new FloatRange(
-                        rangeObj["minimum"].ToObject<float>(), rangeObj["maximum"].ToObject<float>());
+                    var field = sampler.GetType().GetField(samplerFieldPair.Key);
+                    var range = new FloatRange(rangeObj["minimum"].ToObject<float>(), rangeObj["maximum"].ToObject<float>());
+                    field.SetValue(sampler, range);
                 }
                 else
                 {
                     var field = sampler.GetType().GetField(samplerFieldPair.Key);
                     if (field != null)
-                        field.SetValue(sampler, ((JValue)samplerFieldPair.Value).Value);
+                    {
+                        field.SetValue(sampler, JsonConvert.DeserializeObject(samplerFieldPair.Value.ToString(), field.FieldType));
+                    }
                 }
             }
         }

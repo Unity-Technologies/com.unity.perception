@@ -4,12 +4,14 @@
 
 
 ## Sensor scheduling
-While sensors are registered, `DatasetCapture` ensures that frame timing is deterministic and run at the appropriate simulation times to let each sensor run at its own rate.
+While sensors are registered, `DatasetCapture` ensures that frame timing is deterministic and run at the appropriate simulation times to let each sensor render and capture at its own rate.
 
-Using [Time.CaptureDeltaTime](https://docs.unity3d.com/ScriptReference/Time-captureDeltaTime.html), it also decouples wall clock time from simulation time, allowing the simulation to run as fast as possible.
+Using [Time.captureDeltaTime](https://docs.unity3d.com/ScriptReference/Time-captureDeltaTime.html), it also decouples wall clock time from simulation time, allowing the simulation to run as fast as possible.
 
 ## Custom sensors
-You can register custom sensors using `DatasetCapture.RegisterSensor()`. The `period` you pass in at registration time determines how often (in simulation time) frames should be scheduled for the sensor to run. The sensor implementation then checks `ShouldCaptureThisFrame` on the returned `SensorHandle` each frame to determine whether it is time for the sensor to perform a capture. `SensorHandle.ReportCapture` should then be called in each of these frames to report the state of the sensor to populate the dataset.
+You can register custom sensors using `DatasetCapture.RegisterSensor()`. The `simulationDeltaTime` you pass in at registration time is used as `Time.captureDeltaTime` and determines how often (in simulation time) frames should be simulated for the sensor to run. This and the `framesBetweenCaptures` value determine at which exact times the sensor should capture the simulated frames. The decoupling of simulation delta time and capture frequency based on frames simulated allows you to render frames in-between captures. If no in-between frames are desired, you can set `framesBetweenCaptures` to 0. When it is time to capture, the `ShouldCaptureThisFrame` check of the `SensorHandle` returns true. `SensorHandle.ReportCapture` should then be called in each of these frames to report the state of the sensor to populate the dataset.
+
+`Time.captureDeltaTime` is set at every frame in order to precisely fall on the next sensor that requires simulation, and this includes multi-sensor simulations. For instance, if one sensor has a `simulationDeltaTime` of 2 and another 3, the first five values for `Time.captureDeltaTime` will be 2, 1, 1, 2, and 3, meaning simulation will happen on the timestamps 0, 2, 3, 4, 6, and 9.
 
 ## Custom annotations and metrics
 In addition to the common annotations and metrics produced by [PerceptionCamera](PerceptionCamera.md), scripts can produce their own via `DatasetCapture`. You must first register annotation and metric definitions using `DatasetCapture.RegisterAnnotationDefinition()` or `DatasetCapture.RegisterMetricDefinition()`. These return `AnnotationDefinition` and `MetricDefinition` instances which you can then use to report values during runtime.

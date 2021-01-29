@@ -193,9 +193,14 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
         {
             var rootList = new List<MenuItem>();
             m_MenuItemsMap.Add(string.Empty, rootList);
+
+            var randomizerTypeSet = new HashSet<Type>();
+            foreach (var randomizer in m_RandomizerList.scenario.m_Randomizers)
+                randomizerTypeSet.Add(randomizer.GetType());
+
             foreach (var randomizerType in StaticData.randomizerTypes)
             {
-                if (m_RandomizerList.randomizerTypeSet.Contains(randomizerType))
+                if (randomizerTypeSet.Contains(randomizerType))
                     continue;
                 var menuAttribute = (AddRandomizerMenuAttribute)Attribute.GetCustomAttribute(randomizerType, typeof(AddRandomizerMenuAttribute));
                 if (menuAttribute != null)

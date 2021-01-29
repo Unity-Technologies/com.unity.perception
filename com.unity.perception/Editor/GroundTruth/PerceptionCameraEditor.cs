@@ -76,20 +76,76 @@ namespace UnityEditor.Perception.GroundTruth
             serializedObject.ApplyModifiedProperties();
         }
 
+        const string k_FrametimeTitle = "Simulation Delta Time";
+
         public override void OnInspectorGUI()
         {
             using(new EditorGUI.DisabledScope(EditorApplication.isPlaying))
             {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)), new GUIContent("Description", "Provide a description for this perception camera (optional)."));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.period)), new GUIContent("Capture Interval", "The interval at which the perception camera should render and capture (seconds)."));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.startTime)), new GUIContent("Start Time","Time at which this perception camera starts rendering and capturing (seconds)."));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)), new GUIContent("Show Labeler Visualizations", "Display realtime visualizations for labelers that are currently active on this perception camera."));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)),new GUIContent("Save Camera Output to Disk", "For each captured frame, save an RGB image of the perception camera's output to disk."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.description)), new GUIContent("Description", "Provide a description for this camera (optional)."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.showVisualizations)), new GUIContent("Show Labeler Visualizations", "Display realtime visualizations for labelers that are currently active on this camera."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureRgbImages)),new GUIContent("Save Camera RGB Output to Disk", "For each captured frame, save an RGB image of the camera's output to disk."));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.captureTriggerMode)),new GUIContent("Capture Trigger Mode", $"The method of triggering captures for this camera. In {nameof(CaptureTriggerMode.Scheduled)} mode, captures happen automatically based on a start frame and frame delta time. In {nameof(CaptureTriggerMode.Manual)} mode, captures should be triggered manually through calling the {nameof(perceptionCamera.RequestCapture)} method of {nameof(PerceptionCamera)}."));
+
+                GUILayout.Space(5);
+                if (perceptionCamera.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
+                {
+                    GUILayout.BeginVertical("TextArea");
+                    EditorGUILayout.LabelField("Scheduled Capture Properties", EditorStyles.boldLabel);
+
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.simulationDeltaTime)),new GUIContent(k_FrametimeTitle, $"Sets Unity's Time.{nameof(Time.captureDeltaTime)} to the specified number, causing a fixed number of frames to be simulated for each second of elapsed simulation time regardless of the capabilities of the underlying hardware. Thus, simulation time and real time will not be synchronized."));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.firstCaptureFrame)), new GUIContent("Start at Frame",$"Frame number at which this camera starts capturing."));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.framesBetweenCaptures)),new GUIContent("Frames Between Captures", "The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame."));
+
+                    var interval = (perceptionCamera.framesBetweenCaptures + 1) * perceptionCamera.simulationDeltaTime;
+                    var startTime = perceptionCamera.simulationDeltaTime * perceptionCamera.firstCaptureFrame;
+                    EditorGUILayout.HelpBox($"First capture at {startTime} seconds and consecutive captures every {interval} seconds of simulation time.", MessageType.None);
+
+                    GUILayout.EndVertical();
+                }
+                else
+                {
+                    GUILayout.BeginVertical("TextArea");
+                    EditorGUILayout.LabelField("Manual Capture Properties", EditorStyles.boldLabel);
+
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.manualSensorAffectSimulationTiming)),new GUIContent("Affect Simulation Timing", $"Have this camera affect simulation timings (similar to a scheduled camera) by requesting a specific frame delta time."));
+
+                    if (perceptionCamera.manualSensorAffectSimulationTiming)
+                    {
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.simulationDeltaTime)),new GUIContent(k_FrametimeTitle, $"Sets Unity's Time.{nameof(Time.captureDeltaTime)} to the specified number, causing a fixed number of frames to be generated for each second of elapsed simulation time regardless of the capabilities of the underlying hardware. Thus, simulation time and real time will not be synchronized."));
+                    }
+
+                    EditorGUILayout.HelpBox($"Captures should be triggered manually through calling the {nameof(perceptionCamera.RequestCapture)} method of {nameof(PerceptionCamera)}.", MessageType.None);
+                    GUILayout.EndVertical();
+                }
+
+
                 serializedObject.ApplyModifiedProperties();
 
-                //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(PerceptionCamera.labelers)));
+                GUILayout.Space(15);
+
                 m_LabelersList.DoLayoutList();
             }
+
+            var dir = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey, string.Empty);
+            if (dir != string.Empty)
+            {
+                EditorGUILayout.LabelField("Latest Output Folder");
+                GUILayout.BeginVertical("TextArea");
+                EditorGUILayout.HelpBox(dir, MessageType.None);
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Show Folder"))
+                {
+                    EditorUtility.RevealInFinder(dir);
+                }
+                if (GUILayout.Button("Copy Path"))
+                {
+                    GUIUtility.systemCopyBuffer = dir;
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.EndVertical();
+            }
+
             if (EditorSettings.asyncShaderCompilation)
             {
                 EditorGUILayout.HelpBox("Asynchronous shader compilation may result in invalid data in beginning frames. " +

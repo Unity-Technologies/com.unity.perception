@@ -4,6 +4,7 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using UnityEngine.TestTools;
@@ -139,7 +140,7 @@ namespace RandomizationTests
 
             // Second frame, first iteration
             yield return null;
-            Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, perceptionCamera.period);
+            Assert.AreEqual(DatasetCapture.SimulationState.SequenceTime, perceptionCamera.simulationDeltaTime);
 
             // Third frame, second iteration, SequenceTime has been reset
             yield return null;
@@ -152,11 +153,11 @@ namespace RandomizationTests
             yield return CreateNewScenario(3, 1);
             var seeds = new uint[3];
             for (var i = 0; i < 3; i++)
-                seeds[i] = m_Scenario.NextRandomState();
+                seeds[i] = SamplerState.NextRandomState();
 
             yield return null;
             for (var i = 0; i < 3; i++)
-                Assert.AreNotEqual(seeds[i], m_Scenario.NextRandomState());
+                Assert.AreNotEqual(seeds[i], SamplerState.NextRandomState());
         }
 
         PerceptionCamera SetupPerceptionCamera()

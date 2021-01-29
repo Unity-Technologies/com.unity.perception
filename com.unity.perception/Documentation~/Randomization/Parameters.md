@@ -2,16 +2,16 @@
 
 ## Creating and Sampling Parameters
 
-Parameters are often defined as fields of a randomizer class, but they can also be instanced just like any other C# class:
+Parameters are often defined as fields of a Randomizer class, but they can also be instanced just like any other C# class:
 ```
-// Create a color parameter
+// Create a color Parameter
 var colorParameter = new HsvaColorParameter();
 
 // Generate one color sample
 var color = colorParameter.Sample();
 ```
 
-Note that parameters, like samplers, generate new random values for each call to the Sample() method:
+Note that Parameters, like Samplers, generate new random values for each call to the Sample() method:
 ```
 var color1 = colorParameter.Sample();
 var color2 = colorParameter.Sample();
@@ -20,15 +20,40 @@ Assert.AreNotEqual(color1, color2);
 
 ## Defining Custom Parameters
 
-All parameters derive from the `Parameter` abstract class, but all included perception package parameter types derive from two specialized Parameter base classes:
+All Parameters derive from the `Parameter` abstract class. Additionally, the Parameters included in the Perception package  types derive from two specialized Parameter base classes:
 1. `CategoricalParameter`
 2. `NumericParameter`
 
+## Using Parameters outside of Randomizers (ie: in MonoBehaviours and ScriptableObjects)
+
+After adding a public Parameter field to a MonoBehaviour or ScriptableObject, you may have noticed that the Parameter's UI doesn't look the same as it does when added to a Randomizer. This is because the Inspector UI for most Perception randomization components is authored using Unity's relatively new UI Elements framework, though by default, Unity uses the old IMGUI framework to render default inspector editors.
+
+Say you have the following CustomMonoBehaviour that has a public GameObjectParameter field:
+```
+using UnityEngine;
+using UnityEngine.Experimental.Perception.Randomization.Parameters;
+
+public class CustomMonoBehaviour : MonoBehaviour
+{
+    public GameObjectParameter prefabs;
+}
+```
+
+To force Unity to use UI Elements to render your CustomMonoBehaviour's inspector window, create a custom editor for your MonoBehaviour by deriving the ParameterUIElementsEditor class like so:
+
+```
+using UnityEditor;
+using UnityEngine.Experimental.Perception.Editor;
+
+[CustomEditor(typeof(CustomMonoBehaviour))]
+public class TestClusterEditor : DefaultUIElementsEditor { }
+``` 
+
 ### Categorical Parameters
 
-Categorical parameters choose a value from a list of options that have no intrinsic ordering. For example, a material paramater randomly chooses from a list of material options, but the list of material options itself can be rearranged into any particular order without affecting the distribution of materials selected.
+Categorical Parameters choose a value from a list of options that have no intrinsic ordering. For example, a material Parameter randomly chooses from a list of material options, but the list of material options itself can be rearranged into any particular order without affecting the distribution of materials selected.
 
-If your custom parameter is a categorical in nature, take a look at the [StringParameter]() class included in the perception package as a reference for how to derive the `CategoricalParameter` class.
+If your custom Parameter is categorical in nature, take a look at the [StringParameter]() class included in the perception package as a reference for how to derive the `CategoricalParameter` class.
 ```
 using UnityEngine.Perception.Randomization.Parameters.Attributes;
 
@@ -40,40 +65,8 @@ namespace UnityEngine.Perception.Randomization.Parameters
 }
 ```
 
-**Note:** the AddComponentMenu attribute with an empty string prevents parameters from appearing in the Add Component GameObject menu. Randomization parameters should only be created with by a `ParameterConfiguration`
+**Note:** the AddComponentMenu attribute with an empty string prevents Parameters from appearing in the Add Component GameObject menu. Randomization Parameters should only be created with by a `ParameterConfiguration`
 
 ### Numeric Parameters
 
-Numeric parameters use samplers to generate randomized structs. Take a look at the [ColorHsvaParameter]() class included in the perception package for an example on how to implement a numeric parameter.
-
-## Improving Sampling Performance
-For numeric parameters, it is recommended to use the JobHandle overload of the Samples() method when generating a large number of samples. The JobHandle overload will utilize the Unity Burst Compiler and Job System to automatically optimize and multithread parameter sampling jobs. The code block below is an example of how to use this overload to sample two parameters in parallel:
-```
-// Get a reference to the parameter configuration attached to this GameObject
-var parameterConfiguration = GetComponent<ParameterConfiguration>();
-
-// Lookup parameters
-var cubeColorParameter = parameterConfiguration.GetParameter<HsvaColorParameter>("CubeColor");
-var cubePositionParameter = parameterConfiguration.GetParameter<Vector3Parameter>("CubePosition");
-
-// Schedule sampling jobs
-var cubeColors = cubeColorParameter.Samples(constants.cubeCount, out var colorHandle);
-var cubePositions = cubePositionParameter.Samples(constants.cubeCount, out var positionHandle);
-
-// Combine job handles
-var handles = JobHandle.CombineDependencies(colorHandle, positionHandle);
-
-// Wait for the jobs to complete
-handles.Complete();
-
-// Use the created samples
-for (var i = 0; i < constants.cubeCount; i++)
-{
-    m_ObjectMaterials[i].SetColor(k_BaseColorProperty, cubeColors[i]);
-    m_Objects[i].transform.position = cubePositions[i];
-}
-
-// Dispose of the generated samples
-cubeColors.Dispose();
-cubePositions.Dispose();
-```
+Numeric Parameters use samplers to generate randomized structs. Take a look at the [ColorHsvaParameter]() class included in the Perception package for an example on how to implement a numeric Parameter.

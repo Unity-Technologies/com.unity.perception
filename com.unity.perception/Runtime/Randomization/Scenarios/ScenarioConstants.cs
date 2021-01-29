@@ -10,9 +10,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
     public class ScenarioConstants
     {
         /// <summary>
-        /// The starting value initializing all random values sequences generated through Samplers, Parameters, and
+        /// The starting value initializing all random value sequences generated through Samplers, Parameters, and
         /// Randomizers attached to a Scenario
         /// </summary>
+        [Tooltip("The starting value initializing all random value sequences generated through Samplers, Parameters, and Randomizers attached to a Scenario")]
         public uint randomSeed = SamplerUtility.largePrime;
     }
 }

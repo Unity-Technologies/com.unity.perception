@@ -23,10 +23,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationStart()
         {
-            var taggedObjects = tagManager.Query<ColorRandomizerTag>();
-            foreach (var taggedObject in taggedObjects)
+            var tags = tagManager.Query<ColorRandomizerTag>();
+            foreach (var tag in tags)
             {
-                var renderer = taggedObject.GetComponent<Renderer>();
+                var renderer = tag.GetComponent<Renderer>();
                 renderer.material.SetColor(k_BaseColor, colorParameter.Sample());
             }
         }

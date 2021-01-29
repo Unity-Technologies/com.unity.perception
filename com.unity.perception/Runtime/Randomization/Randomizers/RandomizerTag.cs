@@ -13,12 +13,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
 
         void Awake()
         {
-            tagManager.AddTag(GetType(), gameObject);
+            tagManager.AddTag(this);
         }
 
         void OnDestroy()
         {
-            tagManager.RemoveTag(GetType(), gameObject);
+            tagManager.RemoveTag(this);
         }
     }
 }

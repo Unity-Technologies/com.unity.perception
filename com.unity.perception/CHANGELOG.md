@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
+### Upgrade Notes
+
+Before upgrading a project to this version of the Perception package, make sure to keep a record of **all sampler ranges** in your added Randomizers. Due to a change in how sampler ranges are serialized, **after upgrading to this version, ranges for all stock Perception samplers (Uniform and Normal Samplers) will be reset**, and will need to be manually reverted by the user.
+
 ### Added
 
 Added keypoint ground truth labeling
@@ -19,23 +23,42 @@ Added ScenarioBase.SerializeToConfigFile()
 
 Randomizer tags now support inheritance
 
+Added AnimationCurveSampler, which returns random values according to a range and probability distribution denoted by a user provided AnimationCurve. 
+
+Added ParameterUIElementsEditor class to allow custom ScriptableObjects and MonoBehaviours to render Parameter and Sampler typed public fields correctly in their inspector windows.
+
+Added new capture options to Perception Camera:
+* Can now render intermediate frames between captures.
+* Capture can now be triggered manually using a function call, instead of automatic capturing on a schedule.
+
 ### Changed
 
 Randomizers now access their parent scenario through the static activeScenario property
 
 Unique seeds per Sampler have been replaced with one global random seed configured via the ScenarioConstants of a Scenario
 
-Replaced ScenarioBase.GenerateRandomSeed() with ScenarioBase.NextRandomState()
+Samplers now derive their random state from the static SamplerState class instead of individual scenarios to allow parameters and samplers to be used outside of the context of a scenario
+
+Replaced ScenarioBase.GenerateRandomSeed() with SamplerState.NextRandomState() and SamplerState.CreateGenerator()
 
 ScenarioBase.Serialize() now directly returns the serialized scenario configuration JSON string instead of writing directly to a file (use SerializeToConfigFile() instead)
 
 ScenarioBase.Serialize() now not only serializes scenario constants, but also all sampler member fields on randomizers attached to the scenario
+
+RandomizerTagManager.Query<T>() now returns RandomizerTags directly instead of the GameObjects attached to said tags
+
+Semantic Segmentation Labeler now places data in folders with randomized filenames
+
 
 ### Deprecated
 
 ### Removed
 
 Removed ScenarioBase.GenerateRandomSeedFromIndex()
+
+Removed native sampling (through jobs) capability from all samplers and parameters as it introduced additional complexity to the code and was not a common usage pattern
+
+Removed `range` as a required ISampler interface property.
 
 ### Fixed
 
@@ -49,11 +72,19 @@ Fixed memory leak or crash occurring at the end of long simulations when using B
 
 Randomizer.OnCreate() is no longer called in edit-mode when adding a randomizer to a scenario
 
+Fixed a bug where removing all randomizers from a scenario caused the randomizer container UI element to overflow over the end of Scenario component UI
+
+Semantic Segmentation Labeler now produces output in the proper form for distributed data generation on Unity Simulation by placing output in randomized directory names
+
+Texture Randomizer is now compatible with HDRP
+
+
 ## [0.6.0-preview.1] - 2020-12-03
 
 ### Added
 
 Added support for labeling Terrain objects. Trees and details are not labeled but will occlude other objects.
+Added analytics for Unity Simulation runs
 
 Added instance segmentation labeler.
 

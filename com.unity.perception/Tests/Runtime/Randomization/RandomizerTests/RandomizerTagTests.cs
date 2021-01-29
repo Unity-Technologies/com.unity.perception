@@ -10,6 +10,10 @@ namespace RandomizationTests.RandomizerTests
     [TestFixture]
     public class RandomizerTagTests
     {
+        public class ParentTag : RandomizerTag { }
+
+        public class ChildTag : ParentTag { }
+
         GameObject m_TestObject;
         FixedLengthScenario m_Scenario;
 
@@ -32,23 +36,23 @@ namespace RandomizationTests.RandomizerTests
         {
             const int copyCount = 5;
             var gameObject = new GameObject();
-            gameObject.AddComponent<ExampleTag>();
+            gameObject.AddComponent<ParentTag>();
             for (var i = 0; i < copyCount - 1; i++)
                 Object.Instantiate(gameObject);
 
             var gameObject2 = new GameObject();
-            gameObject2.AddComponent<ExampleTag2>();
+            gameObject2.AddComponent<ChildTag>();
             for (var i = 0; i < copyCount - 1; i++)
                 Object.Instantiate(gameObject2);
 
             var tagManager = RandomizerTagManager.singleton;
-            var queriedObjects = tagManager.Query<ExampleTag>().ToArray();
+            var queriedObjects = tagManager.Query<ParentTag>().ToArray();
             Assert.AreEqual(queriedObjects.Length, copyCount);
 
-            queriedObjects = tagManager.Query<ExampleTag2>().ToArray();
+            queriedObjects = tagManager.Query<ChildTag>().ToArray();
             Assert.AreEqual(queriedObjects.Length, copyCount);
 
-            queriedObjects = tagManager.Query<ExampleTag>(true).ToArray();
+            queriedObjects = tagManager.Query<ParentTag>(true).ToArray();
             Assert.AreEqual(queriedObjects.Length, copyCount * 2);
         }
     }

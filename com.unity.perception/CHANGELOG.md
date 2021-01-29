@@ -23,6 +23,10 @@ Added AnimationCurveSampler, which returns random values according to a range an
 
 Added ParameterUIElementsEditor class to allow custom ScriptableObjects and MonoBehaviours to render Parameter and Sampler typed public fields correctly in their inspector windows.
 
+Added new capture options to Perception Camera:
+* Can now render intermediate frames between captures.
+* Capture can now be triggered manually using a function call, instead of automatic capturing on a schedule.
+
 ### Changed
 
 Randomizers now access their parent scenario through the static activeScenario property

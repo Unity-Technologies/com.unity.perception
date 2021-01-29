@@ -33,11 +33,11 @@ public class MyLightRandomizer : Randomizer
 
     protected override void OnIterationStart()
     {
-        var taggedObjects = tagManager.Query<MyLightRandomizerTag>();
+        var tags = tagManager.Query<MyLightRandomizerTag>();
 
-        foreach (var taggedObject in taggedObjects)
+        foreach (var tag in tags)
         {
-            var light = taggedObject.GetComponent<Light>();            
+            var light = tag.GetComponent<Light>();            
             light.intensity = lightIntensityParameter.Sample();            
         }
     }
@@ -97,9 +97,9 @@ Let's now add more variation to our light by randomizing its color as well.
 * **:green_circle: Action**: Inside the code block that intensity was previously applied, add code for sampling color from the above Parameter and applying it:
 
 ```C#
-foreach (var taggedObject in taggedObjects)
+foreach (var tag in tags)
 {
-    var light = taggedObject.GetComponent<Light>();            
+    var light = tag.GetComponent<Light>();            
     light.intensity = lightIntensityParameter.Sample(); 
     light.color = lightColorParameter.Sample();           
 }
@@ -190,13 +190,11 @@ public class MyLightRandomizer : Randomizer
 
     protected override void OnIterationStart()
     {
-        var taggedObjects = tagManager.Query<MyLightRandomizerTag>();
-        foreach (var taggedObject in taggedObjects)
+        var tags = tagManager.Query<MyLightRandomizerTag>();
+        foreach (var tag in tags)
         {
-            var light = taggedObject.GetComponent<Light>();                      
-            light.color = lightColorParameter.Sample();            
-
-            var tag = taggedObject.GetComponent<MyLightRandomizerTag>();            
+            var light = tag.GetComponent<Light>();                      
+            light.color = lightColorParameter.Sample();                      
             tag.SetIntensity(lightIntensityParameter.Sample());
         }
     }

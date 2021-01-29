@@ -27,9 +27,9 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationStart()
         {
-            var taggedObjects = tagManager.Query<RotationRandomizerTag>();
-            foreach (var taggedObject in taggedObjects)
-                taggedObject.transform.rotation = Quaternion.Euler(rotation.Sample());
+            var tags = tagManager.Query<RotationRandomizerTag>();
+            foreach (var tag in tags)
+                tag.transform.rotation = Quaternion.Euler(rotation.Sample());
         }
     }
 }

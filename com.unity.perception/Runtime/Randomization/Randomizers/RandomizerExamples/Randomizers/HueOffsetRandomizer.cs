@@ -24,10 +24,10 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// </summary>
         protected override void OnIterationStart()
         {
-            var taggedObjects = tagManager.Query<HueOffsetRandomizerTag>();
-            foreach (var taggedObject in taggedObjects)
+            var tags = tagManager.Query<HueOffsetRandomizerTag>();
+            foreach (var tag in tags)
             {
-                var renderer = taggedObject.GetComponent<MeshRenderer>();
+                var renderer = tag.GetComponent<MeshRenderer>();
                 renderer.material.SetFloat(k_HueOffsetShaderProperty, hueOffset.Sample());
             }
         }

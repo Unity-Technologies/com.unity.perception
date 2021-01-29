@@ -6,7 +6,7 @@ using Unity.Entities;
 namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
 {
     /// <summary>
-    /// Organizes RandomizerTags attached to GameObjects in the scene
+    /// Organizes RandomizerTags present in the scene
     /// </summary>
     public class RandomizerTagManager
     {
@@ -16,15 +16,15 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         public static RandomizerTagManager singleton { get; } = new RandomizerTagManager();
 
         Dictionary<Type, HashSet<Type>> m_TypeTree = new Dictionary<Type, HashSet<Type>>();
-        Dictionary<Type, HashSet<GameObject>> m_TagMap = new Dictionary<Type, HashSet<GameObject>>();
+        Dictionary<Type, HashSet<RandomizerTag>> m_TagMap = new Dictionary<Type, HashSet<RandomizerTag>>();
 
         /// <summary>
-        /// Enumerates all GameObjects in the scene that have a RandomizerTag of the given type
+        /// Enumerates over all RandomizerTags of the given type present in the scene
         /// </summary>
         /// <typeparam name="T">The type of RandomizerTag to query for</typeparam>
         /// <param name="returnSubclasses">Should this method retrieve all tags derived from the passed in tag also?</param>
-        /// <returns>GameObjects with the given RandomizerTag</returns>
-        public IEnumerable<GameObject> Query<T>(bool returnSubclasses = false) where T : RandomizerTag
+        /// <returns>RandomizerTags of the given type</returns>
+        public IEnumerable<T> Query<T>(bool returnSubclasses = false) where T : RandomizerTag
         {
             var queriedTagType = typeof(T);
             if (!m_TagMap.ContainsKey(queriedTagType))
@@ -39,21 +39,22 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
                     var tagType = typeStack.Pop();
                     foreach (var derivedType in m_TypeTree[tagType])
                         typeStack.Push(derivedType);
-                    foreach (var obj in m_TagMap[tagType])
-                        yield return obj;
+                    foreach (var tag in m_TagMap[tagType])
+                        yield return (T)tag;
                 }
             }
             else
             {
-                foreach (var obj in m_TagMap[queriedTagType])
-                    yield return obj;
+                foreach (var tag in m_TagMap[queriedTagType])
+                    yield return (T)tag;
             }
         }
 
-        internal void AddTag(Type tagType, GameObject obj)
+        internal void AddTag<T>(T tag) where T : RandomizerTag
         {
+            var tagType = tag.GetType();
             AddTagTypeToTypeHierarchy(tagType);
-            m_TagMap[tagType].Add(obj);
+            m_TagMap[tagType].Add(tag);
         }
 
         void AddTagTypeToTypeHierarchy(Type tagType)
@@ -61,18 +62,15 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
             if (m_TypeTree.ContainsKey(tagType))
                 return;
 
-            if (tagType == null || !tagType.IsSubclassOf(typeof(RandomizerTag)))
-                throw new ArgumentException("Tag type is not a subclass of RandomizerTag");
-
-            m_TagMap.Add(tagType, new HashSet<GameObject>());
+            m_TagMap.Add(tagType, new HashSet<RandomizerTag>());
             m_TypeTree.Add(tagType, new HashSet<Type>());
 
             var baseType = tagType.BaseType;
-            while (baseType!= null && baseType != typeof(RandomizerTag))
+            while (baseType != null && baseType != typeof(RandomizerTag))
             {
                 if (!m_TypeTree.ContainsKey(baseType))
                 {
-                    m_TagMap.Add(baseType, new HashSet<GameObject>());
+                    m_TagMap.Add(baseType, new HashSet<RandomizerTag>());
                     m_TypeTree[baseType] = new HashSet<Type> { tagType };
                 }
                 else
@@ -86,10 +84,11 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
             }
         }
 
-        internal void RemoveTag(Type tagType, GameObject obj)
+        internal void RemoveTag<T>(T tag) where T : RandomizerTag
         {
-            if (m_TagMap.ContainsKey(tagType) && m_TagMap[tagType].Contains(obj))
-                m_TagMap[tagType].Remove(obj);
+            var tagType = typeof(T);
+            if (m_TagMap.ContainsKey(tagType) && m_TagMap[tagType].Contains(tag))
+                m_TagMap[tagType].Remove(tag);
         }
     }
 }

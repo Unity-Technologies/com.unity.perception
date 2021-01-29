@@ -2,7 +2,7 @@
 
 ---
 
-{% for editor in complete_editors %}
+{% for editor in performance_editors %}
 {% for suite in performance_suites %}
 {% for project in projects %}
 {{project.name}}_linux_{{suite.name}}_{{editor.version}}:
@@ -32,7 +32,7 @@
 {% endfor %}
 {% endfor %}
 
-{% for editor in complete_editors %}
+{% for editor in performance_editors %}
 {% for suite in performance_suites %}
 {% for project in projects %}
 {{project.name}}_windows_{{suite.name}}_{{editor.version}}:
@@ -40,7 +40,7 @@
   agent:
     type: Unity::VM::GPU
     model: rtx2080
-    image: package-ci/win10:stable
+    image: graphics-foundation/win10-dxr:stable
     flavor: b1.large
   commands:
     - git submodule update --init --recursive

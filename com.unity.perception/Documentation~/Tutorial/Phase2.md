@@ -44,7 +44,7 @@ public class MyLightRandomizer : Randomizer
 }
 ```
 
-The purpose of this piece of code is to obtain a random float parameter and assign it to the light's `Intensity` field on the start of every Iteration. Let's go through the code above and understand each part. The `FloatParameter` field makes it possible for us to define a randomized float parameter and modify its properties from the editor UI, similar to how we already modified the properties for the previous Randomizers we used. 
+The purpose of this piece of code is to obtain a random float Parameter and assign it to the light's `Intensity` field on the start of every Iteration. Let's go through the code above and understand each part. The `FloatParameter` field makes it possible for us to define a randomized float Parameter and modify its properties from the editor UI, similar to how we already modified the properties for the previous Randomizers we used. 
 
 > :information_source: If you look at the _**Console**_ tab of the editor now, you will see an error regarding `MyLightRandomizerTag` not being found. This is to be expected, since we have not yet created this class; the error will go away once we create the class later.
 
@@ -105,7 +105,7 @@ foreach (var tag in tags)
 }
 ```            
 
-If you now check the UI snippet for `MyLightRandomizer`, you will notice that `Color Parameter` is added. This Parameter includes four separate randomized values for `Red`, `Green`, `Blue` and `Alpha`. Note that the meaningful range for all of these values is 0-1 (and not 0-255). You can see that the sampling range for red, green, and blue is currently also set to 0-1, which means the parameter covers a full range of colors. A color with (0,0,0) RGB components essentially emits no light. So, let's increase the minimum a bit to avoid such a scenario.
+If you now check the UI snippet for `MyLightRandomizer`, you will notice that `Color Parameter` is added. This Parameter includes four separate randomized values for `Red`, `Green`, `Blue` and `Alpha`. Note that the meaningful range for all of these values is 0-1 (and not 0-255). You can see that the sampling range for red, green, and blue is currently also set to 0-1, which means the Parameter covers a full range of colors. A color with (0,0,0) RGB components essentially emits no light. So, let's increase the minimum a bit to avoid such a scenario.
 
 * **:green_circle: Action**: Increase the minimum value for red, green, and blue components to 0.4 (this is an arbitrary number that typically produces good-looking results).
 
@@ -116,7 +116,7 @@ The UI for `My Light Randomizer` should now look like this:
 </p>
 
 
-* **:green_circle: Action**: Run the simulation for a few frames to observe the lighting color changing on each iteration.
+* **:green_circle: Action**: Run the simulation for a few frames to observe the lighting color changing on each Iteration of the Scenario.
 
 
 ### <a name="step-2">Step 2: Bundle Data and Logic Inside RandomizerTags</a> 

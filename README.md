@@ -27,9 +27,9 @@ In-depth documentation on inidividual components of the package.
 |Feature|Description|
 |---|---|
 |[Labeling](com.unity.perception/Documentation~/GroundTruthLabeling.md)|A component that marks a GameObject and its descendants with a set of labels|
-|[Label Config](com.unity.perception/Documentation~/GroundTruthLabeling.md#label-config)|An asset that defines a taxonomy of labels for ground truth generation|
+|[LabelConfig](com.unity.perception/Documentation~/GroundTruthLabeling.md#label-config)|An asset that defines a taxonomy of labels for ground truth generation|
 |[Perception Camera](com.unity.perception/Documentation~/PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html).|
-|[Dataset Capture](com.unity.perception/Documentation~/DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
+|[DatasetCapture](com.unity.perception/Documentation~/DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
 |[Randomization (Experimental)](com.unity.perception/Documentation~/Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|
 
 ## Example Projects

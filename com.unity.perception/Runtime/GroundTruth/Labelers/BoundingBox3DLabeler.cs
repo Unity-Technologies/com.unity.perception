@@ -88,8 +88,15 @@ namespace UnityEngine.Perception.GroundTruth
 
         int m_CurrentFrame;
 
+
+        /// <summary>
+        /// Color to use for 3D visualization box
+        /// </summary>
+        // ReSharper disable once MemberCanBePrivate.Global
+        public Color visualizationColor = Color.green;
+
         /// <inheritdoc/>
-        protected override bool supportsVisualization => false;
+        protected override bool supportsVisualization => true;
 
         /// <summary>
         /// Fired when the bounding boxes are computed for a frame.
@@ -304,6 +311,55 @@ namespace UnityEngine.Perception.GroundTruth
 
                     m_BoundingBoxValues[m_CurrentFrame][labeledEntity.instanceId] = converted;
                 }
+            }
+        }
+
+        static Vector3 CalculateRotatedPoint(Camera cam, Vector3 start, Vector3 xDirection, Vector3 yDirection, Vector3 zDirection, float xScalar, float yScalar, float zScalar)
+        {
+            var rotatedPoint = start + xDirection * xScalar + yDirection * yScalar + zDirection * zScalar;
+            var worldPoint = cam.transform.TransformPoint(rotatedPoint);
+            return VisualizationHelper.ConvertToScreenSpace(cam, worldPoint);
+        }
+
+        protected override void OnVisualize()
+        {
+            if (m_ToReport == null) return;
+
+            var cam = perceptionCamera.attachedCamera;
+
+            foreach (var box in m_ToReport)
+            {
+                var t = box.translation;
+
+                var right = box.rotation * Vector3.right;
+                var up = box.rotation * Vector3.up;
+                var forward = box.rotation * Vector3.forward;
+
+                var s = box.size * 0.5f;
+                var bbl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x,-s.y, -s.z);
+                var btl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x, s.y, -s.z);
+                var btr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, s.y, -s.z);
+                var bbr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, -s.y, -s.z);
+
+                VisualizationHelper.DrawLine(bbl, btl, visualizationColor);
+                VisualizationHelper.DrawLine(bbl, bbr, visualizationColor);
+                VisualizationHelper.DrawLine(btr, btl, visualizationColor);
+                VisualizationHelper.DrawLine(btr, bbr, visualizationColor);
+
+                var fbl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x,-s.y, s.z);
+                var ftl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x, s.y, s.z);
+                var ftr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, s.y, s.z);
+                var fbr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, -s.y, s.z);
+
+                VisualizationHelper.DrawLine(fbl, ftl, visualizationColor);
+                VisualizationHelper.DrawLine(fbl, fbr, visualizationColor);
+                VisualizationHelper.DrawLine(ftr, ftl, visualizationColor);
+                VisualizationHelper.DrawLine(ftr, fbr, visualizationColor);
+
+                VisualizationHelper.DrawLine(fbl, bbl, visualizationColor);
+                VisualizationHelper.DrawLine(fbr, bbr, visualizationColor);
+                VisualizationHelper.DrawLine(ftl, btl, visualizationColor);
+                VisualizationHelper.DrawLine(ftr, btr, visualizationColor);
             }
         }
     }

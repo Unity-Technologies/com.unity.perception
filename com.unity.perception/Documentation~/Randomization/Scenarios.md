@@ -2,7 +2,7 @@
 
 Scenarios have three responsibilities:
 1. Controlling the execution flow of your simulation
-2. Defining a list of randomizers
+2. Defining a list of Randomizers
 3. Defining constants that can be configured externally from a built Unity player 
 
 By default, the perception package includes one ready-made scenario, the `FixedLengthScenario` class. This scenario runs each iteration for a fixed number of frames and is compatible with the Run in Unity Simulation window for cloud simulation execution.
@@ -32,7 +32,7 @@ For use cases where the scenario should run for an arbitrary number of frames, i
 
 ## JSON Configuration
 
-Scenarios can be serialized to JSON, modified, and reimported at runtime to configure simulation behavior even after a Unity player has been built. Constants and randomizer sampler settings are the two primary sections generated when serializing a scenario. Note that currently, only numerical samplers are serialized. Below is the contents of a JSON configuration file created when serializing the scenario used in Phase 1 of the [Perception Tutorial](../Tutorial/TUTORIAL.md):
+Scenarios can be serialized to JSON, modified, and reimported at runtime to configure simulation behavior even after a Unity player has been built. Constants and Randomizer Sampler settings are the two primary sections generated when serializing a scenario. Note that currently, only numerical samplers are serialized. Below is the contents of a JSON configuration file created when serializing the scenario used in Phase 1 of the [Perception Tutorial](../Tutorial/TUTORIAL.md):
 ```
 {
   "constants": {
@@ -81,7 +81,7 @@ Scenarios can be serialized to JSON, modified, and reimported at runtime to conf
 
 
 ### Constants
-Constants can include properties such as starting iteration value or total iteration count, and you can always add your own custom constants. Below is an example of the constants class used in the `FixedLengthScenario` class:
+Constants can include properties such as starting iteration value or total iteration count, and you can always add your own custom constants. Below is an example of the Constants class used in the `FixedLengthScenario` class:
 ```
 [Serializable]
 public class Constants : UnitySimulationScenarioConstants
@@ -91,12 +91,12 @@ public class Constants : UnitySimulationScenarioConstants
 ```
 
 There are a few key things to note here:
-1. The constants class will need to inherit from `UnitySimulationScenarioConstants` to be compatible with the Run in Unity Simulation window. Deriving from `UnitySimulationScenarioConstants` will add a few key properties to the constants class that are needed to coordinate a Unity Simulation run.
-2. Make sure to include the `[Serializable]` attribute on a constant class. This will ensure that the constants can be manipulated from the Unity inspector.
-3. A scenario class's `SerializeToJson()` and `DeserializeFromJson()` methods can be overriden to implement custom serialization strategies.
+1. The Constants class will need to inherit from `UnitySimulationScenarioConstants` to be compatible with the Run in Unity Simulation window. Deriving from `UnitySimulationScenarioConstants` will add a few key properties to the Constants class that are needed to coordinate a Unity Simulation run.
+2. Make sure to include the `[Serializable]` attribute on a constant class. This will ensure that the Constants can be manipulated from the Unity inspector.
+3. A scenario class's `SerializeToJson()` and `DeserializeFromJson()` methods can be overridden to implement custom serialization strategies.
 
 
-Follow the instructions below to generate a scenario configuration file to modify your scenario constants and randomizers in a built player:
+Follow the instructions below to generate a scenario configuration file to modify your scenario Constants and Randomizers in a built player:
 1. Click the serialize constants button in the scenario's inspector window. This will generate a `scenario_configuration.json` file and place it in the project's Assets/StreamingAssets folder.
 2. Build your player. The new player will have a [ProjectName]_Data/StreamingAssets folder. A copy of the `scenario_configuration.json` file previously constructed in the editor will be found in this folder.
 3. Change the contents of the `scenario_configuration.json` file. Any running player thereafter will utilize the newly authored values.

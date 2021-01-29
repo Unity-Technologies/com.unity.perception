@@ -1,8 +1,8 @@
 # Randomizers
 
-Randomizers encapsulate specific randomization activities to perform during the execution of a randomized simulation. For example, randomizers exist for spawning objects, repositioning lights, varying the color of objects, etc. Randomizers expose random parameters to their inspector interface to further customize these variations. Users can add a set of randomizers to a scenario in order to define an ordered list randomization activities to perform during the lifecycle of a simulation. 
+Randomizers encapsulate specific randomization activities to perform during the execution of a randomized simulation. For example, Randomizers exist for spawning objects, repositioning lights, varying the color of objects, etc. Randomizers expose random parameters to their inspector interface to further customize these variations. Users can add a set of Randomizers to a Scenario in order to define an ordered list of randomization activities to perform during the lifecycle of a simulation. 
 
-To define an entirely new randomizer, derive the Randomizer class and implement one or more of the methods listed in the section below to randomize GameObjects during the runtime of a simulation.
+To define an entirely new Randomizer, derive the Randomizer class and implement one or more of the methods listed in the section below to randomize GameObjects during the runtime of a simulation.
 
 
 ## Randomizer Hooks
@@ -18,7 +18,7 @@ To define an entirely new randomizer, derive the Randomizer class and implement 
 
 ## Randomizer Coding Example
 
-Below is the code for the sample rotation randomizer included with the perception package:
+Below is the code for the sample rotation Randomizer included with the Perception package:
 
 ```
 [Serializable]
@@ -37,6 +37,6 @@ public class RotationRandomizer : Randomizer
 ```
 
 There are a few key things to note from this example:
-1. Make sure to add the [Serializable] tag to all randomizer implementations to ensure that the randomizer can be customized and saved within the Unity Editor.
-2. The [AddRandomizerMenu] attribute customizes the "Add Randomizer" sub menu path in the scenario inspector for a particular randomizer. In this example, the RotationRandomizer can be added to a scenario by opening the add randomizer menu and clicking `Perception -> Rotation Randomizer`.
-3. The line `var taggedObjects = tagManager.Query<RotationRandomizerTag>();` uses RandomizerTags in combination with the current Scenario's tagManager to query for all objects with RotationRandomizerTags to obtain the subset of GameObjects within the simulation that need to have their rotations randomzied. To learn more about how RandomizerTags work, visit the [RandomizerTags doc](RandomizerTags.md).
+1. Make sure to add the [Serializable] tag to all Randomizer implementations to ensure that the Randomizer can be customized and saved within the Unity Editor.
+2. The [AddRandomizerMenu] attribute customizes the "Add Randomizer" sub menu path in the scenario inspector for a particular randomizer. In this example, the RotationRandomizer can be added to a scenario by opening the _**Add Randomizer**_ menu and clicking `Perception -> Rotation Randomizer`.
+3. The line `var taggedObjects = tagManager.Query<RotationRandomizerTag>();` uses RandomizerTags in combination with the current Scenario's tagManager to query for all objects with RotationRandomizerTags and obtain the subset of GameObjects within the simulation that need to have their rotations randomzied. To learn more about how RandomizerTags work, visit the [RandomizerTags documentation page](RandomizerTags.md).

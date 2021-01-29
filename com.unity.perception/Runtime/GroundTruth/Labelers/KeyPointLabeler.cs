@@ -325,18 +325,22 @@ namespace UnityEngine.Perception.GroundTruth
         string GetPose(Animator animator)
         {
             var info = animator.GetCurrentAnimatorClipInfo(0);
-            var clip = info[0].clip;
-            var timeOffset = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
 
-            if (poseStateConfigs != null)
+            if (info != null && info.Length > 0)
             {
-                foreach (var p in poseStateConfigs)
+                var clip = info[0].clip;
+                var timeOffset = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
+
+                if (poseStateConfigs != null)
                 {
-                    if (p.animationClip == clip)
+                    foreach (var p in poseStateConfigs)
                     {
-                        var time = timeOffset;
-                        var label = p.GetPoseAtTime(time);
-                        return label;
+                        if (p.animationClip == clip)
+                        {
+                            var time = timeOffset;
+                            var label = p.GetPoseAtTime(time);
+                            return label;
+                        }
                     }
                 }
             }

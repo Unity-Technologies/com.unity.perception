@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
     {
         FloatParameter m_FloatParameter = new FloatParameter{ value = new UniformSampler(0, 1) };
 
-        const string clipName = "Idle";
+        const string clipName = "PlayerIdle";
         const string stateName = "Base Layer.RandomState";
 
         void RandomizeAnimation(AnimationRandomizerTag tag)
@@ -35,6 +35,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRa
         /// <inheritdoc/>
         protected override void OnIterationStart()
         {
+            if (m_FloatParameter == null) m_FloatParameter = new FloatParameter{ value = new UniformSampler(0, 1) };
+
             var taggedObjects = tagManager.Query<AnimationRandomizerTag>();
             foreach (var taggedObject in taggedObjects)
             {

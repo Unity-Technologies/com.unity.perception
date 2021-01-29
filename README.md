@@ -59,6 +59,12 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 ## License
 * [License](com.unity.perception/LICENSE.md)
 
+## Support 
+
+For general questions or concerns please contact the Computer Vision team at computer-vision@unity3d.com.
+
+For feedback, bugs, or other issues please file a GitHub issue and the Computer Vision team will investigate the issue as soon as possible.
+
 ## Citation
 If you find this package useful, consider citing it using:
 ```

@@ -1,38 +1,16 @@
 ﻿using System;
-using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine.Experimental.Perception.Randomization.Editor;
+using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class RandomizerElement : VisualElement
     {
-        SerializedProperty m_Collapsed;
-        SerializedProperty m_Property;
-        VisualElement m_PropertiesContainer;
-
-        Randomizers.Randomizer randomizer => (Randomizers.Randomizer)StaticData.GetManagedReferenceValue(m_Property);
-
-        public Type randomizerType => randomizer.GetType();
-
         const string k_CollapsedParameterClass = "collapsed";
-
-        public RandomizerList randomizerList { get; }
-
-        public bool collapsed
-        {
-            get => m_Collapsed.boolValue;
-            set
-            {
-                m_Collapsed.boolValue = value;
-                m_Property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
-                if (value)
-                    AddToClassList(k_CollapsedParameterClass);
-                else
-                    RemoveFromClassList(k_CollapsedParameterClass);
-            }
-        }
+        SerializedProperty m_Collapsed;
+        VisualElement m_PropertiesContainer;
+        SerializedProperty m_Property;
 
         public RandomizerElement(SerializedProperty property, RandomizerList randomizerList)
         {
@@ -64,30 +42,32 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
             FillPropertiesContainer();
         }
 
+        Randomizer randomizer => (Randomizer)StaticData.GetManagedReferenceValue(m_Property);
+
+        public Type randomizerType => randomizer.GetType();
+
+        public RandomizerList randomizerList { get; }
+
+        public bool collapsed
+        {
+            get => m_Collapsed.boolValue;
+            set
+            {
+                m_Collapsed.boolValue = value;
+                m_Property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+                if (value)
+                    AddToClassList(k_CollapsedParameterClass);
+                else
+                    RemoveFromClassList(k_CollapsedParameterClass);
+            }
+        }
+
         void FillPropertiesContainer()
         {
             m_PropertiesContainer.Clear();
-            var iterator = m_Property.Copy();
-            var nextSiblingProperty = m_Property.Copy();
-            nextSiblingProperty.NextVisible(false);
+            UIElementsEditorUtilities.CreatePropertyFields(m_Property, m_PropertiesContainer);
 
-            var foundProperties = false;
-            if (iterator.NextVisible(true))
-            {
-                do
-                {
-                    if (SerializedProperty.EqualContents(iterator, nextSiblingProperty))
-                        break;
-                    if (iterator.name == "<enabled>k__BackingField")
-                        continue;
-                    foundProperties = true;
-                    var propertyField = new PropertyField(iterator.Copy());
-                    propertyField.Bind(m_Property.serializedObject);
-                    m_PropertiesContainer.Add(propertyField);
-                } while (iterator.NextVisible(false));
-            }
-
-            if (!foundProperties)
+            if (m_PropertiesContainer.childCount == 0)
                 m_PropertiesContainer.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
         }
     }

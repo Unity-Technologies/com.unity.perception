@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine.Experimental.Perception.Randomization.Editor;
+using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class ParameterElement : VisualElement
     {
         VisualElement m_PropertiesContainer;
         SerializedProperty m_SerializedProperty;
-
-        Parameter parameter => (Parameter)StaticData.GetManagedReferenceValue(m_SerializedProperty);
-        CategoricalParameterBase categoricalParameter => (CategoricalParameterBase)parameter;
 
         public ParameterElement(SerializedProperty property)
         {
@@ -26,6 +23,9 @@ namespace UnityEngine.Perception.Randomization.Editor
             CreatePropertyFields();
         }
 
+        Parameter parameter => (Parameter)StaticData.GetManagedReferenceValue(m_SerializedProperty);
+        CategoricalParameterBase categoricalParameter => (CategoricalParameterBase)parameter;
+
         void CreatePropertyFields()
         {
             m_PropertiesContainer.Clear();
@@ -36,26 +36,19 @@ namespace UnityEngine.Perception.Randomization.Editor
                 return;
             }
 
-            var currentProperty = m_SerializedProperty.Copy();
             var nextSiblingProperty = m_SerializedProperty.Copy();
             nextSiblingProperty.NextVisible(false);
+
+            var currentProperty = m_SerializedProperty.Copy();
             if (currentProperty.NextVisible(true))
-            {
                 do
                 {
                     if (SerializedProperty.EqualContents(currentProperty, nextSiblingProperty))
                         break;
-                    if (currentProperty.type.Contains("managedReference") &&
-                        currentProperty.managedReferenceFieldTypename == StaticData.samplerSerializedFieldType)
-                        m_PropertiesContainer.Add(new SamplerElement(currentProperty.Copy(), parameter));
-                    else
-                    {
-                        var propertyField = new PropertyField(currentProperty.Copy());
-                        propertyField.Bind(currentProperty.serializedObject);
-                        m_PropertiesContainer.Add(propertyField);
-                    }
+                    var propertyField = new PropertyField(currentProperty.Copy());
+                    propertyField.Bind(currentProperty.serializedObject);
+                    m_PropertiesContainer.Add(propertyField);
                 } while (currentProperty.NextVisible(false));
-            }
         }
 
         void CreateCategoricalParameterFields()
@@ -74,8 +67,12 @@ namespace UnityEngine.Perception.Randomization.Editor
             listView.style.flexGrow = 1.0f;
             listView.style.height = new StyleLength(listView.itemHeight * 4);
 
-            VisualElement MakeItem() => new CategoricalOptionElement(
-                optionsProperty, probabilitiesProperty);
+            VisualElement MakeItem()
+            {
+                return new CategoricalOptionElement(
+                    optionsProperty, probabilitiesProperty);
+            }
+
             listView.makeItem = MakeItem;
 
             void BindItem(VisualElement e, int i)
@@ -98,6 +95,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                     listView.Refresh();
                 };
             }
+
             listView.bindItem = BindItem;
 
             var addOptionButton = template.Q<Button>("add-option");
@@ -124,7 +122,6 @@ namespace UnityEngine.Perception.Randomization.Editor
 
             var addFolderButton = template.Q<Button>("add-folder");
             if (categoricalParameter.sampleType.IsSubclassOf(typeof(Object)))
-            {
                 addFolderButton.clicked += () =>
                 {
                     var folderPath = EditorUtility.OpenFolderPanel(
@@ -142,11 +139,11 @@ namespace UnityEngine.Perception.Randomization.Editor
                         optionProperty.objectReferenceValue = categories[i];
                         probabilityProperty.floatValue = uniformProbability;
                     }
+
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = categoricalParameter.probabilities;
                     listView.Refresh();
                 };
-            }
             else
                 addFolderButton.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
 
@@ -165,7 +162,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             {
                 if (Mathf.Approximately(scrollView.verticalScroller.highValue, 0f))
                     return;
-                if ((scrollView.scrollOffset.y <= 0f && evt.delta.y < 0f) ||
+                if (scrollView.scrollOffset.y <= 0f && evt.delta.y < 0f ||
                     scrollView.scrollOffset.y >= scrollView.verticalScroller.highValue && evt.delta.y > 0f)
                     evt.StopImmediatePropagation();
             });
@@ -182,7 +179,6 @@ namespace UnityEngine.Perception.Randomization.Editor
             if (Application.isPlaying)
                 uniformToggle.SetEnabled(false);
             else
-            {
                 uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt =>
                 {
                     listView.ToggleInClassList("collapsed");
@@ -195,11 +191,11 @@ namespace UnityEngine.Perception.Randomization.Editor
                         var probability = probabilitiesProperty.GetArrayElementAtIndex(i);
                         probability.floatValue = uniformProbabilityValue;
                     }
+
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = categoricalParameter.probabilities;
                     listView.Refresh();
                 });
-            }
 
             m_PropertiesContainer.Add(template);
         }
@@ -209,7 +205,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             if (!folderPath.StartsWith(Application.dataPath))
                 throw new ApplicationException("Selected folder is not an asset folder in this project");
             var assetsPath = "Assets" + folderPath.Remove(0, Application.dataPath.Length);
-            var assetIds = AssetDatabase.FindAssets($"t:{assetType.Name}", new []{assetsPath});
+            var assetIds = AssetDatabase.FindAssets($"t:{assetType.Name}", new[] { assetsPath });
             var assets = new List<Object>();
             foreach (var guid in assetIds)
                 assets.Add(AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(guid), assetType));

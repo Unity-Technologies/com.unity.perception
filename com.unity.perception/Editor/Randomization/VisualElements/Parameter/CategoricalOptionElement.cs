@@ -1,14 +1,14 @@
 ﻿using System;
-using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Editor
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class CategoricalOptionElement : VisualElement
     {
-        int m_Index;
         SerializedProperty m_CategoryProperty;
+        int m_Index;
         SerializedProperty m_ProbabilitiesProperty;
 
         internal CategoricalOptionElement(
@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             else
             {
                 probability.SetEnabled(true);
-                probability.RegisterValueChangedCallback((evt) =>
+                probability.RegisterValueChangedCallback(evt =>
                 {
                     if (evt.newValue < 0f)
                         probability.value = 0f;

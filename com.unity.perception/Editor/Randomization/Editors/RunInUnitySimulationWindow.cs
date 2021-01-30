@@ -6,30 +6,29 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Unity.Simulation.Client;
-using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.UIElements;
-using UnityEngine.Experimental.Perception.Randomization.Editor;
+using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using ZipUtility;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class RunInUnitySimulationWindow : EditorWindow
     {
         string m_BuildDirectory;
 
         string m_BuildZipPath;
-        SysParamDefinition m_SysParam;
-
-        TextField m_RunNameField;
-        IntegerField m_TotalIterationsField;
         IntegerField m_InstanceCountField;
         ObjectField m_MainSceneField;
-        ObjectField m_ScenarioField;
         Button m_RunButton;
+
+        TextField m_RunNameField;
+        ObjectField m_ScenarioField;
+        SysParamDefinition m_SysParam;
+        IntegerField m_TotalIterationsField;
 
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
@@ -81,7 +80,7 @@ namespace UnityEngine.Perception.Randomization.Editor
         }
 
         /// <summary>
-        /// Enables a visual element to remember values between editor sessions
+        ///     Enables a visual element to remember values between editor sessions
         /// </summary>
         /// <param name="element">The visual element to enable view data for</param>
         static void SetViewDataKey(VisualElement element)
@@ -120,7 +119,6 @@ namespace UnityEngine.Perception.Randomization.Editor
             var sysParamDefinitions = API.GetSysParams();
             var sysParamMenu = root.Q<ToolbarMenu>("sys-param");
             foreach (var definition in sysParamDefinitions)
-            {
                 sysParamMenu.menu.AppendAction(
                     definition.description,
                     action =>
@@ -128,7 +126,6 @@ namespace UnityEngine.Perception.Randomization.Editor
                         m_SysParam = definition;
                         sysParamMenu.text = definition.description;
                     });
-            }
             sysParamMenu.text = sysParamDefinitions[0].description;
             m_SysParam = sysParamDefinitions[0];
 
@@ -143,7 +140,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 runGuid,
                 m_TotalIterationsField.value,
                 m_InstanceCountField.value,
-                existingBuildId: null);
+                null);
             try
             {
                 ValidateSettings();
@@ -207,18 +204,18 @@ namespace UnityEngine.Perception.Randomization.Editor
             var constants = configuration["constants"];
 
             constants["totalIterations"] = m_TotalIterationsField.value;
-            constants["instanceCount"]= m_InstanceCountField.value;
+            constants["instanceCount"] = m_InstanceCountField.value;
 
             for (var i = 0; i < m_InstanceCountField.value; i++)
             {
                 if (token.IsCancellationRequested)
                     return null;
                 var appParamName = $"{m_RunNameField.value}_{i}";
-                constants["instanceIndex"]= i;
+                constants["instanceIndex"] = i;
 
                 var appParamsString = JsonConvert.SerializeObject(configuration, Formatting.Indented);
                 var appParamId = API.UploadAppParam(appParamName, appParamsString);
-                appParamIds.Add(new AppParam()
+                appParamIds.Add(new AppParam
                 {
                     id = appParamId,
                     name = appParamName,
@@ -248,6 +245,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                 Debug.Log("Run cancelled");
                 return;
             }
+
             Debug.Log($"Generated app-param ids: {appParams.Count}");
 
             var runDefinitionId = API.UploadRunDefinition(new RunDefinition

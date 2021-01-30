@@ -7,8 +7,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.Experimental.Perception.Randomization
 {
     /// <summary>
-    /// A set of helper functions for simplifying the creation of UI Elements editors
-    /// from perception randomization classes
+    /// This class contains a set of helper functions for simplifying the creation of UI Elements editors
     /// </summary>
     public static class UIElementsEditorUtilities
     {

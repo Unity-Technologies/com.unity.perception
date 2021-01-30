@@ -79,6 +79,7 @@ Texture Randomizer is now compatible with HDRP.
 
 Categorical Parameters no longer produce errors when deleting items from long options lists.
 
+Parameter, ISampler, and non-generic Sampler class UIs now render properly in MonoBehaviours and ScriptableObjects.
 
 ## [0.6.0-preview.1] - 2020-12-03
 

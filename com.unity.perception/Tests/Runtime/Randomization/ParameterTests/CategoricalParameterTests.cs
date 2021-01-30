@@ -1,6 +1,5 @@
 ﻿using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Editor;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 
 namespace RandomizationTests.ParameterTests

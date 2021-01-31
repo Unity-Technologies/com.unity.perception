@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
+namespace UnityEngine.Perception.Randomization.Scenarios
 {
     /// <summary>
     /// A class encapsulating the scenario constants fields required for Unity Simulation cloud execution

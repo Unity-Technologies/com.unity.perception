@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Samplers;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     static class StaticData
     {

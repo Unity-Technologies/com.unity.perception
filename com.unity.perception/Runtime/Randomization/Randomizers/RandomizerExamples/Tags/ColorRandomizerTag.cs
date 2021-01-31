@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers.Tags
+﻿namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags
 {
     /// <summary>
     /// Used in conjunction with a ColorRandomizer to vary the material color of GameObjects

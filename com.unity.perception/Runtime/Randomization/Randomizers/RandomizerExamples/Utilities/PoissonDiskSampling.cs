@@ -4,7 +4,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers
+namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
 {
     /// <summary>
     /// Utility for generating lists of poisson disk sampled points

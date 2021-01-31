@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Scenarios;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Derive Randomizer to implement systems that randomize GameObjects and/or simulation properties.

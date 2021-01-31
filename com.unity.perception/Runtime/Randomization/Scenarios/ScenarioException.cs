@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
+namespace UnityEngine.Perception.Randomization.Scenarios
 {
     [Serializable]
     class ScenarioException : Exception

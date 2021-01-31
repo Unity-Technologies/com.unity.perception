@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
+namespace UnityEngine.Perception.Randomization.Scenarios
 {
     /// <summary>
     /// A scenario that runs for a fixed number of frames during each iteration

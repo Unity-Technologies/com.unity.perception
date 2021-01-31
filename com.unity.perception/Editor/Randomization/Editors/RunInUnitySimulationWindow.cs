@@ -9,12 +9,12 @@ using Unity.Simulation.Client;
 using UnityEditor.Build.Reporting;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using ZipUtility;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     class RunInUnitySimulationWindow : EditorWindow
     {

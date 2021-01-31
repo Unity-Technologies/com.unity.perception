@@ -1,7 +1,7 @@
 ﻿using System;
 using Unity.Simulation;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
+namespace UnityEngine.Perception.Randomization.Scenarios
 {
     /// <summary>
     /// Defines a scenario that is compatible with the Run in Unity Simulation window

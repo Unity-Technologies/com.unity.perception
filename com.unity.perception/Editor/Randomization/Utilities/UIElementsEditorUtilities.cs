@@ -4,7 +4,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     /// <summary>
     /// This class contains a set of helper functions for simplifying the creation of UI Elements editors

@@ -1,10 +1,10 @@
 ﻿using System;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     class ColorHsvaField : ColorField
     {

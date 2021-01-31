@@ -1,7 +1,7 @@
 ﻿using System;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Samplers;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
+namespace UnityEngine.Perception.Randomization.Scenarios
 {
     /// <summary>
     /// The base class for implementing custom scenario constants classes

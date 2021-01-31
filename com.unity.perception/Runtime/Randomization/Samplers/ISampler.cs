@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Generates random values from probability distributions

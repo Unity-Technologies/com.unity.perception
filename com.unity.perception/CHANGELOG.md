@@ -63,6 +63,8 @@ Removed native sampling (through jobs) capability from all samplers and paramete
 
 Removed `range` as a required ISampler interface property.
 
+Removed randomization tooling from the "Experimental" namespace
+
 ### Fixed
 
 Fixed an issue where the overlay panel would display a full screen semi-transparent image over the entire screen when the overlay panel is disabled in the UI
@@ -117,7 +119,6 @@ The ScenarioBase's GenerateIterativeRandomSeed() method has been renamed to Gene
 ### Removed
 
 ### Fixed
-
 
 UnitySimulationScenario now correctly deserializes app-params before offsetting the current scenario iteration when executing on Unity Simulation.
 

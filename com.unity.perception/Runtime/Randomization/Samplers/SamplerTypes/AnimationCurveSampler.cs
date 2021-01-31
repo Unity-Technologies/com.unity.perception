@@ -4,9 +4,9 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Scenarios;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Returns random values according to a range and probability distribution denoted by a user provided AnimationCurve.

@@ -1,7 +1,7 @@
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.GroundTruth;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers.Tags
+namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags
 {
     /// <summary>
     /// Used in conjunction with a <see cref="AnimationRandomizer"/> to select a random animation frame for

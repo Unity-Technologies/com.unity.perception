@@ -1,9 +1,9 @@
 ﻿using System;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Samplers;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Parameters
+namespace UnityEngine.Perception.Randomization.Parameters
 {
     /// <summary>
     /// Numeric parameters use samplers to generate randomized structs

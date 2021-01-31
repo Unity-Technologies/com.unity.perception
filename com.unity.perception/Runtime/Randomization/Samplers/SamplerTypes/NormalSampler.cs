@@ -2,9 +2,9 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Scenarios;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Returns normally distributed random values bounded within a specified range

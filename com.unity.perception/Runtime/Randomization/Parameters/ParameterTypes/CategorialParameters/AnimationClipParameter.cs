@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Parameters
+namespace UnityEngine.Perception.Randomization.Parameters
 {
     /// <summary>
     /// A categorical parameter for animation clips

@@ -1,7 +1,7 @@
 ﻿using System;
 using Assert = UnityEngine.Assertions.Assert;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// A struct representing a continuous range of values

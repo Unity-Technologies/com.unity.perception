@@ -1,8 +1,8 @@
 ﻿using System;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers
+namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
 {
     /// <summary>
     /// Randomizes the material texture of objects tagged with a TextureRandomizerTag

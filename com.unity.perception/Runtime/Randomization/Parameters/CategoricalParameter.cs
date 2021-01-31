@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Samplers;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Parameters
+namespace UnityEngine.Perception.Randomization.Parameters
 {
     /// <summary>
     /// Generates samples by choosing one option from a list of choices

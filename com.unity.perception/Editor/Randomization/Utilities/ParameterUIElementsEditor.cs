@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     /// <summary>
     /// Derive this class to force the Unity Editor to render the default inspector using UIElements for an Object that

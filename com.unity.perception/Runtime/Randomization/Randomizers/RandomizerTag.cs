@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Derive the RandomizerTag class to create new tag components.

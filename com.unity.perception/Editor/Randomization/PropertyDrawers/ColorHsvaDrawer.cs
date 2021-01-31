@@ -1,9 +1,9 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Perception.Randomization.PropertyDrawers
+namespace UnityEditor.Perception.Randomization.PropertyDrawers
 {
     [CustomPropertyDrawer(typeof(ColorHsva), true)]
     class ColorHsvaDrawer : PropertyDrawer

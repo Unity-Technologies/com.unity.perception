@@ -1,8 +1,8 @@
 ﻿using System;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Randomizers;
 
 namespace RandomizationTests.RandomizerTests
 {

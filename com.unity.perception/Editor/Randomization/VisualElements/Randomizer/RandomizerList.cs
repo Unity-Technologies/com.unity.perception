@@ -1,8 +1,8 @@
 ﻿using System;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     class RandomizerList : VisualElement
     {

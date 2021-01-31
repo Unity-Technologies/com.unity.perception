@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     [CustomEditor(typeof(ScenarioBase), true)]
     class ScenarioBaseEditor : Editor

@@ -1,9 +1,9 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Perception.Randomization.PropertyDrawers
+namespace UnityEditor.Perception.Randomization.PropertyDrawers
 {
     [CustomPropertyDrawer(typeof(FloatRange))]
     class FloatRangeDrawer : PropertyDrawer

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Organizes RandomizerTags present in the scene

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Samplers;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Parameters
+namespace UnityEngine.Perception.Randomization.Parameters
 {
     /// <summary>
     /// A numeric parameter for generating Vector4 samples

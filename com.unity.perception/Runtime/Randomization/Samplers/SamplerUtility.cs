@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Unity.Collections;
 using Unity.Mathematics;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// A set of utility functions for defining sampler interfaces

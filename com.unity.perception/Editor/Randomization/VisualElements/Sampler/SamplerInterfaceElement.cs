@@ -1,9 +1,9 @@
 ﻿using System;
 using UnityEditor.UIElements;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     class SamplerInterfaceElement : VisualElement
     {

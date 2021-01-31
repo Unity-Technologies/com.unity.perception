@@ -1,6 +1,6 @@
 ﻿using System;
 using NUnit.Framework;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Samplers;
 
 namespace RandomizationTests.SamplerTests
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Parameters
+namespace UnityEngine.Perception.Randomization.Parameters
 {
     class ParameterValidationException : Exception
     {

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     class ParameterElement : VisualElement
     {

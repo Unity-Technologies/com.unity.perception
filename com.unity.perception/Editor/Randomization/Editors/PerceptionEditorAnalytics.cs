@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using UnityEngine.Analytics;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     static class PerceptionEditorAnalytics
     {

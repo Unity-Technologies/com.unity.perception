@@ -76,12 +76,12 @@ In order to make sure our builds are compatible with Unity Simulation, we need t
 
 * **:green_circle: Action**: Choose `TutorialScene` (which is the Scene we have been working in) as your _**Main Scene**_ and the `SimulationScenario` object as your _**Scenario**_.
 
-Here, you can also specify a name for the run, the number of iterations the Scenario will execute for, and the number of _**Instances**_ (number of nodes the work will be distributed across) for the run. 
+Here, you can also specify a name for the run, the number of Iterations the Scenario will execute for, and the number of _**Instances**_ (number of nodes the work will be distributed across) for the run. 
 
-* **:green_circle: Action**: Name your run `FirstRun`, set the number of iterations to `1000`, and instances to `20`. 
+* **:green_circle: Action**: Name your run `FirstRun`, set the number of Iterations to `1000`, and Instances to `20`. 
 * **:green_circle: Action**: Click _**Build and Run**_.
 
-Your project will now be built and then uploaded to Unity Simulation. Depending on the upload speed of your internet connection, this might take anywhere from a few seconds to a couple of minutes. 
+Your project will now be built and then uploaded to Unity Simulation. This may take a few minutes to complete, during which the editor may become frozen; this is normal behaviour.
 
 * **:green_circle: Action**: Once the operation is complete, you can find the **Build ID**, **Run Definition ID**, and **Execution ID** of this Unity Simulation run in the _**Console**_ tab:
 
@@ -166,7 +166,7 @@ Example output:
  SynthDet              9ec23417-73cd-becd-9dd6-556183946153     2020-08-12T19:46:20+00:00  
  ```
 
-In case you have more than one cloud project, you will need to "activate" the one corresponding with your perception tutorial project. If there is only one project, it is already activated, and you will not need to execute the command below (note: replace `<project-id>` with the id of your desired project).
+In case you have more than one cloud project, you will need to "activate" the one corresponding with your Perception Tutorial project. If there is only one project, it is already activated, and you will not need to execute the command below (note: replace `<project-id>` with the id of your desired project).
 
 * **:green_circle: Action**: Activate the relevant project:
 
@@ -210,7 +210,7 @@ You can also obtain a list of all the builds you have uploaded to Unity Simulati
 
 You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `yegz4WN`.
 
-Unity Simulation utilizes the ability to run simulation instances in parallel. If you enter a number larger than 1 for the number of instances in the _**Run in Unity Simulation**_ window, your run will be parallelized, and multiple simulation instances will simultaneously execute. You can view the status of all simulation instances using the `usim summarize run-execution <execution-id>` command. This command will tell you how many instances have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
+Unity Simulation utilizes the ability to run simulation Instances in parallel. If you enter a number larger than 1 for the number of Instances in the _**Run in Unity Simulation**_ window, your run will be parallelized, and multiple simulation Instances will simultaneously execute. You can view the status of all simulation Instances using the `usim summarize run-execution <execution-id>` command. This command will tell you how many Instances have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
 
 * **:green_circle: Action**: Use the `usim summarize run-execution <execution-id>` command to observe the status of your execution nodes:
 
@@ -319,6 +319,4 @@ The next couple of code blocks (under "Load dataset metadata") analyze the downl
 
 Follow the rest of the steps inside the notebook to generate a variety of plots and stats. Keep in mind that this notebook is provided just as an example, and you can modify and extend it according to your own needs using the tools provided by the [Dataset Insights framework](https://datasetinsights.readthedocs.io/en/latest/).
 
-This concludes the Perception tutorial. The next step in this workflow would be to train an object-detection model using a dataset generated on Unity Simulation. It is important to note that the 1000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the run would complete in a fairly short period of time, allowing us to move on to learning how to analyze the dataset's statistics. In order to generate data for training, we recommend a dataset of about 400,000 captures. 
-
-In the near future, we will expand this tutorial to Phase 4, which will include instructions on how to train a Faster R-CNN object-detection model using a dataset that can be generated by following this tutorial.
+This concludes the Perception Tutorial. The next step in this workflow would be to train an object-detection model using a dataset generated on Unity Simulation. It is important to note that the 1000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the run would complete in a fairly short period of time, allowing us to move on to learning how to analyze the statistics of the dataset. In order to generate data for training, we recommend a dataset of about 400,000 captures. 

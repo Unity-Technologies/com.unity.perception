@@ -9,9 +9,9 @@
 > com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.
 
 
-# Perception
+# Perception Package (Unity Computer Vision)
 
-The Perception package provides a toolkit for generating large-scale datasets for perception-based machine learning training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
+The Perception package provides a toolkit for generating large-scale datasets for computer vision training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
 
 ## Getting Started
 
@@ -19,17 +19,17 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 Get your local Perception workspace up and running quickly. Recommended for users with prior Unity experience.
 
 **[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
-Detailed instructions covering all the important steps from installing Unity Editor, to creating your first Perception project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
+Detailed instructions covering all the important steps from installing Unity Editor, to creating your first computer vision data generation project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
 ## Documentation
-In-depth documentation on inidividual components of the package. 
+In-depth documentation on individual components of the package. 
 
 |Feature|Description|
 |---|---|
 |[Labeling](com.unity.perception/Documentation~/GroundTruthLabeling.md)|A component that marks a GameObject and its descendants with a set of labels|
-|[LabelConfig](com.unity.perception/Documentation~/GroundTruthLabeling.md#label-config)|An asset that defines a taxonomy of labels for ground truth generation|
+|[Label Config](com.unity.perception/Documentation~/GroundTruthLabeling.md#label-config)|An asset that defines a taxonomy of labels for ground truth generation|
 |[Perception Camera](com.unity.perception/Documentation~/PerceptionCamera.md)|Captures RGB images and ground truth from a [Camera](https://docs.unity3d.com/Manual/class-Camera.html).|
-|[DatasetCapture](com.unity.perception/Documentation~/DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
+|[Dataset Capture](com.unity.perception/Documentation~/DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
 |[Randomization (Experimental)](com.unity.perception/Documentation~/Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|
 
 ## Example Projects
@@ -43,7 +43,7 @@ In-depth documentation on inidividual components of the package.
 ### Unity Simulation Smart Camera example
 <img src="com.unity.perception/Documentation~/images/smartcamera.png"/>
 
-The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how Perception could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
+The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how the Perception package could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
 
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.
@@ -59,10 +59,16 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 ## License
 * [License](com.unity.perception/LICENSE.md)
 
+## Support 
+
+For general questions or concerns please contact the Computer Vision team at computer-vision@unity3d.com.
+
+For feedback, bugs, or other issues please file a GitHub issue and the Computer Vision team will investigate the issue as soon as possible.
+
 ## Citation
 If you find this package useful, consider citing it using:
 ```
-@misc{com.unity.perception2020,
+@misc{com.unity.perception2021,
     title={Unity {P}erception Package},
     author={{Unity Technologies}},
     howpublished={\url{https://github.com/Unity-Technologies/com.unity.perception}},

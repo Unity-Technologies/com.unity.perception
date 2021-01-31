@@ -45,14 +45,14 @@ As the name suggests, the _**Package Manager**_ is where you can download new pa
 
 > :information_source: If you would like to install a specific version of the package, you can append the version to the end of the url. For example `com.unity.perception@0.1.0-preview.5`. For this tutorial, **we do not need to add a version**. You can also install the package from a local clone of the Perception repository. More information on installing local packages is available [here](https://docs.unity3d.com/Manual/upm-ui-local.html).
 
-It will take some time for the manager to download and import the package. Once the operation finishes, you will see the newly download Perception package automatically selected in the _**Package Manager**_, as depicted below:
+It will take some time for the manager to download and import the package. Once the operation finishes, you will see the newly downloaded Perception package automatically selected in the _**Package Manager**_, as depicted below:
 
 <p align="center">
 <img src="Images/package_manager.png" width="600"/>
 </p>
 
 
-Each package can come with a set of samples. As seen in the righthand panel, the Perception package includes a sample named _**Tutorial Files**_, which will be required for completing this tutorial. The sample files consist of example foreground and background objects, randomizers, shaders, and other useful elements to work with during this tutorial. **Foreground** objects are those that the eventual machine learning model will try to detect, and **background** objects will be placed in the background as distractors for the model.
+Each package can come with a set of samples. As seen in the righthand panel, the Perception package includes a sample named _**Tutorial Files**_, which will be required for completing this tutorial. The sample files consist of example foreground and background objects, Randomizer, shaders, and other useful elements to work with during this tutorial. **Foreground** objects are those that the eventual machine learning model will try to detect, and **background** objects will be placed in the background as distractors for the model.
 
 * **:green_circle: Action**: In the _**Package Manager**_ window, from the list of _**Samples**_ for the Perception package, click on the _**Import into Project**_ button for the sample named _**Tutorial Files**_.
 
@@ -99,7 +99,7 @@ For this tutorial, we prefer our light to not cast any shadows, therefore:
 
 * **:green_circle: Action**: Click on `Directional Light` and in the _**Inspector**_ tab, set `Shadow Type` to `No Shadows`.
 
-We will now add the necessary components to the camera in order to equip it for the perception workflow. To do this, we need to add a `Perception Camera` component to it, and then define which types of ground-truth we wish to generate using this camera.
+We will now add the necessary components to the camera in order to equip it for the Perception workflow. To do this, we need to add a `Perception Camera` component to it, and then define which types of ground-truth we wish to generate using this camera.
 
 * **:green_circle: Action**: Select `Main Camera` again and in the _**Inspector**_ tab, click on the _**Add Component**_ button.
 * **:green_circle: Action**: Start typing `Perception Camera` in the search bar that appears, until the `Perception Camera` script is found, with a **#** icon to the left:
@@ -125,7 +125,7 @@ If you hover your mouse pointer over each of the fields shown (e.g. `Capture Int
 
 As seen in the UI for `Perception Camera`, the list of `Camera Labelers` is currently empty. For each type of ground-truth you wish to generate along-side your captured frames (e.g. 2D bounding boxes around objects), you will need to add a corresponding `Camera Labeler` to this list. 
 
-To speed-up your perception workflow, the Perception package comes with five common labelers for object-detection tasks; however, if you are comfortable with code, you can also add your own custom labelers. The labelers that come with the Perception package cover **3D bounding boxes, 2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**. We will use four of these in this tutorial.
+To speed-up your workflow, the Perception package comes with five common labelers for object-detection tasks; however, if you are comfortable with code, you can also add your own custom labelers. The labelers that come with the Perception package cover **3D bounding boxes, 2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**. We will use four of these in this tutorial.
 
 * **:green_circle: Action**: Click on the _**+**_ button at the bottom right corner of the empty labeler list and select `BoundingBox2DLabeler`.
 * **:green_circle: Action**: Repeat the above step to add `ObjectCountLabeler`, `RenderedObjectInfoLabeler`, `SemanticSegmentationLabeler`. 
@@ -186,7 +186,7 @@ Note that each object can have multiple labels assigned, and thus appear as diff
 
 For this tutorial, we have already prepared the foreground Prefabs for you and added the `Labeling` component to all of them. These Prefabs were based on 3D scans of the actual grocery items. If you are making your own Prefabs, you can easily add a `Labeling` component to them using the _**Add Component**_ button visible in the bottom right corner of the screenshot above.
 
-> :information_source: If you are interested in knowing more about the process of creating Unity compatible 3D models for use in Perception, you can visit [this page](https://github.com/Unity-Technologies/SynthDet/blob/master/docs/CreatingAssets.md). Once you have 3D models in `.fbx` format, the Perception package lets you quickly create Prefabs from multiple models. Just select all your models and from the top menu bar select _**Assets -> Perception -> Create Prefabs from Selected Models**_. The newly created Prefabs will be placed in the same folders as their corresponding models.
+> :information_source: If you are interested in knowing more about the process of creating Unity compatible 3D models for use with the Perception package, you can visit [this page](https://github.com/Unity-Technologies/SynthDet/blob/master/docs/CreatingAssets.md). Once you have 3D models in `.fbx` format, the Perception package lets you quickly create Prefabs from multiple models. Just select all your models and from the top menu bar select _**Assets -> Perception -> Create Prefabs from Selected Models**_. The newly created Prefabs will be placed in the same folders as their corresponding models.
 
 Even though the sample Prefabs already have a label manually added, to learn more about how to use the Labeling component, we will now use automatic labeling to label all our foreground objects. This will overwrite their manually added labels.
 
@@ -384,7 +384,7 @@ Once the run is complete, you will see a message in the _**Console**_ tab of the
 In this folder, you will find a few types of data, depending on your `Perception Camera` settings. These can include:
 - Logs
 - JSON data
-- RGB images (raw camera output) (if the `Save Camera Output to Disk` checkmark is enabled on `Perception Camera`)
+- RGB images (raw camera output) (if the `Save Camera Output to Disk` check mark is enabled on `Perception Camera`)
 - Semantic segmentation images (if the `SemanticSegmentationLabeler` is added and active on `Perception Camera`)
 
 The output dataset includes a variety of information about different aspects of the active sensors in the Scene (currently only one), as well as the ground-truth generated by all active labelers. [This page](https://github.com/Unity-Technologies/com.unity.perception/blob/master/com.unity.perception/Documentation%7E/Schema/Synthetic_Dataset_Schema.md) provides a comprehensive explanation on the schema of this dataset. We strongly recommend having a look at the page once you have completed this tutorial.
@@ -437,6 +437,6 @@ Below, you can see a sample plot generated by the Dataset Insights notebook, dep
 
 * **:green_circle: Action**: Follow the instructions laid out in the notebook and run each code block to view its outputs.
 
-This concludes Phase 1 of the Perception tutorial. In the next phase, you will dive a little bit into randomization code and learn how to build your own custom Randomizer. 
+This concludes Phase 1 of the Perception Tutorial. In the next phase, you will dive a little bit into randomization code and learn how to build your own custom Randomizer. 
 
 **[Continue to Phase 2: Custom Randomizations](Phase2.md)**

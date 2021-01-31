@@ -18,9 +18,9 @@ This phase will cover essential tasks and skills such as:
  
  ## [Phase 2: Custom Randomizations](Phase2.md)
  
-In order to get the best out of computer vision models, the training data needs to contain a large degree of variation. This is achieved through randomizing various aspects of your simulation between captured frames. While you will use basic randomizations in Phase 1, Phase 2 of the tutorial will help you learn how to randomize your simulations in more complex ways by guiding you through writing your first customized randomizer in C# code. Once you complete this phase, you will know how to:
- * Create custom randomizers by extending our provided samples.
- * Coordinate the operation of several randomizers by specifying their order of execution and the objects they affect.
+In order to get the best out of computer vision models, the training data needs to contain a large degree of variation. This is achieved through randomizing various aspects of your simulation between captured frames. While you will use basic randomizations in Phase 1, Phase 2 of the tutorial will help you learn how to randomize your simulations in more complex ways by guiding you through writing your first customized Randomizer in C# code. Once you complete this phase, you will know how to:
+ * Create custom Randomizers by extending our provided samples.
+ * Coordinate the operation of several Randomizers by specifying their order of execution and the objects they affect.
  * Have objects specify criteria (e.g. ranges, means, etc.) and logic (e.g. unique behaviors) for their randomizable attributes.
  
 ## [Phase 3: Cloud](Phase3.md)

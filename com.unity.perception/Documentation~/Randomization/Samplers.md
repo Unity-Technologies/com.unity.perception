@@ -1,5 +1,5 @@
 # Samplers
-Samplers in the perception package are classes that deterministically generate random float values from bounded probability distributions. Although samplers are often used in conjunction with parameters to generate arrays of typed random values, samplers can be instantiated and used from any ordinary script:
+Samplers in the perception package are classes that deterministically generate random float values from bounded probability distributions. Although Samplers are often used in conjunction with Parameters to generate arrays of typed random values, Samplers can be instantiated and used from any ordinary script:
 ```
 var sampler = new NormalSampler();
 sampler.mean = 3;
@@ -26,9 +26,9 @@ Generates random samples from a truncated normal distribution bounded by a speci
 
 
 ## Random Seeding
-Samplers generate random values that are seeded by the active scenario's current random state. Changing the scenario's random seed will result in samplers generating different values. Changing the order of samplers, parameters, or randomizers will also result in different values being sampled during a simulation.
+Samplers generate random values that are seeded by the active Scenario's current random state. Changing the Scenario's random seed will result in Samplers generating different values. Changing the order of Samplers, Parameters, or Randomizers will also result in different values being sampled during a simulation.
 
-It is recommended that users do not generate random values using the UnityEngine.Random() class or the System.Random() class within a simulation since both of these classes can potentially generate non-determinisitic or improperly seeded random values. Using only Perception Samplers to generate random values will help ensure that Perception simulations generate consistent results during local execution and on Unity Simulation in the cloud.
+It is recommended that users do not generate random values using the UnityEngine.Random() class or the System.Random() class within a simulation since both of these classes can potentially generate non-deterministic or improperly seeded random values. Using only Perception Samplers to generate random values will help ensure that Perception simulations generate consistent results during local execution and on Unity Simulation in the cloud.
 
 
 ## Custom Samplers
@@ -39,7 +39,7 @@ Take a look at the [UniformSampler](../../Runtime/Randomization/Samplers/Sampler
 
 Samplers have a NativeSamples() method that can schedule a ready-made multi-threaded job intended for generating a large array of samples. Below is an example of how to combine two job handles returned by NativeSamples() to generate two arrays of samples simultaneously:
 ```
-// Create samplers
+// Create Samplers
 var uniformSampler = new UniformSampler
 { 
     range = new FloatRange(0, 1),

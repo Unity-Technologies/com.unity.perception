@@ -1,16 +1,18 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Experimental.Perception.Randomization.Samplers;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Experimental.Perception.Randomization.PropertyDrawers
 {
-    [CustomPropertyDrawer(typeof(Parameter), true)]
-    class ParameterDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(ISampler), true)]
+    class SamplerDrawer : PropertyDrawer
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            return new DrawerParameterElement(property);
+            return fieldInfo.FieldType.IsInterface
+                ? new SamplerInterfaceElement(property) as VisualElement
+                : new SamplerElement(property);
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

@@ -1,30 +1,13 @@
-﻿using UnityEditor;
-using UnityEngine.Experimental.Perception.Randomization.Editor;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
+﻿using System;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class DrawerParameterElement : VisualElement
     {
-        Parameter m_Parameter;
+        const string k_CollapsedParameterClass = "collapsed";
         SerializedProperty m_Collapsed;
         SerializedProperty m_Property;
-        const string k_CollapsedParameterClass = "collapsed";
-
-        bool collapsed
-        {
-            get => m_Collapsed.boolValue;
-            set
-            {
-                m_Collapsed.boolValue = value;
-                m_Property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
-                if (value)
-                    AddToClassList(k_CollapsedParameterClass);
-                else
-                    RemoveFromClassList(k_CollapsedParameterClass);
-            }
-        }
 
         public DrawerParameterElement(SerializedProperty property)
         {
@@ -43,6 +26,20 @@ namespace UnityEngine.Perception.Randomization.Editor
 
             var drawer = this.Q<VisualElement>("drawer");
             drawer.Add(new ParameterElement(property));
+        }
+
+        bool collapsed
+        {
+            get => m_Collapsed.boolValue;
+            set
+            {
+                m_Collapsed.boolValue = value;
+                m_Property.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+                if (value)
+                    AddToClassList(k_CollapsedParameterClass);
+                else
+                    RemoveFromClassList(k_CollapsedParameterClass);
+            }
         }
     }
 }

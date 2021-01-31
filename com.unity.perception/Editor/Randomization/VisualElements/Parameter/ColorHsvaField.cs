@@ -1,17 +1,18 @@
-﻿using UnityEditor;
+﻿using System;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.Experimental.Perception.Randomization.Parameters;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Perception.Randomization.Editor
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class ColorHsvaField : ColorField
     {
-        SerializedProperty m_Property;
+        SerializedProperty m_A;
         SerializedProperty m_H;
+        SerializedProperty m_Property;
         SerializedProperty m_S;
         SerializedProperty m_V;
-        SerializedProperty m_A;
 
         public ColorHsvaField(SerializedProperty property)
         {

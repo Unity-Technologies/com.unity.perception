@@ -2,104 +2,25 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Mathematics;
-using UnityEditor;
-using UnityEngine.Experimental.Perception.Randomization.Editor;
 using UnityEngine.Experimental.Perception.Randomization.Randomizers;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class AddRandomizerMenu : VisualElement
     {
         const string k_DefaultDirectoryText = "Randomizers";
         string m_CurrentPath = string.Empty;
-        string currentPath
-        {
-            get => m_CurrentPath;
-            set
-            {
-                m_CurrentPath = value;
-                DrawDirectoryItems();
-            }
-        }
-
-        string currentPathName
-        {
-            get
-            {
-                if (m_CurrentPath == string.Empty)
-                    return k_DefaultDirectoryText;
-                var pathItems = m_CurrentPath.Split('/');
-                return pathItems[pathItems.Length - 1];
-            }
-        }
-
-        string m_SearchString = string.Empty;
-        string searchString
-        {
-            get => m_SearchString;
-            set
-            {
-                m_SearchString = value;
-                if (m_SearchString == string.Empty)
-                    DrawDirectoryItems();
-                else
-                    DrawSearchItems();
-            }
-        }
-
-        string directoryText
-        {
-            set
-            {
-                m_DirectoryLabelText.text = value;
-                m_DirectoryChevron.style.visibility = value == k_DefaultDirectoryText
-                    ? new StyleEnum<Visibility>(Visibility.Hidden)
-                    : new StyleEnum<Visibility>(Visibility.Visible);
-            }
-        }
+        VisualElement m_DirectoryChevron;
+        TextElement m_DirectoryLabelText;
+        Dictionary<string, HashSet<string>> m_MenuDirectories = new Dictionary<string, HashSet<string>>();
+        VisualElement m_MenuElements;
+        List<MenuItem> m_MenuItems = new List<MenuItem>();
+        Dictionary<string, List<MenuItem>> m_MenuItemsMap = new Dictionary<string, List<MenuItem>>();
 
         RandomizerList m_RandomizerList;
-        VisualElement m_MenuElements;
-        TextElement m_DirectoryLabelText;
-        VisualElement m_DirectoryChevron;
-        Dictionary<string, List<MenuItem>> m_MenuItemsMap = new Dictionary<string, List<MenuItem>>();
-        Dictionary<string, HashSet<string>> m_MenuDirectories = new Dictionary<string, HashSet<string>>();
-        List<MenuItem> m_MenuItems = new List<MenuItem>();
 
-        class MenuItem
-        {
-            public Type randomizerType;
-            public string itemName;
-
-            public MenuItem(Type randomizerType, string itemName)
-            {
-                this.randomizerType = randomizerType;
-                this.itemName = itemName;
-            }
-        }
-
-        sealed class MenuItemElement : TextElement
-        {
-            public MenuItemElement(MenuItem menuItem, AddRandomizerMenu menu)
-            {
-                text = menuItem.itemName;
-                AddToClassList("randomizer__add-menu-directory-item");
-                RegisterCallback<MouseUpEvent>(evt => menu.AddRandomizer(menuItem.randomizerType));
-            }
-        }
-
-        sealed class MenuDirectoryElement : VisualElement
-        {
-            public MenuDirectoryElement(string directory, AddRandomizerMenu menu)
-            {
-                AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                    $"{StaticData.uxmlDir}/Randomizer/MenuDirectoryElement.uxml").CloneTree(this);
-                var pathItems = directory.Split('/');
-                this.Q<TextElement>("directory").text = pathItems[pathItems.Length - 1];
-                RegisterCallback<MouseUpEvent>(evt => menu.currentPath = directory);
-            }
-        }
+        string m_SearchString = string.Empty;
 
         public AddRandomizerMenu(VisualElement parentElement, VisualElement button, RandomizerList randomizerList)
         {
@@ -134,6 +55,51 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
 
             CreateMenuItems();
             DrawDirectoryItems();
+        }
+
+        string currentPath
+        {
+            get => m_CurrentPath;
+            set
+            {
+                m_CurrentPath = value;
+                DrawDirectoryItems();
+            }
+        }
+
+        string currentPathName
+        {
+            get
+            {
+                if (m_CurrentPath == string.Empty)
+                    return k_DefaultDirectoryText;
+                var pathItems = m_CurrentPath.Split('/');
+                return pathItems[pathItems.Length - 1];
+            }
+        }
+
+        string searchString
+        {
+            get => m_SearchString;
+            set
+            {
+                m_SearchString = value;
+                if (m_SearchString == string.Empty)
+                    DrawDirectoryItems();
+                else
+                    DrawSearchItems();
+            }
+        }
+
+        string directoryText
+        {
+            set
+            {
+                m_DirectoryLabelText.text = value;
+                m_DirectoryChevron.style.visibility = value == k_DefaultDirectoryText
+                    ? new StyleEnum<Visibility>(Visibility.Hidden)
+                    : new StyleEnum<Visibility>(Visibility.Visible);
+            }
         }
 
         void ExitMenu()
@@ -183,10 +149,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
 
             var upperSearchString = searchString.ToUpper();
             foreach (var menuItem in m_MenuItems)
-            {
                 if (menuItem.itemName.ToUpper().Contains(upperSearchString))
                     m_MenuElements.Add(new MenuItemElement(menuItem, this));
-            }
         }
 
         void CreateMenuItems()
@@ -219,6 +183,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
                                     m_MenuDirectories.Add(path, new HashSet<string>());
                                 m_MenuDirectories[path].Add(childPath);
                             }
+
                             path = childPath;
                         }
 
@@ -243,7 +208,42 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
                     rootList.Add(new MenuItem(randomizerType, randomizerType.Name));
                 }
             }
+
             m_MenuItems.Sort((item1, item2) => item1.itemName.CompareTo(item2.itemName));
+        }
+
+        class MenuItem
+        {
+            public string itemName;
+            public Type randomizerType;
+
+            public MenuItem(Type randomizerType, string itemName)
+            {
+                this.randomizerType = randomizerType;
+                this.itemName = itemName;
+            }
+        }
+
+        sealed class MenuItemElement : TextElement
+        {
+            public MenuItemElement(MenuItem menuItem, AddRandomizerMenu menu)
+            {
+                text = menuItem.itemName;
+                AddToClassList("randomizer__add-menu-directory-item");
+                RegisterCallback<MouseUpEvent>(evt => menu.AddRandomizer(menuItem.randomizerType));
+            }
+        }
+
+        sealed class MenuDirectoryElement : VisualElement
+        {
+            public MenuDirectoryElement(string directory, AddRandomizerMenu menu)
+            {
+                AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                    $"{StaticData.uxmlDir}/Randomizer/MenuDirectoryElement.uxml").CloneTree(this);
+                var pathItems = directory.Split('/');
+                this.Q<TextElement>("directory").text = pathItems[pathItems.Length - 1];
+                RegisterCallback<MouseUpEvent>(evt => menu.currentPath = directory);
+            }
         }
     }
 }

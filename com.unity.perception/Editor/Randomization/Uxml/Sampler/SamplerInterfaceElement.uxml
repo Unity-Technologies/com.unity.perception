@@ -1,0 +1,10 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement name="sampler-template" style="margin-bottom: 4px;">
+        <Style src="../../Uss/Styles.uss"/>
+        <VisualElement style="flex-direction: row; align-items: center;">
+            <Label name="sampler-name" text="Sampler Name" class="unity-base-field__label"/>
+            <editor:ToolbarMenu name="sampler-type-dropdown" text="Placeholder Sampler Type" class="sampler__type-menu"/>
+        </VisualElement>
+        <VisualElement name="fields-container" style="margin-left: 18px;"/>
+    </VisualElement>
+</UXML>

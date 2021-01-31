@@ -13,6 +13,10 @@ Before upgrading a project to this version of the Perception package, make sure 
 
 ### Added
 
+Added keypoint ground truth labeling
+
+Added animation randomization
+
 Added ScenarioConstants base class for all scenario constants objects
 
 Added ScenarioBase.SerializeToConfigFile()

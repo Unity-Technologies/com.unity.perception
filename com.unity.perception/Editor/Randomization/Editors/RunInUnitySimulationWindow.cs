@@ -129,6 +129,7 @@ namespace UnityEngine.Perception.Randomization.Editor
                         sysParamMenu.text = definition.description;
                     });
             }
+
             sysParamMenu.text = sysParamDefinitions[0].description;
             m_SysParam = sysParamDefinitions[0];
 
@@ -152,6 +153,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             }
             catch (Exception e)
             {
+                EditorUtility.ClearProgressBar();
                 PerceptionEditorAnalytics.ReportRunInUnitySimulationFailed(runGuid, e.Message);
                 throw;
             }
@@ -199,7 +201,7 @@ namespace UnityEngine.Perception.Randomization.Editor
             Debug.Log("Created build zip");
         }
 
-        List<AppParam> GenerateAppParamIds(CancellationToken token)
+        List<AppParam> GenerateAppParamIds(CancellationToken token, float progressStart, float progressEnd)
         {
             var appParamIds = new List<AppParam>();
             var scenario = (ScenarioBase)m_ScenarioField.value;
@@ -207,14 +209,16 @@ namespace UnityEngine.Perception.Randomization.Editor
             var constants = configuration["constants"];
 
             constants["totalIterations"] = m_TotalIterationsField.value;
-            constants["instanceCount"]= m_InstanceCountField.value;
+            constants["instanceCount"] = m_InstanceCountField.value;
+
+            var progressIncrement = (progressEnd - progressStart) / m_InstanceCountField.value;
 
             for (var i = 0; i < m_InstanceCountField.value; i++)
             {
                 if (token.IsCancellationRequested)
                     return null;
                 var appParamName = $"{m_RunNameField.value}_{i}";
-                constants["instanceIndex"]= i;
+                constants["instanceIndex"] = i;
 
                 var appParamsString = JsonConvert.SerializeObject(configuration, Formatting.Indented);
                 var appParamId = API.UploadAppParam(appParamName, appParamsString);
@@ -224,6 +228,8 @@ namespace UnityEngine.Perception.Randomization.Editor
                     name = appParamName,
                     num_instances = 1
                 });
+
+                EditorUtility.DisplayProgressBar("Unity Simulation Run", $"Uploading app-param-ids for instances: {i + 1}/{m_InstanceCountField.value}", progressStart + progressIncrement * i);
             }
 
             return appParamIds;
@@ -231,6 +237,8 @@ namespace UnityEngine.Perception.Randomization.Editor
 
         async Task StartUnitySimulationRun(Guid runGuid)
         {
+            EditorUtility.DisplayProgressBar("Unity Simulation Run", "Uploading build...", 0.1f);
+
             m_RunButton.SetEnabled(false);
             var cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
@@ -242,13 +250,17 @@ namespace UnityEngine.Perception.Randomization.Editor
                 cancellationTokenSource: cancellationTokenSource);
             Debug.Log($"Build upload complete: build id {buildId}");
 
-            var appParams = GenerateAppParamIds(token);
+            var appParams = GenerateAppParamIds(token, 0.1f, 0.9f);
             if (token.IsCancellationRequested)
             {
                 Debug.Log("Run cancelled");
+                EditorUtility.ClearProgressBar();
                 return;
             }
+
             Debug.Log($"Generated app-param ids: {appParams.Count}");
+
+            EditorUtility.DisplayProgressBar("Unity Simulation Run", $"Uploading run definition...", 0.9f);
 
             var runDefinitionId = API.UploadRunDefinition(new RunDefinition
             {
@@ -259,11 +271,15 @@ namespace UnityEngine.Perception.Randomization.Editor
             });
             Debug.Log($"Run definition upload complete: run definition id {runDefinitionId}");
 
+            EditorUtility.DisplayProgressBar("Unity Simulation Run", $"Executing run...", 0.95f);
+
             var run = Run.CreateFromDefinitionId(runDefinitionId);
             run.Execute();
             cancellationTokenSource.Dispose();
             Debug.Log($"Executing run: {run.executionId}");
             m_RunButton.SetEnabled(true);
+
+            EditorUtility.ClearProgressBar();
 
             PerceptionEditorAnalytics.ReportRunInUnitySimulationSucceeded(runGuid, run.executionId);
         }

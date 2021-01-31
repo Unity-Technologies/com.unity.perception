@@ -31,6 +31,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         public sealed override Type sampleType => typeof(T);
 
         /// <summary>
+        /// Returns the number of stored categories
+        /// </summary>
+        /// <returns>The number of stored categories</returns>
+        public int GetCategoryCount() => m_Categories.Count;
+
+        /// <summary>
         /// Returns the category stored at the specified index
         /// </summary>
         /// <param name="index">The index of the category to lookup</param>

@@ -11,6 +11,7 @@ namespace UnityEditor.Experimental.Perception.Randomization
     /// </summary>
     public abstract class ParameterUIElementsEditor : Editor
     {
+        ///<inheritdoc/>
         public override VisualElement CreateInspectorGUI()
         {
             var rootElement = new VisualElement();

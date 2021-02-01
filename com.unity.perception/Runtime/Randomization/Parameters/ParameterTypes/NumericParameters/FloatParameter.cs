@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -10,6 +9,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A numeric parameter for generating float samples
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Parameters")]
     public class FloatParameter : NumericParameter<float>
     {
         /// <summary>

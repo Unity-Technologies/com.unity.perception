@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -6,5 +7,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A categorical parameter for generating GameObject samples
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Parameters")]
     public class GameObjectParameter : CategoricalParameter<GameObject> { }
 }

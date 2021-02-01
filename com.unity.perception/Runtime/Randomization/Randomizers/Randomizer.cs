@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Scenarios;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Randomizers
 {
@@ -14,6 +14,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers
     /// https://issuetracker.unity3d.com/issues/serializereference-non-serialized-initialized-fields-lose-their-values-when-entering-play-mode
     /// </remark>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Randomizers")]
     public abstract class Randomizer
     {
         bool m_PreviouslyEnabled;

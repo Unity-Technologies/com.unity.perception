@@ -1,10 +1,12 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// The AddRandomizerMenu attribute allows you to organize randomizers under different menu paths
     /// </summary>
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Randomizers")]
     public class AddRandomizerMenuAttribute : Attribute
     {
         /// <summary>

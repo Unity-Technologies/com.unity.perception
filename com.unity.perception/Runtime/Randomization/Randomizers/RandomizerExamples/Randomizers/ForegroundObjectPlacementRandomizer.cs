@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Randomizers.Utilities;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers

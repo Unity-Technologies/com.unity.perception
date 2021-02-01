@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
-using Unity.Burst;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Jobs;
-using UnityEngine.Perception.Randomization.Scenarios;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -16,6 +11,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// The Y values cannot however be negative.
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Samplers")]
     public class AnimationCurveSampler : ISampler
     {
         /// <summary>

@@ -1,7 +1,5 @@
 ﻿using System;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -10,6 +8,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// </summary>
     /// <typeparam name="T">The sample type of the parameter</typeparam>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Parameters")]
     public abstract class NumericParameter<T> : Parameter where T : struct
     {
         /// <summary>

@@ -405,7 +405,7 @@ To verify and analyze a variety of metrics for the generated data, such as numbe
 
 * **:green_circle: Action**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop)
 * **:green_circle: Action**: Open a command line interface (Command Prompt on Windows, Terminal on Mac OS, etc.) and type the following command to run the Dataset Insights Docker image: 
-`docker run -p 8888:8888 -v "<path to synthetic data>:/data" -t unitytechnologies/datasetinsights:latest`, where the path to data is what we earlier found in Unity's console messages. You can copy the path using the _**Copy Path**_ in the `Perception Camera` UI.
+`docker run -p 8888:8888 -v "<path to synthetic data>:/data" -t unitytechnologies/datasetinsights:latest`, where the path to data is what we looked at earlier. You can copy the path using the _**Copy Path**_ button in the `Perception Camera` UI.
 
 This will download a Docker image from Unity. If you get an error regarding the path to your dataset, make sure you have not included the enclosing `<` and `>` in the path and that the spaces are properly escaped.
 

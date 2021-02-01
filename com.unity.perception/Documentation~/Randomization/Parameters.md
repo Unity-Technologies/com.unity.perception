@@ -49,7 +49,7 @@ using UnityEngine.Perception.Editor;
 public class CustomMonoBehaviourEditor : ParameterUIElementsEditor { }
 ``` 
 
-**_Note_**: Any editor scripts must be placed inside an "Editor" folder within your project. "Editor" is a [special folder name](https://docs.unity3d.com/Manual/SpecialFolders.html) in Unity that prevents editor code from compiling into a player during the build process. For example, the file path for the ClusterEditor script above could be ".../Assets/Scripts/Editor/CustomMonoBehaviourEditor".
+**_Note_**: Any editor scripts must be placed inside an "Editor" folder within your project. "Editor" is a [special folder name](https://docs.unity3d.com/Manual/SpecialFolders.html) in Unity that prevents editor code from compiling into a player during the build process. For example, the file path for the CustomMonoBehaviourEditor script above could be ".../Assets/Scripts/Editor/CustomMonoBehaviourEditor".
 
 ### Categorical Parameters
 

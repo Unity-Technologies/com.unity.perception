@@ -376,7 +376,7 @@ While the simulation is running, your _**Game**_ view will quickly generate fram
 * **:green_circle: Action** Select `Main Camera` again to bring up its _**Inspector**_ view. You will now see a new section added to the `Perception Camera` component, with buttons for showing the latest dataset output folder and copying its path to clipboard. An example is shown below (Mac OS):
 
 <p align="center">
-<img src="Images/output_path.png" width = "400"/>
+<img src="Images/output_path.png" width = "600"/>
 </p>
 
 * **:green_circle: Action**: Click _**Show Folder**_ to show and highlight the folder in your operating system's file explorer. Enter this folder.

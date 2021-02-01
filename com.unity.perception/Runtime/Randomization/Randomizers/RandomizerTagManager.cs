@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Entities;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Organizes RandomizerTags present in the scene
     /// </summary>
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Randomizers")]
     public class RandomizerTagManager
     {
         /// <summary>

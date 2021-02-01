@@ -22,8 +22,8 @@ Note that while _**Visual Studio**_ is the default option, you can choose any te
 ```C#
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Randomizers;
 
 [Serializable]
 [AddRandomizerMenu("Perception/My Light Randomizer")]
@@ -71,7 +71,7 @@ The `OnIterationStart()` function is used for telling the Randomizer what action
 
 ```C#
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Randomizers;
 
 [AddComponentMenu("Perception/RandomizerTags/MyLightRandomizerTag")]
 [RequireComponent(typeof(Light))]
@@ -142,7 +142,7 @@ This makes the two lights illuminate the scene from opposing angles, each having
 * **:green_circle: Action**: Open `MyLightRandomizerTag.cs` and modify it to match the code below:
 ```C#
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Randomizers;
 
 [AddComponentMenu("Perception/RandomizerTags/MyLightRandomizerTag")]
 [RequireComponent(typeof(Light))]
@@ -178,8 +178,8 @@ We also need to make a minor change to `MyLightRandomizer.cs` in order to make i
 ```C#
 using System;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Randomizers;
 
 [Serializable]
 [AddRandomizerMenu("Perception/My Light Randomizer")]

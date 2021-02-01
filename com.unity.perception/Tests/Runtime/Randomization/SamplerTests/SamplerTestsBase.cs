@@ -2,8 +2,8 @@
 using NUnit.Framework;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Scenarios;
 using Object = UnityEngine.Object;
 
 namespace RandomizationTests.SamplerTests

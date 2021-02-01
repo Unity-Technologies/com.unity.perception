@@ -1,16 +1,14 @@
 ﻿using System;
-using Unity.Burst;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Returns normally distributed random values bounded within a specified range
     /// https://en.wikipedia.org/wiki/Truncated_normal_distribution
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Samplers")]
     public class NormalSampler : ISampler
     {
         /// <summary>

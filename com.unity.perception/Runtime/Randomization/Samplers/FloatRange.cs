@@ -1,12 +1,14 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 using Assert = UnityEngine.Assertions.Assert;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// A struct representing a continuous range of values
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Samplers")]
     public struct FloatRange
     {
         /// <summary>

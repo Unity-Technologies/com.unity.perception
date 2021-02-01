@@ -26,12 +26,12 @@ All Parameters derive from the `Parameter` abstract class. Additionally, the Par
 
 ## Using Parameters outside of Randomizers (ie: in MonoBehaviours and ScriptableObjects)
 
-After adding a public Parameter field to a MonoBehaviour or ScriptableObject, you may have noticed that the Parameter's UI doesn't look the same as it does when added to a Randomizer. This is because the Inspector UI for most Perception randomization components is authored using Unity's relatively new UI Elements framework, though by default, Unity uses the old IMGUI framework to render default inspector editors.
+After adding a public Parameter field to a MonoBehaviour or ScriptableObject, you may have noticed that the Parameter's UI does not look the same as it does when added to a Randomizer. This is because the Inspector UI for most Perception randomization components is authored using Unity's relatively new UI Elements framework, though by default, Unity uses the old IMGUI framework to render default inspector editors.
 
 Say you have the following CustomMonoBehaviour that has a public GameObjectParameter field:
 ```
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Parameters;
 
 public class CustomMonoBehaviour : MonoBehaviour
 {
@@ -43,11 +43,13 @@ To force Unity to use UI Elements to render your CustomMonoBehaviour's inspector
 
 ```
 using UnityEditor;
-using UnityEngine.Experimental.Perception.Editor;
+using UnityEngine.Perception.Editor;
 
 [CustomEditor(typeof(CustomMonoBehaviour))]
-public class TestClusterEditor : DefaultUIElementsEditor { }
+public class CustomMonoBehaviourEditor : ParameterUIElementsEditor { }
 ``` 
+
+**_Note_**: Any editor scripts must be placed inside an "Editor" folder within your project. "Editor" is a [special folder name](https://docs.unity3d.com/Manual/SpecialFolders.html) in Unity that prevents editor code from compiling into a player during the build process. For example, the file path for the CustomMonoBehaviourEditor script above could be ".../Assets/Scripts/Editor/CustomMonoBehaviourEditor".
 
 ### Categorical Parameters
 

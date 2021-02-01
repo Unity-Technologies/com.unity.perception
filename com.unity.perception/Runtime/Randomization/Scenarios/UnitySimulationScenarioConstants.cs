@@ -1,11 +1,13 @@
 ﻿using System;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Scenarios
+namespace UnityEngine.Perception.Randomization.Scenarios
 {
     /// <summary>
     /// A class encapsulating the scenario constants fields required for Unity Simulation cloud execution
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Scenarios")]
     public class UnitySimulationScenarioConstants : ScenarioConstants
     {
         /// <summary>

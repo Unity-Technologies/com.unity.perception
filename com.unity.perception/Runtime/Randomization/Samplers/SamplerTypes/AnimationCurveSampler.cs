@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
-using Unity.Burst;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Jobs;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Returns random values according to a range and probability distribution denoted by a user provided AnimationCurve.
@@ -16,6 +11,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Samplers
     /// The Y values cannot however be negative.
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Samplers")]
     public class AnimationCurveSampler : ISampler
     {
         /// <summary>

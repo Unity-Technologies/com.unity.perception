@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Scenarios;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Derive Randomizer to implement systems that randomize GameObjects and/or simulation properties.
@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
     /// https://issuetracker.unity3d.com/issues/serializereference-non-serialized-initialized-fields-lose-their-values-when-entering-play-mode
     /// </remark>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Randomizers")]
     public abstract class Randomizer
     {
         bool m_PreviouslyEnabled;

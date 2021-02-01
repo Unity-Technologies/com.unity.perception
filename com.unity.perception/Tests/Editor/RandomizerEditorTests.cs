@@ -1,8 +1,8 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Scenarios;
 using Object = UnityEngine.Object;
 
 namespace EditorTests

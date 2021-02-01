@@ -1,12 +1,14 @@
 ﻿using System;
 using Unity.Mathematics;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Parameters
+namespace UnityEngine.Perception.Randomization.Parameters
 {
     /// <summary>
     /// A struct representing the hue, saturation, value, and alpha components of a particular color
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Parameters")]
     public struct ColorHsva
     {
         /// <summary>

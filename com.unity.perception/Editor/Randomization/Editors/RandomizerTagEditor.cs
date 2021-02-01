@@ -1,9 +1,9 @@
 ﻿using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Editor
+namespace UnityEngine.Perception.Randomization.Editor
 {
     [CustomEditor(typeof(RandomizerTag), true)]
     public class RandomizerTagEditor : UnityEditor.Editor

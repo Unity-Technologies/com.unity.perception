@@ -1,14 +1,13 @@
 ﻿using System;
-using Unity.Burst;
-using Unity.Collections;
-using Unity.Jobs;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Returns a constant value when sampled
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Samplers")]
     public class ConstantSampler : ISampler
     {
         /// <summary>

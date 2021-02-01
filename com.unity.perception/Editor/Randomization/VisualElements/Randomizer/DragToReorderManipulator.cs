@@ -1,8 +1,8 @@
 ﻿using System;
-using UnityEditor.Experimental.Perception.Randomization;
+using UnityEditor.Perception.Randomization;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     class DragToReorderManipulator : MouseManipulator
     {

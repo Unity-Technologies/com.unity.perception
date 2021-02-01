@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Mathematics;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.Experimental.Perception.Randomization
+namespace UnityEditor.Perception.Randomization
 {
     class AddRandomizerMenu : VisualElement
     {

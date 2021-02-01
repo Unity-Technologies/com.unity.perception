@@ -1,15 +1,14 @@
 ﻿using System;
-using Unity.Collections;
-using Unity.Jobs;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Parameters
+namespace UnityEngine.Perception.Randomization.Parameters
 {
     /// <summary>
     /// Numeric parameters use samplers to generate randomized structs
     /// </summary>
     /// <typeparam name="T">The sample type of the parameter</typeparam>
     [Serializable]
+    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Parameters")]
     public abstract class NumericParameter<T> : Parameter where T : struct
     {
         /// <summary>

@@ -3,10 +3,10 @@ using System.Collections;
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
+using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
-using UnityEngine.Experimental.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 

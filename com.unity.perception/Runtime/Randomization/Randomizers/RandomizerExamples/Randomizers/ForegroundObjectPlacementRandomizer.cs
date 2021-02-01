@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
-using UnityEngine.Experimental.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Randomizers.Utilities;
+using UnityEngine.Perception.Randomization.Samplers;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers
+namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
 {
     /// <summary>
     /// Creates a 2D layer of of evenly spaced GameObjects from a given list of prefabs

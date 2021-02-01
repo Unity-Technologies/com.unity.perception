@@ -121,7 +121,7 @@ labelers and labelling configurations:
 <img src="Images/perc_comp.png" width="400"/>
 </p>
 
-If you hover your mouse pointer over each of the fields shown (e.g. `Capture Interval`), you will see a tooltip popup with an explanation on what the item controls. You may see a warning at the bottom of this UI regarding asynchronous shader compilation. If so, follow the instructions in the warning message to disable this functionality and remove the warning.
+If you hover your mouse pointer over each of the fields shown (e.g. `Simulation Delta Time`), you will see a tooltip popup with an explanation on what the item controls.
 
 As seen in the UI for `Perception Camera`, the list of `Camera Labelers` is currently empty. For each type of ground-truth you wish to generate along-side your captured frames (e.g. 2D bounding boxes around objects), you will need to add a corresponding `Camera Labeler` to this list. 
 
@@ -373,13 +373,13 @@ While the simulation is running, your _**Game**_ view will quickly generate fram
 
 ### <a name="step-7">Step 7: Inspect Generated Synthetic Data</a> 
 
-Once the run is complete, you will see a message in the _**Console**_ tab of the editor, with information on where the generated data has been saved. An example is shown below (Mac OS):
+* **:green_circle: Action** Select `Main Camera` again to bring up its _**Inspector**_ view. You will now see a new section added to the `Perception Camera` component, with buttons for showing the latest dataset output folder and copying its path to clipboard. An example is shown below (Mac OS):
 
 <p align="center">
-<img src="Images/dataset_written.png"/>
+<img src="Images/output_path.png" width = "600"/>
 </p>
 
-* **:green_circle: Action**: Navigate to the dataset path addressed in the _**Console**_. 
+* **:green_circle: Action**: Click _**Show Folder**_ to show and highlight the folder in your operating system's file explorer. Enter this folder.
 
 In this folder, you will find a few types of data, depending on your `Perception Camera` settings. These can include:
 - Logs
@@ -405,7 +405,7 @@ To verify and analyze a variety of metrics for the generated data, such as numbe
 
 * **:green_circle: Action**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop)
 * **:green_circle: Action**: Open a command line interface (Command Prompt on Windows, Terminal on Mac OS, etc.) and type the following command to run the Dataset Insights Docker image: 
-`docker run -p 8888:8888 -v "<path to synthetic data>:/data" -t unitytechnologies/datasetinsights:latest`, where the path to data is what we earlier found in Unity's console messages.
+`docker run -p 8888:8888 -v "<path to synthetic data>:/data" -t unitytechnologies/datasetinsights:latest`, where the path to data is what we looked at earlier. You can copy the path using the _**Copy Path**_ button in the `Perception Camera` UI.
 
 This will download a Docker image from Unity. If you get an error regarding the path to your dataset, make sure you have not included the enclosing `<` and `>` in the path and that the spaces are properly escaped.
 

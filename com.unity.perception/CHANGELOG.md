@@ -35,6 +35,8 @@ Added new capture options to Perception Camera:
 * Can now render intermediate frames between captures.
 * Capture can now be triggered manually using a function call, instead of automatic capturing on a schedule.
 
+Added 3D bounding box visualizer
+
 Categorical Parameters will now validate that their specified options are unique at runtime.
 
 ### Changed

@@ -85,6 +85,8 @@ Categorical Parameters no longer produce errors when deleting items from long op
 
 Parameter, ISampler, and non-generic Sampler class UIs now render properly in MonoBehaviours and ScriptableObjects.
 
+Fixed an issue in the perception tutorial sample assets where upon the editor being first opened, and a user generates a dataset by clicking the play button, the first generated image has duplicated textures and hue offsets for all background objects. Enabling the "GPU instancing" boolean in the tutorial's sample material's inspector fixed this issue.
+
 ## [0.6.0-preview.1] - 2020-12-03
 
 ### Added

@@ -121,7 +121,7 @@ labelers and labelling configurations:
 <img src="Images/perc_comp.png" width="400"/>
 </p>
 
-If you hover your mouse pointer over each of the fields shown (e.g. `Capture Interval`), you will see a tooltip popup with an explanation on what the item controls. You may see a warning at the bottom of this UI regarding asynchronous shader compilation. If so, follow the instructions in the warning message to disable this functionality and remove the warning.
+If you hover your mouse pointer over each of the fields shown (e.g. `Simulation Delta Time`), you will see a tooltip popup with an explanation on what the item controls.
 
 As seen in the UI for `Perception Camera`, the list of `Camera Labelers` is currently empty. For each type of ground-truth you wish to generate along-side your captured frames (e.g. 2D bounding boxes around objects), you will need to add a corresponding `Camera Labeler` to this list. 
 
@@ -376,7 +376,7 @@ While the simulation is running, your _**Game**_ view will quickly generate fram
 * **:green_circle: Action** Select `Main Camera` again to bring up its _**Inspector**_ view. You will now see a new section added to the `Perception Camera` component, with buttons for showing the latest dataset output folder and copying its path to clipboard. An example is shown below (Mac OS):
 
 <p align="center">
-<img src="Images/output_path.png"/>
+<img src="Images/output_path.png" width = "400"/>
 </p>
 
 * **:green_circle: Action**: Click _**Show Folder**_ to show and highlight the folder in your operating system's file explorer. Enter this folder.

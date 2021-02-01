@@ -1,6 +1,5 @@
 {
     "name": "Unity.Perception.Editor",
-    "rootNamespace": "",
     "references": [
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime",
@@ -9,8 +8,6 @@
         "Unity.Entities",
         "Unity.Collections",
         "Unity.Perception.Runtime",
-        "PathCreatorEditor",
-        "PathCreator",
         "UnityEngine.UI",
         "Unity.Simulation.Client.Editor"
     ],

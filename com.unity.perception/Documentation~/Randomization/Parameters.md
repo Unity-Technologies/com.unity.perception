@@ -31,7 +31,7 @@ After adding a public Parameter field to a MonoBehaviour or ScriptableObject, yo
 Say you have the following CustomMonoBehaviour that has a public GameObjectParameter field:
 ```
 using UnityEngine;
-using UnityEngine.Experimental.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Parameters;
 
 public class CustomMonoBehaviour : MonoBehaviour
 {
@@ -43,10 +43,10 @@ To force Unity to use UI Elements to render your CustomMonoBehaviour's inspector
 
 ```
 using UnityEditor;
-using UnityEngine.Experimental.Perception.Editor;
+using UnityEngine.Perception.Editor;
 
 [CustomEditor(typeof(CustomMonoBehaviour))]
-public class TestClusterEditor : DefaultUIElementsEditor { }
+public class TestClusterEditor : ParameterUIElementsEditor { }
 ``` 
 
 ### Categorical Parameters

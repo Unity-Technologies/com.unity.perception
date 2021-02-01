@@ -103,8 +103,20 @@ namespace UnityEngine.Experimental.Perception.Randomization.Parameters
         public override void Validate()
         {
             base.Validate();
+
+            // Check for a non-zero amount of specified categories
             if (m_Categories.Count == 0)
                 throw new ParameterValidationException("No options added to categorical parameter");
+
+            // Check for duplicate categories
+            var uniqueCategories = new HashSet<T>();
+            foreach (var option in m_Categories)
+                if (uniqueCategories.Contains(option))
+                    throw new ParameterValidationException("Duplicate categories");
+                else
+                    uniqueCategories.Add(option);
+
+            // Check if the number of specified probabilities is different from the number of listed categories
             if (!uniform)
             {
                 if (probabilities.Count != m_Categories.Count)

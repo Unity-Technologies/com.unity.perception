@@ -1,30 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.UIElements;
-using UnityEngine.Experimental.Perception.Randomization.Editor;
 using UnityEngine.Experimental.Perception.Randomization.Scenarios;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class RandomizerList : VisualElement
     {
-        SerializedProperty m_Property;
         VisualElement m_Container;
-
-        public ScenarioBase scenario => (ScenarioBase)m_Property.serializedObject.targetObject;
-
-        VisualElement inspectorContainer
-        {
-            get
-            {
-                var viewport = parent;
-                while (!viewport.ClassListContains("unity-inspector-main-container"))
-                    viewport = viewport.parent;
-                return viewport;
-            }
-        }
+        SerializedProperty m_Property;
 
         public RandomizerList(SerializedProperty property)
         {
@@ -52,6 +35,19 @@ namespace UnityEngine.Experimental.Perception.Randomization.VisualElements
                 m_Property.serializedObject.Update();
                 RefreshList();
             };
+        }
+
+        public ScenarioBase scenario => (ScenarioBase)m_Property.serializedObject.targetObject;
+
+        VisualElement inspectorContainer
+        {
+            get
+            {
+                var viewport = parent;
+                while (!viewport.ClassListContains("unity-inspector-main-container"))
+                    viewport = viewport.parent;
+                return viewport;
+            }
         }
 
         void RefreshList()

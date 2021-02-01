@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Randomizers
         /// <summary>
         /// Enabled Randomizers are updated, disabled Randomizers are not.
         /// </summary>
-        [field: SerializeField] public bool enabled { get; set; } = true;
+        [field: SerializeField, HideInInspector] public bool enabled { get; set; } = true;
 
         /// <summary>
         /// Returns the scenario containing this Randomizer

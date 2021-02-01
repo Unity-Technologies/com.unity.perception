@@ -1,14 +1,14 @@
 ﻿using System;
-using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Editor
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class CategoricalOptionElement : VisualElement
     {
-        int m_Index;
         SerializedProperty m_CategoryProperty;
+        int m_Index;
         SerializedProperty m_ProbabilitiesProperty;
 
         internal CategoricalOptionElement(
@@ -17,15 +17,17 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
         {
             m_CategoryProperty = categoryProperty;
             m_ProbabilitiesProperty = probabilitiesProperty;
-
-            var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                $"{StaticData.uxmlDir}/Parameter/CategoricalOptionElement.uxml");
-            template.CloneTree(this);
         }
 
         // Called from categorical parameter
         public void BindProperties(int i)
         {
+            // Reset this categorical item's UI
+            Clear();
+            var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                $"{StaticData.uxmlDir}/Parameter/CategoricalOptionElement.uxml");
+            template.CloneTree(this);
+
             m_Index = i;
             var indexLabel = this.Q<Label>("index-label");
             indexLabel.text = $"[{m_Index}]";
@@ -33,6 +35,8 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             var optionProperty = m_CategoryProperty.GetArrayElementAtIndex(i);
             var option = this.Q<PropertyField>("option");
             option.BindProperty(optionProperty);
+
+            // Remove the redundant element label to save space
             var label = option.Q<Label>();
             label.parent.Remove(label);
 
@@ -49,7 +53,7 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
             else
             {
                 probability.SetEnabled(true);
-                probability.RegisterValueChangedCallback((evt) =>
+                probability.RegisterValueChangedCallback(evt =>
                 {
                     if (evt.newValue < 0f)
                         probability.value = 0f;

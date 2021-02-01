@@ -1,9 +1,9 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using System;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Editor
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class FloatRangeElement : VisualElement
     {

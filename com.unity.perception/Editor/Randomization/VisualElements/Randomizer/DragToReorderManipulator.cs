@@ -1,16 +1,17 @@
-﻿using UnityEngine.Experimental.Perception.Randomization.VisualElements;
+﻿using System;
+using UnityEditor.Experimental.Perception.Randomization;
 using UnityEngine.UIElements;
 
-namespace UnityEngine.Experimental.Perception.Randomization.Editor
+namespace UnityEditor.Experimental.Perception.Randomization
 {
     class DragToReorderManipulator : MouseManipulator
     {
         bool m_Active;
-        float m_Offset;
-        RandomizerElement m_RandomizerElement;
         VisualElement m_DragHandle;
-        VisualElement m_ReorderingIndicator;
+        float m_Offset;
         VisualElement m_ParameterContainer;
+        RandomizerElement m_RandomizerElement;
+        VisualElement m_ReorderingIndicator;
 
         protected override void RegisterCallbacksOnTarget()
         {
@@ -82,13 +83,12 @@ namespace UnityEngine.Experimental.Perception.Randomization.Editor
 
             var randomizerIndex = m_RandomizerElement.parent.IndexOf(m_RandomizerElement);
             for (var i = 0; i < middlePoints.Length; i++)
-            {
                 if (dragBarY < middlePoints[i])
                 {
                     ReorderParameter(randomizerIndex, i);
                     return;
                 }
-            }
+
             ReorderParameter(randomizerIndex, middlePoints.Length);
         }
 

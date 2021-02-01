@@ -33,9 +33,11 @@ Added new capture options to Perception Camera:
 
 Added 3D bounding box visualizer
 
+Categorical Parameters will now validate that their specified options are unique at runtime.
+
 ### Changed
 
-Randomizers now access their parent scenario through the static activeScenario property
+Randomizers now access their parent scenario through the static activeScenario property.
 
 Unique seeds per Sampler have been replaced with one global random seed configured via the ScenarioConstants of a Scenario
 
@@ -49,8 +51,9 @@ ScenarioBase.Serialize() now not only serializes scenario constants, but also al
 
 RandomizerTagManager.Query<T>() now returns RandomizerTags directly instead of the GameObjects attached to said tags
 
-Semantic Segmentation Labeler now places data in folders with randomized filenames
+Semantic Segmentation Labeler now places data in folders with randomized filenames.
 
+The uniform toggle on Categorical Parameters will now reset the Parameter's probability weights to be uniform.
 
 ### Deprecated
 
@@ -78,8 +81,11 @@ Fixed a bug where removing all randomizers from a scenario caused the randomizer
 
 Semantic Segmentation Labeler now produces output in the proper form for distributed data generation on Unity Simulation by placing output in randomized directory names
 
-Texture Randomizer is now compatible with HDRP
+Texture Randomizer is now compatible with HDRP.
 
+Categorical Parameters no longer produce errors when deleting items from long options lists.
+
+Parameter, ISampler, and non-generic Sampler class UIs now render properly in MonoBehaviours and ScriptableObjects.
 
 ## [0.6.0-preview.1] - 2020-12-03
 

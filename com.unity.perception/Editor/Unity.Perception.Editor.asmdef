@@ -1,15 +1,15 @@
 {
     "name": "Unity.Perception.Editor",
     "references": [
-        "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Editor",
-        "Unity.Mathematics",
-        "Unity.Entities",
         "Unity.Collections",
+        "Unity.Entities",
+        "Unity.Mathematics",
         "Unity.Perception.Runtime",
-        "UnityEngine.UI",
-        "Unity.Simulation.Client.Editor"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Editor",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.Simulation.Client.Editor",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

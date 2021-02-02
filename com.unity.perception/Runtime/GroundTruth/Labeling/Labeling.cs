@@ -8,6 +8,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// <summary>
     /// Defines a set of labels associated with the object and its descendants. A Labeling component will override any Labeling components on the object's ancestors.
     /// </summary>
+    [AddComponentMenu("Perception/Joint Label")]
     public class Labeling : MonoBehaviour
     {
         /// <summary>

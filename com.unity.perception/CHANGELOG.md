@@ -75,6 +75,8 @@ Semantic Segmentation Labeler now places data in folders with randomized filenam
 
 The uniform toggle on Categorical Parameters will now reset the Parameter's probability weights to be uniform.
 
+Reorganized Perception MonoBehaviour paths within the AddComponentMenu.
+
 ### Deprecated
 
 ### Removed

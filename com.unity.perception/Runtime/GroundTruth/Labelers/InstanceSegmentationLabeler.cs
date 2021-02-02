@@ -117,14 +117,17 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        void OnImageCaptured(int frame, NativeArray<Color32> data, RenderTexture renderTexture)
+        void OnImageCaptured(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)
         {
+            if (!m_AsyncAnnotations.ContainsKey(frameCount))
+                return;
+
             using (s_OnImageReceivedCallback.Auto())
             {
                 m_CurrentTexture = renderTexture;
 
-                m_InstancePath = $"{k_Directory}/{k_FilePrefix}{frame}.png";
-                var localPath = $"{Manager.Instance.GetDirectoryFor(k_Directory)}/{k_FilePrefix}{frame}.png";
+                m_InstancePath = $"{k_Directory}/{k_FilePrefix}{frameCount}.png";
+                var localPath = $"{Manager.Instance.GetDirectoryFor(k_Directory)}/{k_FilePrefix}{frameCount}.png";
 
                 var colors = new NativeArray<Color32>(data, Allocator.TempJob);
 

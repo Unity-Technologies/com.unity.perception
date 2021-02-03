@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -7,7 +6,6 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// Returns a constant value when sampled
     /// </summary>
     [Serializable]
-
     public class ConstantSampler : ISampler
     {
         /// <summary>

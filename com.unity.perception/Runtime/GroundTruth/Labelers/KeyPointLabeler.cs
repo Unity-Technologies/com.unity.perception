@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -72,7 +73,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Array of animation pose labels which map animation clip times to ground truth pose labels.
         /// </summary>
-        public AnimationPoseLabel[] poseStateConfigs;
+        [FormerlySerializedAs("poseStateConfigs")]
+        public List<AnimationPoseConfig> animationPoseConfigs;
 
         /// <inheritdoc/>
         protected override void Setup()
@@ -331,9 +333,9 @@ namespace UnityEngine.Perception.GroundTruth
                 var clip = info[0].clip;
                 var timeOffset = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
 
-                if (poseStateConfigs != null)
+                if (animationPoseConfigs != null)
                 {
-                    foreach (var p in poseStateConfigs)
+                    foreach (var p in animationPoseConfigs)
                     {
                         if (p.animationClip == clip)
                         {

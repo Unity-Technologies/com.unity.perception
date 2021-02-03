@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -7,7 +6,6 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// Returns uniformly distributed random values within a designated range.
     /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Samplers")]
     public class UniformSampler : ISampler
     {
         /// <summary>

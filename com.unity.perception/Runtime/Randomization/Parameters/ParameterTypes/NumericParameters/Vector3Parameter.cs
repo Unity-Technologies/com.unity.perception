@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Perception.Randomization.Samplers;
-using UnityEngine.Scripting.APIUpdating;
-
 namespace UnityEngine.Perception.Randomization.Parameters
 {
     /// <summary>
     /// A numeric parameter for generating Vector3 samples
     /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Parameters")]
     public class Vector3Parameter : NumericParameter<Vector3>
     {
         /// <summary>

@@ -7,7 +7,6 @@ using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -15,7 +14,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     /// Derive ScenarioBase to implement a custom scenario
     /// </summary>
     [DefaultExecutionOrder(-1)]
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Scenarios")]
     public abstract class ScenarioBase : MonoBehaviour
     {
         static ScenarioBase s_ActiveScenario;

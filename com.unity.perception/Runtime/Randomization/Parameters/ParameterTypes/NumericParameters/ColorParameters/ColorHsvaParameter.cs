@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Perception.Randomization.Samplers;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -9,7 +8,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A numeric parameter for generating color samples using HSVA samplers
     /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Parameters")]
     public class ColorHsvaParameter : NumericParameter<Color>
     {
         /// <summary>

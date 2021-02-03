@@ -6,7 +6,6 @@ using Newtonsoft.Json.Linq;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -14,7 +13,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     /// The base class of scenarios with serializable constants
     /// </summary>
     /// <typeparam name="T">The type of scenario constants to serialize</typeparam>
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Scenarios")]
     public abstract class Scenario<T> : ScenarioBase where T : ScenarioConstants, new()
     {
         /// <summary>

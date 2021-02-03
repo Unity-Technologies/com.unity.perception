@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -8,7 +7,6 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// https://en.wikipedia.org/wiki/Truncated_normal_distribution
     /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Samplers")]
     public class NormalSampler : ISampler
     {
         /// <summary>

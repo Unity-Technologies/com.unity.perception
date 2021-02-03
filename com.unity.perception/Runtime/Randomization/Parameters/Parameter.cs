@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Samplers;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -11,7 +10,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// randomizing simulations.
     /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Parameters")]
     public abstract class Parameter
     {
         [HideInInspector, SerializeField] internal bool collapsed;

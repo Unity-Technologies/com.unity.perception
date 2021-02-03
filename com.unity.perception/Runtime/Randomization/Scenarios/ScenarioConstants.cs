@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine.Perception.Randomization.Samplers;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -8,7 +7,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     /// The base class for implementing custom scenario constants classes
     /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Scenarios")]
     public class ScenarioConstants
     {
         /// <summary>

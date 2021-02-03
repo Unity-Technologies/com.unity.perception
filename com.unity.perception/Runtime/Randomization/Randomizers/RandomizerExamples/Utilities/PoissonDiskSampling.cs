@@ -10,7 +10,6 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
     /// <summary>
     /// Utility for generating lists of poisson disk sampled points
     /// </summary>
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Randomizers.SampleRandomizers")]
     public static class PoissonDiskSampling
     {
         const int k_DefaultSamplingResolution = 30;

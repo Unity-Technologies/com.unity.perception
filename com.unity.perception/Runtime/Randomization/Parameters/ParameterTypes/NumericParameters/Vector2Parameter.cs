@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Perception.Randomization.Samplers;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Parameters
 {
@@ -9,7 +8,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// A numeric parameter for generating Vector2 samples
     /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Parameters")]
     public class Vector2Parameter : NumericParameter<Vector2>
     {
         /// <summary>

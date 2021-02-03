@@ -1,13 +1,11 @@
 using System;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Generates random values from probability distributions
     /// </summary>
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Samplers")]
     public interface ISampler
     {
         /// <summary>

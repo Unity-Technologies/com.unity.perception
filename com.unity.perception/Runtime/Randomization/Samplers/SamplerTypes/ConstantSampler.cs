@@ -7,7 +7,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
     /// Returns a constant value when sampled
     /// </summary>
     [Serializable]
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Samplers")]
+
     public class ConstantSampler : ISampler
     {
         /// <summary>

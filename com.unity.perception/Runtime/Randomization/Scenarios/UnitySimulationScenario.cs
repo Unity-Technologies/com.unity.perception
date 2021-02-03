@@ -1,6 +1,5 @@
 ﻿using System;
 using Unity.Simulation;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -8,7 +7,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     /// Defines a scenario that is compatible with the Run in Unity Simulation window
     /// </summary>
     /// <typeparam name="T">The type of constants to serialize</typeparam>
-    [MovedFrom("UnityEngine.Experimental.Perception.Randomization.Scenarios")]
     public abstract class UnitySimulationScenario<T> : Scenario<T> where T : UnitySimulationScenarioConstants, new()
     {
         /// <inheritdoc/>

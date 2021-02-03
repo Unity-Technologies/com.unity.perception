@@ -73,7 +73,6 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Array of animation pose labels which map animation clip times to ground truth pose labels.
         /// </summary>
-        [FormerlySerializedAs("poseStateConfigs")]
         public List<AnimationPoseConfig> animationPoseConfigs;
 
         /// <inheritdoc/>

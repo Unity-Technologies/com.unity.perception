@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -22,8 +24,7 @@ namespace UnityEngine.Perception.GroundTruth
 
     /// <summary>
     /// The animation pose config is a configuration file that maps a time range in an animation clip to a ground truth
-    /// pose. The timestamp record is defined by a pose label and a start time. The timestamp records are order dependent
-    /// and build on the previous entries.
+    /// pose. The timestamp record is defined by a pose label and a start time. The timestamp records are order dependent.
     /// </summary>
     [CreateAssetMenu(fileName = "AnimationPoseConfig", menuName = "Perception/Animation Pose Config")]
     public class AnimationPoseConfig : ScriptableObject
@@ -37,6 +38,18 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public List<PoseTimestampRecord> timestamps;
 
+        SortedList<float, string> sortedTimestamps;
+        void OnEnable()
+        {
+            sortedTimestamps = new SortedList<float, string>(timestamps.Count);
+            foreach (var ts in timestamps)
+            {
+                sortedTimestamps.Add(ts.startOffsetPercent, ts.poseLabel);
+            }
+        }
+
+        const string k_Unset = "unset";
+
         /// <summary>
         /// Retrieves the pose for the clip at the current time.
         /// </summary>
@@ -44,15 +57,21 @@ namespace UnityEngine.Perception.GroundTruth
         /// <returns>The pose for the passed in time</returns>
         public string GetPoseAtTime(float time)
         {
-            if (time < 0 || time > 1) return "unset";
+            if (time < 0 || time > 1) return k_Unset;
+            if (timestamps == null || !timestamps.Any()) return k_Unset;
 
-            var i = 1;
-            for (i = 1; i < timestamps.Count; i++)
+            // Special case code if there is only 1 timestamp in the config
+            if (sortedTimestamps.Keys.Count == 1)
             {
-                if (timestamps[i].startOffsetPercent > time) break;
+                return time > sortedTimestamps.Keys[0] ? sortedTimestamps.Values[0] : k_Unset;
             }
 
-            return timestamps[i - 1].poseLabel;
+            for (var i = 0; i < sortedTimestamps.Keys.Count - 1; i++)
+            {
+                if (time >= sortedTimestamps.Keys[i] && time <= sortedTimestamps.Keys[i + 1]) return sortedTimestamps.Values[i];
+            }
+
+            return time < sortedTimestamps.Keys.Last() ? k_Unset : sortedTimestamps.Values.Last();
         }
     }
 }

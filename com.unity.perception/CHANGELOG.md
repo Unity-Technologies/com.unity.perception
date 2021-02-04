@@ -89,6 +89,8 @@ The uniform toggle on Categorical Parameters will now reset the Parameter's prob
 
 Reorganized Perception MonoBehaviour paths within the AddComponentMenu.
 
+Upgraded the Unity Simulation Capture package dependency to 0.0.10-preview.18 and Unity Simulation Core to 0.0.10-preview.22
+
 ### Deprecated
 
 ### Removed

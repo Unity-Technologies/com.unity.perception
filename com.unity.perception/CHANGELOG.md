@@ -37,7 +37,7 @@ Replace usages of `ScenarioBase.GenerateRandomSeed()` with `SamplerState.NextRan
 Before upgrading a project to this version of the Perception package, make sure to keep a record of **all sampler ranges** in your added Randomizers. Due to a change in how sampler ranges are serialized, **after upgrading to this version, ranges for all stock Perception samplers (Uniform and Normal Samplers) will be reset**, and will need to be manually reverted by the user.
 
 #### Tag Querying
-The `RandomizerTagManager.Query<T>` function now returns the tag object itself instead of the GameObject it is attached to. You will need to slightly modify your custom Randomizers. Please refer to the included sample Randomizers as examples.
+The `RandomizerTagManager.Query<T>` function now returns the tag object itself instead of the GameObject it is attached to. You will need to slightly modify your custom Randomizers to accommodate this change. Please refer to the included sample Randomizers as examples.
 
 ### Known Issues
 

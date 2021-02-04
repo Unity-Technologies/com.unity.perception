@@ -25,10 +25,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Upgrade Notes
 
-####
+#### Randomization Namespace Change
+The Randomization toolset has been moved out of the Experimental namespace. After upgrading to this version of the Perception package, please follow these steps:
+* Replace all references to `UnityEngine.Experimental.Perception.Randomization.Randomizers.Randomizer` with `UnityEngine.Perception.Randomization.Randomizers.Randomizer` in your C# code.
+* Open you Unity Scene file in a text editor and replace all mentions of `UnityEngine.Experimental.Perception.Randomization.Randomizers.Randomizer` with `UnityEngine.Perception.Randomization.Randomizers.Randomizer`, and save the file.
+
+#### Random Seed Generation
+Replace usages of `ScenarioBase.GenerateRandomSeed()` with `SamplerState.NextRandomState()`.
 
 #### Sampler Ranges 
 Before upgrading a project to this version of the Perception package, make sure to keep a record of **all sampler ranges** in your added Randomizers. Due to a change in how sampler ranges are serialized, **after upgrading to this version, ranges for all stock Perception samplers (Uniform and Normal Samplers) will be reset**, and will need to be manually reverted by the user.
+
+#### Tag Querying
+The `RandomizerTagManager.Query<T>` function now returns the tag object itself instead of the GameObject it is attached to. You will need to slightly modify your custom Randomizers. Please refer to the included sample Randomizers as examples.
 
 ### Known Issues
 

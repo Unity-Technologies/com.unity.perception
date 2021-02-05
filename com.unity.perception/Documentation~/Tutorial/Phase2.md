@@ -3,7 +3,7 @@
 
 In Phase 1 of the tutorial, we learned how to use the Randomizers that are bundled with the Perception package to spawn background and foreground objects, and randomize their position, rotation, texture, and hue offset (color). In this phase, we will build a custom light Randomizer for the `Directional Light` object, affecting the light's intensity and color on each Iteration of the Scenario. We will also learn how to include certain data or logic inside a randomized object (such as the light) in order to more explicitly define and restrict its randomization behaviors.
 
-Steps included this phase of the tutorial:
+Steps included in this phase of the tutorial:
 - [Step 1: Build a Lighting Randomizer](#step-1)
 - [Step 2: Bundle Data and Logic Inside RandomizerTags](#step-2)
 

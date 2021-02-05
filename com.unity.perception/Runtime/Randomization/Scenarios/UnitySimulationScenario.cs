@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using Unity.Simulation;
+using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -13,6 +15,12 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public sealed override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 
         /// <inheritdoc/>
+        public override string defaultConfigFilePath =>
+            Configuration.Instance.IsSimulationRunningInCloud()
+                ? new Uri(Configuration.Instance.SimulationConfig.app_param_uri).LocalPath
+                : base.defaultConfigFilePath;
+
+        /// <inheritdoc/>
         protected sealed override void IncrementIteration()
         {
             currentIteration += constants.instanceCount;
@@ -21,10 +29,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <inheritdoc/>
         public sealed override void DeserializeFromFile(string configFilePath)
         {
-            base.DeserializeFromFile(Configuration.Instance.IsSimulationRunningInCloud()
-                ? new Uri(Configuration.Instance.SimulationConfig.app_param_uri).LocalPath
-                : configFilePath);
-            currentIteration = constants.instanceIndex;
+            base.DeserializeFromFile(configFilePath);
+            currentIteration = constants.instanceIndex * constants.instanceCount;
         }
     }
 }

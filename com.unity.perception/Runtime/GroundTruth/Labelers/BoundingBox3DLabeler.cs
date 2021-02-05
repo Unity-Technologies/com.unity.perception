@@ -321,6 +321,7 @@ namespace UnityEngine.Perception.GroundTruth
             return VisualizationHelper.ConvertToScreenSpace(cam, worldPoint);
         }
 
+        /// <inheritdoc/>
         protected override void OnVisualize()
         {
             if (m_ToReport == null) return;

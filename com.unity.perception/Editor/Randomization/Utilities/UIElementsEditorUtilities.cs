@@ -22,12 +22,14 @@ namespace UnityEditor.Perception.Randomization
             var fieldType = serializedObj.targetObject.GetType();
             var iterator = serializedObj.GetIterator();
             iterator.NextVisible(true);
-            iterator.NextVisible(false);
-            do
+            if (iterator.NextVisible(false))
             {
-                var propertyField = CreatePropertyField(iterator, fieldType);
-                containerElement.Add(propertyField);
-            } while (iterator.NextVisible(false));
+                do
+                {
+                    var propertyField = CreatePropertyField(iterator, fieldType);
+                    containerElement.Add(propertyField);
+                } while (iterator.NextVisible(false));
+            }
         }
 
         /// <summary>
@@ -39,12 +41,11 @@ namespace UnityEditor.Perception.Randomization
         public static void CreatePropertyFields(SerializedProperty property, VisualElement containerElement)
         {
             var fieldType = StaticData.GetManagedReferenceValue(property).GetType();
-
             var iterator = property.Copy();
             var nextSiblingProperty = property.Copy();
             nextSiblingProperty.NextVisible(false);
-
             if (iterator.NextVisible(true))
+            {
                 do
                 {
                     if (SerializedProperty.EqualContents(iterator, nextSiblingProperty))
@@ -52,6 +53,7 @@ namespace UnityEditor.Perception.Randomization
                     var propertyField = CreatePropertyField(iterator, fieldType);
                     containerElement.Add(propertyField);
                 } while (iterator.NextVisible(false));
+            }
         }
 
         /// <summary>

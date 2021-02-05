@@ -16,8 +16,13 @@
   "samples":[
     {
       "displayName": "Tutorial Files",
-      "description": "These files accompany the tutorial for the Perception Package, found at https://github.com/Unity-Technologies/com.unity.perception/blob/tutorial_sample_project/Tutorial/TUTORIAL.md",
+      "description": "These files accompany the Perception Tutorial, found at https://github.com/Unity-Technologies/com.unity.perception",
       "path" : "Samples~/Tutorial Files"
+    },
+    {
+      "displayName": "Human Pose Estimation",
+      "description": "These files accompany the Human Pose Estimation Tutorial, found at https://github.com/Unity-Technologies/com.unity.perception",
+      "path" : "Samples~/Human Pose Estimation"
     }
   ]
 }

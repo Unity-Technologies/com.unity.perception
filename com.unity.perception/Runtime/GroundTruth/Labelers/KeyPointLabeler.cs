@@ -309,7 +309,7 @@ namespace UnityEngine.Perception.GroundTruth
                     keyPoints[idx].index = idx;
                     keyPoints[idx].x = loc.x;
                     keyPoints[idx].y = loc.y;
-                    keyPoints[idx].state = 1;
+                    keyPoints[idx].state = 2;
                 }
 
                 cachedData.keyPoints.pose = "unset";

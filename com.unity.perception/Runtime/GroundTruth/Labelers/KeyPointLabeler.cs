@@ -165,7 +165,10 @@ namespace UnityEngine.Perception.GroundTruth
             /// </summary>
             public float y;
             /// <summary>
-            /// The state of the point, 0 = not present, 1 = keypoint is present
+            /// The state of the point,
+            /// 0 = not present,
+            /// 1 = keypoint is present but not visible,
+            /// 2 = keypoint is present and visible
             /// </summary>
             public int state;
         }
@@ -309,7 +312,7 @@ namespace UnityEngine.Perception.GroundTruth
                     keyPoints[idx].index = idx;
                     keyPoints[idx].x = loc.x;
                     keyPoints[idx].y = loc.y;
-                    keyPoints[idx].state = 1;
+                    keyPoints[idx].state = 2;
                 }
 
                 cachedData.keyPoints.pose = "unset";

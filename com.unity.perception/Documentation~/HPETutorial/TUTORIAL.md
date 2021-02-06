@@ -46,9 +46,9 @@ Once the sample files are imported, they will be placed inside the `Assets/Sampl
 </p>
 
 * **:green_circle: Action**: Select all of the asset inside the `Assets/Samples/Perception/<perception-package-version>/Human Pose Estimation/Models and Animations`.
-* **:green_circle: Action**: In the _**Inspector**_ tab, navigate to the _**Rig**_ section and set `Animation Type` to `Humanoid`, then click _**Apply**_.
+* **:green_circle: Action**: In the _**Inspector**_ tab, navigate to the _**Rig**_ section. 
 
-This will make sure all animations included in the sample `.fbx` files are ready to be used on a rigged humanoid model.
+Note how `Animation Type` is set to `Humanoid` for all selected assets. This is a requirement and makes sure all animations included in the sample `.fbx` files are ready to be used on a rigged humanoid model.
 
 ### <a name="step-2">Step 2: Set Up a Humanoid Character in a Scene</a>
 

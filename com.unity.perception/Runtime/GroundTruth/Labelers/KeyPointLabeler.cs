@@ -165,7 +165,10 @@ namespace UnityEngine.Perception.GroundTruth
             /// </summary>
             public float y;
             /// <summary>
-            /// The state of the point, 0 = not present, 1 = keypoint is present
+            /// The state of the point,
+            /// 0 = not present,
+            /// 1 = keypoint is present but not visible,
+            /// 2 = keypoint is present and visible
             /// </summary>
             public int state;
         }

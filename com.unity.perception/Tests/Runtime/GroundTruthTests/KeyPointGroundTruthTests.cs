@@ -298,7 +298,7 @@ namespace GroundTruthTests
             Assert.AreEqual(t.keypoints[5].y, t.keypoints[6].y);
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
-            for (var i = 0; i < 8; i++) Assert.AreEqual(1, t.keypoints[i].state);
+            for (var i = 0; i < 8; i++) Assert.AreEqual(2, t.keypoints[i].state);
             Assert.Zero(t.keypoints[8].state);
             Assert.Zero(t.keypoints[8].x);
             Assert.Zero(t.keypoints[8].y);

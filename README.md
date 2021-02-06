@@ -21,7 +21,7 @@ Get your local Perception workspace up and running quickly. Recommended for user
 **[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
 Detailed instructions covering all the important steps from installing Unity Editor, to creating your first computer vision data generation project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
-**[Human Pose Estimation](com.unity.perception/Documentation~/HPETutorial/TUTORIAL.md)**  
+**[Human Pose Estimation Tutorial](com.unity.perception/Documentation~/HPETutorial/TUTORIAL.md)**  
 Detailed instructions covering all the important steps from installing Unity Editor, to creating your first computer vision data generation project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
 ## Documentation

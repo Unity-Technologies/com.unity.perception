@@ -3,11 +3,12 @@
 
 In this phase of the tutorial, we will learn how to run our Scene on _**Unity Simulation**_ and analyze the generated dataset using _**Dataset Insights**_. Unity Simulation will allow us to generate a much larger dataset than what is typically plausible on a workstation computer.
 
-Steps included this phase of the tutorial:
-- [Step 1: Setup Unity Account, Unity Simulation, and Cloud Project](#step-1)
-- [Step 2: Run Project on Unity Simulation](#step-2)
-- [Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface](#step-3)
-- [Step 4: Analyze the Dataset using Dataset Insights](#step-4)
+Steps included in this phase of the tutorial:
+
+* [Step 1: Setup Unity Account, Unity Simulation, and Cloud Project](#step-1)
+* [Step 2: Run Project on Unity Simulation](#step-2)
+* [Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface](#step-3)
+* [Step 4: Analyze the Dataset using Dataset Insights](#step-4)
 
 ### <a name="step-1">Step 1: Setup Unity Account, Unity Simulation, and Cloud Project</a> 
 
@@ -58,7 +59,7 @@ In order to make sure our builds are compatible with Unity Simulation, we need t
 * **:green_circle: Action**: In the window that opens, navigate to the _**Player**_ tab, find the _**Scripting Backend**_ setting (under _**Other Settings**_), and change it to _**Mono**_:
 
 <p align="center">
-<img src="Images/mono.png"/>
+<img src="Images/mono.png" width="800"/>
 </p>
 
 * **:green_circle: Action**: Change _**Fullscreen Mode**_ to _**Windowed**_ and set a width and height of 800 by 600.
@@ -262,7 +263,7 @@ Once the Docker image is running, the rest of the workflow is quite similar to w
 * **:green_circle: Action**: In the `data_root = /data/<GUID>` line, the `<GUID>` part will be the location inside your `<download path>` where the data will be downloaded. Therefore, you can just remove it so as to have data downloaded directly to the path you previously specified:
 
 <p align="center">
-<img src="Images/di_usim_1.png"/>
+<img src="Images/di_usim_1.png" width="900"/>
 </p>
 
 The next few lines of code pertain to setting up your notebook for downloading data from Unity Simulation. 
@@ -296,7 +297,7 @@ The `access_token` you need for your Dataset Insights notebook is the access tok
 Once you have entered all the information, the block of code should look like the screenshot below (the actual values you input will be different):
 
 <p align="center">
-<img src="Images/di_usim_2.png"/>
+<img src="Images/di_usim_2.png" width="800"/>
 </p>
 
 
@@ -305,7 +306,7 @@ Once you have entered all the information, the block of code should look like th
 You will see a progress bar while the data downloads:
 
 <p align="center">
-<img src="Images/di_usim_3.png"/>
+<img src="Images/di_usim_3.png" width="800"/>
 </p>
 
 
@@ -314,7 +315,7 @@ The next couple of code blocks (under "Load dataset metadata") analyze the downl
 * **:green_circle: Action**: Once you reach the code block titled "Built-in Statistics", make sure the value assigned to the field `rendered_object_info_definition_id` matches the id displayed for this metric in the table output by the code block immediately before it. The screenshot below demonstrates this (note that your ids might differ from the ones here):
 
 <p align="center">
-<img src="Images/di_usim_4.png"/>
+<img src="Images/di_usim_4.png" width="800"/>
 </p>
 
 Follow the rest of the steps inside the notebook to generate a variety of plots and stats. Keep in mind that this notebook is provided just as an example, and you can modify and extend it according to your own needs using the tools provided by the [Dataset Insights framework](https://datasetinsights.readthedocs.io/en/latest/).

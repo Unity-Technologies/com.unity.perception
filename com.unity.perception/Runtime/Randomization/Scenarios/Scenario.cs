@@ -115,18 +115,19 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <inheritdoc/>
         public override void DeserializeFromFile(string configFilePath)
         {
-            if (string.IsNullOrEmpty(configFilePath))
-                throw new ArgumentNullException();
-            if (!File.Exists(configFilePath))
-                throw new FileNotFoundException($"A scenario configuration file does not exist at path {configFilePath}");
+            if (string.IsNullOrEmpty(configFilePath) || !File.Exists(configFilePath))
+                Debug.Log($"No configuration file found at {defaultConfigFilePath}");
+            else
+            {
 #if UNITY_EDITOR
-            Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>. " +
-                "Using undo in the editor will revert these changes to your scenario.");
+                Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>. " +
+                    "Using undo in the editor will revert these changes to your scenario.");
 #else
-            Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>");
+                Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>");
 #endif
-            var jsonText = File.ReadAllText(configFilePath);
-            DeserializeFromJson(jsonText);
+                var jsonText = File.ReadAllText(configFilePath);
+                DeserializeFromJson(jsonText);
+            }
         }
 
         /// <inheritdoc/>

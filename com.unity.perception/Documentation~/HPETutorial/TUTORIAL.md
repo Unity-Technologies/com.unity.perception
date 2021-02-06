@@ -8,16 +8,12 @@ Through-out the tutorial, lines starting with bullet points followed by **":gree
 
 Steps included in this tutorial:
 
-- [Human Pose Estimation Tutorial](#human-pose-estimation-tutorial)
-    - [<a name="step-1">Step 1: Import `.fbx` Models and Animations</a>](#step-1-import-fbx-models-and-animations)
-    - [<a name="step-2">Step 2: Set Up a Humanoid Character in a Scene</a>](#step-2-set-up-a-humanoid-character-in-a-scene)
-
-
-  
-  -
-- [Step 3: Set Up the Perception Camera for Key Point Annotation](#step-3)
-- [Step 4: Configure Human Pose Estimation](#step-4)
-- [Step 5: Randomize the Humanoid Character's Animations](#step-5)
+* [Step 1: Import `.fbx` Models and Animations](#step-1)
+* [Step 2: Set Up a Humanoid Character in a Scene](#step-2)
+* [Step 3: Set Up the Perception Camera for Key Point Annotation](#step-3)
+* [Step 4: Configure Human Pose Estimation](#step-4)
+* [Step 5: Add Joints to the Character and Customize Key Points Template](#step-5)
+* [Step 6: Randomize the Humanoid Character's Animations](#step-6)
 
 ### <a name="step-1">Step 1: Import `.fbx` Models and Animations</a> 
 
@@ -91,7 +87,7 @@ In the selector window that pops up, you will see several clips named `Take 001`
 <img src="Images/assign_controller.png" width="400"/>
 </p>
 
-If you run the simulation now you will see the character going through a series of three animations for picking up a hypothetical object as seen in the GIF below. This is one complete run of the `TakeObjects` animation clip we selected earlier.
+If you run the simulation now you will see the character performing an animation for picking up a hypothetical object as seen in the GIF below. This is one complete run of the `TakeObjects` animation clip we selected earlier.
 
 <p align="center">
 <img src="Images/take_objects.gif" width="600"/>
@@ -102,7 +98,7 @@ If you run the simulation now you will see the character going through a series 
 
 Now that we have our character performing animations, let's modify our `Perception Camera` to report the character's key points in the output dataset, updating frame by frame as they animate.
 
-* **:green_circle: Action**: Add a `KeyPointLabeler` to the list of labelers in `Perception Camera`.
+* **:green_circle: Action**: Add a `KeyPointLabeler` to the list of labelers in `Perception Camera`. Also, make sure `Show Labeler Visualizations` is turned on so that you can verify the labeler working.
 
 Similar to the labelers we used in the Perception Tutorial, we will need a label configuration for this new labeler. 
 
@@ -249,3 +245,102 @@ You can now check out the output dataset to see what the annotations look like. 
   ]
 }
 ```
+
+In the above annotation, all of the 18 joints defined in the COCO template we used are listed. For each joint that is present in our character, you can see the X and Y coordinates within the captured frame. However, you may notice three of the joints are listed with (0,0) coordinates. These joints are not present in our character. A fact that is also denoted by the `state` field. A state of **0** means the joint was not present, a state **1** denotes a joint that is present but not visible (to be implemented in a later version of the package), and a state of **2** means the joint was present and visible.
+
+You may also note that the `pose` field has a value of `unset`. This is because we have not defined poses for our animation clip and `Perception Camera` yet. We will do this next.
+
+### <a name="step-4">Step 4: Configure Human Pose Estimation</a> 
+
+* **:green_circle: Action**: In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Animation Pose Config**_ and name it `MyAnimationPoseConfig`.
+
+This type of asset lets us specify custom time ranges of an animation clip as **poses**. The time ranges are between 0 and 1 as they denote percentages of time elapsed in the animation clip.
+
+* **:green_circle: Action**: Select the `MyAnimationPoseConfig` asset. In the _**Inspector**_ view, choose the same animation clip as before for `Animation Clip` property. This would be the clip originating from `TakeObjects.fbx`.
+
+You can now use the `Timestamps` list to define poses. Let's define four poses here:
+   1. Reaching for the object. (starts at the 0% timestamp)
+   2. Taking the object and standing up. (starts at the 0.28% timestamp)
+   3. Putting the object in the pocket. (starts at the 0.65% timestamp)
+   4. Standing. (starts at the 0.90% timestamp)
+
+> :information_source: To find the time indexes in an animation clip that correspond with different poses, you can directly open the clip inside the _**Inspector**_. Click on the `TakeObjects.fbx` file in the _**Project**_ tab. Then, in the _**Inspector**_ view, you will see a small preview of them model along with a timeline above it. Move the timeline's marker to advance through the animation.
+
+Modify `MyAnimationPoseConfig` according to the image below:
+
+<p align="center">
+<img src="Images/anim_pos_conf.png" width="800"/>
+</p> 
+
+The pose configuration we created needs to be assigned to our `KeyPointLabeler`. So:
+
+* **:green_circle: Action**: In the _**Inspector**_ UI for `Perception Camera`, set the `Size` of `Animation Pose Configs` for the `KeyPointLabeler` to 1. Then, assign the `MyAnimationPoseConfig` to the sole slot in the list, as shown below:
+
+<p align="center">
+<img src="Images/keypoint_labeler.png" width="500"/>
+</p> 
+
+If you run the simulation again to generate a new dataset, you will see the new poses we defined written to the frames that correspond with the timestamps we specified for each pose.
+
+### <a name="step-5">Step 5: Add Joints to the Character and Customize Key Points Template</a> 
+
+The `CocoKeyPointTemplate` which we are using on our `KeyPointLabeler` maps all of the joints included in the rigged character to their corresponding COCO labels. However, the industry standard rigged character used in Unity does not include some of the joints that are included in the COCO format. As we saw earlier, these joints appear with a state of **2** in our current dataset. These joints are:
+
+* Nose
+* Left Ear
+* Right Ear
+
+We will now add these joints to our character using labels that are defined in the `CocoKeyPointTemplate` asset. Let's first have a look at this asset.
+
+* **:green_circle: Action**: In the UI for the `KeyPointLabeler` on `Perception Camera`, click on `CocoKeyPointTemplate` to reveal the asset in the _**Project**_ tab, then click in the asset to open it.
+
+In the __**Inspector**_ view of `CocoKeyPointTemplate` you will see the list of 18 key points of the COCO standard. If you expand each key point, you can see a number of options. The `Label` property defines a string that can be used from mapping custom joints on the character to this template (we will do this shortly). The `Associate To Rig` flag denotes whether this key point can be directly mapped to a standard Unity key point in the rigged character. If this flag is enabled, the key point will then be mapped to the `Rig Label` chosen below it. The `Rig Label` dropdown displays a list of all standard joints available in rigged characters in Unity. In our case here, the list does not include the nose joint, that is why the `nose` key point has `Associate To Rig` disabled. If you look at an example that does exist in the list of standard joints (e.g. `neck`), the `Associate to Rig` flag is enabled, and the proper corresponding joint is selected as `Rig Label`. Note that when `Associate To Rig` is disabled, the `Rig Label` property is ignored. The image below depicts the nose and neck examples:
+
+
+<p align="center">
+<img src="Images/coco_template.png" width="500"/>
+</p> 
+
+If you review the list you will see the other two joints besides `nose` that are not associated to the rig are `left_ear` and `right_ear`.
+
+* **:green_circle: Action**: Expand the `Player` object's hierarchy in the scene to find the `Head` object. 
+
+We will create our three new joints under the `Head` object.
+
+* **:green_circle: Action**: Create three new empty GameObjects under `Head` and place them in the proper positions for the character's nose and ears, as seen in the GIF below (make sure the positions are correct in 3D space):
+
+<p align="center">
+<img src="Images/new_joints.gif" width="600"/>
+</p> 
+
+The final step in this process would be to label these new joints such that they match the labels of their corresponding key points in `CocoKeyPointTemplate`. For this purpose, we use the `Joint Label` component.
+
+* **:green_circle: Action**: Add a `Joint Label` component to each of the newly created joints. Then, for each joint, set `Size` to **1**, `Template` to `CocoKeyPointTemplate`, and `Label` to the proper string (one of `nose`, `left_ear` or `right_ear`). These are also shown in the GIF above.
+  
+If you run the simulation now, you can see the new joints being visualized:
+
+<p align="center">
+<img src="Images/new_joints_play.gif" width="600"/>
+</p> 
+
+You could now look at the latest generated dataset to confirm the new joints are being detected and written.
+
+### <a name="step-6">Step 6: Randomize the Humanoid Character's Animations</a> 
+
+The final step of this tutorial is to randomize the animations of the character, so that we can generate large amounts of data with varied animations and timestamps for computer vision training.
+
+* **:green_circle: Action**: Add the `Animation Randomizer` to the list of Randomizers in the `Simulation Scenario` object.
+* **:green_circle: Action**: Set the number of `Frames Per Iteration` to 150 and the number of `Total Iterations` to 20.
+* **:green_circle: Action**: Add an `Animation Randomizer Tag` component to the `Player` object to let the above Randomizer know this object's animations shall be randomized.
+
+The `Animation Randomizer Tag` accepts a list of animation clips. At runtime, the `Animation Randomizer` will pick one of the provided clips randomly as well as a random time within the selected clip, and applied them to the character's `Animator`. Since we set the number of `Frames Per Iteration` to 100, each clip will play for 100 frames before the next clip replaces it.
+
+* **:green_circle: Action**: Add four options to the `Animation Randomizer Tag` list. Then populate these options with the animation clips originating from the files `Run.fbx`, `Walk.fbx`, `PutGlassesOn.fbx`, and `Idle.fbx` (these are just examples; you can try any number or choice of rig animation clips).
+
+If you run the simulation now, your character will randomly perform one of the above four animations, each for 150 frames. This cycle will recur 20 times, which is the total number of Iterations in you Scenario.   
+
+<p align="center">
+<img src="Images/randomized_results.gif" width="600"/>
+</p> 
+
+> :information_source: The reason the character stops animating at certain points in the above GIF is that the animation clips are not set to loop. Therefore, if the randomly selected timestamp is sufficiently close to the end of the clip, the character will complete the animation and stop animating for the rest of the Iteration.

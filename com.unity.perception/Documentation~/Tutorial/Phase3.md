@@ -4,12 +4,11 @@
 In this phase of the tutorial, we will learn how to run our Scene on _**Unity Simulation**_ and analyze the generated dataset using _**Dataset Insights**_. Unity Simulation will allow us to generate a much larger dataset than what is typically plausible on a workstation computer.
 
 Steps included in this phase of the tutorial:
-- [Perception Tutorial](#perception-tutorial)
-  - [Phase 3: Cloud](#phase-3-cloud)
-    - [<a name="step-1">Step 1: Setup Unity Account, Unity Simulation, and Cloud Project</a>](#step-1-setup-unity-account-unity-simulation-and-cloud-project)
-    - [<a name="step-2">Step 2: Run Project on Unity Simulation</a>](#step-2-run-project-on-unity-simulation)
-    - [<a name="step-3">Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface</a>](#step-3-keep-track-of-your-runs-using-the-unity-simulation-command-line-interface)
-    - [<a name="step-4">Step 4: Analyze the Dataset using Dataset Insights</a>](#step-4-analyze-the-dataset-using-dataset-insights)
+
+* [Step 1: Setup Unity Account, Unity Simulation, and Cloud Project](#step-1)
+* [Step 2: Run Project on Unity Simulation](#step-2)
+* [Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface](#step-3)
+* [Step 4: Analyze the Dataset using Dataset Insights](#step-4)
 
 ### <a name="step-1">Step 1: Setup Unity Account, Unity Simulation, and Cloud Project</a> 
 

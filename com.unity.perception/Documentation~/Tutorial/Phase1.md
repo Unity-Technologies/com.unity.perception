@@ -7,16 +7,15 @@ In this phase of the Perception tutorial, you will start from downloading and in
 Through-out the tutorial, lines starting with bullet points followed by **":green_circle: Action:"** denote the individual actions you will need to perform in order to progress through the tutorial. This is while non-bulleted lines will provide additional context and explanation around the actions. If in a hurry, you can just follow the actions!
 
 Steps included in this phase of the tutorial:
-- [Perception Tutorial](#perception-tutorial)
-  - [Phase 1: Setup and Basic Randomizations](#phase-1-setup-and-basic-randomizations)
-    - [<a name="step-1">Step 1: Download Unity Editor and Create a New Project</a>](#step-1-download-unity-editor-and-create-a-new-project)
-    - [<a name="step-2">Step 2: Download the Perception Package and Import Samples</a>](#step-2-download-the-perception-package-and-import-samples)
-    - [<a name="step-3">Step 3: Setup a Scene for Your Perception Simulation</a>](#step-3-setup-a-scene-for-your-perception-simulation)
-    - [<a name="step-4">Step 4: Specify Ground-Truth and Set Up Object Labels</a>](#step-4-specify-ground-truth-and-set-up-object-labels)
-    - [<a name="step-5">Step 5: Set Up Background Randomizers</a>](#step-5-set-up-background-randomizers)
-    - [<a name="step-6">Step 6: Set Up Foreground Randomizers</a>](#step-6-set-up-foreground-randomizers)
-    - [<a name="step-7">Step 7: Inspect Generated Synthetic Data</a>](#step-7-inspect-generated-synthetic-data)
-    - [<a name="step-8">Step 8: Verify Data Using Dataset Insights</a>](#step-8-verify-data-using-dataset-insights)
+
+* [Step 1: Download Unity Editor and Create a New Project](#step-1)
+* [Step 2: Download the Perception Package and Import Samples](#step-2)
+* [Step 3: Setup a Scene for Your Perception Simulation](#step-3)
+* [Step 4: Specify Ground-Truth and Set Up Object Labels](#step-4)
+* [Step 5: Set Up Background Randomizers](#step-5)
+* [Step 6: Set Up Foreground Randomizers](#step-6)
+* [Step 7: Inspect Generated Synthetic Data](#step-7)
+* [Step 8: Verify Data Using Dataset Insights](#step-8)
 
 ### <a name="step-1">Step 1: Download Unity Editor and Create a New Project</a> 
 * **:green_circle: Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of **Unity Editor 2019.4.x**. (The tutorial has not yet been fully tested on newer versions.)

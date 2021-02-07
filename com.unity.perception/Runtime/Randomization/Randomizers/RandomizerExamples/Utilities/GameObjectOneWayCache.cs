@@ -9,18 +9,26 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
     /// Facilitates object pooling for a pre-specified collection of prefabs with the caveat that objects can be fetched
     /// from the cache but not returned. Every frame, the cache needs to be reset, which will return all objects to the pool
     /// </summary>
-    class GameObjectOneWayCache
+    public class GameObjectOneWayCache
     {
         static ProfilerMarker s_ResetAllObjectsMarker = new ProfilerMarker("ResetAllObjects");
 
-        // Objects will reset to this origin when not being used
         Transform m_CacheParent;
         Dictionary<int, int> m_InstanceIdToIndex;
         List<GameObject>[] m_InstantiatedObjects;
         int[] m_NumObjectsActive;
         int NumObjectsInCache { get; set; }
+
+        /// <summary>
+        /// The number of active cache objects in the scene
+        /// </summary>
         public int NumObjectsActive { get; private set; }
 
+        /// <summary>
+        /// Creates a new GameObjectOneWayCache
+        /// </summary>
+        /// <param name="parent">The parent object all cached instances will be parented under</param>
+        /// <param name="prefabs">The prefabs to cache</param>
         public GameObjectOneWayCache(Transform parent, GameObject[] prefabs)
         {
             m_CacheParent = parent;
@@ -39,6 +47,13 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
             }
         }
 
+        /// <summary>
+        /// Retrieves an existing instance of the given prefab from the cache if available.
+        /// Otherwise, instantiate a new instance of the given prefab.
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public GameObject GetOrInstantiate(GameObject prefab)
         {
             if (!m_InstanceIdToIndex.TryGetValue(prefab.GetInstanceID(), out var index))
@@ -47,11 +62,12 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
             }
 
             ++NumObjectsActive;
+            GameObject nextObject;
             if (m_NumObjectsActive[index] < m_InstantiatedObjects[index].Count)
             {
                 var nextInCache = m_InstantiatedObjects[index][m_NumObjectsActive[index]];
                 ++m_NumObjectsActive[index];
-                return nextInCache;
+                nextObject = nextInCache;
             }
             else
             {
@@ -59,10 +75,19 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 var newObject = Object.Instantiate(prefab, m_CacheParent);
                 ++m_NumObjectsActive[index];
                 m_InstantiatedObjects[index].Add(newObject);
-                return newObject;
+                nextObject = newObject;
             }
+
+            var tags = nextObject.GetComponents<RandomizerTag>();
+            foreach (var tag in tags)
+                tag.Register();
+
+            return nextObject;
         }
 
+        /// <summary>
+        /// Return all active cache objects back to an inactive state
+        /// </summary>
         public void ResetAllObjects()
         {
             using (s_ResetAllObjectsMarker.Auto())
@@ -75,6 +100,9 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                     {
                         // Position outside the frame
                         obj.transform.localPosition = new Vector3(10000, 0, 0);
+                        var tags = obj.GetComponents<RandomizerTag>();
+                        foreach (var tag in tags)
+                            tag.Unregister();
                     }
                 }
             }

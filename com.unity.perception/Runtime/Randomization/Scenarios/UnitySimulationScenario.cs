@@ -1,7 +1,5 @@
 ﻿using System;
-using System.IO;
 using Unity.Simulation;
-using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -27,9 +25,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         /// <inheritdoc/>
-        public sealed override void DeserializeFromFile(string configFilePath)
+        protected override void Start()
         {
-            base.DeserializeFromFile(configFilePath);
+            base.Start();
             currentIteration = constants.instanceIndex;
         }
     }

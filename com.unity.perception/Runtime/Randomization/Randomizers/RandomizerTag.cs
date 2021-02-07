@@ -13,10 +13,26 @@ namespace UnityEngine.Perception.Randomization.Randomizers
 
         void Awake()
         {
-            tagManager.AddTag(this);
+            Register();
         }
 
         void OnDestroy()
+        {
+            Unregister();
+        }
+
+        /// <summary>
+        /// Registers this tag with the tagManager
+        /// </summary>
+        public void Register()
+        {
+            tagManager.AddTag(this);
+        }
+
+        /// <summary>
+        /// Unregisters this tag with the tagManager
+        /// </summary>
+        public void Unregister()
         {
             tagManager.RemoveTag(this);
         }

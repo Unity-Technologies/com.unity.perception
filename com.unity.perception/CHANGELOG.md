@@ -13,7 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+Added Register() and Unregister() methods to the RandomizerTag API so users can implement RandomizerTag compatible GameObject caching
+
 ### Changed
+
+Made scenario MonoBehaviour lifecycle functions protected instead of private to enable users to define overrides
+
+The GameObjectOneWayCache has been made public for users to cache GameObjects within their own custom Randomizers
 
 ### Deprecated
 
@@ -22,6 +28,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 Fixed the math offsetting the iteration index of each Unity Simulation instance directly after they deserialize their app-params
+
+The RandomizerTagManager now uses an OrderedSet data structure to register tags to preserve insertion order determinism in Unity Simulation
+
+GameObjectOneWayCache now correctly registers and unregisters RandomizerTags on cached GameObjects
 
 ## [0.7.0-preview.1] - 2021-02-01
 

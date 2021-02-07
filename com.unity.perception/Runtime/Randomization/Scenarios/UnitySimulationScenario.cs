@@ -30,7 +30,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public sealed override void DeserializeFromFile(string configFilePath)
         {
             base.DeserializeFromFile(configFilePath);
-            currentIteration = constants.instanceIndex * constants.instanceCount;
+            currentIteration = constants.instanceIndex;
         }
     }
 }

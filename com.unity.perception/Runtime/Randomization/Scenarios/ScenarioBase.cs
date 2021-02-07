@@ -141,8 +141,10 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public void SerializeToFile()
         {
             Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
-            using var writer = new StreamWriter(defaultConfigFilePath, false);
-            writer.Write(SerializeToJson());
+            using (var writer = new StreamWriter(defaultConfigFilePath, false))
+            {
+                writer.Write(SerializeToJson());
+            }
         }
 
         /// <summary>

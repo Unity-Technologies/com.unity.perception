@@ -17,9 +17,9 @@ Added Register() and Unregister() methods to the RandomizerTag API so users can 
 
 ### Changed
 
-Made scenario MonoBehaviour lifecycle functions protected instead of private to enable users to define overrides
+Switched accessibility of scenario MonoBehaviour lifecycle functions (Awake, Start, Update) from private to protected to enable users to define their own overrides when deriving the Scenario class.
 
-The GameObjectOneWayCache has been made public for users to cache GameObjects within their own custom Randomizers
+The GameObjectOneWayCache has been made public for users to cache GameObjects within their own custom Randomizers.
 
 ### Deprecated
 
@@ -27,11 +27,11 @@ The GameObjectOneWayCache has been made public for users to cache GameObjects wi
 
 ### Fixed
 
-Fixed the math offsetting the iteration index of each Unity Simulation instance directly after they deserialize their app-params
+Fixed the math offsetting the iteration index of each Unity Simulation instance directly after they deserialize their app-params.
 
-The RandomizerTagManager now uses an OrderedSet data structure to register tags to preserve insertion order determinism in Unity Simulation
+The RandomizerTagManager now uses an OrderedSet data structure to register tags to preserve insertion order determinism in Unity Simulation.
 
-GameObjectOneWayCache now correctly registers and unregisters RandomizerTags on cached GameObjects
+GameObjectOneWayCache now correctly registers and unregisters RandomizerTags on cached GameObjects.
 
 ## [0.7.0-preview.1] - 2021-02-01
 

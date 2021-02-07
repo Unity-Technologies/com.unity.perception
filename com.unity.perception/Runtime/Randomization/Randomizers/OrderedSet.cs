@@ -6,7 +6,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers
     /// <summary>
     /// This collection has the properties of a HashSet that also preserves insertion order. As such, this data
     /// structure demonstrates the following time complexities:
-    /// O(1) lookup, O(1) add, O(1) remove, and O(n) traversal
+    /// O(1) lookup, O(1) insertion, O(1) removal, and O(n) traversal
     /// </summary>
     /// <typeparam name="T">The item type to store in this collection</typeparam>
     class OrderedSet<T> : ICollection<T>

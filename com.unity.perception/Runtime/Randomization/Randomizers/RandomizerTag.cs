@@ -11,12 +11,18 @@ namespace UnityEngine.Perception.Randomization.Randomizers
     {
         RandomizerTagManager tagManager => RandomizerTagManager.singleton;
 
-        void Awake()
+        /// <summary>
+        /// Awake is called when this RandomizerTag is created or instantiated
+        /// </summary>
+        protected virtual void Awake()
         {
             Register();
         }
 
-        void OnDestroy()
+        /// <summary>
+        /// OnDestroy is called when this RandomizerTag is destroyed
+        /// </summary>
+        protected virtual void OnDestroy()
         {
             Unregister();
         }

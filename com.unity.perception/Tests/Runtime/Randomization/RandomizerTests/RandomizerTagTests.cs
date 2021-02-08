@@ -1,8 +1,8 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Randomizers;
-using UnityEngine.Perception.Randomization.Scenarios;
 using Assert = Unity.Assertions.Assert;
 
 namespace RandomizationTests.RandomizerTests
@@ -10,50 +10,76 @@ namespace RandomizationTests.RandomizerTests
     [TestFixture]
     public class RandomizerTagTests
     {
-        public class ParentTag : RandomizerTag { }
+        public class BaseTag : RandomizerTag { }
 
-        public class ChildTag : ParentTag { }
-
-        GameObject m_TestObject;
-        FixedLengthScenario m_Scenario;
-
-        [SetUp]
-        public void Setup()
-        {
-            m_TestObject = new GameObject();
-            m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
-            m_Scenario.quitOnComplete = false;
-        }
+        public class DerivedTag : BaseTag { }
 
         [TearDown]
-        public void TearDown()
+        public void Teardown()
         {
-            Object.DestroyImmediate(m_TestObject);
+            var tags = Object.FindObjectsOfType<BaseTag>();
+            foreach (var tag in tags)
+            {
+                if (tag != null && tag.gameObject != null)
+                    Object.DestroyImmediate(tag.gameObject);
+            }
         }
 
         [Test]
-        public void TagQueryFindsCorrectNumberOfGameObjects()
+        public void TagInheritanceWorksInTagQueries()
         {
             const int copyCount = 5;
             var gameObject = new GameObject();
-            gameObject.AddComponent<ParentTag>();
+            gameObject.AddComponent<BaseTag>();
             for (var i = 0; i < copyCount - 1; i++)
                 Object.Instantiate(gameObject);
 
             var gameObject2 = new GameObject();
-            gameObject2.AddComponent<ChildTag>();
+            gameObject2.AddComponent<DerivedTag>();
             for (var i = 0; i < copyCount - 1; i++)
                 Object.Instantiate(gameObject2);
 
             var tagManager = RandomizerTagManager.singleton;
-            var queriedObjects = tagManager.Query<ParentTag>().ToArray();
-            Assert.AreEqual(queriedObjects.Length, copyCount);
+            var queriedBaseTags = tagManager.Query<BaseTag>().ToArray();
+            Assert.AreEqual(queriedBaseTags.Length, copyCount);
 
-            queriedObjects = tagManager.Query<ChildTag>().ToArray();
-            Assert.AreEqual(queriedObjects.Length, copyCount);
+            var queriedDerivedTags = tagManager.Query<DerivedTag>().ToArray();
+            Assert.AreEqual(queriedDerivedTags.Length, copyCount);
 
-            queriedObjects = tagManager.Query<ParentTag>(true).ToArray();
-            Assert.AreEqual(queriedObjects.Length, copyCount * 2);
+            queriedBaseTags = tagManager.Query<BaseTag>(true).ToArray();
+            Assert.AreEqual(queriedBaseTags.Length, copyCount * 2);
+        }
+
+        [Test]
+        public void TagQueriesPreserveInsertionOrder()
+        {
+            const int copyCount = 5;
+            const int destroyCount = 3;
+
+            var testObj = new GameObject();
+            testObj.AddComponent<BaseTag>();
+
+            var testObjects = new List<GameObject> { testObj };
+
+            for (var i = 0; i < copyCount - 1; i++)
+                testObjects.Add(Object.Instantiate(testObj));
+
+            for (var i = 0; i < destroyCount; i++)
+            {
+                Object.DestroyImmediate(testObjects[1]);
+                testObjects.RemoveAt(1);
+            }
+
+            for (var i = 0; i < copyCount + destroyCount; i++)
+                testObjects.Add(Object.Instantiate(testObj));
+
+            var tagManager = RandomizerTagManager.singleton;
+            var tags = tagManager.Query<BaseTag>();
+            var tagsArray = tags.ToArray();
+
+            var index = 0;
+            foreach (var tag in tagsArray)
+                Assert.AreEqual(tag, testObjects[index++].GetComponent<BaseTag>());
         }
     }
 }

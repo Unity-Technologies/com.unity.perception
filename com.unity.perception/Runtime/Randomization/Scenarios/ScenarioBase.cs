@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Unity.Simulation;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
-using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -16,13 +17,21 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     [DefaultExecutionOrder(-1)]
     public abstract class ScenarioBase : MonoBehaviour
     {
-        static ScenarioBase s_ActiveScenario;
-
         const string k_ScenarioIterationMetricDefinitionId = "DB1B258E-D1D0-41B6-8751-16F601A2E230";
-        bool m_SkipFrame = true;
+        static ScenarioBase s_ActiveScenario;
         bool m_FirstScenarioFrame = true;
-        bool m_WaitingForFinalUploads;
         MetricDefinition m_IterationMetricDefinition;
+
+        // ReSharper disable once InconsistentNaming
+        [SerializeReference] internal List<Randomizer> m_Randomizers = new List<Randomizer>();
+        bool m_SkipFrame = true;
+        bool m_WaitingForFinalUploads;
+
+        /// <summary>
+        /// If true, this scenario will quit the Unity application when it's finished executing
+        /// </summary>
+        [HideInInspector]
+        public bool quitOnComplete = true;
 
         IEnumerable<Randomizer> activeRandomizers
         {
@@ -34,18 +43,10 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             }
         }
 
-        // ReSharper disable once InconsistentNaming
-        [SerializeReference] internal List<Randomizer> m_Randomizers = new List<Randomizer>();
-
         /// <summary>
         /// Return the list of randomizers attached to this scenario
         /// </summary>
         public IReadOnlyList<Randomizer> randomizers => m_Randomizers.AsReadOnly();
-
-        /// <summary>
-        /// If true, this scenario will quit the Unity application when it's finished executing
-        /// </summary>
-        [HideInInspector] public bool quitOnComplete = true;
 
         /// <summary>
         /// The name of the Json file this scenario's constants are serialized to/from.
@@ -60,6 +61,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             get
             {
 #if UNITY_EDITOR
+
                 // This compiler define is required to allow samplers to
                 // iterate the scenario's random state in edit-mode
                 if (s_ActiveScenario == null)
@@ -140,7 +142,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         {
             Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
             using (var writer = new StreamWriter(defaultConfigFilePath, false))
+            {
                 writer.Write(SerializeToJson());
+            }
         }
 
         /// <summary>
@@ -175,14 +179,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// This method executed directly after this scenario has been registered and initialized
+        /// Awake is called when this scenario MonoBehaviour is created or instantiated
         /// </summary>
-        protected virtual void OnAwake() { }
-
-        void Awake()
+        protected virtual void Awake()
         {
             activeScenario = this;
-            OnAwake();
             foreach (var randomizer in m_Randomizers)
                 randomizer.Create();
             ValidateParameters();
@@ -195,17 +196,26 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 Guid.Parse(k_ScenarioIterationMetricDefinitionId));
         }
 
-        void OnEnable()
+        /// <summary>
+        /// OnEnable is called when this scenario is enabled
+        /// </summary>
+        protected virtual void OnEnable()
         {
             activeScenario = this;
         }
 
-        void OnDisable()
+        /// <summary>
+        /// OnEnable is called when this scenario is disabled
+        /// </summary>
+        protected virtual void OnDisable()
         {
             activeScenario = null;
         }
 
-        void Start()
+        /// <summary>
+        /// Start is called after Awake but before the first Update method call
+        /// </summary>
+        protected virtual void Start()
         {
             var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
                 "random-seed",
@@ -217,12 +227,10 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 #endif
         }
 
-        struct IterationMetricData
-        {
-            public int iteration;
-        }
-
-        void Update()
+        /// <summary>
+        /// Update is called once per frame
+        /// </summary>
+        protected virtual void Update()
         {
             // TODO: remove this check when the perception camera can capture the first frame of output
             if (m_SkipFrame)
@@ -238,7 +246,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 if (!Manager.FinalUploadsDone)
                     return;
 #if UNITY_EDITOR
-                UnityEditor.EditorApplication.ExitPlaymode();
+                EditorApplication.ExitPlaymode();
 #else
                 Application.Quit();
 #endif
@@ -280,10 +288,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 ResetRandomStateOnIteration();
                 DatasetCapture.ReportMetric(m_IterationMetricDefinition, new[]
                 {
-                    new IterationMetricData()
-                    {
-                        iteration = currentIteration
-                    }
+                    new IterationMetricData { iteration = currentIteration }
                 });
                 foreach (var randomizer in activeRandomizers)
                     randomizer.IterationStart();
@@ -354,14 +359,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                     $"Cannot remove non-randomizer type {randomizerType.Name} from randomizer list");
             var removed = false;
             for (var i = 0; i < m_Randomizers.Count; i++)
-            {
                 if (m_Randomizers[i].GetType() == randomizerType)
                 {
                     m_Randomizers.RemoveAt(i);
                     removed = true;
                     break;
                 }
-            }
+
             if (!removed)
                 throw new ScenarioException(
                     $"No active Randomizer of type {randomizerType.Name} could be removed");
@@ -381,6 +385,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 if (randomizer is T)
                     return i;
             }
+
             throw new ScenarioException($"A Randomizer of type {typeof(T).Name} was not added to this scenario");
         }
 
@@ -406,7 +411,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         {
             foreach (var randomizer in m_Randomizers)
             foreach (var parameter in randomizer.parameters)
-            {
                 try
                 {
                     parameter.Validate();
@@ -415,7 +419,12 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 {
                     Debug.LogException(exception, this);
                 }
-            }
+        }
+
+        struct IterationMetricData
+        {
+            // ReSharper disable once NotAccessedField.Local
+            public int iteration;
         }
     }
 }

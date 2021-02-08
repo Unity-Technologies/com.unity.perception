@@ -15,7 +15,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
 
         Transform m_CacheParent;
         Dictionary<int, int> m_InstanceIdToIndex;
-        List<GameObject>[] m_InstantiatedObjects;
+        List<CachedObjectData>[] m_InstantiatedObjects;
         int[] m_NumObjectsActive;
         int NumObjectsInCache { get; set; }
 
@@ -33,7 +33,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         {
             m_CacheParent = parent;
             m_InstanceIdToIndex = new Dictionary<int, int>();
-            m_InstantiatedObjects = new List<GameObject>[prefabs.Length];
+            m_InstantiatedObjects = new List<CachedObjectData>[prefabs.Length];
             m_NumObjectsActive = new int[prefabs.Length];
 
             var index = 0;
@@ -41,7 +41,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
             {
                 var instanceId = prefab.GetInstanceID();
                 m_InstanceIdToIndex.Add(instanceId, index);
-                m_InstantiatedObjects[index] = new List<GameObject>();
+                m_InstantiatedObjects[index] = new List<CachedObjectData>();
                 m_NumObjectsActive[index] = 0;
                 ++index;
             }
@@ -57,32 +57,23 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         public GameObject GetOrInstantiate(GameObject prefab)
         {
             if (!m_InstanceIdToIndex.TryGetValue(prefab.GetInstanceID(), out var index))
-            {
                 throw new ArgumentException($"Prefab {prefab.name} (ID: {prefab.GetInstanceID()}) is not in cache.");
-            }
 
             ++NumObjectsActive;
-            GameObject nextObject;
             if (m_NumObjectsActive[index] < m_InstantiatedObjects[index].Count)
             {
                 var nextInCache = m_InstantiatedObjects[index][m_NumObjectsActive[index]];
                 ++m_NumObjectsActive[index];
-                nextObject = nextInCache;
-            }
-            else
-            {
-                ++NumObjectsInCache;
-                var newObject = Object.Instantiate(prefab, m_CacheParent);
-                ++m_NumObjectsActive[index];
-                m_InstantiatedObjects[index].Add(newObject);
-                nextObject = newObject;
+                foreach (var tag in nextInCache.randomizerTags)
+                    tag.Register();
+                return nextInCache.instance;
             }
 
-            var tags = nextObject.GetComponents<RandomizerTag>();
-            foreach (var tag in tags)
-                tag.Register();
-
-            return nextObject;
+            ++NumObjectsInCache;
+            var newObject = Object.Instantiate(prefab, m_CacheParent);
+            ++m_NumObjectsActive[index];
+            m_InstantiatedObjects[index].Add(new CachedObjectData(newObject));
+            return newObject;
         }
 
         /// <summary>
@@ -96,15 +87,26 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 for (var i = 0; i < m_InstantiatedObjects.Length; ++i)
                 {
                     m_NumObjectsActive[i] = 0;
-                    foreach (var obj in m_InstantiatedObjects[i])
+                    foreach (var cachedObjectData in m_InstantiatedObjects[i])
                     {
                         // Position outside the frame
-                        obj.transform.localPosition = new Vector3(10000, 0, 0);
-                        var tags = obj.GetComponents<RandomizerTag>();
-                        foreach (var tag in tags)
+                        cachedObjectData.instance.transform.localPosition = new Vector3(10000, 0, 0);
+                        foreach (var tag in cachedObjectData.randomizerTags)
                             tag.Unregister();
                     }
                 }
+            }
+        }
+
+        struct CachedObjectData
+        {
+            public GameObject instance;
+            public RandomizerTag[] randomizerTags;
+
+            public CachedObjectData(GameObject instance)
+            {
+                this.instance = instance;
+                randomizerTags = instance.GetComponents<RandomizerTag>();
             }
         }
     }

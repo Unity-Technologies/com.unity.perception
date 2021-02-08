@@ -13,6 +13,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [0.7.0-preview.2] - 2021-02-08
+
+### Upgrade Notes
+
+### Known Issues
+
+### Added
+
 Added Register() and Unregister() methods to the RandomizerTag API so users can implement RandomizerTag compatible GameObject caching
 
 ### Changed

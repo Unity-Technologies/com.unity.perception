@@ -14,7 +14,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers
         public static RandomizerTagManager singleton { get; } = new RandomizerTagManager();
 
         Dictionary<Type, HashSet<Type>> m_TypeTree = new Dictionary<Type, HashSet<Type>>();
-        Dictionary<Type, OrderedSet<RandomizerTag>> m_TagMap = new Dictionary<Type, OrderedSet<RandomizerTag>>();
+        Dictionary<Type, LinkedHashSet<RandomizerTag>> m_TagMap = new Dictionary<Type, LinkedHashSet<RandomizerTag>>();
 
         /// <summary>
         /// Enumerates over all RandomizerTags of the given type present in the scene
@@ -60,7 +60,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers
             if (m_TypeTree.ContainsKey(tagType))
                 return;
 
-            m_TagMap.Add(tagType, new OrderedSet<RandomizerTag>());
+            m_TagMap.Add(tagType, new LinkedHashSet<RandomizerTag>());
             m_TypeTree.Add(tagType, new HashSet<Type>());
 
             var baseType = tagType.BaseType;
@@ -68,7 +68,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers
             {
                 if (!m_TypeTree.ContainsKey(baseType))
                 {
-                    m_TagMap.Add(baseType, new OrderedSet<RandomizerTag>());
+                    m_TagMap.Add(baseType, new LinkedHashSet<RandomizerTag>());
                     m_TypeTree[baseType] = new HashSet<Type> { tagType };
                 }
                 else

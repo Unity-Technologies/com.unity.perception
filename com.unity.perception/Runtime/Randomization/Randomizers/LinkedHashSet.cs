@@ -9,14 +9,14 @@ namespace UnityEngine.Perception.Randomization.Randomizers
     /// O(1) lookup, O(1) insertion, O(1) removal, and O(n) traversal
     /// </summary>
     /// <typeparam name="T">The item type to store in this collection</typeparam>
-    class OrderedSet<T> : ICollection<T>
+    class LinkedHashSet<T> : ICollection<T>
     {
         readonly IDictionary<T, LinkedListNode<T>> m_Dictionary;
         readonly LinkedList<T> m_LinkedList;
 
-        public OrderedSet() : this(EqualityComparer<T>.Default) { }
+        public LinkedHashSet() : this(EqualityComparer<T>.Default) { }
 
-        public OrderedSet(IEqualityComparer<T> comparer)
+        public LinkedHashSet(IEqualityComparer<T> comparer)
         {
             m_Dictionary = new Dictionary<T, LinkedListNode<T>>(comparer);
             m_LinkedList = new LinkedList<T>();
@@ -24,7 +24,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers
 
         public int Count => m_Dictionary.Count;
 
-        public virtual bool IsReadOnly => m_Dictionary.IsReadOnly;
+        public bool IsReadOnly => m_Dictionary.IsReadOnly;
 
         void ICollection<T>.Add(T item)
         {

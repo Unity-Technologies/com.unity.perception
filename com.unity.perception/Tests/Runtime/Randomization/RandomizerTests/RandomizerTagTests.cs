@@ -17,7 +17,7 @@ namespace RandomizationTests.RandomizerTests
         [TearDown]
         public void Teardown()
         {
-            var tags = Object.FindObjectsOfType<BaseTag>(true);
+            var tags = Object.FindObjectsOfType<BaseTag>();
             foreach (var tag in tags)
             {
                 if (tag != null && tag.gameObject != null)

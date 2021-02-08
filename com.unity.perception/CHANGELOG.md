@@ -29,7 +29,7 @@ The GameObjectOneWayCache has been made public for users to cache GameObjects wi
 
 Fixed the math offsetting the iteration index of each Unity Simulation instance directly after they deserialize their app-params.
 
-The RandomizerTagManager now uses an OrderedSet data structure to register tags to preserve insertion order determinism in Unity Simulation.
+The RandomizerTagManager now uses a LinkedHashSet data structure to register tags to preserve insertion order determinism in Unity Simulation.
 
 GameObjectOneWayCache now correctly registers and unregisters RandomizerTags on cached GameObjects.
 

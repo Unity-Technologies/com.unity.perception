@@ -7,7 +7,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 {
     public class GroupItemsConverter : JsonConverter
     {
-        public override bool CanWrite => false;
+        public override bool CanWrite => true;
 
         public override bool CanRead => true;
 
@@ -19,7 +19,19 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public override void WriteJson(
             JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new InvalidOperationException("Use default serialization.");
+            var output = new JObject();
+            var groupItems = (Dictionary<string, IGroupItem>)value;
+            foreach (var itemKey in groupItems.Keys)
+            {
+                var itemValue = groupItems[itemKey];
+                var newObj = new JObject();
+                if (itemValue is Parameter)
+                    newObj["param"] = JObject.FromObject(itemValue);
+                else
+                    newObj["scalar"] = JObject.FromObject(itemValue);
+                output[itemKey] = newObj;
+            }
+            output.WriteTo(writer);
         }
 
         public override object ReadJson(
@@ -45,9 +57,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
     public class ParameterItemsConverter : JsonConverter
     {
-        public override bool CanWrite => false;
-
         public override bool CanRead => true;
+
+        public override bool CanWrite => true;
 
         public override bool CanConvert(Type objectType)
         {
@@ -57,7 +69,19 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public override void WriteJson(
             JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new InvalidOperationException("Use default serialization.");
+            var output = new JObject();
+            var parameterItems = (Dictionary<string, IParameterItem>)value;
+            foreach (var itemKey in parameterItems.Keys)
+            {
+                var itemValue = parameterItems[itemKey];
+                var newObj = new JObject();
+                if (itemValue is SamplerOptions)
+                    newObj["samplerOptions"] = JObject.FromObject(itemValue);
+                else
+                    newObj["scalar"] = JObject.FromObject(itemValue);
+                output[itemKey] = newObj;
+            }
+            output.WriteTo(writer);
         }
 
         public override object ReadJson(

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine.Perception.Randomization.Parameters;
@@ -50,34 +51,50 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
         static Group SerializeRandomizer(Randomizer randomizer)
         {
-            var randomizerObj = new Group();
-            var parameterFields = randomizer.GetType().GetFields();
-            foreach (var parameterField in parameterFields)
+            var randomizerData = new Group();
+            var fields = randomizer.GetType().GetFields();
+            foreach (var field in fields)
             {
-                if (!IsSubclassOfRawGeneric(typeof(NumericParameter<>), parameterField.FieldType))
-                    continue;
-                var parameter = (Randomization.Parameters.Parameter)parameterField.GetValue(randomizer);
-                var parameterData = SerializeParameter(parameter);
-                if (parameterData.items.Count == 0)
-                    continue;
-                randomizerObj.items.Add(parameterField.Name, parameterData);
+                if (field.FieldType.IsSubclassOf(typeof(Randomization.Parameters.Parameter)))
+                {
+                    if (!IsSubclassOfRawGeneric(typeof(NumericParameter<>), field.FieldType))
+                        continue;
+                    var parameter = (Randomization.Parameters.Parameter)field.GetValue(randomizer);
+                    var parameterData = SerializeParameter(parameter);
+                    if (parameterData.items.Count == 0)
+                        continue;
+                    randomizerData.items.Add(field.Name, parameterData);
+                }
+                else
+                {
+                    var scalarValue = ScalarFromField(field, randomizer);
+                    if (scalarValue != null)
+                        randomizerData.items.Add(field.Name, new Scalar { value = scalarValue });
+                }
             }
-            return randomizerObj;
+            return randomizerData;
         }
 
         static Parameter SerializeParameter(Randomization.Parameters.Parameter parameter)
         {
             var parameterData = new Parameter();
-            var samplerFields = parameter.GetType().GetFields();
-            foreach (var samplerField in samplerFields)
+            var fields = parameter.GetType().GetFields();
+            foreach (var field in fields)
             {
-                if (!samplerField.FieldType.IsAssignableFrom(typeof(ISampler)))
-                    continue;
-                var sampler = (ISampler)samplerField.GetValue(parameter);
-                var samplerData = SerializeSampler(sampler);
-                if (samplerData.defaultSampler == null)
-                    continue;
-                parameterData.items.Add(samplerField.Name, samplerData);
+                if (field.FieldType.IsAssignableFrom(typeof(ISampler)))
+                {
+                    var sampler = (ISampler)field.GetValue(parameter);
+                    var samplerData = SerializeSampler(sampler);
+                    if (samplerData.defaultSampler == null)
+                        continue;
+                    parameterData.items.Add(field.Name, samplerData);
+                }
+                else
+                {
+                    var scalarValue = ScalarFromField(field, parameter);
+                    if (scalarValue != null)
+                        parameterData.items.Add(field.Name, new Scalar { value = scalarValue });
+                }
             }
             return parameterData;
         }
@@ -107,6 +124,17 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             else
                 throw new ArgumentException($"Invalid sampler type ({sampler.GetType()})");
             return samplerData;
+        }
+
+        static IScalarValue ScalarFromField(FieldInfo field, object obj)
+        {
+            if (field.FieldType == typeof(string))
+                return new StringScalarValue { str = (string)field.GetValue(obj) };
+            if (field.FieldType == typeof(bool))
+                return new BooleanScalarValue { boolean = (bool)field.GetValue(obj) };
+            if (field.FieldType == typeof(float) || field.FieldType == typeof(double) || field.FieldType == typeof(int))
+                return new DoubleScalarValue { num = Convert.ToDouble(field.GetValue(obj)) };
+            return null;
         }
 
         static bool IsSubclassOfRawGeneric(Type generic, Type toCheck) {

@@ -12,8 +12,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 {
     static class ScenarioTemplateSerializer
     {
-        [MenuItem("Tests/Deserialize Test")]
-        public static void DeserializeTest()
+        [MenuItem("Tests/Deserialize String Test")]
+        public static void DeserializeStringTest()
         {
             var jsonString = File.ReadAllText($"{Application.streamingAssetsPath}/data.json");
             var schema = JsonConvert.DeserializeObject<TemplateConfigurationOptions>(jsonString);
@@ -25,9 +25,20 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public static void SerializeScenarioToJsonTest()
         {
             var template = SerializeScenarioIntoTemplate(Object.FindObjectOfType<ScenarioBase>());
-            Debug.Log(JsonConvert.SerializeObject(template, Formatting.Indented));
+            var templateJson = JsonConvert.SerializeObject(template, Formatting.Indented);
+            File.WriteAllText($"{Application.streamingAssetsPath}/scenario_configuration.json", templateJson);
         }
 
+        [MenuItem("Tests/Deserialize Into Scenario Test")]
+        public static void DeserializeIntoScenarioTest()
+        {
+            var jsonString = File.ReadAllText($"{Application.streamingAssetsPath}/scenario_configuration.json");
+            var template = JsonConvert.DeserializeObject<TemplateConfigurationOptions>(jsonString);
+            var scenario = Object.FindObjectOfType<ScenarioBase>();
+            DeserializeTemplateIntoScenario(scenario, template);
+        }
+
+        #region Serialization
         public static TemplateConfigurationOptions SerializeScenarioIntoTemplate(ScenarioBase scenario)
         {
             return new TemplateConfigurationOptions
@@ -136,6 +147,101 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 return new DoubleScalarValue { num = Convert.ToDouble(field.GetValue(obj)) };
             return null;
         }
+        #endregion
+
+        #region Deserialization
+        public static void DeserializeTemplateIntoScenario(ScenarioBase scenario, TemplateConfigurationOptions template)
+        {
+            DeserializeRandomizers(scenario.randomizers, template.groups);
+        }
+
+        static void DeserializeRandomizers(IEnumerable<Randomizer> randomizers, Dictionary<string, Group> groups)
+        {
+            var randomizerTypeMap = new Dictionary<string, Randomizer>();
+            foreach (var randomizer in randomizers)
+                randomizerTypeMap.Add(randomizer.GetType().Name, randomizer);
+
+            foreach (var randomizerPair in groups)
+            {
+                if (!randomizerTypeMap.ContainsKey(randomizerPair.Key))
+                    continue;
+                var randomizer = randomizerTypeMap[randomizerPair.Key];
+                DeserializeRandomizer(randomizer, randomizerPair.Value);
+            }
+        }
+
+        static void DeserializeRandomizer(Randomizer randomizer, Group randomizerData)
+        {
+            foreach (var pair in randomizerData.items)
+            {
+                var field = randomizer.GetType().GetField(pair.Key);
+                if (field == null)
+                    continue;
+                if (pair.Value is Parameter parameterData)
+                    DeserializeParameter((Randomization.Parameters.Parameter)field.GetValue(randomizer), parameterData);
+                else
+                    DeserializeScalarValue(randomizer, field, (Scalar)pair.Value);
+            }
+        }
+
+        static void DeserializeParameter(Randomization.Parameters.Parameter parameter, Parameter parameterData)
+        {
+            foreach (var pair in parameterData.items)
+            {
+                var field = parameter.GetType().GetField(pair.Key);
+                if (field == null)
+                    continue;
+                if (pair.Value is SamplerOptions samplerOptions)
+                    field.SetValue(parameter, DeserializeSampler(samplerOptions.defaultSampler));
+                else
+                    DeserializeScalarValue(parameter, field, (Scalar)pair.Value);
+            }
+        }
+
+        static ISampler DeserializeSampler(ISamplerOption samplerOption)
+        {
+            return samplerOption switch
+            {
+                ConstantSampler constantSampler => new Samplers.ConstantSampler
+                {
+                    value = (float)constantSampler.value
+                },
+                UniformSampler uniformSampler => new Samplers.UniformSampler
+                {
+                    range = new FloatRange
+                    {
+                        minimum = (float)uniformSampler.min,
+                        maximum = (float)uniformSampler.max
+                    }
+                },
+                NormalSampler normalSampler => new Samplers.NormalSampler
+                {
+                    range = new FloatRange
+                    {
+                        minimum = (float)normalSampler.min,
+                        maximum = (float)normalSampler.max
+                    },
+                    mean = (float)normalSampler.mean,
+                    standardDeviation = (float)normalSampler.standardDeviation
+                },
+                _ => throw new ArgumentException(
+                    $"Cannot deserialize unsupported sampler type {samplerOption.GetType()}")
+            };
+        }
+
+        static void DeserializeScalarValue(object obj, FieldInfo field, Scalar scalar)
+        {
+            object value = scalar.value switch
+            {
+                StringScalarValue stringValue => stringValue.str,
+                BooleanScalarValue booleanValue => booleanValue.boolean,
+                DoubleScalarValue doubleValue => doubleValue.num,
+                _ => throw new ArgumentException(
+                    $"Cannot deserialize unsupported scalar type {scalar.value.GetType()}")
+            };
+            field.SetValue(obj, Convert.ChangeType(value, field.FieldType));
+        }
+        #endregion
 
         static bool IsSubclassOfRawGeneric(Type generic, Type toCheck) {
             while (toCheck != null && toCheck != typeof(object)) {

@@ -3,43 +3,49 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Newtonsoft.Json;
-using UnityEditor;
+using Newtonsoft.Json.Linq;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 {
-    static class ScenarioTemplateSerializer
+    static class ScenarioSerializer
     {
-        [MenuItem("Tests/Deserialize String Test")]
-        public static void DeserializeStringTest()
-        {
-            var jsonString = File.ReadAllText($"{Application.streamingAssetsPath}/data.json");
-            var schema = JsonConvert.DeserializeObject<TemplateConfigurationOptions>(jsonString);
-            var backToJson = JsonConvert.SerializeObject(schema, Formatting.Indented);
-            Debug.Log(backToJson);
-        }
-
-        [MenuItem("Tests/Serialize Scenario To Json Test")]
-        public static void SerializeScenarioToJsonTest()
-        {
-            var template = SerializeScenarioIntoTemplate(Object.FindObjectOfType<ScenarioBase>());
-            var templateJson = JsonConvert.SerializeObject(template, Formatting.Indented);
-            File.WriteAllText($"{Application.streamingAssetsPath}/scenario_configuration.json", templateJson);
-        }
-
-        [MenuItem("Tests/Deserialize Into Scenario Test")]
-        public static void DeserializeIntoScenarioTest()
-        {
-            var jsonString = File.ReadAllText($"{Application.streamingAssetsPath}/scenario_configuration.json");
-            var template = JsonConvert.DeserializeObject<TemplateConfigurationOptions>(jsonString);
-            var scenario = Object.FindObjectOfType<ScenarioBase>();
-            DeserializeTemplateIntoScenario(scenario, template);
-        }
-
         #region Serialization
-        public static TemplateConfigurationOptions SerializeScenarioIntoTemplate(ScenarioBase scenario)
+        public static string SerializeToJsonString(ScenarioBase scenario)
+        {
+            return JsonConvert.SerializeObject(SerializeToJsonObject(scenario), Formatting.Indented);
+        }
+
+        public static void SerializeToFile(ScenarioBase scenario, string filePath)
+        {
+            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
+            using (var writer = new StreamWriter(filePath, false))
+            {
+                writer.Write(SerializeToJsonString(scenario));
+            }
+        }
+
+        public static JObject SerializeToJsonObject(ScenarioBase scenario)
+        {
+            return new JObject
+            {
+                ["constants"] = SerializeConstants(scenario.genericConstants),
+                ["randomizers"] = JObject.FromObject(SerializeScenarioToTemplate(scenario))
+            };
+        }
+
+        static JObject SerializeConstants(ScenarioConstants constants)
+        {
+            var constantsObj = new JObject();
+            var constantsFields = constants.GetType().GetFields();
+            foreach (var constantsField in constantsFields)
+                constantsObj.Add(new JProperty(constantsField.Name, constantsField.GetValue(constants)));
+            return constantsObj;
+        }
+
+        static TemplateConfigurationOptions SerializeScenarioToTemplate(ScenarioBase scenario)
         {
             return new TemplateConfigurationOptions
             {
@@ -150,7 +156,23 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         #endregion
 
         #region Deserialization
-        public static void DeserializeTemplateIntoScenario(ScenarioBase scenario, TemplateConfigurationOptions template)
+        public static void Deserialize(ScenarioBase scenario, string json)
+        {
+            var jsonData = JObject.Parse(json);
+            if (jsonData.ContainsKey("constants"))
+                DeserializeConstants(scenario.genericConstants, (JObject)jsonData["constants"]);
+            if (jsonData.ContainsKey("randomizers"))
+                DeserializeTemplateIntoScenario(
+                    scenario, jsonData["randomizers"].ToObject<TemplateConfigurationOptions>());
+        }
+
+        static void DeserializeConstants(ScenarioConstants constants, JObject constantsData)
+        {
+            var serializer = new JsonSerializer();
+            serializer.Populate(constantsData.CreateReader(), constants);
+        }
+
+        static void DeserializeTemplateIntoScenario(ScenarioBase scenario, TemplateConfigurationOptions template)
         {
             DeserializeRandomizers(scenario.randomizers, template.groups);
         }

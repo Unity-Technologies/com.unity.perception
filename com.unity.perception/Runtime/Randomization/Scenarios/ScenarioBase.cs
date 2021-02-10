@@ -8,6 +8,7 @@ using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Scenarios.Serialization;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -132,33 +133,50 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// Serializes the scenario's constants and randomizer settings to a JSON string
         /// </summary>
         /// <returns>The scenario configuration as a JSON string</returns>
-        public abstract string SerializeToJson();
+        public virtual string SerializeToJson()
+        {
+            return ScenarioSerializer.SerializeToJsonString(this);
+        }
 
         /// <summary>
         /// Serializes the scenario's constants and randomizer settings to a JSON file located at the path resolved by
         /// the defaultConfigFilePath scenario property
         /// </summary>
-        public void SerializeToFile()
+        public virtual void SerializeToFile()
         {
-            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
-            using (var writer = new StreamWriter(defaultConfigFilePath, false))
-            {
-                writer.Write(SerializeToJson());
-            }
+            ScenarioSerializer.SerializeToFile(this, defaultConfigFilePath);
         }
 
         /// <summary>
         /// Overwrites this scenario's randomizer settings and scenario constants from a JSON serialized configuration
         /// </summary>
         /// <param name="json">The JSON string to deserialize</param>
-        public abstract void DeserializeFromJson(string json);
+        public virtual void DeserializeFromJson(string json)
+        {
+            ScenarioSerializer.Deserialize(this, json);
+        }
 
         /// <summary>
         /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
         /// the provided file path
         /// </summary>
         /// <param name="configFilePath">The file path to the configuration file to deserialize</param>
-        public abstract void DeserializeFromFile(string configFilePath);
+        public virtual void DeserializeFromFile(string configFilePath)
+        {
+            if (string.IsNullOrEmpty(configFilePath) || !File.Exists(configFilePath))
+                Debug.Log($"No configuration file found at {defaultConfigFilePath}");
+            else
+            {
+#if UNITY_EDITOR
+                Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>. " +
+                    "Using undo in the editor will revert these changes to your scenario.");
+#else
+                Debug.Log($"Deserialized scenario configuration from <a href=\"file:///${configFilePath}\">{configFilePath}</a>");
+#endif
+                var jsonText = File.ReadAllText(configFilePath);
+                DeserializeFromJson(jsonText);
+            }
+        }
 
         /// <summary>
         /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at

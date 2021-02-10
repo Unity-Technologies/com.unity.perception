@@ -50,6 +50,8 @@ Once the sample files are imported, they will be placed inside the `Assets/Sampl
 
 Note how `Animation Type` is set to `Humanoid` for all selected assets. This is a requirement and makes sure all animations included in the sample `.fbx` files are ready to be used on a rigged humanoid model.
 
+> :information_source: The _**Rig**_ section includes a checkbox named `Optimize Game Objcets`. It is recommended that you **disable** this so that all trasnforms included in your humanoid rig are exposed. If this flag is enabled, you will need to make sure all the joints you require for your workflow are selected in the list of `Extra Transforms to Expose`. This list is only displayed if the optimization checkbox is enabled.
+
 ### <a name="step-2">Step 2: Set Up a Humanoid Character in a Scene</a>
 
 * **:green_circle: Action**: Drag and drop the file named `Player.fbx` into your Scene _**Hierarchy**_.

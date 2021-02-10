@@ -1,23 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
-using UnityEditor;
 
 namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 {
-    public static class ScenarioSerialization
-    {
-        [MenuItem("Tests/Deserialize Test")]
-        public static void DeserializeTest()
-        {
-            var jsonString = File.ReadAllText($"{Application.streamingAssetsPath}/data.json");
-            var schema = JsonConvert.DeserializeObject<TemplateConfigurationOptions>(jsonString);
-            var backToJson = JsonConvert.SerializeObject(schema, Formatting.Indented);
-            Debug.Log(backToJson);
-        }
-    }
-
     #region Interfaces
     public interface IGroupItem { }
 
@@ -31,7 +16,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     #region GroupedObjects
     public class TemplateConfigurationOptions
     {
-        public Dictionary<string, Group> groups;
+        public Dictionary<string, Group> groups = new Dictionary<string, Group>();
     }
 
     public class StandardMetadata
@@ -42,16 +27,16 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
     public class Group
     {
-        public StandardMetadata metadata;
+        public StandardMetadata metadata = new StandardMetadata();
         [JsonConverter(typeof(GroupItemsConverter))]
-        public Dictionary<string, IGroupItem> items;
+        public Dictionary<string, IGroupItem> items = new Dictionary<string, IGroupItem>();
     }
 
     public class Parameter : IGroupItem
     {
-        public StandardMetadata metadata;
+        public StandardMetadata metadata = new StandardMetadata();
         [JsonConverter(typeof(ParameterItemsConverter))]
-        public Dictionary<string, IParameterItem> items;
+        public Dictionary<string, IParameterItem> items = new Dictionary<string, IParameterItem>();
     }
     #endregion
 
@@ -59,7 +44,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     [JsonConverter(typeof(SamplerOptionsConverter))]
     public class SamplerOptions : IParameterItem
     {
-        public StandardMetadata metadata;
+        public StandardMetadata metadata = new StandardMetadata();
         public ISamplerOption defaultSampler;
     }
 
@@ -87,7 +72,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     [JsonConverter(typeof(ScalarConverter))]
     public class Scalar : IGroupItem, IParameterItem
     {
-        public StandardMetadata metadata;
+        public StandardMetadata metadata = new StandardMetadata();
         public IScalarValue value;
     }
 

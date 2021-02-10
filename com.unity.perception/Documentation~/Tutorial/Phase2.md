@@ -167,7 +167,7 @@ This component is already added to both our lights. We now need to set our desir
 * **:green_circle: Action**: Select `Directional Light` and from the **Inspector** UI for the `MyLightRandomizerTag` component, set `Min Intensity` to **0.5** and `Max Intensity` to **3**.
 * **:green_circle: Action**: Repeat the above step for `Directional Light (1)` and set `Min Intensity` to **0** and `Max Intensity` to **0.4**.
 
-Note that with this change, we fully transfer the responsibility for the light's intensity range to `MyLightRandomizerTag.cs` and assume the intensity value coming from `My Light Randomizer` to always be between 0 and 1. Therefore, we now need to change the range for the corresponding Parameter in `My Light Randomizer` to (0,1). 
+Note that with this change, we fully transfer the responsibility for the light's intensity range to `MyLightRandomizerTag.cs` and assume that the intensity value coming from `My Light Randomizer` is always between 0 and 1. Therefore, we now need to change the range for the corresponding Parameter in `My Light Randomizer` to (0,1). 
 
 * **:green_circle: Action**: Select `SimulationScenario` and from the UI snippet for `My Light Randomizer`, change the range for `Light Intensity Parameter` from (0.5,3.5) to **(0,1)**.
 

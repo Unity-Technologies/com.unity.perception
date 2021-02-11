@@ -36,14 +36,17 @@ namespace UnityEngine.Perception.GroundTruth
     #if HDRP_PRESENT
         InstanceSegmentationPass m_InstanceSegmentationPass;
         LensDistortionPass m_LensDistortionPass;
-    #elif URP_PRESENT
+#elif URP_PRESENT
         InstanceSegmentationUrpPass m_InstanceSegmentationPass;
         LensDistortionUrpPass m_LensDistortionPass;
     #endif
+        private float? m_LensDistortionIntensityOverride;
 
         internal void OverrideLensDistortionIntensity(float? intensity)
         {
-            m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride = intensity;
+            m_LensDistortionIntensityOverride = intensity;
+            if (m_LensDistortionPass != null)
+                m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride = intensity;
         }
 #endif
 
@@ -90,6 +93,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_fLensDistortionEnabled = true;
 #endif
+            m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride =
+                m_LensDistortionIntensityOverride;
 
             m_InstanceSegmentationReader = new RenderTextureReader<Color32>(m_InstanceSegmentationTexture, myCamera, (frameCount, data, tex) =>
             {

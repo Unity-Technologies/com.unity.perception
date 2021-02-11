@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+Scenario serialization has been updated to include scalar values on randomizers and parameters
+
 ### Changed
 
 ### Deprecated

@@ -15,6 +15,8 @@ All appearances of the term `KeyPoint` have been renamed to `Keypoint`. Therefor
 
 ### Added
 
+Scenario serialization has been updated to include scalar values on randomizers and parameters
+
 ### Changed
 
 Renamed all appearances of the term `KeyPoint` within types and names to `Keypoint`.

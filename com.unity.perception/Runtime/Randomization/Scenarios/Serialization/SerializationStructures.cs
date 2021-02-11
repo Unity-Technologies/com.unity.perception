@@ -4,35 +4,35 @@ using Newtonsoft.Json;
 namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 {
     #region Interfaces
-    public interface IGroupItem { }
+    interface IGroupItem { }
 
-    public interface IParameterItem { }
+    interface IParameterItem { }
 
-    public interface ISamplerOption { }
+    interface ISamplerOption { }
 
-    public interface IScalarValue { }
+    interface IScalarValue { }
     #endregion
 
     #region GroupedObjects
-    public class TemplateConfigurationOptions
+    class TemplateConfigurationOptions
     {
         public Dictionary<string, Group> groups = new Dictionary<string, Group>();
     }
 
-    public class StandardMetadata
+    class StandardMetadata
     {
         public string name = string.Empty;
         public string description = string.Empty;
     }
 
-    public class Group
+    class Group
     {
         public StandardMetadata metadata = new StandardMetadata();
         [JsonConverter(typeof(GroupItemsConverter))]
         public Dictionary<string, IGroupItem> items = new Dictionary<string, IGroupItem>();
     }
 
-    public class Parameter : IGroupItem
+    class Parameter : IGroupItem
     {
         public StandardMetadata metadata = new StandardMetadata();
         [JsonConverter(typeof(ParameterItemsConverter))]
@@ -42,19 +42,19 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
     #region SamplerOptions
     [JsonConverter(typeof(SamplerOptionsConverter))]
-    public class SamplerOptions : IParameterItem
+    class SamplerOptions : IParameterItem
     {
         public StandardMetadata metadata = new StandardMetadata();
         public ISamplerOption defaultSampler;
     }
 
-    public class UniformSampler : ISamplerOption
+    class UniformSampler : ISamplerOption
     {
         public double min;
         public double max;
     }
 
-    public class NormalSampler : ISamplerOption
+    class NormalSampler : ISamplerOption
     {
         public double min;
         public double max;
@@ -62,7 +62,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public double standardDeviation;
     }
 
-    public class ConstantSampler : ISamplerOption
+    class ConstantSampler : ISamplerOption
     {
         public double value;
     }
@@ -70,23 +70,23 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
     #region ScalarValues
     [JsonConverter(typeof(ScalarConverter))]
-    public class Scalar : IGroupItem, IParameterItem
+    class Scalar : IGroupItem, IParameterItem
     {
         public StandardMetadata metadata = new StandardMetadata();
         public IScalarValue value;
     }
 
-    public class StringScalarValue : IScalarValue
+    class StringScalarValue : IScalarValue
     {
         public string str;
     }
 
-    public class DoubleScalarValue : IScalarValue
+    class DoubleScalarValue : IScalarValue
     {
         public double num;
     }
 
-    public class BooleanScalarValue : IScalarValue
+    class BooleanScalarValue : IScalarValue
     {
         public bool boolean;
     }

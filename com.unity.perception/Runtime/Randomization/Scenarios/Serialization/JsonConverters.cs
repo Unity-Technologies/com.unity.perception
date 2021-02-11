@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 {
-    public class GroupItemsConverter : JsonConverter
+    class GroupItemsConverter : JsonConverter
     {
         public override bool CanWrite => true;
 
@@ -55,7 +55,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         }
     }
 
-    public class ParameterItemsConverter : JsonConverter
+    class ParameterItemsConverter : JsonConverter
     {
         public override bool CanRead => true;
 
@@ -105,7 +105,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         }
     }
 
-    public class SamplerOptionsConverter : JsonConverter
+    class SamplerOptionsConverter : JsonConverter
     {
         public override bool CanRead => true;
 
@@ -152,7 +152,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         }
     }
 
-    public class ScalarConverter : JsonConverter
+    class ScalarConverter : JsonConverter
     {
         public override bool CanRead => true;
 

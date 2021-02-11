@@ -50,7 +50,7 @@ namespace RandomizationTests
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
             m_Scenario.CreateRandomizer<RotationRandomizer>();
 
-            static string RemoveWhitespace(string str) =>
+            string RemoveWhitespace(string str) =>
                 string.Join("", str.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
 
             var expectedConfigAsset = (TextAsset)Resources.Load("SampleScenarioConfiguration");

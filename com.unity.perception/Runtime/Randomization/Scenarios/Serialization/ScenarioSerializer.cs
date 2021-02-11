@@ -222,21 +222,22 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
         static ISampler DeserializeSampler(ISamplerOption samplerOption)
         {
-            return samplerOption switch
-            {
-                ConstantSampler constantSampler => new Samplers.ConstantSampler
+            if (samplerOption is ConstantSampler constantSampler)
+                return new Samplers.ConstantSampler
                 {
                     value = (float)constantSampler.value
-                },
-                UniformSampler uniformSampler => new Samplers.UniformSampler
+                };
+            if (samplerOption is UniformSampler uniformSampler)
+                return new Samplers.UniformSampler
                 {
                     range = new FloatRange
                     {
                         minimum = (float)uniformSampler.min,
                         maximum = (float)uniformSampler.max
                     }
-                },
-                NormalSampler normalSampler => new Samplers.NormalSampler
+                };
+            if (samplerOption is NormalSampler normalSampler)
+                return new Samplers.NormalSampler
                 {
                     range = new FloatRange
                     {
@@ -245,22 +246,22 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     },
                     mean = (float)normalSampler.mean,
                     standardDeviation = (float)normalSampler.standardDeviation
-                },
-                _ => throw new ArgumentException(
-                    $"Cannot deserialize unsupported sampler type {samplerOption.GetType()}")
-            };
+                };
+            throw new ArgumentException($"Cannot deserialize unsupported sampler type {samplerOption.GetType()}");
         }
 
         static void DeserializeScalarValue(object obj, FieldInfo field, Scalar scalar)
         {
-            object value = scalar.value switch
-            {
-                StringScalarValue stringValue => stringValue.str,
-                BooleanScalarValue booleanValue => booleanValue.boolean,
-                DoubleScalarValue doubleValue => doubleValue.num,
-                _ => throw new ArgumentException(
-                    $"Cannot deserialize unsupported scalar type {scalar.value.GetType()}")
-            };
+            object value;
+            if (scalar.value is StringScalarValue stringValue)
+                value = stringValue.str;
+            else if (scalar.value is BooleanScalarValue booleanValue)
+                value = booleanValue.boolean;
+            else if (scalar.value is DoubleScalarValue doubleValue)
+                value = doubleValue;
+            else
+                throw new ArgumentException(
+                    $"Cannot deserialize unsupported scalar type {scalar.value.GetType()}");
             field.SetValue(obj, Convert.ChangeType(value, field.FieldType));
         }
         #endregion

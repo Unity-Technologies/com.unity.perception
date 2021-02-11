@@ -59,6 +59,7 @@ namespace GroundTruthTests
     public class SegmentationPassTests : GroundTruthTestBase
     {
         static readonly Color32 k_SemanticPixelValue = new Color32(10, 20, 30, Byte.MaxValue);
+        private static readonly Color32 k_InstanceSegmentationPixelValue = new Color32(255,0,0, 255);
 
         public enum SegmentationKind
         {
@@ -89,7 +90,7 @@ namespace GroundTruthTests
             {
                 case SegmentationKind.Instance:
                     //expectedPixelValue = new Color32(0, 74, 255, 255);
-                    expectedPixelValue = new Color32(255,0,0, 255);
+                    expectedPixelValue = k_InstanceSegmentationPixelValue;
                     cameraObject = SetupCameraInstanceSegmentation(OnSegmentationImageReceived);
                     break;
                 case SegmentationKind.Semantic:
@@ -374,6 +375,30 @@ namespace GroundTruthTests
             Assert.AreEqual(2, timesSegmentationImageReceived);
         }
 
+
+        [UnityTest]
+        public IEnumerator InstanceSegmentationPass_WithSeparateDisabledPerceptionCamera_ProducesCorrectValues()
+        {
+            int timesSegmentationImageReceived = 0;
+            void OnSegmentationImageReceived(NativeArray<Color32> data)
+            {
+                CollectionAssert.AreEqual(Enumerable.Repeat(k_InstanceSegmentationPixelValue, data.Length), data);
+                timesSegmentationImageReceived++;
+            }
+
+            var cameraObject = SetupCameraInstanceSegmentation((frame, data, renderTexture) => OnSegmentationImageReceived(data));
+            var cameraObject2 = SetupCameraInstanceSegmentation(null);
+            cameraObject2.SetActive(false);
+
+            var plane = TestHelper.CreateLabeledPlane();
+            AddTestObjectForCleanup(plane);
+            yield return null;
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            DestroyTestObject(cameraObject2);
+            Assert.AreEqual(1, timesSegmentationImageReceived);
+        }
+
         [UnityTest]
         public IEnumerator SegmentationPassProducesCorrectValuesEachFrame(
             [Values(SegmentationKind.Instance, SegmentationKind.Semantic)] SegmentationKind segmentationKind)
@@ -410,7 +435,7 @@ namespace GroundTruthTests
                 SetupCameraSemanticSegmentation((a) => OnSegmentationImageReceived<Color32>(a.frameCount, a.data, a.sourceTexture), false);
 
             //object expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) new Color32(0, 74, 255, 255) : k_SemanticPixelValue;
-            object expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) new Color32(255, 0, 0, 255) : k_SemanticPixelValue;
+            object expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) k_InstanceSegmentationPixelValue : k_SemanticPixelValue;
 
             expectedLabelAtFrame = new Dictionary<int, object>
             {

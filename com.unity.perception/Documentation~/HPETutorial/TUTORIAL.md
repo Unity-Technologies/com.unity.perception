@@ -1,17 +1,17 @@
-# Human Pose Estimation Tutorial
+# Human Pose Labeling and Randomization Tutorial
 
-In this tutorial, we will walk through the process of importing rigged humanoid models and animations of `.fbx` format into your computer vision data generation project, and using them to produce key-point and pose-estimation ground-truth data. We will use the tools and samples provided in the Perception package.
+In this tutorial, we will walk through the production of keypoint and pose datasets for computer vision tasks such as human pose estimation and gesture recognition.
 
-We strongly recommend you finish [Phase 1 of the Perception Tutorial](../Tutorial/Phase1.md) before continuing with this one, especially if you do not have prior experience with Unity Editor.
+We strongly recommend you finish [Phase 1 of the Perception Tutorial](../Tutorial/Phase1.md) before continuing with this one, especially if you do not have prior experience with Unity Editor. This tutorial requires at least version **0.7.0-preview.3** of the Perception package.
 
-Through-out the tutorial, lines starting with bullet points followed by **":green_circle: Action:"** denote the individual actions you will need to perform in order to progress through the tutorial. This is while the rest of the text will provide additional context and explanation around the actions. If in a hurry, you can just follow the actions!
+In this tutorial, **":green_circle: Action:"** mark all of the actions needed to progress through the tutorial. If you are in a hurry, just follow the actions!
 
 Steps included in this tutorial:
 
 * [Step 1: Import `.fbx` Models and Animations](#step-1)
 * [Step 2: Set Up a Humanoid Character in a Scene](#step-2)
 * [Step 3: Set Up the Perception Camera for Key Point Annotation](#step-3)
-* [Step 4: Configure Human Pose Estimation](#step-4)
+* [Step 4: Configure Animation Pose Labeling](#step-4)
 * [Step 5: Add Joints to the Character and Customize Key Points Templates](#step-5)
 * [Step 6: Randomize the Humanoid Character's Animations](#step-6)
 
@@ -37,7 +37,7 @@ Your Scenario should now look like this:
 We now need to import the sample files required for this tutorial.  
 
 * **:green_circle: Action**: Open _**Package Manager**_ and select the Perception package, which should already be present in the navigation pane to the left side. 
-* **:green_circle: Action**: From the list of ***Samples*** for the Perception package, click on the ***Import into Project*** button for the sample bundle named _**Human Pose Estimation**_.
+* **:green_circle: Action**: From the list of ***Samples*** for the Perception package, click on the ***Import into Project*** button for the sample bundle named _**Human Pose Labeling and Randomization**_.
 
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project, as seen in the image below:
 
@@ -45,12 +45,12 @@ Once the sample files are imported, they will be placed inside the `Assets/Sampl
 <img src="Images/project_folders_samples.png" width="600"/>
 </p>
 
-* **:green_circle: Action**: Select all of the asset inside the `Assets/Samples/Perception/<perception-package-version>/Human Pose Estimation/Models and Animations`.
+* **:green_circle: Action**: Select all of the asset inside the `Assets/Samples/Perception/<perception-package-version>/Human Pose Labeling and Randomization/Models and Animations`.
 * **:green_circle: Action**: In the _**Inspector**_ tab, navigate to the _**Rig**_ section. 
 
 Note how `Animation Type` is set to `Humanoid` for all selected assets. This is a requirement and makes sure all animations included in the sample `.fbx` files are ready to be used on a rigged humanoid model.
 
-> :information_source: The _**Rig**_ section includes a checkbox named `Optimize Game Objcets`. This flag is disabled for the included samples and we recommended you **disable** it on your own rigged models as well, so that all trasnforms included in your rig are exposed. If this flag is enabled, you will need to make sure all the joints you require for your workflow are selected in the list of `Extra Transforms to Expose`. This list is only displayed if the optimization checkbox is enabled.
+> :information_source: The _**Rig**_ section includes a checkbox named `Optimize Game Objects`. This flag is disabled on the included samples and we recommended you **disable** it on your rigged models as well so that all transforms included in your rig are exposed. If this flag is enabled, you will need to make sure all the joints you require for your workflow are selected in the list of `Extra Transforms to Expose`. This list is only displayed if the optimization checkbox is enabled.
 
 ### <a name="step-2">Step 2: Set Up a Humanoid Character in a Scene</a>
 
@@ -62,10 +62,10 @@ Note how `Animation Type` is set to `Humanoid` for all selected assets. This is 
 </p>
 
 The `Player` object already has an `Animator` component attached. This is because the `Animation Type` property of all the sample `.fbx` files is set to `Humanoid`.
-We will now need to attach an `Animation Controller` to the `Animator` component, in order for our character to animate.
+To animate our character, we will now attach an `Animation Controller` to the `Animator` component.
 
 * **:green_circle: Action**: Create a new `Animation Controller` asset in your `Assets` folder and name it `TestAnimationController`.
-* **:green_circle: Action**: Double click the new controller to open it. Then right click in the empty area and select _**Create State**_ -> _**Empty**_. 
+* **:green_circle: Action**: Double click the new controller to open it. Then right-click in the empty area and select _**Create State**_ -> _**Empty**_. 
   
 <p align="center">
 <img src="Images/anim_controller_1.png" width="600"/>
@@ -124,7 +124,7 @@ The labeler should now look like the image below:
 <img src="Images/keypoint_labeler.png" width="500"/>
 </p> 
 
-Note the `CocoKeypointTemplate` asset that is already assigned as the `Active Template`. This template will tell the labeler how to map default Unity rig joints to human joint labels in the popular COCO dataset, so that the output of the labeler can be easily converted to COCO format. Later in this tutorial, we will learn how to add more joints to our character and how to customize joint mapping templates.
+Note the `CocoKeypointTemplate` asset that is already assigned as the `Active Template`. This template will tell the labeler how to map default Unity rig joints to human joint labels in the popular COCO dataset so that the output of the labeler can be easily converted to COCO format. Later in this tutorial, we will learn how to add more joints to our character and how to customize joint mapping templates.
 
 <p align="center">
 <img src="Images/take_objects_keypoints.gif" width="600"/>
@@ -252,7 +252,7 @@ In the above annotation, all of the 18 joints defined in the COCO template we us
 
 You may also note that the `pose` field has a value of `unset`. This is because we have not defined poses for our animation clip and `Perception Camera` yet. We will do this next.
 
-### <a name="step-4">Step 4: Configure Human Pose Estimation</a> 
+### <a name="step-4">Step 4: Configure Animation Pose Labeling</a> 
 
 * **:green_circle: Action**: In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Animation Pose Config**_. Name the new asset `MyAnimationPoseConfig`.
 
@@ -286,7 +286,7 @@ If you run the simulation again to generate a new dataset, you will see the new 
 
 ### <a name="step-5">Step 5: Add Joints to the Character and Customize Key Points Templates</a> 
 
-The `CocoKeypointTemplate` asset that we are using on our `KeyPointLabeler` maps all of the joints included in the rigged character to their corresponding COCO labels. However, the industry standard character rigs used in Unity do not include some of the joints that are included in the COCO format. As we saw earlier, these joints appear with a state of **0** and coordinates of (0,0) in our current dataset. These joints are:
+The `CocoKeypointTemplate` asset that we are using on our `KeyPointLabeler` maps all of the joints included in the rigged character to their corresponding COCO labels. However, the character rigs used in Unity do not include some of the joints that are included in the COCO format. As we saw earlier, these joints appear with a state of **0** and coordinates of (0,0) in our current dataset. These joints are:
 
 * Nose
 * Left Ear
@@ -296,14 +296,14 @@ We will now add these joints to our character using labels that are defined in t
 
 * **:green_circle: Action**: In the UI for the `KeyPointLabeler` on `Perception Camera`, click on `CocoKeypointTemplate` to reveal the asset in the _**Project**_ tab, then click the asset to open it.
 
-In the _**Inspector**_ view of `CocoKeypointTemplate`, you will see the list of 18 key points of the COCO standard. If you expand each key point, you can see a number of options. The `Label` property defines a string that can be used for mapping custom joints on the character to this template (we will do this shortly). The `Associate To Rig` flag denotes whether this key point can be directly mapped to a standard Unity key point in the rigged character. If this flag is enabled, the key point will then be mapped to the `Rig Label` chosen below it. The `Rig Label` dropdown displays a list of all standard joints available in rigged characters in Unity. In our case here, the list does not include the nose joint, that is why the `nose` key point has `Associate To Rig` disabled. If you look at an example that does exist in the list of standard joints (e.g. `neck`), the `Associate to Rig` flag is enabled, and the proper corresponding joint is selected as `Rig Label`. Note that when `Associate To Rig` is disabled, the `Rig Label` property is ignored. The image below depicts the nose and neck examples:
+In the _**Inspector**_ view of `CocoKeypointTemplate`, you will see the list of 18 key points of the COCO standard. If you expand each key point, you can see several options. The `Label` property defines a string that can be used for mapping custom joints on the character to this template (we will do this shortly). The `Associate To Rig` flag denotes whether this key point can be directly mapped to a standard Unity key point in the rigged character. If this flag is enabled, the key point will then be mapped to the `Rig Label` chosen below it. The `Rig Label` dropdown displays a list of all standard joints available in rigged characters in Unity. In our case the list does not include the nose joint, so the `nose` key point has `Associate To Rig` disabled. If you look at an example that does exist in the list of standard joints (e.g. `neck`), the `Associate to Rig` flag is enabled, and the proper corresponding joint is selected as `Rig Label`. Note that when `Associate To Rig` is disabled, the `Rig Label` property is ignored. The image below depicts the nose and neck examples:
 
 
 <p align="center">
 <img src="Images/coco_template.png" width="500"/>
 </p> 
 
-If you review the list you will see the other two joints besides `nose` that are not associated to the rig are `left_ear` and `right_ear`.
+If you review the list you will see that the `left_ear` and `right_ear` joints are also not associated with the rig.
 
 * **:green_circle: Action**: Expand the `Player` object's hierarchy in the scene to find the `Head` object. 
 
@@ -329,7 +329,7 @@ You could now look at the latest generated dataset to confirm the new joints are
 
 ### <a name="step-6">Step 6: Randomize the Humanoid Character's Animations</a> 
 
-The final step of this tutorial is to randomize the animations of the character, so that we can generate large amounts of data with varied animations and timestamps for computer vision training.
+The final step of this tutorial is to add pose diversity to the datasets by randomizing the character's animation.
 
 * **:green_circle: Action**: Add the `Animation Randomizer` to the list of Randomizers in the `Simulation Scenario` object.
 * **:green_circle: Action**: Set the Scenario's number of `Frames Per Iteration` to 150 and the number of `Total Iterations` to 20.
@@ -339,7 +339,7 @@ The `Animation Randomizer Tag` accepts a list of animation clips. At runtime, th
 
 * **:green_circle: Action**: Add four options to the `Animation Randomizer Tag` list. Then populate these options with the animation clips originating from the files `Run.fbx`, `Walk.fbx`, `PutGlassesOn.fbx`, and `Idle.fbx` (these are just examples; you can try any number or choice of rig animation clips).
 
-If you run the simulation now, your character will randomly perform one of the above four animations, each for 150 frames. This cycle will recur 20 times, which is the total number of Iterations in you Scenario.   
+If you run the simulation now, your character will randomly perform one of the above four animations, each for 150 frames. This cycle will recur 20 times, which is the total number of Iterations in your Scenario.   
 
 <p align="center">
 <img src="Images/randomized_results.gif" width="600"/>
@@ -347,4 +347,4 @@ If you run the simulation now, your character will randomly perform one of the a
 
 > :information_source: The reason the character stops animating at certain points in the above GIF is that the animation clips are not set to loop. Therefore, if the randomly selected timestamp is sufficiently close to the end of the clip, the character will complete the animation and stop animating for the rest of the Iteration.
 
-This concludes the Human Pose Estimation Tutorial. Thank you for following these instructions with us. In case of any issues or questions, please feel free to open a GitHub issue on the `com.unity.perception` repository so that the Unity Computer Vision team can get back to you as soon as possible.
+This concludes the Human Pose Labeling and Randomization Tutorial. In case of any issues or questions, please feel free to open a GitHub issue on the `com.unity.perception` repository so that the Unity Computer Vision team can get back to you as soon as possible.

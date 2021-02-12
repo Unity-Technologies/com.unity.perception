@@ -193,9 +193,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 #if !UNITY_EDITOR
             var args = Environment.GetCommandLineArgs();
             var filePath = string.Empty;
-            for (var i = 0; i < args.Length; i++)
+            for (var i = 0; i < args.Length - 1; i++)
             {
-                if (args[i] == "--scenario-config-file" && args.Length > i + 1)
+                if (args[i] == "--scenario-config-file")
                 {
                     filePath = args[i + 1];
                     break;

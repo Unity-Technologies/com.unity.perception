@@ -88,6 +88,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
     class BooleanScalarValue : IScalarValue
     {
+        [JsonProperty("bool")]
         public bool boolean;
     }
     #endregion

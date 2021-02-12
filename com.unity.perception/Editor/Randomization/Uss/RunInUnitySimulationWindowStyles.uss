@@ -1,0 +1,18 @@
+﻿.sim-window__header-1 {
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 1px;
+    margin-left: 2px;
+}
+
+.sim-window__container-outer {
+    background-color: #2A2A2A;
+    margin-bottom: 8px;
+    margin-top: 2px;
+    padding: 2px;
+}
+
+.sim-window__label-prev-result {
+    padding: 2 2 0 1; /*top, right, bottom, left*/
+    margin: 1 3 1 3;
+}

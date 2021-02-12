@@ -16,7 +16,7 @@
 
             <Label text="Optional Configuration" class="sim-window__header-1" style="margin-top: 18px;"/>
             <editor:ObjectField name="scenario-config" label="Scenario JSON Config" allow-scene-object="false"
-                tooltip="Choose a JSON configuration to load during the run.
+                tooltip="Selects a scenario JSON configuration to load during the run.
                     You can leave this option blank to use the scenario settings currently configured in the editor."/>
 
             <VisualElement style="align-items: center; margin-top: 8px;">

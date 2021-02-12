@@ -30,7 +30,10 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         protected override void OnStart()
         {
             if (Configuration.Instance.IsSimulationRunningInCloud())
+            {
                 DeserializeFromFile(new Uri(Configuration.Instance.SimulationConfig.app_param_uri).LocalPath);
+                constants.instanceIndex = int.Parse(Configuration.Instance.GetInstanceId()) - 1;
+            }
             else
                 base.OnStart();
             currentIteration = constants.instanceIndex;

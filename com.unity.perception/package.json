@@ -20,9 +20,9 @@
       "path" : "Samples~/Tutorial Files"
     },
     {
-      "displayName": "Human Pose Estimation",
-      "description": "These files accompany the Human Pose Estimation Tutorial, found at https://github.com/Unity-Technologies/com.unity.perception",
-      "path" : "Samples~/Human Pose Estimation"
+      "displayName": "Human Pose Labeling and Randomization",
+      "description": "These files accompany the Human Pose Labeling and Randomization Tutorial, found at https://github.com/Unity-Technologies/com.unity.perception",
+      "path" : "Samples~/Human Pose Labeling and Randomization"
     }
   ]
 }

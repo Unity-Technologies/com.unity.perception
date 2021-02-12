@@ -4,12 +4,21 @@
         <VisualElement class="sim-window__container-outer">
             <Label text="Simulation Parameters" class="sim-window__header-1"/>
             <TextField name="run-name" label="Run Name"/>
-            <editor:IntegerField name="total-iterations" label="Total Iterations"/>
-            <editor:IntegerField name="instance-count" label="Instance Count" max-value="10000"/>
-            <VisualElement class="unity-base-field">
+            <editor:IntegerField name="total-iterations" label="Total Iterations"
+                tooltip="The number of scenario iterations to execute"/>
+            <editor:IntegerField name="instance-count" label="Instance Count" max-value="10000"
+                tooltip="The number of instances to distribute the work load across"/>
+            <VisualElement class="unity-base-field"
+                           tooltip="The compute resources configuration to execute the simulation with">
                 <Label text="Sys-Param" class="unity-base-field__label"/>
                 <editor:ToolbarMenu name="sys-param" class="unity-base-field__input" style="border-width: 1px;"/>
             </VisualElement>
+
+            <Label text="Optional Configuration" class="sim-window__header-1" style="margin-top: 10px;"/>
+            <editor:ObjectField name="scenario-config" label="Scenario JSON Config" allow-scene-object="false"
+                tooltip="Choose a JSON configuration to load during the run.
+                    You can leave this option blank to use the scenario settings currently configured in the editor."/>
+
             <VisualElement style="align-items: center;">
                 <Button name="run-button" text="Build and Run" style="margin: 10px; padding: 2 20; font-size: 13px;"/>
             </VisualElement>

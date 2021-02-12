@@ -24,7 +24,7 @@ namespace UnityEngine.Perception.GroundTruth
     public partial class PerceptionCamera : MonoBehaviour
     {
         //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
-        internal static string RgbDirectory { get; } = $"RGB{Guid.NewGuid()}";
+        internal string rgbDirectory { get; } = $"RGB{Guid.NewGuid()}";
         static string s_RgbFilePrefix = "rgb_";
 
         /// <summary>
@@ -156,8 +156,7 @@ namespace UnityEngine.Perception.GroundTruth
             return m_PersistentSensorData.Remove(key);
         }
 
-        // Start is called before the first frame update
-        void Awake()
+        void Start()
         {
             AsyncRequest.maxJobSystemParallelism = 0; // Jobs are not chained to one another in any way, maximizing parallelism
             AsyncRequest.maxAsyncRequestFrameAge = 4; // Ensure that readbacks happen before Allocator.TempJob allocations get stale
@@ -381,14 +380,13 @@ namespace UnityEngine.Perception.GroundTruth
             // Record the camera's projection matrix
             SetPersistentSensorData("camera_intrinsic", ToProjectionMatrix3x3(cam.projectionMatrix));
 
-            var captureFilename = $"{Manager.Instance.GetDirectoryFor(RgbDirectory)}/{s_RgbFilePrefix}{Time.frameCount}.png";
-            var dxRootPath = $"{RgbDirectory}/{s_RgbFilePrefix}{Time.frameCount}.png";
+            var captureFilename = $"{Manager.Instance.GetDirectoryFor(rgbDirectory)}/{s_RgbFilePrefix}{Time.frameCount}.png";
+            var dxRootPath = $"{rgbDirectory}/{s_RgbFilePrefix}{Time.frameCount}.png";
             SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(m_EgoMarker == null ? null : m_EgoMarker.gameObject, gameObject), m_PersistentSensorData.Select(kvp => (kvp.Key, kvp.Value)).ToArray());
 
             Func<AsyncRequest<CaptureCamera.CaptureState>, AsyncRequest.Result> colorFunctor;
             var width = cam.pixelWidth;
             var height = cam.pixelHeight;
-            var flipY = ShouldFlipY(cam);
 
             colorFunctor = r =>
             {
@@ -412,23 +410,6 @@ namespace UnityEngine.Perception.GroundTruth
             CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
 #endif
             Profiler.EndSample();
-        }
-
-        // ReSharper disable once ParameterHidesMember
-        bool ShouldFlipY(Camera camera)
-        {
-
-#if HDRP_PRESENT
-            var hdAdditionalCameraData = GetComponent<HDAdditionalCameraData>();
-
-            //Based on logic in HDRenderPipeline.PrepareFinalBlitParameters
-            return hdAdditionalCameraData.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || (camera.targetTexture == null && camera.cameraType == CameraType.Game);
-#elif URP_PRESENT
-            return (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal) &&
-                (camera.targetTexture == null && camera.cameraType == CameraType.Game);
-#else
-            return false;
-#endif
         }
 
         void OnSimulationEnding()

@@ -22,13 +22,14 @@ namespace EditorTests
         public IEnumerator EditorPause_DoesNotLogErrors()
         {
             ResetScene();
-            SetupCamera(p =>
+            var cameraObject = SetupCamera(p =>
             {
                 var idLabelConfig = ScriptableObject.CreateInstance<IdLabelConfig>();
                 p.captureRgbImages = true;
                 p.AddLabeler(new BoundingBox2DLabeler(idLabelConfig));
                 p.AddLabeler(new RenderedObjectInfoLabeler(idLabelConfig));
             });
+            cameraObject.name = "Camera";
             yield return new EnterPlayMode();
             var expectedFirstFrame = Time.frameCount;
             yield return null;
@@ -48,7 +49,7 @@ namespace EditorTests
             var capturesJson = File.ReadAllText(capturesPath);
             for (int iFrameCount = expectedFirstFrame; iFrameCount <= expectedLastFrame; iFrameCount++)
             {
-                var imagePath = $"{PerceptionCamera.RgbDirectory}/rgb_{iFrameCount}";
+                var imagePath = $"{GameObject.Find("Camera").GetComponent<PerceptionCamera>().rgbDirectory}/rgb_{iFrameCount}";
                 StringAssert.Contains(imagePath, capturesJson);
             }
 

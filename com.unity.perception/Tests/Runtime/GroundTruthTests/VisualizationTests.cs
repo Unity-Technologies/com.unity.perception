@@ -59,8 +59,8 @@ namespace GroundTruthTests
 
             Assert.IsNotNull(GameObject.Find("overlay_canvas"));
         }
-        [Test]
-        public void TwoCamerasVisualizing_CausesWarningAndDisablesVisualization()
+        [UnityTest]
+        public IEnumerator TwoCamerasVisualizing_CausesWarningAndDisablesVisualization()
         {
             var object1 = new GameObject();
             object1.name = nameof(TwoCamerasVisualizing_CausesWarningAndDisablesVisualization);
@@ -79,8 +79,11 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(object2);
 
             object1.SetActive(true);
+            yield return null;
             LogAssert.Expect(LogType.Warning, $"Currently only one PerceptionCamera may be visualized at a time. Disabling visualization on {nameof(TwoCamerasVisualizing_CausesWarningAndDisablesVisualization)}2.");
+            LogAssert.ignoreFailingMessages = true;
             object2.SetActive(true);
+            yield return null;
         }
         [UnityTest]
         public IEnumerator DestroyCamera_RemovesVisualization()

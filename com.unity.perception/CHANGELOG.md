@@ -13,9 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-Scenario serialization has been updated to include scalar values on randomizers and parameters
+Scenario serialization has been updated to include scalar values on randomizers and parameters.
 
-Added new ScenarioBase virtual lifecycle hooks: OnAwake, OnStart, OnComplete, and OnIdle
+Added new ScenarioBase virtual lifecycle hooks: OnAwake, OnStart, OnComplete, and OnIdle.
 
 ### Changed
 

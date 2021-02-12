@@ -28,20 +28,23 @@ namespace UnityEditor.Perception.Randomization
             CreatePropertyFields();
             CheckIfConstantsExist();
 
-            var serializeConstantsButton = m_Root.Q<Button>("serialize");
+            var serializeConstantsButton = m_Root.Q<Button>("generate-json-config");
             serializeConstantsButton.clicked += () =>
             {
-                m_Scenario.SerializeToFile();
+                var filePath = EditorUtility.SaveFilePanel(
+                    "Generate Scenario JSON Configuration", Application.dataPath, "scenarioConfiguration", "json");
+                m_Scenario.SerializeToFile(filePath);
                 AssetDatabase.Refresh();
-                var newConfigFileAsset = AssetDatabase.LoadAssetAtPath<Object>(m_Scenario.defaultConfigFileAssetPath);
-                EditorGUIUtility.PingObject(newConfigFileAsset);
+                EditorUtility.RevealInFinder(filePath);
             };
 
-            var deserializeConstantsButton = m_Root.Q<Button>("deserialize");
+            var deserializeConstantsButton = m_Root.Q<Button>("import-json-config");
             deserializeConstantsButton.clicked += () =>
             {
+                var filePath = EditorUtility.OpenFilePanel(
+                    "Import Scenario JSON Configuration", Application.dataPath, "json");
                 Undo.RecordObject(m_Scenario, "Deserialized scenario configuration");
-                m_Scenario.DeserializeFromFile(m_Scenario.defaultConfigFilePath);
+                m_Scenario.DeserializeFromFile(filePath);
             };
 
             return m_Root;

@@ -258,7 +258,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             else if (scalar.value is BooleanScalarValue booleanValue)
                 value = booleanValue.boolean;
             else if (scalar.value is DoubleScalarValue doubleValue)
-                value = doubleValue;
+                value = doubleValue.num;
             else
                 throw new ArgumentException(
                     $"Cannot deserialize unsupported scalar type {scalar.value.GetType()}");

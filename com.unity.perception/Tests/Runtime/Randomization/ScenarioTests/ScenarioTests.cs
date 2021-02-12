@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.IO;
-using System.Text;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
 using UnityEngine.Perception.Randomization.Samplers;
@@ -36,7 +33,6 @@ namespace RandomizationTests
         IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration)
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
-            m_Scenario.quitOnComplete = false;
             m_Scenario.constants.totalIterations = totalIterations;
             m_Scenario.constants.framesPerIteration = framesPerIteration;
             yield return null; // Skip Start() frame
@@ -48,7 +44,7 @@ namespace RandomizationTests
         {
             m_TestObject = new GameObject();
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
-            m_Scenario.CreateRandomizer<RotationRandomizer>();
+            m_Scenario.AddRandomizer(new RotationRandomizer());
 
             string RemoveWhitespace(string str) =>
                 string.Join("", str.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));

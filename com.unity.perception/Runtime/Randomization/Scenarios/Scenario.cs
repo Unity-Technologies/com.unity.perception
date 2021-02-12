@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine.Perception.Randomization.Scenarios.Serialization;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -16,11 +15,5 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         /// <inheritdoc/>
         public override ScenarioConstants genericConstants => constants;
-
-        /// <inheritdoc/>
-        public override void DeserializeFromJson(string json)
-        {
-            ScenarioSerializer.Deserialize(this, json);
-        }
     }
 }

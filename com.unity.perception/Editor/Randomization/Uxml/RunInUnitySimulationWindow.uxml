@@ -27,6 +27,7 @@
         <VisualElement class="sim-window__container-outer">
             <Label text="Previous Run Information" class="sim-window__header-1"/>
 
+            <Label name="prev-run-name" text="Run Name: " class="sim-window__label-prev-result"/>
             <Label name="project-id" text="Project ID: " class="sim-window__label-prev-result"/>
             <Label name="execution-id" text="Execution ID: " class="sim-window__label-prev-result"/>
 

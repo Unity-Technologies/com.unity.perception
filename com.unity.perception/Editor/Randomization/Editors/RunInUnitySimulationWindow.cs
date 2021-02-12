@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -24,16 +26,14 @@ namespace UnityEditor.Perception.Randomization
         IntegerField m_InstanceCountField;
         TextField m_RunNameField;
         IntegerField m_TotalIterationsField;
+        ToolbarMenu m_SysParamMenu;
         int m_SysParamIndex;
-        ObjectField m_ScenarioConfig;
+        ObjectField m_ScenarioConfigField;
         Button m_RunButton;
-        Label m_PrevProjectId;
-        Label m_PrevExecutionId;
-
-        static string currentOpenScenePath => SceneManager.GetSceneAt(0).path;
-        static ScenarioBase currentScenario => FindObjectOfType<ScenarioBase>();
-        TextAsset scenarioConfig => (TextAsset)m_ScenarioConfig.value;
-        string scenarioConfigAssetPath => AssetDatabase.GetAssetPath(scenarioConfig);
+        Label m_PrevRunNameLabel;
+        Label m_ProjectIdLabel;
+        Label m_PrevExecutionIdLabel;
+        RunParameters m_RunParameters;
 
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
@@ -91,46 +91,36 @@ namespace UnityEditor.Perception.Randomization
                 $"{StaticData.uxmlDir}/RunInUnitySimulationWindow.uxml").CloneTree(root);
 
             m_RunNameField = root.Q<TextField>("run-name");
-            m_RunNameField.value = PlayerPrefs.GetString("SimWindow/runName");
-
             m_TotalIterationsField = root.Q<IntegerField>("total-iterations");
-            m_TotalIterationsField.value = PlayerPrefs.GetInt("SimWindow/totalIterations");
-
             m_InstanceCountField = root.Q<IntegerField>("instance-count");
-            m_InstanceCountField.value = PlayerPrefs.GetInt("SimWindow/instanceCount");
 
             m_SysParamDefinitions = API.GetSysParams();
-            var sysParamMenu = root.Q<ToolbarMenu>("sys-param");
+            m_SysParamMenu = root.Q<ToolbarMenu>("sys-param");
             for (var i = 0; i < m_SysParamDefinitions.Length; i++)
             {
                 var index = i;
                 var param = m_SysParamDefinitions[i];
-                sysParamMenu.menu.AppendAction(
+                m_SysParamMenu.menu.AppendAction(
                     param.description,
                     action =>
                     {
                         m_SysParamIndex = index;
-                        sysParamMenu.text = param.description;
+                        m_SysParamMenu.text = param.description;
                     });
             }
 
-            m_SysParamIndex = PlayerPrefs.GetInt("SimWindow/sysParamIndex");
-            sysParamMenu.text = m_SysParamDefinitions[m_SysParamIndex].description;
-
-            m_ScenarioConfig = root.Q<ObjectField>("scenario-config");
-            m_ScenarioConfig.objectType = typeof(TextAsset);
+            m_ScenarioConfigField = root.Q<ObjectField>("scenario-config");
+            m_ScenarioConfigField.objectType = typeof(TextAsset);
             var configPath = PlayerPrefs.GetString("SimWindow/scenarioConfig");
             if (configPath != string.Empty)
-                m_ScenarioConfig.value = AssetDatabase.LoadAssetAtPath<TextAsset>(configPath);
+                m_ScenarioConfigField.value = AssetDatabase.LoadAssetAtPath<TextAsset>(configPath);
 
             m_RunButton = root.Q<Button>("run-button");
             m_RunButton.clicked += RunInUnitySimulation;
 
-            m_PrevProjectId = root.Q<Label>("project-id");
-            m_PrevProjectId.text = $"Project ID: {CloudProjectSettings.projectId}";
-
-            m_PrevExecutionId = root.Q<Label>("execution-id");
-            m_PrevExecutionId.text = $"Execution ID: {PlayerPrefs.GetString("SimWindow/prevExecutionId")}";
+            m_PrevRunNameLabel = root.Q<Label>("prev-run-name");
+            m_ProjectIdLabel = root.Q<Label>("project-id");
+            m_PrevExecutionIdLabel = root.Q<Label>("execution-id");
 
             var copyExecutionIdButton = root.Q<Button>("copy-execution-id");
             copyExecutionIdButton.clicked += () =>
@@ -139,20 +129,62 @@ namespace UnityEditor.Perception.Randomization
             var copyProjectIdButton = root.Q<Button>("copy-project-id");
             copyProjectIdButton.clicked += () =>
                 EditorGUIUtility.systemCopyBuffer = CloudProjectSettings.projectId;
+
+            SetFieldsFromPlayerPreferences();
+        }
+
+        void SetFieldsFromPlayerPreferences()
+        {
+            m_RunNameField.value = IncrementRunName(PlayerPrefs.GetString("SimWindow/runName"));
+            m_TotalIterationsField.value = PlayerPrefs.GetInt("SimWindow/totalIterations");
+            m_InstanceCountField.value = PlayerPrefs.GetInt("SimWindow/instanceCount");
+            m_SysParamIndex = PlayerPrefs.GetInt("SimWindow/sysParamIndex");
+            m_SysParamMenu.text = m_SysParamDefinitions[m_SysParamIndex].description;
+            m_PrevRunNameLabel.text = $"Run Name: {PlayerPrefs.GetString("SimWindow/runName")}";
+            m_ProjectIdLabel.text = $"Project ID: {CloudProjectSettings.projectId}";
+            m_PrevExecutionIdLabel.text = $"Execution ID: {PlayerPrefs.GetString("SimWindow/prevExecutionId")}";
+        }
+
+        static string IncrementRunName(string runName)
+        {
+            if (string.IsNullOrEmpty(runName))
+                return "Run0";
+            var stack = new Stack<char>();
+            var i = runName.Length - 1;
+            for (; i >= 0; i--)
+            {
+                if (!char.IsNumber(runName[i]))
+                    break;
+                stack.Push(runName[i]);
+            }
+            if (stack.Count == 0)
+                return runName + "1";
+            var numericString = string.Concat(stack.ToArray());
+            var runVersion = int.Parse(numericString) + 1;
+            return runName.Substring(0, i + 1) + runVersion;
         }
 
         async void RunInUnitySimulation()
         {
+            m_RunParameters = new RunParameters
+            {
+                runName = m_RunNameField.value,
+                totalIterations = m_TotalIterationsField.value,
+                instanceCount = m_InstanceCountField.value,
+                sysParamIndex = m_SysParamIndex,
+                scenarioConfig = (TextAsset)m_ScenarioConfigField.value,
+                currentOpenScenePath = SceneManager.GetSceneAt(0).path,
+                currentScenario = FindObjectOfType<ScenarioBase>()
+            };
             var runGuid = Guid.NewGuid();
             PerceptionEditorAnalytics.ReportRunInUnitySimulationStarted(
                 runGuid,
-                m_TotalIterationsField.value,
-                m_InstanceCountField.value,
+                m_RunParameters.totalIterations,
+                m_RunParameters.instanceCount,
                 null);
             try
             {
                 ValidateSettings();
-                SetNewPlayerPreferences();
                 CreateLinuxBuildAndZip();
                 await StartUnitySimulationRun(runGuid);
             }
@@ -166,40 +198,36 @@ namespace UnityEditor.Perception.Randomization
 
         void ValidateSettings()
         {
-            if (string.IsNullOrEmpty(m_RunNameField.value))
+            if (string.IsNullOrEmpty(m_RunParameters.runName))
                 throw new MissingFieldException("Empty run name");
-            if (string.IsNullOrEmpty(currentOpenScenePath))
+            if (m_RunParameters.instanceCount <= 0)
+                throw new NotSupportedException("Invalid instance count specified");
+            if (m_RunParameters.totalIterations <= 0)
+                throw new NotSupportedException("Invalid total iteration count specified");
+            if (string.IsNullOrEmpty(m_RunParameters.currentOpenScenePath))
                 throw new MissingFieldException("Invalid scene path");
-            if (currentScenario == null)
+            if (m_RunParameters.currentScenario == null)
                 throw new MissingFieldException(
                     "There is not a Unity Simulation compatible scenario present in the scene");
-            if (!StaticData.IsSubclassOfRawGeneric(typeof(UnitySimulationScenario<>), currentScenario.GetType()))
+            if (!StaticData.IsSubclassOfRawGeneric(
+                typeof(UnitySimulationScenario<>), m_RunParameters.currentScenario.GetType()))
                 throw new NotSupportedException(
                     "Scenario class must be derived from UnitySimulationScenario to run in Unity Simulation");
-            if (scenarioConfig != null && Path.GetExtension(scenarioConfigAssetPath) != ".json")
+            if (m_RunParameters.scenarioConfig != null &&
+                Path.GetExtension(m_RunParameters.scenarioConfigAssetPath) != ".json")
                 throw new NotSupportedException(
                     "Scenario configuration must be a JSON text asset");
         }
 
-        void SetNewPlayerPreferences()
-        {
-            PlayerPrefs.SetString("SimWindow/runName", m_RunNameField.value);
-            PlayerPrefs.SetInt("SimWindow/totalIterations", m_TotalIterationsField.value);
-            PlayerPrefs.SetInt("SimWindow/instanceCount", m_InstanceCountField.value);
-            PlayerPrefs.SetInt("SimWindow/sysParamIndex", m_SysParamIndex);
-            PlayerPrefs.SetString("SimWindow/scenarioConfig",
-                scenarioConfig != null ? scenarioConfigAssetPath : string.Empty);
-        }
-
         void CreateLinuxBuildAndZip()
         {
-            var projectBuildDirectory = $"{m_BuildDirectory}/{m_RunNameField.value}";
+            var projectBuildDirectory = $"{m_BuildDirectory}/{m_RunParameters.runName}";
             if (!Directory.Exists(projectBuildDirectory))
                 Directory.CreateDirectory(projectBuildDirectory);
             var buildPlayerOptions = new BuildPlayerOptions
             {
-                scenes = new[] { currentOpenScenePath },
-                locationPathName = Path.Combine(projectBuildDirectory, $"{m_RunNameField.value}.x86_64"),
+                scenes = new[] { m_RunParameters.currentOpenScenePath },
+                locationPathName = Path.Combine(projectBuildDirectory, $"{m_RunParameters.runName}.x86_64"),
                 target = BuildTarget.StandaloneLinux64
             };
             var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
@@ -208,29 +236,29 @@ namespace UnityEditor.Perception.Randomization
                 throw new Exception($"The Linux build did not succeed: status = {summary.result}");
 
             EditorUtility.DisplayProgressBar("Unity Simulation Run", "Zipping Linux build...", 0f);
-            Zip.DirectoryContents(projectBuildDirectory, m_RunNameField.value);
+            Zip.DirectoryContents(projectBuildDirectory, m_RunParameters.runName);
             m_BuildZipPath = projectBuildDirectory + ".zip";
         }
 
         List<AppParam> UploadAppParam()
         {
             var appParamIds = new List<AppParam>();
-            var configuration = JObject.Parse(scenarioConfig != null
-                ? File.ReadAllText(scenarioConfigAssetPath)
-                : currentScenario.SerializeToJson());
+            var configuration = JObject.Parse(m_RunParameters.scenarioConfig != null
+                ? File.ReadAllText(m_RunParameters.scenarioConfigAssetPath)
+                : m_RunParameters.currentScenario.SerializeToJson());
 
             var constants = configuration["constants"];
-            constants["totalIterations"] = m_TotalIterationsField.value;
-            constants["instanceCount"] = m_InstanceCountField.value;
+            constants["totalIterations"] = m_RunParameters.totalIterations;
+            constants["instanceCount"] = m_RunParameters.instanceCount;
 
-            var appParamName = $"{m_RunNameField.value}";
+            var appParamName = $"{m_RunParameters.runName}";
             var appParamsString = JsonConvert.SerializeObject(configuration, Formatting.Indented);
             var appParamId = API.UploadAppParam(appParamName, appParamsString);
             appParamIds.Add(new AppParam
             {
                 id = appParamId,
                 name = appParamName,
-                num_instances = m_InstanceCountField.value
+                num_instances = m_RunParameters.instanceCount
             });
             return appParamIds;
         }
@@ -243,7 +271,7 @@ namespace UnityEditor.Perception.Randomization
             var cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
             var buildId = await API.UploadBuildAsync(
-                m_RunNameField.value,
+                m_RunParameters.runName,
                 m_BuildZipPath,
                 null, null,
                 cancellationTokenSource,
@@ -268,8 +296,8 @@ namespace UnityEditor.Perception.Randomization
             var runDefinitionId = API.UploadRunDefinition(new RunDefinition
             {
                 app_params = appParams.ToArray(),
-                name = m_RunNameField.value,
-                sys_param_id = m_SysParamDefinitions[m_SysParamIndex].id,
+                name = m_RunParameters.runName,
+                sys_param_id = m_SysParamDefinitions[m_RunParameters.sysParamIndex].id,
                 build_id = buildId
             });
 
@@ -282,8 +310,30 @@ namespace UnityEditor.Perception.Randomization
             m_RunButton.SetEnabled(true);
             EditorUtility.ClearProgressBar();
             PerceptionEditorAnalytics.ReportRunInUnitySimulationSucceeded(runGuid, run.executionId);
+
+            // Set new Player Preferences
+            PlayerPrefs.SetString("SimWindow/runName", m_RunParameters.runName);
             PlayerPrefs.SetString("SimWindow/prevExecutionId", run.executionId);
-            m_PrevExecutionId.text = $"Execution ID: {run.executionId}";
+            PlayerPrefs.SetInt("SimWindow/totalIterations", m_RunParameters.totalIterations);
+            PlayerPrefs.SetInt("SimWindow/instanceCount", m_RunParameters.instanceCount);
+            PlayerPrefs.SetInt("SimWindow/sysParamIndex", m_RunParameters.sysParamIndex);
+            PlayerPrefs.SetString("SimWindow/scenarioConfig",
+                m_RunParameters.scenarioConfig != null ? m_RunParameters.scenarioConfigAssetPath : string.Empty);
+
+            SetFieldsFromPlayerPreferences();
+        }
+
+        struct RunParameters
+        {
+            public string runName;
+            public int totalIterations;
+            public int instanceCount;
+            public int sysParamIndex;
+            public TextAsset scenarioConfig;
+            public string currentOpenScenePath;
+            public ScenarioBase currentScenario;
+
+            public string scenarioConfigAssetPath => AssetDatabase.GetAssetPath(scenarioConfig);
         }
     }
 }

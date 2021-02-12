@@ -29,7 +29,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         /// <summary>
         /// On some platforms, the simulation capture package cannot capture the first frame of output,
-        /// so this is used to track whether the first frame has been skipped yet.
+        /// so this field is used to track whether the first frame has been skipped yet.
         /// </summary>
         protected bool m_SkipFrame = true;
 

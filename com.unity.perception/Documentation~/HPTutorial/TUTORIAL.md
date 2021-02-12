@@ -10,9 +10,9 @@ Steps included in this tutorial:
 
 * [Step 1: Import `.fbx` Models and Animations](#step-1)
 * [Step 2: Set Up a Humanoid Character in a Scene](#step-2)
-* [Step 3: Set Up the Perception Camera for Key Point Annotation](#step-3)
+* [Step 3: Set Up the Perception Camera for Keypoint Annotation](#step-3)
 * [Step 4: Configure Animation Pose Labeling](#step-4)
-* [Step 5: Add Joints to the Character and Customize Key Points Templates](#step-5)
+* [Step 5: Add Joints to the Character and Customize Keypoint Templates](#step-5)
 * [Step 6: Randomize the Humanoid Character's Animations](#step-6)
 
 ### <a name="step-1">Step 1: Import `.fbx` Models and Animations</a> 
@@ -96,9 +96,9 @@ If you run the simulation now you will see the character performing an animation
 </p> 
 
 
-### <a name="step-3">Step 3: Set Up the Perception Camera for Key Point Annotation</a> 
+### <a name="step-3">Step 3: Set Up the Perception Camera for Keypoint Annotation</a> 
 
-Now that we have our character performing animations, let's modify our `Perception Camera` to report the character's key points in the output dataset, updating frame by frame as they animate.
+Now that we have our character performing animations, let's modify our `Perception Camera` to report the character's keypoints in the output dataset, updating frame by frame as they animate.
 
 * **:green_circle: Action**: Add a `KeyPointLabeler` to the list of labelers in `Perception Camera`. Also, make sure `Show Labeler Visualizations` is turned on so that you can verify the labeler working.
 
@@ -284,7 +284,7 @@ The pose configuration we created needs to be assigned to our `KeyPointLabeler`.
 
 If you run the simulation again to generate a new dataset, you will see the new poses we defined written in it. All frames that belong to a certain pose will have the pose label attached.
 
-### <a name="step-5">Step 5: Add Joints to the Character and Customize Key Points Templates</a> 
+### <a name="step-5">Step 5: Add Joints to the Character and Customize Keypoint Templates</a> 
 
 The `CocoKeypointTemplate` asset that we are using on our `KeyPointLabeler` maps all of the joints included in the rigged character to their corresponding COCO labels. However, the character rigs used in Unity do not include some of the joints that are included in the COCO format. As we saw earlier, these joints appear with a state of **0** and coordinates of (0,0) in our current dataset. These joints are:
 
@@ -296,7 +296,7 @@ We will now add these joints to our character using labels that are defined in t
 
 * **:green_circle: Action**: In the UI for the `KeyPointLabeler` on `Perception Camera`, click on `CocoKeypointTemplate` to reveal the asset in the _**Project**_ tab, then click the asset to open it.
 
-In the _**Inspector**_ view of `CocoKeypointTemplate`, you will see the list of 18 key points of the COCO standard. If you expand each key point, you can see several options. The `Label` property defines a string that can be used for mapping custom joints on the character to this template (we will do this shortly). The `Associate To Rig` flag denotes whether this key point can be directly mapped to a standard Unity key point in the rigged character. If this flag is enabled, the key point will then be mapped to the `Rig Label` chosen below it. The `Rig Label` dropdown displays a list of all standard joints available in rigged characters in Unity. In our case the list does not include the nose joint, so the `nose` key point has `Associate To Rig` disabled. If you look at an example that does exist in the list of standard joints (e.g. `neck`), the `Associate to Rig` flag is enabled, and the proper corresponding joint is selected as `Rig Label`. Note that when `Associate To Rig` is disabled, the `Rig Label` property is ignored. The image below depicts the nose and neck examples:
+In the _**Inspector**_ view of `CocoKeypointTemplate`, you will see the list of 18 keypoints of the COCO standard. If you expand each keypoint, you can see several options. The `Label` property defines a string that can be used for mapping custom joints on the character to this template (we will do this shortly). The `Associate To Rig` flag denotes whether this keypoint can be directly mapped to a standard Unity keypoint in the rigged character. If this flag is enabled, the keypoint will then be mapped to the `Rig Label` chosen below it. The `Rig Label` dropdown displays a list of all standard joints available in rigged characters in Unity. In our case the list does not include the nose joint, so the `nose` keypoint has `Associate To Rig` disabled. If you look at an example that does exist in the list of standard joints (e.g. `neck`), the `Associate to Rig` flag is enabled, and the proper corresponding joint is selected as `Rig Label`. Note that when `Associate To Rig` is disabled, the `Rig Label` property is ignored. The image below depicts the nose and neck examples:
 
 
 <p align="center">
@@ -315,7 +315,7 @@ We will create our three new joints under the `Head` object.
 <img src="Images/new_joints.gif" width="600"/>
 </p> 
 
-The final step in this process would be to label these new joints such that they match the labels of their corresponding key points in `CocoKeyPointTemplate`. For this purpose, we use the `Joint Label` component.
+The final step in this process would be to label these new joints such that they match the labels of their corresponding keypoints in `CocoKeypointTemplate`. For this purpose, we use the `Joint Label` component.
 
 * **:green_circle: Action**: Add a `Joint Label` component to each of the newly created joints. Then, for each joint, set `Size` to **1**, `Template` to `CocoKeypointTemplate`, and `Label` to the proper string (one of `nose`, `left_ear` or `right_ear`). These are also shown in the GIF above.
   

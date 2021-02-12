@@ -133,6 +133,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// Serializes the scenario's constants and randomizer settings to a JSON file located at the path resolved by
         /// the defaultConfigFilePath scenario property
         /// </summary>
+        /// <param name="filePath">The file path to serialize the scenario to</param>
         public virtual void SerializeToFile(string filePath)
         {
             ScenarioSerializer.SerializeToFile(this, filePath);

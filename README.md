@@ -23,8 +23,8 @@ Get your local Perception workspace up and running quickly. Recommended for user
 **[Perception Tutorial](com.unity.perception/Documentation~/Tutorial/TUTORIAL.md)**  
 Detailed instructions covering all the important steps from installing Unity Editor, to creating your first computer vision data generation project, building a randomized Scene, and generating large-scale synthetic datasets by leveraging the power of Unity Simulation.  No prior Unity experience required.
 
-**[Human Pose Estimation Tutorial](com.unity.perception/Documentation~/HPETutorial/TUTORIAL.md)**  
-Step by step instructions for using the Key Point and Human Pose Estimation tools included in the Perception Package. It is recommended that you finish Phase 1 of the Perception Tutorial above before starting this tutorial.
+**[Human Pose Labeling and Randomization Tutorial](com.unity.perception/Documentation~/HPTutorial/TUTORIAL.md)**  
+Step by step instructions for using the keypoint, pose, and animation randomization tools included in the Perception package. It is recommended that you finish Phase 1 of the Perception Tutorial above before starting this tutorial.
 
 ## Documentation
 In-depth documentation on individual components of the package. 

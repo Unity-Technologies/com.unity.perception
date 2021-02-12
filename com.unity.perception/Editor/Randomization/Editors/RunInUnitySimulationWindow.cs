@@ -22,15 +22,18 @@ namespace UnityEditor.Perception.Randomization
         string m_BuildZipPath;
         SysParamDefinition[] m_SysParamDefinitions;
         IntegerField m_InstanceCountField;
-        Button m_RunButton;
         TextField m_RunNameField;
-        int m_SysParamIndex;
         IntegerField m_TotalIterationsField;
+        int m_SysParamIndex;
+        ObjectField m_ScenarioConfig;
+        Button m_RunButton;
         Label m_PrevProjectId;
         Label m_PrevExecutionId;
 
         static string currentOpenScenePath => SceneManager.GetSceneAt(0).path;
         static ScenarioBase currentScenario => FindObjectOfType<ScenarioBase>();
+        TextAsset scenarioConfig => (TextAsset)m_ScenarioConfig.value;
+        string scenarioConfigAssetPath => AssetDatabase.GetAssetPath(scenarioConfig);
 
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
@@ -120,9 +123,14 @@ namespace UnityEditor.Perception.Randomization
                     });
             }
 
-
             m_SysParamIndex = PlayerPrefs.GetInt("SimWindow/sysParamIndex");
             sysParamMenu.text = m_SysParamDefinitions[m_SysParamIndex].description;
+
+            m_ScenarioConfig = root.Q<ObjectField>("scenario-config");
+            m_ScenarioConfig.objectType = typeof(TextAsset);
+            var configPath = PlayerPrefs.GetString("SimWindow/scenarioConfig");
+            if (configPath != string.Empty)
+                m_ScenarioConfig.value = AssetDatabase.LoadAssetAtPath<TextAsset>(configPath);
 
             m_RunButton = root.Q<Button>("run-button");
             m_RunButton.clicked += RunInUnitySimulation;
@@ -177,6 +185,9 @@ namespace UnityEditor.Perception.Randomization
             if (!StaticData.IsSubclassOfRawGeneric(typeof(UnitySimulationScenario<>), currentScenario.GetType()))
                 throw new NotSupportedException(
                     "Scenario class must be derived from UnitySimulationScenario to run in Unity Simulation");
+            if (scenarioConfig != null && Path.GetExtension(scenarioConfigAssetPath) != ".json")
+                throw new NotSupportedException(
+                    "Scenario configuration must be a JSON text asset");
         }
 
         void SetNewPlayerPreferences()
@@ -185,6 +196,8 @@ namespace UnityEditor.Perception.Randomization
             PlayerPrefs.SetInt("SimWindow/totalIterations", m_TotalIterationsField.value);
             PlayerPrefs.SetInt("SimWindow/instanceCount", m_InstanceCountField.value);
             PlayerPrefs.SetInt("SimWindow/sysParamIndex", m_SysParamIndex);
+            PlayerPrefs.SetString("SimWindow/scenarioConfig",
+                scenarioConfig != null ? scenarioConfigAssetPath : string.Empty);
         }
 
         void CreateLinuxBuildAndZip()
@@ -218,7 +231,9 @@ namespace UnityEditor.Perception.Randomization
         List<AppParam> GenerateAppParamIds(CancellationToken token, float progressStart, float progressEnd)
         {
             var appParamIds = new List<AppParam>();
-            var configuration = JObject.Parse(currentScenario.SerializeToJson());
+            var configuration = JObject.Parse(scenarioConfig != null
+                ? File.ReadAllText(scenarioConfigAssetPath)
+                : currentScenario.SerializeToJson());
             var constants = configuration["constants"];
 
             constants["totalIterations"] = m_TotalIterationsField.value;

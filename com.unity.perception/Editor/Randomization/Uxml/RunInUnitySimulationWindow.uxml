@@ -16,12 +16,12 @@
         </VisualElement>
 
         <VisualElement class="sim-window__container-outer">
-            <Label text="Results of Previous Run" class="sim-window__header-1"/>
+            <Label text="Previous Run Information" class="sim-window__header-1"/>
 
             <Label name="project-id" text="Project ID: " class="sim-window__label-prev-result"/>
             <Label name="execution-id" text="Execution ID: " class="sim-window__label-prev-result"/>
 
-            <VisualElement style="flex-direction: row;">
+            <VisualElement style="flex-direction: row; margin-top: 2px;">
                 <Button name="copy-execution-id" text="Copy Execution ID" style="flex-grow: 1; flex-shrink: 0;"/>
                 <Button name="copy-project-id" text="Copy Project ID" style="flex-grow: 1; flex-shrink: 0;"/>
             </VisualElement>

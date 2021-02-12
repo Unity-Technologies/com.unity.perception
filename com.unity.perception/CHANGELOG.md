@@ -17,9 +17,21 @@ All appearances of the term `KeyPoint` have been renamed to `Keypoint`. Therefor
 
 Scenario serialization has been updated to include scalar values on randomizers and parameters
 
+Added new ScenarioBase virtual lifecycle hooks: OnAwake, OnStart, OnComplete, and OnIdle
+
 ### Changed
 
 Renamed all appearances of the term `KeyPoint` within types and names to `Keypoint`.
+
+ScenarioBase's Awake, Start, and Update methods are now private. The newly added virtual lifecycle hooks are to be used as replacements.
+
+Improved Run Unity Simulation window UI.
+
+The Run Unity Simulation window now accepts option scenario JSON configurations to override existing scenario editor settings.
+
+ScenarioBase's randomizer Get and Create methods have been replaced with more generic list index style accessors.
+
+The scenario inspector buttons serialize and deserialize have been refactored to open a file explorer generate and import JSON configurations.
 
 ### Deprecated
 

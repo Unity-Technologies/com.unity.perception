@@ -19,16 +19,18 @@ namespace UnityEditor.Perception.Randomization
     class RunInUnitySimulationWindow : EditorWindow
     {
         string m_BuildDirectory;
-
         string m_BuildZipPath;
+        SysParamDefinition[] m_SysParamDefinitions;
         IntegerField m_InstanceCountField;
-        ObjectField m_MainSceneField;
         Button m_RunButton;
-
         TextField m_RunNameField;
-        ObjectField m_ScenarioField;
-        SysParamDefinition m_SysParam;
+        int m_SysParamIndex;
         IntegerField m_TotalIterationsField;
+        Label m_PrevProjectId;
+        Label m_PrevExecutionId;
+
+        static string currentOpenScenePath => SceneManager.GetSceneAt(0).path;
+        static ScenarioBase currentScenario => FindObjectOfType<ScenarioBase>();
 
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
@@ -80,7 +82,7 @@ namespace UnityEditor.Perception.Randomization
         }
 
         /// <summary>
-        ///     Enables a visual element to remember values between editor sessions
+        /// Enables a visual element to remember values between editor sessions
         /// </summary>
         /// <param name="element">The visual element to enable view data for</param>
         static void SetViewDataKey(VisualElement element)
@@ -95,43 +97,49 @@ namespace UnityEditor.Perception.Randomization
                 $"{StaticData.uxmlDir}/RunInUnitySimulationWindow.uxml").CloneTree(root);
 
             m_RunNameField = root.Q<TextField>("run-name");
-            SetViewDataKey(m_RunNameField);
+            m_RunNameField.value = PlayerPrefs.GetString("SimWindow/runName");
 
             m_TotalIterationsField = root.Q<IntegerField>("total-iterations");
-            SetViewDataKey(m_TotalIterationsField);
+            m_TotalIterationsField.value = PlayerPrefs.GetInt("SimWindow/totalIterations");
 
             m_InstanceCountField = root.Q<IntegerField>("instance-count");
-            SetViewDataKey(m_InstanceCountField);
+            m_InstanceCountField.value = PlayerPrefs.GetInt("SimWindow/instanceCount");
 
-            m_MainSceneField = root.Q<ObjectField>("main-scene");
-            m_MainSceneField.objectType = typeof(SceneAsset);
-            if (SceneManager.sceneCount > 0)
-            {
-                var path = SceneManager.GetSceneAt(0).path;
-                var asset = AssetDatabase.LoadAssetAtPath<SceneAsset>(path);
-                m_MainSceneField.value = asset;
-            }
-
-            m_ScenarioField = root.Q<ObjectField>("scenario");
-            m_ScenarioField.objectType = typeof(ScenarioBase);
-            m_ScenarioField.value = FindObjectOfType<ScenarioBase>();
-
-            var sysParamDefinitions = API.GetSysParams();
+            m_SysParamDefinitions = API.GetSysParams();
             var sysParamMenu = root.Q<ToolbarMenu>("sys-param");
-            foreach (var definition in sysParamDefinitions)
+            for (var i = 0; i < m_SysParamDefinitions.Length; i++)
+            {
+                var index = i;
+                var param = m_SysParamDefinitions[i];
                 sysParamMenu.menu.AppendAction(
-                    definition.description,
+                    param.description,
                     action =>
                     {
-                        m_SysParam = definition;
-                        sysParamMenu.text = definition.description;
+                        m_SysParamIndex = index;
+                        sysParamMenu.text = param.description;
                     });
+            }
 
-            sysParamMenu.text = sysParamDefinitions[0].description;
-            m_SysParam = sysParamDefinitions[0];
+
+            m_SysParamIndex = PlayerPrefs.GetInt("SimWindow/sysParamIndex");
+            sysParamMenu.text = m_SysParamDefinitions[m_SysParamIndex].description;
 
             m_RunButton = root.Q<Button>("run-button");
             m_RunButton.clicked += RunInUnitySimulation;
+
+            m_PrevProjectId = root.Q<Label>("project-id");
+            m_PrevProjectId.text = $"Project ID: {CloudProjectSettings.projectId}";
+
+            m_PrevExecutionId = root.Q<Label>("execution-id");
+            m_PrevExecutionId.text = $"Execution ID: {PlayerPrefs.GetString("SimWindow/prevExecutionId")}";
+
+            var copyExecutionIdButton = root.Q<Button>("copy-execution-id");
+            copyExecutionIdButton.clicked += () =>
+                EditorGUIUtility.systemCopyBuffer = PlayerPrefs.GetString("SimWindow/prevExecutionId");
+
+            var copyProjectIdButton = root.Q<Button>("copy-project-id");
+            copyProjectIdButton.clicked += () =>
+                EditorGUIUtility.systemCopyBuffer = CloudProjectSettings.projectId;
         }
 
         async void RunInUnitySimulation()
@@ -145,6 +153,7 @@ namespace UnityEditor.Perception.Randomization
             try
             {
                 ValidateSettings();
+                SetNewPlayerPreferences();
                 CreateLinuxBuildAndZip();
                 await StartUnitySimulationRun(runGuid);
             }
@@ -160,14 +169,22 @@ namespace UnityEditor.Perception.Randomization
         {
             if (string.IsNullOrEmpty(m_RunNameField.value))
                 throw new MissingFieldException("Empty run name");
-            if (m_MainSceneField.value == null)
-                throw new MissingFieldException("Main scene unselected");
-            if (m_ScenarioField.value == null)
-                throw new MissingFieldException("Scenario unselected");
-            var scenario = (ScenarioBase)m_ScenarioField.value;
-            if (!StaticData.IsSubclassOfRawGeneric(typeof(UnitySimulationScenario<>), scenario.GetType()))
+            if (string.IsNullOrEmpty(currentOpenScenePath))
+                throw new MissingFieldException("Invalid scene path");
+            if (currentScenario == null)
+                throw new MissingFieldException(
+                    "There is not a Unity Simulation compatible scenario present in the scene");
+            if (!StaticData.IsSubclassOfRawGeneric(typeof(UnitySimulationScenario<>), currentScenario.GetType()))
                 throw new NotSupportedException(
                     "Scenario class must be derived from UnitySimulationScenario to run in Unity Simulation");
+        }
+
+        void SetNewPlayerPreferences()
+        {
+            PlayerPrefs.SetString("SimWindow/runName", m_RunNameField.value);
+            PlayerPrefs.SetInt("SimWindow/totalIterations", m_TotalIterationsField.value);
+            PlayerPrefs.SetInt("SimWindow/instanceCount", m_InstanceCountField.value);
+            PlayerPrefs.SetInt("SimWindow/sysParamIndex", m_SysParamIndex);
         }
 
         void CreateLinuxBuildAndZip()
@@ -181,7 +198,7 @@ namespace UnityEditor.Perception.Randomization
             Debug.Log("Creating Linux build...");
             var buildPlayerOptions = new BuildPlayerOptions
             {
-                scenes = new[] { AssetDatabase.GetAssetPath(m_MainSceneField.value) },
+                scenes = new[] { currentOpenScenePath },
                 locationPathName = Path.Combine(projectBuildDirectory, $"{m_RunNameField.value}.x86_64"),
                 target = BuildTarget.StandaloneLinux64
             };
@@ -201,8 +218,7 @@ namespace UnityEditor.Perception.Randomization
         List<AppParam> GenerateAppParamIds(CancellationToken token, float progressStart, float progressEnd)
         {
             var appParamIds = new List<AppParam>();
-            var scenario = (ScenarioBase)m_ScenarioField.value;
-            var configuration = JObject.Parse(scenario.SerializeToJson());
+            var configuration = JObject.Parse(currentScenario.SerializeToJson());
             var constants = configuration["constants"];
 
             constants["totalIterations"] = m_TotalIterationsField.value;
@@ -266,7 +282,7 @@ namespace UnityEditor.Perception.Randomization
             {
                 app_params = appParams.ToArray(),
                 name = m_RunNameField.value,
-                sys_param_id = m_SysParam.id,
+                sys_param_id = m_SysParamDefinitions[m_SysParamIndex].id,
                 build_id = buildId
             });
             Debug.Log($"Run definition upload complete: run definition id {runDefinitionId}");
@@ -282,6 +298,9 @@ namespace UnityEditor.Perception.Randomization
             EditorUtility.ClearProgressBar();
 
             PerceptionEditorAnalytics.ReportRunInUnitySimulationSucceeded(runGuid, run.executionId);
+
+            PlayerPrefs.SetString("SimWindow/prevExecutionId", run.executionId);
+            m_PrevExecutionId.text = $"Execution ID: {run.executionId}";
         }
     }
 }

@@ -84,15 +84,6 @@ namespace UnityEditor.Perception.Randomization
             }
         }
 
-        /// <summary>
-        /// Enables a visual element to remember values between editor sessions
-        /// </summary>
-        /// <param name="element">The visual element to enable view data for</param>
-        static void SetViewDataKey(VisualElement element)
-        {
-            element.viewDataKey = $"RunInUnitySimulation_{element.name}";
-        }
-
         void CreateRunInUnitySimulationUI()
         {
             var root = rootVisualElement;
@@ -202,13 +193,9 @@ namespace UnityEditor.Perception.Randomization
 
         void CreateLinuxBuildAndZip()
         {
-            // Create build directory
             var projectBuildDirectory = $"{m_BuildDirectory}/{m_RunNameField.value}";
             if (!Directory.Exists(projectBuildDirectory))
                 Directory.CreateDirectory(projectBuildDirectory);
-
-            // Create Linux build
-            Debug.Log("Creating Linux build...");
             var buildPlayerOptions = new BuildPlayerOptions
             {
                 scenes = new[] { currentOpenScenePath },
@@ -218,81 +205,66 @@ namespace UnityEditor.Perception.Randomization
             var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
             var summary = report.summary;
             if (summary.result != BuildResult.Succeeded)
-                throw new Exception($"Build did not succeed: status = {summary.result}");
-            Debug.Log("Created Linux build");
+                throw new Exception($"The Linux build did not succeed: status = {summary.result}");
 
-            // Zip the build
-            Debug.Log("Starting to zip...");
+            EditorUtility.DisplayProgressBar("Unity Simulation Run", "Zipping Linux build...", 0f);
             Zip.DirectoryContents(projectBuildDirectory, m_RunNameField.value);
             m_BuildZipPath = projectBuildDirectory + ".zip";
-            Debug.Log("Created build zip");
         }
 
-        List<AppParam> GenerateAppParamIds(CancellationToken token, float progressStart, float progressEnd)
+        List<AppParam> UploadAppParam()
         {
             var appParamIds = new List<AppParam>();
             var configuration = JObject.Parse(scenarioConfig != null
                 ? File.ReadAllText(scenarioConfigAssetPath)
                 : currentScenario.SerializeToJson());
-            var constants = configuration["constants"];
 
+            var constants = configuration["constants"];
             constants["totalIterations"] = m_TotalIterationsField.value;
             constants["instanceCount"] = m_InstanceCountField.value;
 
-            var progressIncrement = (progressEnd - progressStart) / m_InstanceCountField.value;
-
-            for (var i = 0; i < m_InstanceCountField.value; i++)
+            var appParamName = $"{m_RunNameField.value}";
+            var appParamsString = JsonConvert.SerializeObject(configuration, Formatting.Indented);
+            var appParamId = API.UploadAppParam(appParamName, appParamsString);
+            appParamIds.Add(new AppParam
             {
-                if (token.IsCancellationRequested)
-                    return null;
-                var appParamName = $"{m_RunNameField.value}_{i}";
-                constants["instanceIndex"] = i;
-
-                var appParamsString = JsonConvert.SerializeObject(configuration, Formatting.Indented);
-                var appParamId = API.UploadAppParam(appParamName, appParamsString);
-                appParamIds.Add(new AppParam
-                {
-                    id = appParamId,
-                    name = appParamName,
-                    num_instances = 1
-                });
-
-                EditorUtility.DisplayProgressBar(
-                    "Unity Simulation Run",
-                    $"Uploading app-param-ids for instances: {i + 1}/{m_InstanceCountField.value}",
-                    progressStart + progressIncrement * i);
-            }
-
+                id = appParamId,
+                name = appParamName,
+                num_instances = m_InstanceCountField.value
+            });
             return appParamIds;
         }
 
         async Task StartUnitySimulationRun(Guid runGuid)
         {
-            EditorUtility.DisplayProgressBar("Unity Simulation Run", "Uploading build...", 0.1f);
-
             m_RunButton.SetEnabled(false);
+
+            // Upload build
             var cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
-
-            Debug.Log("Uploading build...");
             var buildId = await API.UploadBuildAsync(
                 m_RunNameField.value,
                 m_BuildZipPath,
-                cancellationTokenSource: cancellationTokenSource);
-            Debug.Log($"Build upload complete: build id {buildId}");
-
-            var appParams = GenerateAppParamIds(token, 0.1f, 0.9f);
+                null, null,
+                cancellationTokenSource,
+                progress =>
+                {
+                    EditorUtility.DisplayProgressBar(
+                        "Unity Simulation Run", "Uploading build...", progress * 0.90f);
+                });
             if (token.IsCancellationRequested)
             {
-                Debug.Log("Run cancelled");
+                Debug.Log("The build upload process has been cancelled. Aborting Unity Simulation launch.");
                 EditorUtility.ClearProgressBar();
                 return;
             }
 
-            Debug.Log($"Generated app-param ids: {appParams.Count}");
+            // Generate and upload app-params
+            EditorUtility.DisplayProgressBar("Unity Simulation Run", "Uploading app-params...", 0.90f);
+            var appParams = UploadAppParam();
 
-            EditorUtility.DisplayProgressBar("Unity Simulation Run", "Uploading run definition...", 0.9f);
-
+            // Upload run definition
+            EditorUtility.DisplayProgressBar("Unity Simulation Run", "Uploading run definition...", 0.95f);
             var runDefinitionId = API.UploadRunDefinition(new RunDefinition
             {
                 app_params = appParams.ToArray(),
@@ -300,20 +272,16 @@ namespace UnityEditor.Perception.Randomization
                 sys_param_id = m_SysParamDefinitions[m_SysParamIndex].id,
                 build_id = buildId
             });
-            Debug.Log($"Run definition upload complete: run definition id {runDefinitionId}");
 
-            EditorUtility.DisplayProgressBar("Unity Simulation Run", "Executing run...", 0.95f);
-
+            // Execute run
+            EditorUtility.DisplayProgressBar("Unity Simulation Run", "Executing run...", 1f);
             var run = Run.CreateFromDefinitionId(runDefinitionId);
             run.Execute();
-            cancellationTokenSource.Dispose();
-            Debug.Log($"Executing run: {run.executionId}");
+
+            // Cleanup
             m_RunButton.SetEnabled(true);
-
             EditorUtility.ClearProgressBar();
-
             PerceptionEditorAnalytics.ReportRunInUnitySimulationSucceeded(runGuid, run.executionId);
-
             PlayerPrefs.SetString("SimWindow/prevExecutionId", run.executionId);
             m_PrevExecutionId.text = $"Execution ID: {run.executionId}";
         }

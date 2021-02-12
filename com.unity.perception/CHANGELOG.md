@@ -29,7 +29,7 @@ Improved Run Unity Simulation window UI.
 
 The Run Unity Simulation window now accepts option scenario JSON configurations to override existing scenario editor settings.
 
-ScenarioBase's randomizer Get and Create methods have been replaced with more generic list index style accessors.
+ScenarioBase's Get and Create randomizer methods have been augmented or replaced with more generic list index style accessors.
 
 The scenario inspector buttons serialize and deserialize have been refactored to open a file explorer generate and import JSON configurations.
 

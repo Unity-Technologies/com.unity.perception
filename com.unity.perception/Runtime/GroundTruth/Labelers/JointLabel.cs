@@ -12,15 +12,15 @@ namespace UnityEngine.Perception.GroundTruth
     public class JointLabel : MonoBehaviour
     {
         /// <summary>
-        /// Maps this joint to a joint in a <see cref="KeyPointTemplate"/>
+        /// Maps this joint to a joint in a <see cref="KeypointTemplate"/>
         /// </summary>
         [Serializable]
         public class TemplateData
         {
             /// <summary>
-            /// The <see cref="KeyPointTemplate"/> that defines this joint.
+            /// The <see cref="KeypointTemplate"/> that defines this joint.
             /// </summary>
-            public KeyPointTemplate template;
+            public KeypointTemplate template;
             /// <summary>
             /// The name of the joint.
             /// </summary>

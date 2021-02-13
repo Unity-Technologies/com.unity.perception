@@ -6,7 +6,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// A definition of a keypoint (joint).
     /// </summary>
     [Serializable]
-    public class KeyPointDefinition
+    public class KeypointDefinition
     {
         /// <summary>
         /// The name of the keypoint
@@ -50,7 +50,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// Template used to define the keypoints of a humanoid asset.
     /// </summary>
     [CreateAssetMenu(fileName = "KeypointTemplate", menuName = "Perception/Keypoint Template", order = 2)]
-    public class KeyPointTemplate : ScriptableObject
+    public class KeypointTemplate : ScriptableObject
     {
         /// <summary>
         /// The <see cref="Guid"/> of the template
@@ -69,9 +69,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public Texture2D skeletonTexture;
         /// <summary>
-        /// Array of <see cref="KeyPointDefinition"/> for the template.
+        /// Array of <see cref="KeypointDefinition"/> for the template.
         /// </summary>
-        public KeyPointDefinition[] keyPoints;
+        public KeypointDefinition[] keypoints;
         /// <summary>
         /// Array of the <see cref="SkeletonDefinition"/> for the template.
         /// </summary>

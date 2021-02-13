@@ -15,7 +15,7 @@ MonoBehaviour:
   templateName: Coco
   jointTexture: {fileID: 2800000, guid: e381cbaaf29614168bafc8f7ec5dbfe9, type: 3}
   skeletonTexture: {fileID: 2800000, guid: e381cbaaf29614168bafc8f7ec5dbfe9, type: 3}
-  keyPoints:
+  keypoints:
   - label: nose
     associateToRig: 0
     rigLabel: 0

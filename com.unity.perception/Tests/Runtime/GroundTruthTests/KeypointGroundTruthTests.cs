@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 namespace GroundTruthTests
 {
     [TestFixture]
-    public class KeyPointGroundTruthTests : GroundTruthTestBase
+    public class KeypointGroundTruthTests : GroundTruthTestBase
     {
         static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<List<KeypointLabeler.KeypointEntry>> computeListener)
         {

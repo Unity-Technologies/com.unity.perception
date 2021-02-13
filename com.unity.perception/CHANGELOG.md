@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+Renamed all instances of "KeyPoint" to "Keypoint" for standards adherence.
+
 ### Deprecated
 
 ### Removed

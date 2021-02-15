@@ -24,6 +24,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <summary>
         /// Returns whether the current scenario iteration has completed
         /// </summary>
-        public override bool isIterationComplete => currentIterationFrame >= constants.framesPerIteration;
+        protected override bool isIterationComplete => currentIterationFrame >= constants.framesPerIteration;
     }
 }

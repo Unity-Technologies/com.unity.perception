@@ -19,6 +19,8 @@ Scenario serialization has been updated to include scalar values on randomizers 
 
 Added new ScenarioBase virtual lifecycle hooks: OnAwake, OnStart, OnComplete, and OnIdle.
 
+The PerceptionScenario abstract class has been added to abstract perception data capture specific functionality from the vanilla scenario lifecycle. 
+
 ### Changed
 
 Renamed all appearances of the term `KeyPoint` within types and names to `Keypoint`.
@@ -36,6 +38,8 @@ The scenario inspector buttons serialize and deserialize have been refactored to
 Randomizer tags now use OnEnable and OnDisable to manage lifecycle. This allows the user to toggle them on and off in the editor.
 
 ### Deprecated
+
+The randomizer methods OnCreate(), OnStartRunning(), and OnStopRunning() are now deprecated and have been replaced with OnAwake(), OnEnable() and OnDisable() respectively to better reflect the existing MonoBehaviour lifecycle methods.
 
 ### Removed
 

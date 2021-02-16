@@ -2,7 +2,7 @@
 
 In this tutorial, we will walk through the production of keypoint and pose datasets for computer vision tasks such as human pose estimation and gesture recognition.
 
-We strongly recommend you finish [Phase 1 of the Perception Tutorial](../Tutorial/Phase1.md) before continuing with this one, especially if you do not have prior experience with Unity Editor. This tutorial requires at least version **0.7.0-preview.3** of the Perception package.
+We strongly recommend you finish [Phase 1 of the Perception Tutorial](../Tutorial/Phase1.md) before continuing with this one, especially if you do not have prior experience with Unity Editor. This tutorial requires at least version **0.7.0-preview.2** of the Perception package.
 
 In this tutorial, **":green_circle: Action:"** mark all of the actions needed to progress through the tutorial. If you are in a hurry, just follow the actions!
 
@@ -37,7 +37,7 @@ Your Scenario should now look like this:
 We now need to import the sample files required for this tutorial.  
 
 * **:green_circle: Action**: Open _**Package Manager**_ and select the Perception package, which should already be present in the navigation pane to the left side. 
-* **:green_circle: Action**: From the list of ***Samples*** for the Perception package, click on the ***Import into Project*** button for the sample bundle named _**Human Pose Labeling and Randomization**_.
+* **:green_circle: Action**: From the list of ***Samples*** for the Perception package, click on the ***Import into Project*** button for the sample bundle named _**Human Pose Estimation**_.
 
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project, as seen in the image below:
 
@@ -45,12 +45,12 @@ Once the sample files are imported, they will be placed inside the `Assets/Sampl
 <img src="Images/project_folders_samples.png" width="600"/>
 </p>
 
-* **:green_circle: Action**: Select all of the asset inside the `Assets/Samples/Perception/<perception-package-version>/Human Pose Labeling and Randomization/Models and Animations`.
+* **:green_circle: Action**: Select all of the assets inside the `Assets/Samples/Perception/<perception-package-version>/Human Pose Estimation/Models and Animations`.
 * **:green_circle: Action**: In the _**Inspector**_ tab, navigate to the _**Rig**_ section. 
 
 Note how `Animation Type` is set to `Humanoid` for all selected assets. This is a requirement and makes sure all animations included in the sample `.fbx` files are ready to be used on a rigged humanoid model.
 
-> :information_source: The _**Rig**_ section includes a checkbox named `Optimize Game Objects`. This flag is disabled on the included samples and we recommended you **disable** it on your rigged models as well so that all transforms included in your rig are exposed. If this flag is enabled, you will need to make sure all the joints you require for your workflow are selected in the list of `Extra Transforms to Expose`. This list is only displayed if the optimization checkbox is enabled.
+> :information_source: The _**Rig**_ section includes a checkbox named `Optimize Game Objects`. This flag is disabled on the included samples and we recommend you **disable** it on your rigged models as well so that all transforms included in your rig are exposed. If this flag is enabled, you will need to make sure all the joints you require for your workflow are selected in the list of `Extra Transforms to Expose`. This list is only displayed if the optimization checkbox is enabled.
 
 ### <a name="step-2">Step 2: Set Up a Humanoid Character in a Scene</a>
 

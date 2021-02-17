@@ -87,13 +87,28 @@ namespace UnityEditor.Perception.Randomization
                     // First delete sets option to null, second delete removes option
                     var numOptions = optionsProperty.arraySize;
                     optionsProperty.DeleteArrayElementAtIndex(i);
+
                     if (numOptions == optionsProperty.arraySize)
+                    {
                         optionsProperty.DeleteArrayElementAtIndex(i);
+                    }
+
+                    ResetProbabilities();
 
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
+
                     listView.itemsSource = categoricalParameter.probabilities;
                     listView.Refresh();
                 };
+            }
+
+            void ResetProbabilities()
+            {
+                var uniformProbability = probabilitiesProperty.arraySize > 0 ? 1f / probabilitiesProperty.arraySize : 0;
+                for (var i = 0; i < probabilitiesProperty.arraySize; i++)
+                {
+                    probabilitiesProperty.GetArrayElementAtIndex(i).floatValue = uniformProbability;
+                }
             }
 
             listView.bindItem = BindItem;
@@ -114,6 +129,8 @@ namespace UnityEditor.Perception.Randomization
                         break;
                 }
 
+                ResetProbabilities();
+
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = categoricalParameter.probabilities;
                 listView.Refresh();
@@ -130,20 +147,18 @@ namespace UnityEditor.Perception.Randomization
                         return;
                     var categories = LoadAssetsFromFolder(folderPath, categoricalParameter.sampleType);
 
-                    var probabilityIndex = probabilitiesProperty.arraySize;
-                    probabilitiesProperty.arraySize += categories.Count;
-
                     var optionsIndex = optionsProperty.arraySize;
                     optionsProperty.arraySize += categories.Count;
 
-                    var uniformProbability = 1f / categories.Count;
+                    probabilitiesProperty.arraySize += categories.Count;
+
                     for (var i = 0; i < categories.Count; i++)
                     {
                         var optionProperty = optionsProperty.GetArrayElementAtIndex(optionsIndex + i);
-                        var probabilityProperty = probabilitiesProperty.GetArrayElementAtIndex(probabilityIndex + i);
                         optionProperty.objectReferenceValue = categories[i];
-                        probabilityProperty.floatValue = uniformProbability;
                     }
+
+                    ResetProbabilities();
 
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = categoricalParameter.probabilities;

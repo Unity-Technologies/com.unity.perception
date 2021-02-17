@@ -129,13 +129,18 @@ namespace UnityEditor.Perception.Randomization
                     if (folderPath == string.Empty)
                         return;
                     var categories = LoadAssetsFromFolder(folderPath, categoricalParameter.sampleType);
+
+                    var probabilityIndex = probabilitiesProperty.arraySize;
                     probabilitiesProperty.arraySize += categories.Count;
+
+                    var optionsIndex = optionsProperty.arraySize;
                     optionsProperty.arraySize += categories.Count;
+
                     var uniformProbability = 1f / categories.Count;
                     for (var i = 0; i < categories.Count; i++)
                     {
-                        var optionProperty = optionsProperty.GetArrayElementAtIndex(i);
-                        var probabilityProperty = probabilitiesProperty.GetArrayElementAtIndex(i);
+                        var optionProperty = optionsProperty.GetArrayElementAtIndex(optionsIndex + i);
+                        var probabilityProperty = probabilitiesProperty.GetArrayElementAtIndex(probabilityIndex + i);
                         optionProperty.objectReferenceValue = categories[i];
                         probabilityProperty.floatValue = uniformProbability;
                     }

@@ -53,6 +53,19 @@ namespace UnityEditor.Perception.Randomization
         void RefreshList()
         {
             m_Container.Clear();
+            if (m_Property.arraySize > 0 &&
+                string.IsNullOrEmpty(m_Property.GetArrayElementAtIndex(0).managedReferenceFullTypename))
+            {
+                var textElement = new TextElement()
+                {
+                    text = "One or more randomizers have missing scripts. See console for more info."
+                };
+                textElement.AddToClassList("scenario__info-box");
+                textElement.AddToClassList("scenario__error-box");
+                m_Container.Add(textElement);
+                return;
+            }
+
             for (var i = 0; i < m_Property.arraySize; i++)
                 m_Container.Add(new RandomizerElement(m_Property.GetArrayElementAtIndex(i), this));
         }

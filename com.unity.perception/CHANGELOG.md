@@ -35,6 +35,8 @@ The scenario inspector buttons serialize and deserialize have been refactored to
 
 ### Fixed
 
+Fixed a null reference error that appeared when adding options to categorical parameters.
+
 Fixed ground truth not properly produced when there are other disabled PerceptionCameras present. Note: this does not yet add support for multiple enabled PerceptionCameras.
 
 ## [0.7.0-preview.2] - 2021-02-08

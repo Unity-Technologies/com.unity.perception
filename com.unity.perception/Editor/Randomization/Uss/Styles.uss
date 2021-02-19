@@ -139,6 +139,10 @@
     flex-shrink: 0;
 }
 
+.parameter__categorical-option-property-field Label.unity-property-field__label {
+    display: none;
+}
+
 .parameter__categorical-options-list-button {
     align-self: flex-end;
     border-width: 0;

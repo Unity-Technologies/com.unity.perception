@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -71,6 +72,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Array of <see cref="KeypointDefinition"/> for the template.
         /// </summary>
+        [FormerlySerializedAs("keyPoints")]
         public KeypointDefinition[] keypoints;
         /// <summary>
         /// Array of the <see cref="SkeletonDefinition"/> for the template.

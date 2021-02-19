@@ -67,6 +67,8 @@ namespace UnityEditor.Perception.Randomization
             listView.style.flexGrow = 1.0f;
             listView.style.height = new StyleLength(listView.itemHeight * 4);
 
+            var uniformToggle = template.Q<Toggle>("uniform");
+
             VisualElement MakeItem()
             {
                 return new CategoricalOptionElement(
@@ -92,8 +94,6 @@ namespace UnityEditor.Perception.Randomization
                     {
                         optionsProperty.DeleteArrayElementAtIndex(i);
                     }
-
-                    ResetProbabilities();
 
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
 
@@ -129,7 +129,11 @@ namespace UnityEditor.Perception.Randomization
                         break;
                 }
 
-                ResetProbabilities();
+                // New items probability will be 0, unless uniform toggle is true
+                probabilitiesProperty.GetArrayElementAtIndex(probabilitiesProperty.arraySize - 1).floatValue = 0;
+
+                if (uniformToggle.value)
+                    ResetProbabilities();
 
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = categoricalParameter.probabilities;
@@ -156,9 +160,11 @@ namespace UnityEditor.Perception.Randomization
                     {
                         var optionProperty = optionsProperty.GetArrayElementAtIndex(optionsIndex + i);
                         optionProperty.objectReferenceValue = categories[i];
+                        probabilitiesProperty.GetArrayElementAtIndex(i).floatValue = 0;
                     }
 
-                    ResetProbabilities();
+                    if (uniformToggle.value)
+                        ResetProbabilities();
 
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = categoricalParameter.probabilities;
@@ -187,7 +193,7 @@ namespace UnityEditor.Perception.Randomization
                     evt.StopImmediatePropagation();
             });
 
-            var uniformToggle = template.Q<Toggle>("uniform");
+
             var uniformProperty = m_SerializedProperty.FindPropertyRelative("uniform");
             uniformToggle.BindProperty(uniformProperty);
 

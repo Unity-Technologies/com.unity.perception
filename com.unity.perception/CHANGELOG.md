@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Upgrade Notes
 
-All appearances of the term `KeyPoint` have been renamed to `Keypoint`. Therefore, the following steps will be required after upgrading to this version:
-* If you have code that relies on any renamed types or names, alter your code to reflect the new names.
+All appearances of the term `KeyPoint` have been renamed to `Keypoint`. Therefore, after upgrading to this version, if you have code that relies on any renamed types or names, make sure to alter your code to reflect the new names.
 
 ### Known Issues
 

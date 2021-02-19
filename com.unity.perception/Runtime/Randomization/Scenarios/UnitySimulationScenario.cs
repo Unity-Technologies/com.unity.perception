@@ -13,21 +13,29 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public sealed override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 
         /// <inheritdoc/>
-        public override string defaultConfigFilePath =>
-            Configuration.Instance.IsSimulationRunningInCloud()
-                ? new Uri(Configuration.Instance.SimulationConfig.app_param_uri).LocalPath
-                : base.defaultConfigFilePath;
-
-        /// <inheritdoc/>
         protected sealed override void IncrementIteration()
         {
             currentIteration += constants.instanceCount;
         }
 
         /// <inheritdoc/>
-        protected override void Start()
+        protected override void OnAwake()
         {
-            base.Start();
+            // Don't skip the first frame if executing on Unity Simulation
+            if (Configuration.Instance.IsSimulationRunningInCloud())
+                m_SkipFrame = false;
+        }
+
+        /// <inheritdoc/>
+        protected override void OnStart()
+        {
+            if (Configuration.Instance.IsSimulationRunningInCloud())
+            {
+                DeserializeFromFile(new Uri(Configuration.Instance.SimulationConfig.app_param_uri).LocalPath);
+                constants.instanceIndex = int.Parse(Configuration.Instance.GetInstanceId()) - 1;
+            }
+            else
+                base.OnStart();
             currentIteration = constants.instanceIndex;
         }
     }

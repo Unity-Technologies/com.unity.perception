@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using UnityEngine;
 using UnityEngine.Analytics;
 
 namespace UnityEditor.Perception.Randomization

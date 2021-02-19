@@ -8,6 +8,7 @@ using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Scenarios.Serialization;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -19,21 +20,29 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     {
         const string k_ScenarioIterationMetricDefinitionId = "DB1B258E-D1D0-41B6-8751-16F601A2E230";
         static ScenarioBase s_ActiveScenario;
-        bool m_FirstScenarioFrame = true;
         MetricDefinition m_IterationMetricDefinition;
 
-        // ReSharper disable once InconsistentNaming
-        [SerializeReference] internal List<Randomizer> m_Randomizers = new List<Randomizer>();
-        bool m_SkipFrame = true;
-        bool m_WaitingForFinalUploads;
+        /// <summary>
+        /// The list of randomizers managed by this scenario
+        /// </summary>
+        [SerializeReference] protected List<Randomizer> m_Randomizers = new List<Randomizer>();
 
         /// <summary>
-        /// If true, this scenario will quit the Unity application when it's finished executing
+        /// On some platforms, the simulation capture package cannot capture the first frame of output,
+        /// so this field is used to track whether the first frame has been skipped yet.
         /// </summary>
-        [HideInInspector]
-        public bool quitOnComplete = true;
+        protected bool m_SkipFrame = true;
 
-        IEnumerable<Randomizer> activeRandomizers
+        /// <summary>
+        /// Setting this field to true will cause the scenario to enter an idle state. By default, scenarios will enter
+        /// the idle state after its isScenarioComplete property has returned true.
+        /// </summary>
+        protected bool m_Idle;
+
+        /// <summary>
+        /// Enumerates over all enabled randomizers
+        /// </summary>
+        public IEnumerable<Randomizer> activeRandomizers
         {
             get
             {
@@ -47,11 +56,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// Return the list of randomizers attached to this scenario
         /// </summary>
         public IReadOnlyList<Randomizer> randomizers => m_Randomizers.AsReadOnly();
-
-        /// <summary>
-        /// The name of the Json file this scenario's constants are serialized to/from.
-        /// </summary>
-        public virtual string configFileName => "scenario_configuration";
 
         /// <summary>
         /// Returns the active parameter scenario in the scene
@@ -76,19 +80,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 s_ActiveScenario = value;
             }
         }
-
-        /// <summary>
-        /// Returns the asset location of the JSON serialized configuration.
-        /// This API is used for finding the config file using the AssetDatabase API.
-        /// </summary>
-        public string defaultConfigFileAssetPath =>
-            "Assets/StreamingAssets/" + configFileName + ".json";
-
-        /// <summary>
-        /// Returns the absolute file path of the JSON serialized configuration
-        /// </summary>
-        public virtual string defaultConfigFilePath =>
-            Application.dataPath + "/StreamingAssets/" + configFileName + ".json";
 
         /// <summary>
         /// Returns this scenario's non-typed serialized constants
@@ -121,7 +112,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public abstract bool isScenarioComplete { get; }
 
         /// <summary>
-        /// Progresses the current scenario iteration
+        /// This method selects what the next iteration index will be. By default, the scenario will simply progress to
+        /// the next iteration, but this behaviour can be overriden.
         /// </summary>
         protected virtual void IncrementIteration()
         {
@@ -132,41 +124,52 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// Serializes the scenario's constants and randomizer settings to a JSON string
         /// </summary>
         /// <returns>The scenario configuration as a JSON string</returns>
-        public abstract string SerializeToJson();
+        public virtual string SerializeToJson()
+        {
+            return ScenarioSerializer.SerializeToJsonString(this);
+        }
 
         /// <summary>
         /// Serializes the scenario's constants and randomizer settings to a JSON file located at the path resolved by
         /// the defaultConfigFilePath scenario property
         /// </summary>
-        public void SerializeToFile()
+        /// <param name="filePath">The file path to serialize the scenario to</param>
+        public virtual void SerializeToFile(string filePath)
         {
-            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
-            using (var writer = new StreamWriter(defaultConfigFilePath, false))
-            {
-                writer.Write(SerializeToJson());
-            }
+            ScenarioSerializer.SerializeToFile(this, filePath);
         }
 
         /// <summary>
         /// Overwrites this scenario's randomizer settings and scenario constants from a JSON serialized configuration
         /// </summary>
         /// <param name="json">The JSON string to deserialize</param>
-        public abstract void DeserializeFromJson(string json);
+        public virtual void DeserializeFromJson(string json)
+        {
+            ScenarioSerializer.Deserialize(this, json);
+        }
 
         /// <summary>
         /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
         /// the provided file path
         /// </summary>
         /// <param name="configFilePath">The file path to the configuration file to deserialize</param>
-        public abstract void DeserializeFromFile(string configFilePath);
-
-        /// <summary>
-        /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
-        /// this scenario's defaultConfigFilePath
-        /// </summary>
-        public void DeserializeFromFile()
+        public virtual void DeserializeFromFile(string configFilePath)
         {
-            DeserializeFromFile(defaultConfigFilePath);
+            if (string.IsNullOrEmpty(configFilePath))
+                throw new ArgumentException($"{nameof(configFilePath)} is null or empty");
+            if (!File.Exists(configFilePath))
+                throw new ArgumentException($"No configuration file found at {configFilePath}");
+
+            var jsonText = File.ReadAllText(configFilePath);
+            DeserializeFromJson(jsonText);
+
+            var absolutePath = Path.GetFullPath(configFilePath);
+#if UNITY_EDITOR
+            Debug.Log($"Deserialized scenario configuration from {absolutePath}. " +
+                "Using undo in the editor will revert these changes to your scenario.");
+#else
+            Debug.Log($"Deserialized scenario configuration from {absolutePath}");
+#endif
         }
 
         /// <summary>
@@ -179,21 +182,83 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Awake is called when this scenario MonoBehaviour is created or instantiated
+        /// OnAwake is called right after this scenario MonoBehaviour is created or instantiated
         /// </summary>
-        protected virtual void Awake()
+        protected virtual void OnAwake() { }
+
+        /// <summary>
+        /// OnStart is called after Awake but before the first Update method call
+        /// </summary>
+        protected virtual void OnStart()
+        {
+#if !UNITY_EDITOR
+            var args = Environment.GetCommandLineArgs();
+            var filePath = string.Empty;
+            for (var i = 0; i < args.Length - 1; i++)
+            {
+                if (args[i] == "--scenario-config-file")
+                {
+                    filePath = args[i + 1];
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                Debug.Log("No --scenario-config-file command line arg specified. " +
+                    "Proceeding with editor assigned scenario configuration values.");
+                return;
+            }
+
+            try
+            {
+                DeserializeFromFile(filePath);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                Debug.LogError("An exception was caught while attempting to parse a " +
+                    $"scenario configuration file at {filePath}. Cleaning up and exiting simulation.");
+                m_Idle = true;
+            }
+#endif
+        }
+
+        /// <summary>
+        /// OnComplete is called when this scenario's isScenarioComplete property
+        /// returns true during its main update loop
+        /// </summary>
+        protected virtual void OnComplete()
+        {
+            DatasetCapture.ResetSimulation();
+            m_Idle = true;
+        }
+
+        /// <summary>
+        /// OnIdle is called each frame after the scenario has completed
+        /// </summary>
+        protected virtual void OnIdle()
+        {
+            Manager.Instance.Shutdown();
+            if (!Manager.FinalUploadsDone)
+                return;
+#if UNITY_EDITOR
+            EditorApplication.ExitPlaymode();
+#else
+                Application.Quit();
+#endif
+        }
+
+        void Awake()
         {
             activeScenario = this;
             foreach (var randomizer in m_Randomizers)
                 randomizer.Create();
             ValidateParameters();
-
-            // Don't skip the first frame if executing on Unity Simulation
-            if (Configuration.Instance.IsSimulationRunningInCloud())
-                m_SkipFrame = false;
-
-            m_IterationMetricDefinition = DatasetCapture.RegisterMetricDefinition("scenario_iteration", "Iteration information for dataset sequences",
+            m_IterationMetricDefinition = DatasetCapture.RegisterMetricDefinition(
+                "scenario_iteration", "Iteration information for dataset sequences",
                 Guid.Parse(k_ScenarioIterationMetricDefinitionId));
+            OnAwake();
         }
 
         /// <summary>
@@ -212,25 +277,17 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             activeScenario = null;
         }
 
-        /// <summary>
-        /// Start is called after Awake but before the first Update method call
-        /// </summary>
-        protected virtual void Start()
+        void Start()
         {
             var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
                 "random-seed",
                 "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.",
                 Guid.Parse("14adb394-46c0-47e8-a3f0-99e754483b76"));
             DatasetCapture.ReportMetric(randomSeedMetricDefinition, new[] { genericConstants.randomSeed });
-#if !UNITY_EDITOR
-            DeserializeFromFile();
-#endif
+            OnStart();
         }
 
-        /// <summary>
-        /// Update is called once per frame
-        /// </summary>
-        protected virtual void Update()
+        void Update()
         {
             // TODO: remove this check when the perception camera can capture the first frame of output
             if (m_SkipFrame)
@@ -240,35 +297,19 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             }
 
             // Wait for any final uploads before exiting quitting
-            if (m_WaitingForFinalUploads && quitOnComplete)
+            if (m_Idle)
             {
-                Manager.Instance.Shutdown();
-                if (!Manager.FinalUploadsDone)
-                    return;
-#if UNITY_EDITOR
-                EditorApplication.ExitPlaymode();
-#else
-                Application.Quit();
-#endif
+                OnIdle();
                 return;
             }
 
-            // Iterate Scenario
-            if (m_FirstScenarioFrame)
+            // Increment iteration and cleanup last iteration
+            if (isIterationComplete)
             {
-                m_FirstScenarioFrame = false;
-            }
-            else
-            {
-                currentIterationFrame++;
-                framesSinceInitialization++;
-                if (isIterationComplete)
-                {
-                    IncrementIteration();
-                    currentIterationFrame = 0;
-                    foreach (var randomizer in activeRandomizers)
-                        randomizer.IterationEnd();
-                }
+                IncrementIteration();
+                currentIterationFrame = 0;
+                foreach (var randomizer in activeRandomizers)
+                    randomizer.IterationEnd();
             }
 
             // Quit if scenario is complete
@@ -276,9 +317,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             {
                 foreach (var randomizer in activeRandomizers)
                     randomizer.ScenarioComplete();
-                DatasetCapture.ResetSimulation();
-                m_WaitingForFinalUploads = true;
-                return;
+                OnComplete();
             }
 
             // Perform new iteration tasks
@@ -297,6 +336,76 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             // Perform new frame tasks
             foreach (var randomizer in activeRandomizers)
                 randomizer.Update();
+
+            // Iterate scenario frame count
+            currentIterationFrame++;
+            framesSinceInitialization++;
+        }
+
+        /// <summary>
+        /// Called by the "Add Randomizer" button in the scenario Inspector
+        /// </summary>
+        /// <param name="randomizerType">The type of randomizer to create</param>
+        /// <returns>The newly created randomizer</returns>
+        /// <exception cref="ScenarioException"></exception>
+        internal Randomizer CreateRandomizer(Type randomizerType)
+        {
+            if (!randomizerType.IsSubclassOf(typeof(Randomizer)))
+                throw new ScenarioException(
+                    $"Cannot add non-randomizer type {randomizerType.Name} to randomizer list");
+            var newRandomizer = (Randomizer)Activator.CreateInstance(randomizerType);
+            AddRandomizer(newRandomizer);
+            return newRandomizer;
+        }
+
+        /// <summary>
+        /// Append a randomizer to the end of the randomizer list
+        /// </summary>
+        /// <param name="newRandomizer"></param>
+        public void AddRandomizer(Randomizer newRandomizer)
+        {
+            InsertRandomizer(m_Randomizers.Count, newRandomizer);
+        }
+
+        /// <summary>
+        /// Insert a randomizer at a given index within the randomizer list
+        /// </summary>
+        /// <param name="index">The index to place the randomizer</param>
+        /// <param name="newRandomizer">The randomizer to add to the list</param>
+        /// <exception cref="ScenarioException"></exception>
+        public void InsertRandomizer(int index, Randomizer newRandomizer)
+        {
+            foreach (var randomizer in m_Randomizers)
+                if (randomizer.GetType() == newRandomizer.GetType())
+                    throw new ScenarioException(
+                        $"Cannot add another randomizer of type ${newRandomizer.GetType()} when " +
+                        $"a scenario of this type is already present in the scenario");
+            m_Randomizers.Insert(index, newRandomizer);
+#if UNITY_EDITOR
+            if (Application.isPlaying)
+                newRandomizer.Create();
+#else
+            newRandomizer.Create();
+#endif
+        }
+
+        /// <summary>
+        /// Remove the randomizer present at the given index
+        /// </summary>
+        /// <param name="index">The index of the randomizer to remove</param>
+        public void RemoveRandomizerAt(int index)
+        {
+            m_Randomizers.RemoveAt(index);
+        }
+
+        /// <summary>
+        /// Returns the randomizer present at the given index
+        /// </summary>
+        /// <param name="index">The lookup index</param>
+        /// <returns>The randomizer present at the given index</returns>
+        public Randomizer GetRandomizer(int index)
+        {
+            return m_Randomizers[index];
         }
 
         /// <summary>
@@ -311,100 +420,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 if (randomizer is T typedRandomizer)
                     return typedRandomizer;
             throw new ScenarioException($"A Randomizer of type {typeof(T).Name} was not added to this scenario");
-        }
-
-        /// <summary>
-        /// Creates a new randomizer and adds it to this scenario
-        /// </summary>
-        /// <typeparam name="T">The type of randomizer to create</typeparam>
-        /// <returns>The newly created randomizer</returns>
-        public T CreateRandomizer<T>() where T : Randomizer, new()
-        {
-            return (T)CreateRandomizer(typeof(T));
-        }
-
-        internal Randomizer CreateRandomizer(Type randomizerType)
-        {
-            if (!randomizerType.IsSubclassOf(typeof(Randomizer)))
-                throw new ScenarioException(
-                    $"Cannot add non-randomizer type {randomizerType.Name} to randomizer list");
-            foreach (var randomizer in m_Randomizers)
-                if (randomizer.GetType() == randomizerType)
-                    throw new ScenarioException(
-                        $"Two Randomizers of the same type ({randomizerType.Name}) cannot both be active simultaneously");
-            var newRandomizer = (Randomizer)Activator.CreateInstance(randomizerType);
-            m_Randomizers.Add(newRandomizer);
-#if UNITY_EDITOR
-            if (Application.isPlaying)
-                newRandomizer.Create();
-#else
-            newRandomizer.Create();
-#endif
-            return newRandomizer;
-        }
-
-        /// <summary>
-        /// Removes a randomizer of the specified type from this scenario
-        /// </summary>
-        /// <typeparam name="T">The type of scenario to remove</typeparam>
-        public void RemoveRandomizer<T>() where T : Randomizer, new()
-        {
-            RemoveRandomizer(typeof(T));
-        }
-
-        internal void RemoveRandomizer(Type randomizerType)
-        {
-            if (!randomizerType.IsSubclassOf(typeof(Randomizer)))
-                throw new ScenarioException(
-                    $"Cannot remove non-randomizer type {randomizerType.Name} from randomizer list");
-            var removed = false;
-            for (var i = 0; i < m_Randomizers.Count; i++)
-                if (m_Randomizers[i].GetType() == randomizerType)
-                {
-                    m_Randomizers.RemoveAt(i);
-                    removed = true;
-                    break;
-                }
-
-            if (!removed)
-                throw new ScenarioException(
-                    $"No active Randomizer of type {randomizerType.Name} could be removed");
-        }
-
-        /// <summary>
-        /// Returns the execution order index of a randomizer of the given type
-        /// </summary>
-        /// <typeparam name="T">The type of randomizer to index</typeparam>
-        /// <returns>The randomizer index</returns>
-        /// <exception cref="ScenarioException"></exception>
-        public int GetRandomizerIndex<T>() where T : Randomizer, new()
-        {
-            for (var i = 0; i < m_Randomizers.Count; i++)
-            {
-                var randomizer = m_Randomizers[i];
-                if (randomizer is T)
-                    return i;
-            }
-
-            throw new ScenarioException($"A Randomizer of type {typeof(T).Name} was not added to this scenario");
-        }
-
-        /// <summary>
-        /// Moves a randomizer from one index to another
-        /// </summary>
-        /// <param name="currentIndex">The index of the randomizer to move</param>
-        /// <param name="nextIndex">The index to move the randomizer to</param>
-        public void ReorderRandomizer(int currentIndex, int nextIndex)
-        {
-            if (currentIndex == nextIndex)
-                return;
-
-            if (nextIndex > currentIndex)
-                nextIndex--;
-
-            var randomizer = m_Randomizers[currentIndex];
-            m_Randomizers.RemoveAt(currentIndex);
-            m_Randomizers.Insert(nextIndex, randomizer);
         }
 
         void ValidateParameters()

@@ -33,7 +33,7 @@ namespace EditorTests
             // if ScenarioBase.CreateRandomizer<>() was coded correctly
             Assert.DoesNotThrow(() =>
             {
-                m_Scenario.CreateRandomizer<ErrorsOnCreateTestRandomizer>();
+                m_Scenario.AddRandomizer(new ErrorsOnCreateTestRandomizer());
             });
         }
     }

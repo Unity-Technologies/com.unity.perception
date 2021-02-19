@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
@@ -34,48 +33,33 @@ namespace RandomizationTests
         IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration)
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
-            m_Scenario.quitOnComplete = false;
             m_Scenario.constants.totalIterations = totalIterations;
             m_Scenario.constants.framesPerIteration = framesPerIteration;
             yield return null; // Skip Start() frame
             yield return null; // Skip first Update() frame
         }
 
-        [UnityTest]
-        public IEnumerator ScenarioConfigurationSerializesProperly()
+        [Test]
+        public void ScenarioConfigurationSerializesProperly()
         {
-            yield return CreateNewScenario(10, 10);
-            var scenario = m_Scenario.GetComponent<FixedLengthScenario>();
-            scenario.CreateRandomizer<HueOffsetRandomizer>();
+            m_TestObject = new GameObject();
+            m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
+            m_Scenario.AddRandomizer(new RotationRandomizer());
 
-            const string expectedConfig = @"{
-  ""constants"": {
-    ""framesPerIteration"": 10,
-    ""totalIterations"": 10,
-    ""instanceCount"": 1,
-    ""instanceIndex"": 0,
-    ""randomSeed"": 539662031
-  },
-  ""randomizers"": {
-    ""HueOffsetRandomizer"": {
-      ""hueOffset"": {
-        ""value"": {
-          ""range"": {
-            ""minimum"": -180.0,
-            ""maximum"": 180.0
-          }
-        }
-      }
-    }
-  }
-}";
-            Assert.AreEqual(expectedConfig, scenario.SerializeToJson());
+            string RemoveWhitespace(string str) =>
+                string.Join("", str.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
+
+            var expectedConfigAsset = (TextAsset)Resources.Load("SampleScenarioConfiguration");
+            var expectedText = RemoveWhitespace(expectedConfigAsset.text);
+            var scenarioJson = RemoveWhitespace(m_Scenario.SerializeToJson());
+            Assert.AreEqual(expectedText, scenarioJson);
         }
 
-        [UnityTest]
-        public IEnumerator ScenarioConfigurationOverwrittenDuringDeserialization()
+        [Test]
+        public void ScenarioConfigurationOverwrittenDuringDeserialization()
         {
-            yield return CreateNewScenario(10, 10);
+            m_TestObject = new GameObject();
+            m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
 
             var constants = new FixedLengthScenario.Constants
             {
@@ -100,8 +84,6 @@ namespace RandomizationTests
             // Check if the values reverted correctly
             Assert.AreEqual(m_Scenario.constants.framesPerIteration, constants.framesPerIteration);
             Assert.AreEqual(m_Scenario.constants.totalIterations, constants.totalIterations);
-
-            yield return null;
         }
 
         [UnityTest]

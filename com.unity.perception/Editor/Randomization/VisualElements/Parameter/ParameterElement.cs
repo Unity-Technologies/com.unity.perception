@@ -171,17 +171,21 @@ namespace UnityEditor.Perception.Randomization
             var uniformProperty = m_SerializedProperty.FindPropertyRelative("uniform");
             uniformToggle.BindProperty(uniformProperty);
 
-            if (uniformToggle.value)
-                listView.AddToClassList("collapsed");
-            else
-                listView.RemoveFromClassList("collapsed");
+            void ToggleUniform()
+            {
+                if (uniformToggle.value)
+                    listView.AddToClassList("collapsed");
+                else
+                    listView.RemoveFromClassList("collapsed");
+            }
+            ToggleUniform();
 
             if (Application.isPlaying)
                 uniformToggle.SetEnabled(false);
             else
                 uniformToggle.RegisterCallback<ChangeEvent<bool>>(evt =>
                 {
-                    listView.ToggleInClassList("collapsed");
+                    ToggleUniform();
                     if (!evt.newValue)
                         return;
                     var numOptions = optionsProperty.arraySize;

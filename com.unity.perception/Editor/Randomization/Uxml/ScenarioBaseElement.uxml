@@ -7,15 +7,14 @@
             <TextElement
                 class="scenario__info-box"
                 text="Scenarios control the execution flow of your simulation by applying randomization parameters. Make sure to always have only one scenario active within your scene."/>
-            <Toggle label="Quit On Complete" tooltip="Quit the application when the scenario completes" binding-path="quitOnComplete" style="margin-top:5px"/>
             <VisualElement name="constants-container">
                 <Foldout style="padding-left: 16px" text="Constants" name="constants-list" tooltip="A list of parameters for this scenario that will be JSON serialized in the configuration file."/>
                 <editor:PropertyField name="configuration-file-name" label="Constants File Name" binding-path="serializedConstantsFileName"/>
                 <VisualElement style="flex-direction: row;">
-                    <Button name="serialize" text="Serialize To Config File" style="flex-grow: 1;"
+                    <Button name="generate-json-config" text="Generate JSON Config" style="flex-grow: 1;"
                         tooltip="Serializes scenario constants and randomizer settings to a JSON configuration file"/>
-                    <Button name="deserialize" text="Deserialize From Config File" style="flex-grow: 1;"
-                        tooltip="Deserializes scenario constants and randomizer settings from a scenario_configuration.json file located in the Assets/StreamingAssets project folder"/>
+                    <Button name="import-json-config" text="Import JSON Config" style="flex-grow: 1;"
+                        tooltip="Imports scenario constants and randomizer settings from a selected JSON file"/>
                 </VisualElement>
             </VisualElement>
         </VisualElement>

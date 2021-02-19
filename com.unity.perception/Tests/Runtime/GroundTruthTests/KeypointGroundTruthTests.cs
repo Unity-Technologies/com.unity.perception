@@ -10,9 +10,9 @@ using UnityEngine.TestTools;
 namespace GroundTruthTests
 {
     [TestFixture]
-    public class KeyPointGroundTruthTests : GroundTruthTestBase
+    public class KeypointGroundTruthTests : GroundTruthTestBase
     {
-        static GameObject SetupCamera(IdLabelConfig config, KeyPointTemplate template, Action<List<KeyPointLabeler.KeyPointEntry>> computeListener)
+        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<List<KeypointLabeler.KeypointEntry>> computeListener)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -26,68 +26,68 @@ namespace GroundTruthTests
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
             perceptionCamera.captureRgbImages = false;
-            var keyPointLabeler = new KeyPointLabeler(config, template);
+            var keyPointLabeler = new KeypointLabeler(config, template);
             if (computeListener != null)
-                keyPointLabeler.KeyPointsComputed += computeListener;
+                keyPointLabeler.KeypointsComputed += computeListener;
 
             perceptionCamera.AddLabeler(keyPointLabeler);
 
             return cameraObject;
         }
 
-        static KeyPointTemplate CreateTestTemplate(Guid guid, string label)
+        static KeypointTemplate CreateTestTemplate(Guid guid, string label)
         {
-            var keyPoints = new[]
+            var keypoints = new[]
             {
-                new KeyPointDefinition
+                new KeypointDefinition
                 {
                     label = "FrontLowerLeft",
                     associateToRig = false,
                     color = Color.black
                 },
-                new KeyPointDefinition
+                new KeypointDefinition
                 {
                     label = "FrontUpperLeft",
                     associateToRig = false,
                     color = Color.black
                 },
-                new KeyPointDefinition
+                new KeypointDefinition
                 {
                     label = "FrontUpperRight",
                     associateToRig = false,
                     color = Color.black
                 },
-                new KeyPointDefinition
+                new KeypointDefinition
                 {
                     label = "FrontLowerRight",
                     associateToRig = false,
                     color = Color.black
                 },
-                new KeyPointDefinition
+                new KeypointDefinition
                 {
                     label = "BackLowerLeft",
                     associateToRig = false,
                     color = Color.black
                 },
-                new KeyPointDefinition
+                new KeypointDefinition
                 {
                     label = "BackUpperLeft",
                     associateToRig = false,
                     color = Color.black
                 },
-                new KeyPointDefinition
+                new KeypointDefinition
                 {
                     label = "BackUpperRight",
                     associateToRig = false,
                     color = Color.black
                 },
-                new KeyPointDefinition
+                new KeypointDefinition
                 {
                     label = "BackLowerRight",
                     associateToRig = false,
                     color = Color.black
                 },
-                new KeyPointDefinition
+                new KeypointDefinition
                 {
                     label = "Center",
                     associateToRig = false,
@@ -173,12 +173,12 @@ namespace GroundTruthTests
                 },
             };
 
-            var template = ScriptableObject.CreateInstance<KeyPointTemplate>();
+            var template = ScriptableObject.CreateInstance<KeypointTemplate>();
             template.templateID = guid.ToString();
             template.templateName = label;
             template.jointTexture = null;
             template.skeletonTexture = null;
-            template.keyPoints = keyPoints;
+            template.keypoints = keypoints;
             template.skeleton = skeleton;
 
             return template;
@@ -195,12 +195,12 @@ namespace GroundTruthTests
             Assert.AreEqual(template.templateName, label);
             Assert.IsNull(template.jointTexture);
             Assert.IsNull(template.skeletonTexture);
-            Assert.IsNotNull(template.keyPoints);
+            Assert.IsNotNull(template.keypoints);
             Assert.IsNotNull(template.skeleton);
-            Assert.AreEqual(template.keyPoints.Length, 9);
+            Assert.AreEqual(template.keypoints.Length, 9);
             Assert.AreEqual(template.skeleton.Length, 12);
 
-            var k0 = template.keyPoints[0];
+            var k0 = template.keypoints[0];
             Assert.NotNull(k0);
             Assert.AreEqual(k0.label, "FrontLowerLeft");
             Assert.False(k0.associateToRig);
@@ -228,7 +228,7 @@ namespace GroundTruthTests
             return cfg;
         }
 
-        static void SetupCubeJoint(GameObject cube, KeyPointTemplate template, string label, float x, float y, float z)
+        static void SetupCubeJoint(GameObject cube, KeypointTemplate template, string label, float x, float y, float z)
         {
             var joint = new GameObject();
             joint.transform.parent = cube.transform;
@@ -243,7 +243,7 @@ namespace GroundTruthTests
             jointLabel.templateInformation.Add(templateData);
         }
 
-        static void SetupCubeJoints(GameObject cube, KeyPointTemplate template)
+        static void SetupCubeJoints(GameObject cube, KeypointTemplate template)
         {
             SetupCubeJoint(cube, template, "FrontLowerLeft", -0.5f, -0.5f, -0.5f);
             SetupCubeJoint(cube, template, "FrontUpperLeft", -0.5f, 0.5f, -0.5f);
@@ -258,7 +258,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_TestStaticLabeledCube()
         {
-            var incoming = new List<List<KeyPointLabeler.KeyPointEntry>>();
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
 
             var cam = SetupCamera(SetUpLabelConfig(), template, (data) =>

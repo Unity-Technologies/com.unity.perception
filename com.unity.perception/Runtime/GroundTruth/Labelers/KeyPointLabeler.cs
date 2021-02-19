@@ -9,18 +9,18 @@ namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Produces keypoint annotations for a humanoid model. This labeler supports generic
-    /// <see cref="KeyPointTemplate"/>. Template values are mapped to rigged
+    /// <see cref="KeypointTemplate"/>. Template values are mapped to rigged
     /// <see cref="Animator"/> <seealso cref="Avatar"/>. Custom joints can be
     /// created by applying <see cref="JointLabel"/> to empty game objects at a body
     /// part's location.
     /// </summary>
     [Serializable]
-    public sealed class KeyPointLabeler : CameraLabeler
+    public sealed class KeypointLabeler : CameraLabeler
     {
         /// <summary>
         /// The active keypoint template. Required to annotate keypoint data.
         /// </summary>
-        public KeyPointTemplate activeTemplate;
+        public KeypointTemplate activeTemplate;
 
         /// <inheritdoc/>
         public override string description
@@ -50,21 +50,21 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Action that gets triggered when a new frame of key points are computed.
         /// </summary>
-        public event Action<List<KeyPointEntry>> KeyPointsComputed;
+        public event Action<List<KeypointEntry>> KeypointsComputed;
 
         /// <summary>
         /// Creates a new key point labeler. This constructor creates a labeler that
-        /// is not valid until a <see cref="IdLabelConfig"/> and <see cref="KeyPointTemplate"/>
+        /// is not valid until a <see cref="IdLabelConfig"/> and <see cref="KeypointTemplate"/>
         /// are assigned.
         /// </summary>
-        public KeyPointLabeler() { }
+        public KeypointLabeler() { }
 
         /// <summary>
         /// Creates a new key point labeler.
         /// </summary>
         /// <param name="config">The Id label config for the labeler</param>
         /// <param name="template">The active keypoint template</param>
-        public KeyPointLabeler(IdLabelConfig config, KeyPointTemplate template)
+        public KeypointLabeler(IdLabelConfig config, KeypointTemplate template)
         {
             this.idLabelConfig = config;
             this.activeTemplate = template;
@@ -79,14 +79,14 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void Setup()
         {
             if (idLabelConfig == null)
-                throw new InvalidOperationException("KeyPointLabeler's idLabelConfig field must be assigned");
+                throw new InvalidOperationException($"{nameof(KeypointLabeler)}'s idLabelConfig field must be assigned");
 
             m_AnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("keypoints", new []{TemplateToJson(activeTemplate)},
                 "pixel coordinates of keypoints in a model, along with skeletal connectivity data", id: new Guid(annotationId));
 
             m_EntityQuery = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(Labeling), typeof(GroundTruthInfo));
 
-            m_KeyPointEntries = new List<KeyPointEntry>();
+            m_KeypointEntries = new List<KeypointEntry>();
 
             // Texture to use in case the template does not contain a texture for the joints or the skeletal connections
             m_MissingTexture = new Texture2D(1, 1);
@@ -102,7 +102,7 @@ namespace UnityEngine.Perception.GroundTruth
             var entities = m_EntityQuery.ToEntityArray(Allocator.TempJob);
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
-            m_KeyPointEntries.Clear();
+            m_KeypointEntries.Clear();
 
             foreach (var entity in entities)
             {
@@ -111,8 +111,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             entities.Dispose();
 
-            KeyPointsComputed?.Invoke(m_KeyPointEntries);
-            reporter.ReportValues(m_KeyPointEntries);
+            KeypointsComputed?.Invoke(m_KeypointEntries);
+            reporter.ReportValues(m_KeypointEntries);
         }
 
         // ReSharper disable InconsistentNaming
@@ -122,7 +122,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Record storing all of the keypoint data of a labeled gameobject.
         /// </summary>
         [Serializable]
-        public class KeyPointEntry
+        public class KeypointEntry
         {
             /// <summary>
             /// The label id of the entity
@@ -143,14 +143,14 @@ namespace UnityEngine.Perception.GroundTruth
             /// <summary>
             /// Array of all of the keypoints
             /// </summary>
-            public KeyPoint[] keypoints;
+            public Keypoint[] keypoints;
         }
 
         /// <summary>
         /// The values of a specific keypoint
         /// </summary>
         [Serializable]
-        public class KeyPoint
+        public class Keypoint
         {
             /// <summary>
             /// The index of the keypoint in the template file
@@ -184,27 +184,27 @@ namespace UnityEngine.Perception.GroundTruth
             return pt;
         }
 
-        List<KeyPointEntry> m_KeyPointEntries;
+        List<KeypointEntry> m_KeypointEntries;
 
         struct CachedData
         {
             public bool status;
             public Animator animator;
-            public KeyPointEntry keyPoints;
+            public KeypointEntry keypoints;
             public List<(JointLabel, int)> overrides;
         }
 
         Dictionary<uint, CachedData> m_KnownStatus;
 
-        bool TryToGetTemplateIndexForJoint(KeyPointTemplate template, JointLabel joint, out int index)
+        bool TryToGetTemplateIndexForJoint(KeypointTemplate template, JointLabel joint, out int index)
         {
             index = -1;
 
             foreach (var jointTemplate in joint.templateInformation.Where(jointTemplate => jointTemplate.template == template))
             {
-                for (var i = 0; i < template.keyPoints.Length; i++)
+                for (var i = 0; i < template.keypoints.Length; i++)
                 {
-                    if (template.keyPoints[i].label == jointTemplate.label)
+                    if (template.keypoints[i].label == jointTemplate.label)
                     {
                         index = i;
                         return true;
@@ -221,7 +221,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 if (template.template == activeTemplate)
                 {
-                    if (activeTemplate.keyPoints.Any(i => i.label == template.label))
+                    if (activeTemplate.keypoints.Any(i => i.label == template.label))
                     {
                         return true;
                     }
@@ -241,7 +241,7 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     status = false,
                     animator = null,
-                    keyPoints = new KeyPointEntry(),
+                    keypoints = new KeypointEntry(),
                     overrides = new List<(JointLabel, int)>()
                 };
 
@@ -249,14 +249,14 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     var entityGameObject = labeledEntity.gameObject;
 
-                    cached.keyPoints.instance_id = labeledEntity.instanceId;
-                    cached.keyPoints.label_id = labelEntry.id;
-                    cached.keyPoints.template_guid = activeTemplate.templateID.ToString();
+                    cached.keypoints.instance_id = labeledEntity.instanceId;
+                    cached.keypoints.label_id = labelEntry.id;
+                    cached.keypoints.template_guid = activeTemplate.templateID.ToString();
 
-                    cached.keyPoints.keypoints = new KeyPoint[activeTemplate.keyPoints.Length];
-                    for (var i = 0; i < cached.keyPoints.keypoints.Length; i++)
+                    cached.keypoints.keypoints = new Keypoint[activeTemplate.keypoints.Length];
+                    for (var i = 0; i < cached.keypoints.keypoints.Length; i++)
                     {
-                        cached.keyPoints.keypoints[i] = new KeyPoint { index = i, state = 0 };
+                        cached.keypoints.keypoints[i] = new Keypoint { index = i, state = 0 };
                     }
 
                     var animator = entityGameObject.transform.GetComponentInChildren<Animator>();
@@ -284,22 +284,22 @@ namespace UnityEngine.Perception.GroundTruth
             if (cachedData.status)
             {
                 var animator = cachedData.animator;
-                var keyPoints = cachedData.keyPoints.keypoints;
+                var keypoints = cachedData.keypoints.keypoints;
 
                 // Go through all of the rig keypoints and get their location
-                for (var i = 0; i < activeTemplate.keyPoints.Length; i++)
+                for (var i = 0; i < activeTemplate.keypoints.Length; i++)
                 {
-                    var pt = activeTemplate.keyPoints[i];
+                    var pt = activeTemplate.keypoints[i];
                     if (pt.associateToRig)
                     {
                         var bone = animator.GetBoneTransform(pt.rigLabel);
                         if (bone != null)
                         {
                             var loc = ConvertToScreenSpace(bone.position);
-                            keyPoints[i].index = i;
-                            keyPoints[i].x = loc.x;
-                            keyPoints[i].y = loc.y;
-                            keyPoints[i].state = 2;
+                            keypoints[i].index = i;
+                            keypoints[i].x = loc.x;
+                            keypoints[i].y = loc.y;
+                            keypoints[i].state = 2;
                         }
                     }
                 }
@@ -309,20 +309,20 @@ namespace UnityEngine.Perception.GroundTruth
                 foreach (var (joint, idx) in cachedData.overrides)
                 {
                     var loc = ConvertToScreenSpace(joint.transform.position);
-                    keyPoints[idx].index = idx;
-                    keyPoints[idx].x = loc.x;
-                    keyPoints[idx].y = loc.y;
-                    keyPoints[idx].state = 2;
+                    keypoints[idx].index = idx;
+                    keypoints[idx].x = loc.x;
+                    keypoints[idx].y = loc.y;
+                    keypoints[idx].state = 2;
                 }
 
-                cachedData.keyPoints.pose = "unset";
+                cachedData.keypoints.pose = "unset";
 
                 if (cachedData.animator != null)
                 {
-                    cachedData.keyPoints.pose = GetPose(cachedData.animator);
+                    cachedData.keypoints.pose = GetPose(cachedData.animator);
                 }
 
-                m_KeyPointEntries.Add(cachedData.keyPoints);
+                m_KeypointEntries.Add(cachedData.keypoints);
             }
         }
 
@@ -361,7 +361,7 @@ namespace UnityEngine.Perception.GroundTruth
             var skeletonTexture = activeTemplate.skeletonTexture;
             if (skeletonTexture == null) skeletonTexture = m_MissingTexture;
 
-            foreach (var entry in m_KeyPointEntries)
+            foreach (var entry in m_KeypointEntries)
             {
                 foreach (var bone in activeTemplate.skeleton)
                 {
@@ -377,7 +377,7 @@ namespace UnityEngine.Perception.GroundTruth
                 foreach (var keypoint in entry.keypoints)
                 {
                     if (keypoint.state != 0)
-                        VisualizationHelper.DrawPoint(keypoint.x, keypoint.y, activeTemplate.keyPoints[keypoint.index].color, 8, jointTexture);
+                        VisualizationHelper.DrawPoint(keypoint.x, keypoint.y, activeTemplate.keypoints[keypoint.index].color, 8, jointTexture);
                 }
             }
         }
@@ -399,7 +399,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         [Serializable]
-        struct KeyPointJson
+        struct KeypointJson
         {
             public string template_id;
             public string template_name;
@@ -409,19 +409,19 @@ namespace UnityEngine.Perception.GroundTruth
         // ReSharper restore InconsistentNaming
         // ReSharper restore NotAccessedField.Local
 
-        KeyPointJson TemplateToJson(KeyPointTemplate input)
+        KeypointJson TemplateToJson(KeypointTemplate input)
         {
-            var json = new KeyPointJson();
+            var json = new KeypointJson();
             json.template_id = input.templateID.ToString();
             json.template_name = input.templateName;
-            json.key_points = new JointJson[input.keyPoints.Length];
+            json.key_points = new JointJson[input.keypoints.Length];
             json.skeleton = new SkeletonJson[input.skeleton.Length];
 
-            for (var i = 0; i < input.keyPoints.Length; i++)
+            for (var i = 0; i < input.keypoints.Length; i++)
             {
                 json.key_points[i] = new JointJson
                 {
-                    label = input.keyPoints[i].label,
+                    label = input.keypoints[i].label,
                     index = i
                 };
             }

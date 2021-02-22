@@ -303,5 +303,52 @@ namespace GroundTruthTests
             Assert.Zero(t.keypoints[8].x);
             Assert.Zero(t.keypoints[8].y);
         }
+
+        [UnityTest]
+        public IEnumerator Keypoint_AnimatedCube_PositionsCaptured()
+        {
+            var incoming = new List<List<KeyPointLabeler.KeyPointEntry>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+
+            var cam = SetupCamera(SetUpLabelConfig(), template, (data) =>
+            {
+                incoming.Add(data);
+            });
+
+            var cameraComponent = cam.GetComponent<Camera>();
+            cameraComponent.orthographic = true;
+            cameraComponent.orthographicSize = 2;
+            var screenPointCenterExpected = cameraComponent.WorldToScreenPoint(new Vector3(-1.0f, -1.0f, -1.0f));
+            cam.transform.position = new Vector3(0, 0, -10);
+
+            var gameObject = Resources.Load<GameObject>("AnimatedCube");
+            var cube = GameObject.Instantiate(gameObject);
+            cube.SetActive(false);
+            var labeling = cube.AddComponent<Labeling>();
+            labeling.labels.Add("TestTemplate");
+
+            SetupCubeJoint(cube, template, "Center",0f, 0f, 0f);
+
+            cube.SetActive(true);
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+            AddTestObjectForCleanup(cube);
+
+            yield return null;
+
+            var testCase = incoming.Last();
+            Assert.AreEqual(1, testCase.Count);
+            var t = testCase.First();
+            Assert.NotNull(t);
+            Assert.AreEqual(1, t.instance_id);
+            Assert.AreEqual(1, t.label_id);
+            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(9, t.keypoints.Length);
+
+            Assert.AreEqual(new Vector2(screenPointCenterExpected.x, screenPointCenterExpected.y), new Vector2(t.keypoints[0].x, t.keypoints[0].y));
+            Assert.AreEqual(0, t.keypoints[0].index);
+            Assert.AreEqual(2, t.keypoints[0].state);
+        }
     }
 }

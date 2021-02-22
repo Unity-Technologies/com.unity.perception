@@ -95,7 +95,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnEndRendering()
         {
             var reporter = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
 

@@ -33,6 +33,8 @@ ScenarioBase's Get and Create randomizer methods have been augmented or replaced
 
 The scenario inspector buttons serialize and deserialize have been refactored to open a file explorer generate and import JSON configurations.
 
+Randomizer tags now use OnEnable and OnDisable to manage lifecycle. This allows the user to toggle them on and off in the editor.
+
 ### Deprecated
 
 ### Removed

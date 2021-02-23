@@ -47,10 +47,16 @@ namespace UnityEngine.Perception.GroundTruth
         EntityQuery m_EntityQuery;
         Texture2D m_MissingTexture;
 
+        Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
+        Dictionary<int, Dictionary<uint, KeypointEntry>> m_Keypoints;
+        List<KeypointEntry> m_ToReport;
+
+        int m_CurrentFrame;
+
         /// <summary>
         /// Action that gets triggered when a new frame of key points are computed.
         /// </summary>
-        public event Action<List<KeypointEntry>> KeypointsComputed;
+        public event Action<int, List<KeypointEntry>> KeypointsComputed;
 
         /// <summary>
         /// Creates a new key point labeler. This constructor creates a labeler that
@@ -86,23 +92,88 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_EntityQuery = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(Labeling), typeof(GroundTruthInfo));
 
-            m_KeypointEntries = new List<KeypointEntry>();
-
             // Texture to use in case the template does not contain a texture for the joints or the skeletal connections
             m_MissingTexture = new Texture2D(1, 1);
 
             m_KnownStatus = new Dictionary<uint, CachedData>();
+
+            m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
+            m_Keypoints = new Dictionary<int, Dictionary<uint, KeypointEntry>>();
+            m_ToReport = new List<KeypointEntry>();
+            m_CurrentFrame = 0;
+
+            perceptionCamera.InstanceSegmentationImageReadback += OnInstanceSegmentationImageReadback;
+        }
+
+        bool AreEqual(Color32 lhs, Color32 rhs)
+        {
+            return lhs.r == rhs.r && lhs.g == rhs.g && lhs.b == rhs.b && lhs.a == rhs.a;
+        }
+
+        void OnInstanceSegmentationImageReadback(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)
+        {
+            if (!m_AsyncAnnotations.TryGetValue(frameCount, out var asyncAnnotation))
+                return;
+
+            m_AsyncAnnotations.Remove(frameCount);
+
+            if (!m_Keypoints.TryGetValue(frameCount, out var keypoints))
+                return;
+
+            var width = renderTexture.width;
+
+            m_Keypoints.Remove(frameCount);
+
+            m_ToReport.Clear();
+
+            foreach (var keypointSet in keypoints)
+            {
+                if (InstanceIdToColorMapping.TryGetColorFromInstanceId(keypointSet.Key, out var idColor))
+                {
+                    var shouldReport = false;
+
+                    foreach (var keypoint in keypointSet.Value.keypoints)
+                    {
+                        // If the keypoint isn't mapped to a body part keep it at 0
+                        if (keypoint.state == 0) continue;
+
+                        if (keypoint.x < 0 || keypoint.x > width || keypoint.y < 0 || keypoint.y > renderTexture.height)
+                        {
+                            keypoint.state = 0;
+                            keypoint.x = 0;
+                            keypoint.y = 0;
+                        }
+                        else
+                        {
+                            // Get the pixel color at the keypoints location
+                            var height = renderTexture.height - (int)keypoint.y;
+                            var pixel = data[height * width + (int)keypoint.x];
+
+                            keypoint.state = AreEqual(pixel, idColor) ? 2 : 1;
+                            shouldReport = true;
+                        }
+                    }
+
+                    if (shouldReport)
+                        m_ToReport.Add(keypointSet.Value);
+                }
+            }
+
+            KeypointsComputed?.Invoke(frameCount, m_ToReport);
+            asyncAnnotation.ReportValues(m_ToReport);
         }
 
         /// <inheritdoc/>
         protected override void OnBeginRendering()
         {
-            var reporter = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
+            m_CurrentFrame = Time.frameCount;
+
+            m_Keypoints[m_CurrentFrame] = new Dictionary<uint, KeypointEntry>();
+
+            m_AsyncAnnotations[m_CurrentFrame] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
 
             var entities = m_EntityQuery.ToEntityArray(Allocator.TempJob);
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-
-            m_KeypointEntries.Clear();
 
             foreach (var entity in entities)
             {
@@ -110,9 +181,6 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             entities.Dispose();
-
-            KeypointsComputed?.Invoke(m_KeypointEntries);
-            reporter.ReportValues(m_KeypointEntries);
         }
 
         // ReSharper disable InconsistentNaming
@@ -176,15 +244,19 @@ namespace UnityEngine.Perception.GroundTruth
         // ReSharper restore NotAccessedField.Global
         // ReSharper restore NotAccessedField.Local
 
+        float GetCaptureHeight()
+        {
+            return perceptionCamera.attachedCamera.targetTexture != null ?
+                perceptionCamera.attachedCamera.targetTexture.height : Screen.height;
+        }
+
         // Converts a coordinate from world space into pixel space
         Vector3 ConvertToScreenSpace(Vector3 worldLocation)
         {
             var pt = perceptionCamera.attachedCamera.WorldToScreenPoint(worldLocation);
-            pt.y = Screen.height - pt.y;
+            pt.y = GetCaptureHeight() - pt.y;
             return pt;
         }
-
-        List<KeypointEntry> m_KeypointEntries;
 
         struct CachedData
         {
@@ -322,7 +394,7 @@ namespace UnityEngine.Perception.GroundTruth
                     cachedData.keypoints.pose = GetPose(cachedData.animator);
                 }
 
-                m_KeypointEntries.Add(cachedData.keypoints);
+                m_Keypoints[m_CurrentFrame][labeledEntity.instanceId] = cachedData.keypoints;
             }
         }
 
@@ -355,20 +427,22 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override void OnVisualize()
         {
+            if (m_ToReport == null) return;
+
             var jointTexture = activeTemplate.jointTexture;
             if (jointTexture == null) jointTexture = m_MissingTexture;
 
             var skeletonTexture = activeTemplate.skeletonTexture;
             if (skeletonTexture == null) skeletonTexture = m_MissingTexture;
 
-            foreach (var entry in m_KeypointEntries)
+            foreach (var entry in m_ToReport)
             {
                 foreach (var bone in activeTemplate.skeleton)
                 {
                     var joint1 = entry.keypoints[bone.joint1];
                     var joint2 = entry.keypoints[bone.joint2];
 
-                    if (joint1.state != 0 && joint2.state != 0)
+                    if (joint1.state == 2 && joint2.state == 2)
                     {
                         VisualizationHelper.DrawLine(joint1.x, joint1.y, joint2.x, joint2.y, bone.color, 8, skeletonTexture);
                     }
@@ -376,7 +450,7 @@ namespace UnityEngine.Perception.GroundTruth
 
                 foreach (var keypoint in entry.keypoints)
                 {
-                    if (keypoint.state != 0)
+                    if (keypoint.state == 2)
                         VisualizationHelper.DrawPoint(keypoint.x, keypoint.y, activeTemplate.keypoints[keypoint.index].color, 8, jointTexture);
                 }
             }

@@ -15,7 +15,7 @@ namespace RandomizationTests.RandomizerTests
 
         public Transform transform;
 
-        protected override void OnCreate()
+        protected override void OnAwake()
         {
             transform = scenario.transform;
         }

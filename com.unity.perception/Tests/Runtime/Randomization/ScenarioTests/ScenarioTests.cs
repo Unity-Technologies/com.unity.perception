@@ -9,13 +9,13 @@ using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
-namespace RandomizationTests
+namespace RandomizationTests.ScenarioTests
 {
     [TestFixture]
     public class ScenarioTests
     {
         GameObject m_TestObject;
-        FixedLengthScenario m_Scenario;
+        TestFixedLengthScenario m_Scenario;
 
         [SetUp]
         public void Setup()
@@ -32,10 +32,10 @@ namespace RandomizationTests
         // TODO: update this function once the perception camera doesn't skip the first frame
         IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration)
         {
-            m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
+            m_Scenario = m_TestObject.AddComponent<TestFixedLengthScenario>();
             m_Scenario.constants.totalIterations = totalIterations;
             m_Scenario.constants.framesPerIteration = framesPerIteration;
-            yield return null; // Skip Start() frame
+            yield return null; // Skip first frame
             yield return null; // Skip first Update() frame
         }
 
@@ -43,7 +43,7 @@ namespace RandomizationTests
         public void ScenarioConfigurationSerializesProperly()
         {
             m_TestObject = new GameObject();
-            m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
+            m_Scenario = m_TestObject.AddComponent<TestFixedLengthScenario>();
             m_Scenario.AddRandomizer(new RotationRandomizer());
 
             string RemoveWhitespace(string str) =>
@@ -59,7 +59,7 @@ namespace RandomizationTests
         public void ScenarioConfigurationOverwrittenDuringDeserialization()
         {
             m_TestObject = new GameObject();
-            m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
+            m_Scenario = m_TestObject.AddComponent<TestFixedLengthScenario>();
 
             var constants = new FixedLengthScenario.Constants
             {
@@ -106,10 +106,10 @@ namespace RandomizationTests
             yield return CreateNewScenario(iterationCount, 1);
             for (var i = 0; i < iterationCount; i++)
             {
-                Assert.False(m_Scenario.isScenarioComplete);
+                Assert.True(m_Scenario.state == ScenarioBase.State.Playing);
                 yield return null;
             }
-            Assert.True(m_Scenario.isScenarioComplete);
+            Assert.True(m_Scenario.state == ScenarioBase.State.Idle);
         }
 
         [UnityTest]

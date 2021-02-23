@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.Entities;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Scenarios;
 
@@ -15,14 +16,24 @@ namespace UnityEngine.Perception.Randomization.Randomizers
     [Serializable]
     public abstract class Randomizer
     {
-        bool m_PreviouslyEnabled;
-
-        [HideInInspector, SerializeField] internal bool collapsed;
+        [SerializeField, HideInInspector] bool m_Enabled = true;
+        [SerializeField, HideInInspector] internal bool collapsed;
 
         /// <summary>
         /// Enabled Randomizers are updated, disabled Randomizers are not.
         /// </summary>
-        [field: SerializeField, HideInInspector] public bool enabled { get; set; } = true;
+        public bool enabled
+        {
+            get => m_Enabled;
+            set
+            {
+                m_Enabled = value;
+                if (value)
+                    OnEnable();
+                else
+                    OnDisable();
+            }
+        }
 
         /// <summary>
         /// Returns the scenario containing this Randomizer
@@ -57,74 +68,76 @@ namespace UnityEngine.Perception.Randomization.Randomizers
         /// <summary>
         /// OnCreate is called when the Randomizer is added or loaded to a scenario
         /// </summary>
-        protected virtual void OnCreate() { }
+        [Obsolete("Method OnCreate has been deprecated. Use OnAwake instead (UnityUpgradable)", true)]
+        protected virtual void OnCreate() =>
+            throw new NotSupportedException("OnCreate method has been deprecated");
 
         /// <summary>
-        /// OnIterationStart is called at the start of a new scenario iteration
+        /// OnAwake is called when the Randomizer is added or loaded to a scenario
         /// </summary>
-        protected virtual void OnIterationStart() { }
+        protected virtual void OnAwake() { }
 
         /// <summary>
-        /// OnIterationEnd is called the after a scenario iteration has completed
+        /// OnEnabled is called when the Randomizer becomes enabled and active
         /// </summary>
-        protected virtual void OnIterationEnd() { }
+        protected virtual void OnEnable() { }
 
         /// <summary>
-        /// OnScenarioComplete is called the after the entire scenario has completed
+        /// OnDisable is called when the Randomizer becomes disabled
+        /// </summary>
+        protected virtual void OnDisable() { }
+
+        /// <summary>
+        /// OnScenarioStart is called on the frame the scenario begins iterating
+        /// </summary>
+        protected virtual void OnScenarioStart() { }
+
+        /// <summary>
+        /// OnScenarioComplete is called the after the entire Scenario has completed
         /// </summary>
         protected virtual void OnScenarioComplete() { }
 
         /// <summary>
+        /// OnIterationStart is called at the start of a new Scenario iteration
+        /// </summary>
+        protected virtual void OnIterationStart() { }
+
+        /// <summary>
+        /// OnIterationEnd is called the after a Scenario iteration has completed
+        /// </summary>
+        protected virtual void OnIterationEnd() { }
+
+        /// <summary>
         /// OnStartRunning is called on the first frame a Randomizer is enabled
         /// </summary>
-        protected virtual void OnStartRunning() { }
+        [Obsolete("Method OnStartRunning has been deprecated. Use OnEnabled instead (UnityUpgradable)", true)]
+        protected virtual void OnStartRunning() =>
+            throw new NotSupportedException("OnStartRunning method has been deprecated");
 
         /// <summary>
         /// OnStartRunning is called on the first frame a disabled Randomizer is updated
         /// </summary>
-        protected virtual void OnStopRunning() { }
+        [Obsolete("Method OnStopRunning has been deprecated. Use OnDisable instead (UnityUpgradable)", true)]
+        protected virtual void OnStopRunning() =>
+            throw new NotSupportedException("OnStopRunning method has been deprecated");
 
         /// <summary>
         /// OnUpdate is executed every frame for enabled Randomizers
         /// </summary>
         protected virtual void OnUpdate() { }
 
-        internal virtual void Create()
-        {
-            OnCreate();
-        }
+        #region InternalScenarioMethods
+        internal void Awake() => OnAwake();
 
-        internal virtual void IterationStart()
-        {
-            OnIterationStart();
-        }
+        internal void ScenarioStart() => OnScenarioStart();
 
-        internal virtual void IterationEnd()
-        {
-            OnIterationEnd();
-        }
+        internal void ScenarioComplete() => OnScenarioComplete();
 
-        internal virtual void ScenarioComplete()
-        {
-            OnScenarioComplete();
-        }
+        internal void IterationStart() => OnIterationStart();
 
-        internal void Update()
-        {
-            if (enabled)
-            {
-                if (!m_PreviouslyEnabled)
-                {
-                    m_PreviouslyEnabled = true;
-                    OnStartRunning();
-                }
-                OnUpdate();
-            }
-            else if (m_PreviouslyEnabled)
-            {
-                m_PreviouslyEnabled = false;
-                OnStopRunning();
-            }
-        }
+        internal void IterationEnd() => OnIterationEnd();
+
+        internal void Update() => OnUpdate();
+        #endregion
     }
 }

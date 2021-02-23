@@ -42,7 +42,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
         GameObjectOneWayCache m_GameObjectOneWayCache;
 
         /// <inheritdoc/>
-        protected override void OnCreate()
+        protected override void OnAwake()
         {
             m_Container = new GameObject("BackgroundContainer");
             m_Container.transform.parent = scenario.transform;

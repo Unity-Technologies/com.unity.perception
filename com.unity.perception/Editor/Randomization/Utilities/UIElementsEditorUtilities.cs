@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Perception.Randomization
@@ -40,7 +41,10 @@ namespace UnityEditor.Perception.Randomization
         /// <param name="containerElement">The element to place the created PropertyFields in</param>
         public static void CreatePropertyFields(SerializedProperty property, VisualElement containerElement)
         {
-            var fieldType = StaticData.GetManagedReferenceValue(property).GetType();
+            var obj = StaticData.GetManagedReferenceValue(property);
+            if (obj == null)
+                return;
+            var fieldType = obj.GetType();
             var iterator = property.Copy();
             var nextSiblingProperty = property.Copy();
             nextSiblingProperty.NextVisible(false);

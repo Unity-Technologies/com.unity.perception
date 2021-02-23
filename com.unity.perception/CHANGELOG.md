@@ -25,6 +25,8 @@ New keypoint tests have been added to test keypoint state.
 
 The color of keypoints and connections are now reported in the annotation definition json file for keypoint templates.
 
+The PerceptionScenario abstract class has been added to abstract perception data capture specific functionality from the vanilla scenario lifecycle. 
+
 ### Changed
 
 Renamed all appearances of the term `KeyPoint` within types and names to `Keypoint`.
@@ -40,6 +42,8 @@ ScenarioBase's Get and Create randomizer methods have been augmented or replaced
 The scenario inspector buttons serialize and deserialize have been refactored to open a file explorer generate and import JSON configurations.
 
 Randomizer tags now use OnEnable and OnDisable to manage lifecycle. This allows the user to toggle them on and off in the editor.
+
+The randomizer methods OnCreate(), OnStartRunning(), and OnStopRunning() are now deprecated and have been replaced with OnAwake(), OnEnable() and OnDisable() respectively to better reflect the existing MonoBehaviour lifecycle methods.
 
 ### Deprecated
 

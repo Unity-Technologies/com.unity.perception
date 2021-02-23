@@ -45,6 +45,10 @@ Fixed a null reference error that appeared when adding options to categorical pa
 
 Fixed ground truth not properly produced when there are other disabled PerceptionCameras present. Note: this does not yet add support for multiple enabled PerceptionCameras.
 
+Fixed an issue preventing a user from adding more options to a Categorical Parameter's list of options with the 'Add Folder' button. 'Add Folder' now correctly appends the contents of the new folder on the list.
+
+Fixed a bug where uniform probabilities were not properly reset upon adding or removing options from a Categorical Parameter's list of options.
+
 ## [0.7.0-preview.2] - 2021-02-08
 
 ### Upgrade Notes

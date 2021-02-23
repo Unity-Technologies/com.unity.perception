@@ -51,7 +51,7 @@ LightmapSettings:
     m_IndirectOutputScale: 1
     m_AlbedoBoost: 1
     m_EnvironmentLightingMode: 0
-    m_EnableBakedLightmaps: 1
+    m_EnableBakedLightmaps: 0
     m_EnableRealtimeLightmaps: 1
   m_LightmapEditorSettings:
     serializedVersion: 12
@@ -156,6 +156,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   labels:
   - Crate
+  useAutoLabeling: 0
+  autoLabelingSchemeType: 
 --- !u!65 &411238278
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -278,6 +280,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   labels:
   - Cube
+  useAutoLabeling: 0
+  autoLabelingSchemeType: 
 --- !u!65 &464025706
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -568,6 +572,53 @@ MonoBehaviour:
   showAdditionalSettings: 0
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
+--- !u!1 &746670481
+GameObject:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 746670483}
+  - component: {fileID: 746670482}
+  m_Layer: 0
+  m_Name: StaticLightingSky
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &746670482
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 746670481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441482e8936e35048a1dffac814e3ef8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Profile: {fileID: 0}
+  m_StaticLightingSkyUniqueID: 0
+  m_SkySettings: {fileID: 0}
+  m_SkySettingsFromProfile: {fileID: 0}
+--- !u!4 &746670483
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 746670481}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -770,9 +821,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   description: The main camera
-  period: 0.0166
-  startTime: 0
   captureRgbImages: 1
+  firstCaptureFrame: 0
+  captureTriggerMode: 0
+  manualSensorAffectSimulationTiming: 0
+  simulationDeltaTime: 0.0166
+  framesBetweenCaptures: 0
   m_Labelers:
   - id: 0
   - id: 1
@@ -845,7 +899,7 @@ MonoBehaviour:
   priority: 0
   blendDistance: 0
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: 6886180e6c51dac4f9ea4d9bcdaa6e13, type: 2}
+  sharedProfile: {fileID: 0}
 --- !u!4 &1562495300
 Transform:
   m_ObjectHideFlags: 0
@@ -895,6 +949,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   labels:
   - Box
+  useAutoLabeling: 0
+  autoLabelingSchemeType: 
 --- !u!65 &1640252280
 BoxCollider:
   m_ObjectHideFlags: 0

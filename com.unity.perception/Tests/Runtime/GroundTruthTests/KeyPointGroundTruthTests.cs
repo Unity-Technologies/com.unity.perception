@@ -5,13 +5,34 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace GroundTruthTests
 {
     [TestFixture]
-    public class KeyPointGroundTruthTests : GroundTruthTestBase
+    public class KeyPointGroundTruthTests : GroundTruthTestBase, IPrebuildSetup, IPostBuildCleanup
     {
+        private const string kAnimatedCubeScenePath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/AnimatedCubeScene.unity";
+
+        public void Setup()
+        {
+#if UNITY_EDITOR
+            var scenes = UnityEditor.EditorBuildSettings.scenes.ToList();
+            scenes.Add(new UnityEditor.EditorBuildSettingsScene(kAnimatedCubeScenePath, true));
+            UnityEditor.EditorBuildSettings.scenes = scenes.ToArray();
+#endif
+        }
+
+        public void Cleanup()
+        {
+#if UNITY_EDITOR
+            var scenes = UnityEditor.EditorBuildSettings.scenes;
+            scenes = scenes.Where(s => s.path != kAnimatedCubeScenePath).ToArray();
+            UnityEditor.EditorBuildSettings.scenes = scenes;
+#endif
+        }
+
         static GameObject SetupCamera(IdLabelConfig config, KeyPointTemplate template, Action<List<KeyPointLabeler.KeyPointEntry>> computeListener)
         {
             var cameraObject = new GameObject();
@@ -318,14 +339,20 @@ namespace GroundTruthTests
             var cameraComponent = cam.GetComponent<Camera>();
             cameraComponent.orthographic = true;
             cameraComponent.orthographicSize = 2;
-            var screenPointCenterExpected = cameraComponent.WorldToScreenPoint(new Vector3(-1.0f, -1.0f, -1.0f));
+            var screenPointCenterExpected = cameraComponent.WorldToScreenPoint(
+                new Vector3(-1.0f, -1.0f * -1 /*flip y for image-space*/, -1.0f));
+
             cam.transform.position = new Vector3(0, 0, -10);
 
-            var gameObject = Resources.Load<GameObject>("AnimatedCube");
-            var cube = GameObject.Instantiate(gameObject);
+            SceneManager.LoadScene("AnimatedCubeScene", LoadSceneMode.Additive);
+            AddSceneForCleanup("AnimatedCubeScene");
+            //scenes are loaded at the end of the frame
+            yield return null;
+
+            var cube = GameObject.Find("AnimatedCube");
             cube.SetActive(false);
             var labeling = cube.AddComponent<Labeling>();
-            labeling.labels.Add("TestTemplate");
+            labeling.labels.Add("label");
 
             SetupCubeJoint(cube, template, "Center",0f, 0f, 0f);
 
@@ -346,9 +373,11 @@ namespace GroundTruthTests
             Assert.AreEqual(template.templateID.ToString(), t.template_guid);
             Assert.AreEqual(9, t.keypoints.Length);
 
-            Assert.AreEqual(new Vector2(screenPointCenterExpected.x, screenPointCenterExpected.y), new Vector2(t.keypoints[0].x, t.keypoints[0].y));
-            Assert.AreEqual(0, t.keypoints[0].index);
-            Assert.AreEqual(2, t.keypoints[0].state);
+            //large delta because the animation will already have taken it some distance from the starting location
+            Assert.AreEqual(screenPointCenterExpected.x, t.keypoints[8].x, 10);
+            Assert.AreEqual(screenPointCenterExpected.y, t.keypoints[8].y, 10);
+            Assert.AreEqual(8, t.keypoints[8].index);
+            Assert.AreEqual(2, t.keypoints[8].state);
         }
     }
 }

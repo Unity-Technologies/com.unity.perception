@@ -4,6 +4,7 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace GroundTruthTests
@@ -11,6 +12,7 @@ namespace GroundTruthTests
     public class GroundTruthTestBase
     {
         List<Object> m_ObjectsToDestroy = new List<Object>();
+        List<string> m_ScenesToUnload = new List<string>();
         [TearDown]
         public void TearDown()
         {
@@ -19,6 +21,11 @@ namespace GroundTruthTests
 
             m_ObjectsToDestroy.Clear();
 
+            foreach (var s in m_ScenesToUnload)
+                SceneManager.UnloadSceneAsync(s);
+
+            m_ScenesToUnload.Clear();
+
             DatasetCapture.ResetSimulation();
             Time.timeScale = 1;
             if (Directory.Exists(DatasetCapture.OutputDirectory))
@@ -26,6 +33,8 @@ namespace GroundTruthTests
         }
 
         public void AddTestObjectForCleanup(Object @object) => m_ObjectsToDestroy.Add(@object);
+
+        public void AddSceneForCleanup(string sceneName) => m_ScenesToUnload.Add(sceneName);
 
         public void DestroyTestObject(Object @object)
         {

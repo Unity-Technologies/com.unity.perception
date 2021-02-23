@@ -374,8 +374,8 @@ namespace GroundTruthTests
             Assert.AreEqual(9, t.keypoints.Length);
 
             //large delta because the animation will already have taken it some distance from the starting location
-            Assert.AreEqual(screenPointCenterExpected.x, t.keypoints[8].x, 10);
-            Assert.AreEqual(screenPointCenterExpected.y, t.keypoints[8].y, 10);
+            Assert.AreEqual(screenPointCenterExpected.x, t.keypoints[8].x, Screen.width * .1);
+            Assert.AreEqual(screenPointCenterExpected.y, t.keypoints[8].y, Screen.height * .1);
             Assert.AreEqual(8, t.keypoints[8].index);
             Assert.AreEqual(2, t.keypoints[8].state);
         }

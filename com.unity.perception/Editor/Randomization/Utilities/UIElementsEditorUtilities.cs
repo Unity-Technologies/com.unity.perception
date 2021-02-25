@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
@@ -10,7 +11,7 @@ namespace UnityEditor.Perception.Randomization
     /// <summary>
     /// This class contains a set of helper functions for simplifying the creation of UI Elements editors
     /// </summary>
-    public static class UIElementsEditorUtilities
+    static class UIElementsEditorUtilities
     {
         /// <summary>
         /// Creates a list of PropertyFields from the class fields of the given SerializedObject
@@ -70,7 +71,7 @@ namespace UnityEditor.Perception.Randomization
         {
             var propertyField = new PropertyField(iterator.Copy());
             propertyField.Bind(iterator.serializedObject);
-            var originalField = parentPropertyType.GetField(iterator.name);
+            var originalField = parentPropertyType.GetField(iterator.name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance );
             var tooltipAttribute = originalField.GetCustomAttributes(true)
                 .ToList().Find(att => att.GetType() == typeof(TooltipAttribute));
             if (tooltipAttribute != null)

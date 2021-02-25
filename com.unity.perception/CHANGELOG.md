@@ -15,6 +15,8 @@ All appearances of the term `KeyPoint` have been renamed to `Keypoint`. Therefor
 
 ### Added
 
+Added error message when missing Randomizer scripts are detected
+
 Scenario serialization has been updated to include scalar values on randomizers and parameters.
 
 Added new ScenarioBase virtual lifecycle hooks: OnAwake, OnStart, OnComplete, and OnIdle.
@@ -54,6 +56,8 @@ The randomizer methods OnCreate(), OnStartRunning(), and OnStopRunning() are now
 Fixed a null reference error that appeared when adding options to categorical parameters.
 
 Fixed ground truth not properly produced when there are other disabled PerceptionCameras present. Note: this does not yet add support for multiple enabled PerceptionCameras.
+
+Fixed exception when rendering inspector for randomizers with private serialized fields
 
 Fixed an issue preventing a user from adding more options to a Categorical Parameter's list of options with the 'Add Folder' button. 'Add Folder' now correctly appends the contents of the new folder on the list.
 

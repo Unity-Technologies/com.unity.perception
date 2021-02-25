@@ -25,7 +25,9 @@ If a labeled asset is at least partially visible all keypoints will be annotated
 1: Exists in model and in camera's frustum but occluded by another object<br>
 2: On screen and visible.
 
-New keypoint tests have been added to test keypoint state
+New keypoint tests have been added to test keypoint state.
+
+The color of keypoints and connections are now reported in the annotation definition json file for keypoint templates.
 
 ### Changed
 

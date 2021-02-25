@@ -383,12 +383,24 @@ annotation_definition.spec {
     {
       label:         <str>           -- The label of the joint
       index:         <int>           -- The index of the joint
+      color {                        -- [Optional] The color to use for the visualization of the keypoint
+        r:           <float>         -- Value from 0 to 1 for the red channel
+        g:           <float>         -- Value from 0 to 1 for the green channel
+        b:           <float>         -- Value from 0 to 1 for the blue channel
+        a:           <float>         -- Value from 0 to 1 for the alpha channel
+      }
     }, ...
   ]
   skeleton [                         -- Array of skeletal connections (which joints have connections between one another) defined in this template
     {
       joint1:        <int>           -- The first joint of the connection
       joint2:        <int>           -- The second joint of the connection
+      color {                        -- [Optional] The color to use for the visualization of the bone
+        r:           <float>         -- Value from 0 to 1 for the red channel
+        g:           <float>         -- Value from 0 to 1 for the green channel
+        b:           <float>         -- Value from 0 to 1 for the blue channel
+        a:           <float>         -- Value from 0 to 1 for the alpha channel
+      }
     }, ...
   ]
 }

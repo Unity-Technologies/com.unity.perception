@@ -463,6 +463,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             public string label;
             public int index;
+            public Color color;
         }
 
         [Serializable]
@@ -470,6 +471,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             public int joint1;
             public int joint2;
+            public Color color;
         }
 
         [Serializable]
@@ -496,7 +498,8 @@ namespace UnityEngine.Perception.GroundTruth
                 json.key_points[i] = new JointJson
                 {
                     label = input.keypoints[i].label,
-                    index = i
+                    index = i,
+                    color = input.keypoints[i].color
                 };
             }
 
@@ -505,7 +508,8 @@ namespace UnityEngine.Perception.GroundTruth
                 json.skeleton[i] = new SkeletonJson()
                 {
                     joint1 = input.skeleton[i].joint1,
-                    joint2 = input.skeleton[i].joint2
+                    joint2 = input.skeleton[i].joint2,
+                    color = input.skeleton[i].color
                 };
             }
 

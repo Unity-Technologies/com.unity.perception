@@ -19,6 +19,12 @@ Scenario serialization has been updated to include scalar values on randomizers 
 
 Added new ScenarioBase virtual lifecycle hooks: OnAwake, OnStart, OnComplete, and OnIdle.
 
+Keypoint occlusion has been added, no keypoint information will be recorded for a labeled asset completely out of the camera's frustum. 
+
+New keypoint tests have been added to test keypoint state.
+
+The color of keypoints and connections are now reported in the annotation definition json file for keypoint templates.
+
 ### Changed
 
 Renamed all appearances of the term `KeyPoint` within types and names to `Keypoint`.

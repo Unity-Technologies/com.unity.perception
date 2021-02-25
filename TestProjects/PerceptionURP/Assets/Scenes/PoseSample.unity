@@ -324,7 +324,7 @@ MonoBehaviour:
   references:
     version: 1
     00000000:
-      type: {class: KeyPointLabeler, ns: UnityEngine.Perception.GroundTruth, asm: Unity.Perception.Runtime}
+      type: {class: KeypointLabeler, ns: UnityEngine.Perception.GroundTruth, asm: Unity.Perception.Runtime}
       data:
         enabled: 1
         activeTemplate: {fileID: 11400000, guid: a29b79d8ce98945a0855b1addec08d86,

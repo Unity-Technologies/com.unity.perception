@@ -33,7 +33,7 @@ namespace GroundTruthTests
 #endif
         }
 
-        static GameObject SetupCamera(IdLabelConfig config, KeyPointTemplate template, Action<List<KeyPointLabeler.KeyPointEntry>> computeListener)
+        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<List<KeypointLabeler.KeypointEntry>> computeListener)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -328,7 +328,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_AnimatedCube_PositionsCaptured()
         {
-            var incoming = new List<List<KeyPointLabeler.KeyPointEntry>>();
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
 
             var cam = SetupCamera(SetUpLabelConfig(), template, (data) =>
@@ -344,6 +344,7 @@ namespace GroundTruthTests
 
             cam.transform.position = new Vector3(0, 0, -10);
 
+            // ReSharper disable once Unity.LoadSceneUnknownSceneName
             SceneManager.LoadScene("AnimatedCubeScene", LoadSceneMode.Additive);
             AddSceneForCleanup("AnimatedCubeScene");
             //scenes are loaded at the end of the frame

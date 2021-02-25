@@ -32,7 +32,7 @@ namespace UnityEditor.Perception.Randomization
             collapseToggle.RegisterCallback<MouseUpEvent>(evt => collapsed = !collapsed);
 
             var enabledToggle = this.Q<Toggle>("enabled");
-            enabledToggle.BindProperty(property.FindPropertyRelative("<enabled>k__BackingField"));
+            enabledToggle.BindProperty(property.FindPropertyRelative("m_Enabled"));
 
             var removeButton = this.Q<Button>("remove");
             removeButton.clicked += () => randomizerList.RemoveRandomizer(this);

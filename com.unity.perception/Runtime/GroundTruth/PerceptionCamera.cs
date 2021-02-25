@@ -375,9 +375,10 @@ namespace UnityEngine.Perception.GroundTruth
 
         void CaptureRgbData(Camera cam)
         {
-            Profiler.BeginSample("CaptureDataFromLastFrame");
             if (!captureRgbImages)
                 return;
+
+            Profiler.BeginSample("CaptureDataFromLastFrame");
 
             // Record the camera's projection matrix
             SetPersistentSensorData("camera_intrinsic", ToProjectionMatrix3x3(cam.projectionMatrix));

@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Unity.Simulation;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
@@ -18,26 +16,31 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     [DefaultExecutionOrder(-1)]
     public abstract class ScenarioBase : MonoBehaviour
     {
-        const string k_ScenarioIterationMetricDefinitionId = "DB1B258E-D1D0-41B6-8751-16F601A2E230";
         static ScenarioBase s_ActiveScenario;
-        MetricDefinition m_IterationMetricDefinition;
+
+        /// <summary>
+        /// Returns the active parameter scenario in the scene
+        /// </summary>
+        public static ScenarioBase activeScenario
+        {
+            get => s_ActiveScenario;
+            private set
+            {
+                if (value != null && s_ActiveScenario != null && value != s_ActiveScenario)
+                    throw new ScenarioException("There cannot be more than one active Scenario");
+                s_ActiveScenario = value;
+            }
+        }
+
+        /// <summary>
+        /// The current activity state of the scenario
+        /// </summary>
+        public State state { get; private set; } = State.Initializing;
 
         /// <summary>
         /// The list of randomizers managed by this scenario
         /// </summary>
-        [SerializeReference] protected List<Randomizer> m_Randomizers = new List<Randomizer>();
-
-        /// <summary>
-        /// On some platforms, the simulation capture package cannot capture the first frame of output,
-        /// so this field is used to track whether the first frame has been skipped yet.
-        /// </summary>
-        protected bool m_SkipFrame = true;
-
-        /// <summary>
-        /// Setting this field to true will cause the scenario to enter an idle state. By default, scenarios will enter
-        /// the idle state after its isScenarioComplete property has returned true.
-        /// </summary>
-        protected bool m_Idle;
+        [SerializeReference] List<Randomizer> m_Randomizers = new List<Randomizer>();
 
         /// <summary>
         /// Enumerates over all enabled randomizers
@@ -56,30 +59,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// Return the list of randomizers attached to this scenario
         /// </summary>
         public IReadOnlyList<Randomizer> randomizers => m_Randomizers.AsReadOnly();
-
-        /// <summary>
-        /// Returns the active parameter scenario in the scene
-        /// </summary>
-        public static ScenarioBase activeScenario
-        {
-            get
-            {
-#if UNITY_EDITOR
-
-                // This compiler define is required to allow samplers to
-                // iterate the scenario's random state in edit-mode
-                if (s_ActiveScenario == null)
-                    s_ActiveScenario = FindObjectOfType<ScenarioBase>();
-#endif
-                return s_ActiveScenario;
-            }
-            private set
-            {
-                if (value != null && s_ActiveScenario != null && value != s_ActiveScenario)
-                    throw new ScenarioException("There cannot be more than one active Scenario");
-                s_ActiveScenario = value;
-            }
-        }
 
         /// <summary>
         /// Returns this scenario's non-typed serialized constants
@@ -102,14 +81,20 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public int currentIteration { get; protected set; }
 
         /// <summary>
-        /// Returns whether the current scenario iteration has completed
+        /// The scenario will begin on the frame this property first returns true
         /// </summary>
-        public abstract bool isIterationComplete { get; }
+        /// <returns>Whether the scenario should start this frame</returns>
+        protected abstract bool isScenarioReadyToStart { get; }
 
         /// <summary>
-        /// Returns whether the entire scenario has completed
+        /// Returns whether the current scenario iteration has completed
         /// </summary>
-        public abstract bool isScenarioComplete { get; }
+        protected abstract bool isIterationComplete { get; }
+
+        /// <summary>
+        /// Returns whether the scenario has completed
+        /// </summary>
+        protected abstract bool isScenarioComplete { get; }
 
         /// <summary>
         /// This method selects what the next iteration index will be. By default, the scenario will simply progress to
@@ -162,14 +147,41 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
             var jsonText = File.ReadAllText(configFilePath);
             DeserializeFromJson(jsonText);
-
-            var absolutePath = Path.GetFullPath(configFilePath);
-#if UNITY_EDITOR
-            Debug.Log($"Deserialized scenario configuration from {absolutePath}. " +
-                "Using undo in the editor will revert these changes to your scenario.");
-#else
-            Debug.Log($"Deserialized scenario configuration from {absolutePath}");
+#if !UNITY_EDITOR
+            Debug.Log($"Deserialized scenario configuration from {Path.GetFullPath(configFilePath)}");
 #endif
+        }
+
+        /// <summary>
+        /// Deserialize scenario settings from a file passed through a command line argument
+        /// </summary>
+        /// <param name="commandLineArg">The command line argument to look for</param>
+        protected virtual void DeserializeFromCommandLine(string commandLineArg="--scenario-config-file")
+        {
+            var args = Environment.GetCommandLineArgs();
+            var filePath = string.Empty;
+            for (var i = 0; i < args.Length - 1; i++)
+            {
+                if (args[i] != "--scenario-config-file")
+                    continue;
+                filePath = args[i + 1];
+                break;
+            }
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                Debug.Log("No --scenario-config-file command line arg specified. " +
+                    "Proceeding with editor assigned scenario configuration values.");
+                return;
+            }
+
+            try { DeserializeFromFile(filePath); }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                Debug.LogError("An exception was caught while attempting to parse a " +
+                    $"scenario configuration file at {filePath}. Cleaning up and exiting simulation.");
+            }
         }
 
         /// <summary>
@@ -181,84 +193,89 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             SamplerState.randomState = SamplerUtility.IterateSeed((uint)currentIteration, genericConstants.randomSeed);
         }
 
+        #region LifecycleHooks
         /// <summary>
-        /// OnAwake is called right after this scenario MonoBehaviour is created or instantiated
+        /// OnAwake is called when this scenario MonoBehaviour is created or instantiated
         /// </summary>
         protected virtual void OnAwake() { }
 
         /// <summary>
-        /// OnStart is called after Awake but before the first Update method call
+        /// OnConfigurationImport is called before OnStart in the same frame. This method by default loads a scenario
+        /// settings from a file before the scenario begins.
         /// </summary>
-        protected virtual void OnStart()
+        protected virtual void OnConfigurationImport()
         {
 #if !UNITY_EDITOR
-            var args = Environment.GetCommandLineArgs();
-            var filePath = string.Empty;
-            for (var i = 0; i < args.Length - 1; i++)
-            {
-                if (args[i] == "--scenario-config-file")
-                {
-                    filePath = args[i + 1];
-                    break;
-                }
-            }
-
-            if (string.IsNullOrEmpty(filePath))
-            {
-                Debug.Log("No --scenario-config-file command line arg specified. " +
-                    "Proceeding with editor assigned scenario configuration values.");
-                return;
-            }
-
-            try
-            {
-                DeserializeFromFile(filePath);
-            }
-            catch (Exception exception)
-            {
-                Debug.LogException(exception);
-                Debug.LogError("An exception was caught while attempting to parse a " +
-                    $"scenario configuration file at {filePath}. Cleaning up and exiting simulation.");
-                m_Idle = true;
-            }
+            DeserializeFromCommandLine();
 #endif
         }
+
+        /// <summary>
+        /// OnStart is called when the scenario first begins playing
+        /// </summary>
+        protected virtual void OnStart() { }
+
+        /// <summary>
+        /// OnIterationStart is called before a new iteration begins
+        /// </summary>
+        protected virtual void OnIterationStart() { }
+
+        /// <summary>
+        /// OnIterationStart is called after each iteration has completed
+        /// </summary>
+        protected virtual void OnIterationEnd() { }
+
+        /// <summary>
+        /// OnUpdate is called every frame while the scenario is playing
+        /// </summary>
+        protected virtual void OnUpdate() { }
 
         /// <summary>
         /// OnComplete is called when this scenario's isScenarioComplete property
         /// returns true during its main update loop
         /// </summary>
-        protected virtual void OnComplete()
-        {
-            DatasetCapture.ResetSimulation();
-            m_Idle = true;
-        }
+        protected virtual void OnComplete() { }
 
         /// <summary>
         /// OnIdle is called each frame after the scenario has completed
         /// </summary>
-        protected virtual void OnIdle()
+        protected virtual void OnIdle() { }
+
+        /// <summary>
+        /// Restart the scenario
+        /// </summary>
+        public void Restart()
         {
-            Manager.Instance.Shutdown();
-            if (!Manager.FinalUploadsDone)
-                return;
+            if (state != State.Idle)
+                throw new ScenarioException(
+                    "A Scenario cannot be restarted until it is finished and has entered the Idle state");
+            currentIteration = 0;
+            currentIterationFrame = 0;
+            framesSinceInitialization = 0;
+            state = State.Initializing;
+        }
+
+        /// <summary>
+        /// Exit to playmode if in the Editor or quit the application if in a built player
+        /// </summary>
+        protected void Quit()
+        {
 #if UNITY_EDITOR
             EditorApplication.ExitPlaymode();
 #else
-                Application.Quit();
+            Application.Quit();
 #endif
         }
+        #endregion
 
+        #region MonoBehaviourMethods
         void Awake()
         {
             activeScenario = this;
-            foreach (var randomizer in m_Randomizers)
-                randomizer.Create();
-            ValidateParameters();
-            m_IterationMetricDefinition = DatasetCapture.RegisterMetricDefinition(
-                "scenario_iteration", "Iteration information for dataset sequences",
-                Guid.Parse(k_ScenarioIterationMetricDefinitionId));
             OnAwake();
+            foreach (var randomizer in m_Randomizers)
+                randomizer.Awake();
+            ValidateParameters();
         }
 
         /// <summary>
@@ -277,32 +294,39 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             activeScenario = null;
         }
 
-        void Start()
-        {
-            var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
-                "random-seed",
-                "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.",
-                Guid.Parse("14adb394-46c0-47e8-a3f0-99e754483b76"));
-            DatasetCapture.ReportMetric(randomSeedMetricDefinition, new[] { genericConstants.randomSeed });
-            OnStart();
-        }
-
         void Update()
         {
-            // TODO: remove this check when the perception camera can capture the first frame of output
-            if (m_SkipFrame)
+            switch (state)
             {
-                m_SkipFrame = false;
-                return;
-            }
+                case State.Initializing:
+                    if (isScenarioReadyToStart)
+                    {
+                        OnConfigurationImport();
+                        state = State.Playing;
+                        OnStart();
+                        foreach (var randomizer in m_Randomizers)
+                            randomizer.ScenarioStart();
+                        IterationLoop();
+                    }
+                    break;
 
-            // Wait for any final uploads before exiting quitting
-            if (m_Idle)
-            {
-                OnIdle();
-                return;
-            }
+                case State.Playing:
+                    IterationLoop();
+                    break;
 
+                case State.Idle:
+                    OnIdle();
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        $"Invalid state {state} encountered while updating scenario");
+            }
+        }
+        #endregion
+
+        void IterationLoop()
+        {
             // Increment iteration and cleanup last iteration
             if (isIterationComplete)
             {
@@ -310,6 +334,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 currentIterationFrame = 0;
                 foreach (var randomizer in activeRandomizers)
                     randomizer.IterationEnd();
+                OnIterationEnd();
             }
 
             // Quit if scenario is complete
@@ -318,22 +343,22 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 foreach (var randomizer in activeRandomizers)
                     randomizer.ScenarioComplete();
                 OnComplete();
+                state = State.Idle;
+                OnIdle();
+                return;
             }
 
             // Perform new iteration tasks
             if (currentIterationFrame == 0)
             {
-                DatasetCapture.StartNewSequence();
                 ResetRandomStateOnIteration();
-                DatasetCapture.ReportMetric(m_IterationMetricDefinition, new[]
-                {
-                    new IterationMetricData { iteration = currentIteration }
-                });
+                OnIterationStart();
                 foreach (var randomizer in activeRandomizers)
                     randomizer.IterationStart();
             }
 
             // Perform new frame tasks
+            OnUpdate();
             foreach (var randomizer in activeRandomizers)
                 randomizer.Update();
 
@@ -361,7 +386,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <summary>
         /// Append a randomizer to the end of the randomizer list
         /// </summary>
-        /// <param name="newRandomizer"></param>
+        /// <param name="newRandomizer">The Randomizer to add to the Scenario</param>
         public void AddRandomizer(Randomizer newRandomizer)
         {
             InsertRandomizer(m_Randomizers.Count, newRandomizer);
@@ -375,6 +400,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <exception cref="ScenarioException"></exception>
         public void InsertRandomizer(int index, Randomizer newRandomizer)
         {
+            if (state != State.Initializing)
+                throw new ScenarioException("Randomizers cannot be added to the scenario after it has started");
             foreach (var randomizer in m_Randomizers)
                 if (randomizer.GetType() == newRandomizer.GetType())
                     throw new ScenarioException(
@@ -383,9 +410,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             m_Randomizers.Insert(index, newRandomizer);
 #if UNITY_EDITOR
             if (Application.isPlaying)
-                newRandomizer.Create();
+                newRandomizer.Awake();
 #else
-            newRandomizer.Create();
+            newRandomizer.Awake();
 #endif
         }
 
@@ -395,6 +422,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <param name="index">The index of the randomizer to remove</param>
         public void RemoveRandomizerAt(int index)
         {
+            if (state != State.Initializing)
+                throw new ScenarioException("Randomizers cannot be added to the scenario after it has started");
             m_Randomizers.RemoveAt(index);
         }
 
@@ -426,20 +455,20 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         {
             foreach (var randomizer in m_Randomizers)
             foreach (var parameter in randomizer.parameters)
-                try
-                {
-                    parameter.Validate();
-                }
-                catch (ParameterValidationException exception)
-                {
-                    Debug.LogException(exception, this);
-                }
+            {
+                try { parameter.Validate(); }
+                catch (ParameterValidationException exception) { Debug.LogException(exception, this); }
+            }
         }
 
-        struct IterationMetricData
+        /// <summary>
+        /// Enum used to track the lifecycle of a Scenario
+        /// </summary>
+        public enum State
         {
-            // ReSharper disable once NotAccessedField.Local
-            public int iteration;
+            Initializing,
+            Playing,
+            Idle
         }
     }
 }

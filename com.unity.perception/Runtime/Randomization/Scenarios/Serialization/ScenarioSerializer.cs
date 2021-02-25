@@ -20,11 +20,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
         public static void SerializeToFile(ScenarioBase scenario, string filePath)
         {
-            Directory.CreateDirectory(Application.dataPath + "/StreamingAssets/");
+            var directory = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
             using (var writer = new StreamWriter(filePath, false))
-            {
                 writer.Write(SerializeToJsonString(scenario));
-            }
         }
 
         public static JObject SerializeToJsonObject(ScenarioBase scenario)

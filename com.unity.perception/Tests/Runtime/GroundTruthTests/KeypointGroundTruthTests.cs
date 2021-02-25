@@ -519,7 +519,7 @@ namespace GroundTruthTests
             Assert.AreEqual(9, t.keypoints.Length);
 
             for (var i = 0; i < 8; i++)
-                Assert.AreEqual(t.keypoints[i].state, 1);
+                Assert.AreEqual(1, t.keypoints[i].state);
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
             Assert.Zero(t.keypoints[8].state);
@@ -532,10 +532,11 @@ namespace GroundTruthTests
         {
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var texture = new RenderTexture(1024, 768, 16);
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
                 incoming.Add(data);
-            });
+            }, texture);
 
             var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
@@ -555,6 +556,7 @@ namespace GroundTruthTests
 
             //force all async readbacks to complete
             DestroyTestObject(cam);
+            texture.Release();
 
             var testCase = incoming.Last();
             Assert.AreEqual(1, testCase.Count);
@@ -565,15 +567,15 @@ namespace GroundTruthTests
             Assert.AreEqual(template.templateID.ToString(), t.template_guid);
             Assert.AreEqual(9, t.keypoints.Length);
 
-            Assert.AreEqual(t.keypoints[0].state, 2);
-            Assert.AreEqual(t.keypoints[1].state, 2);
-            Assert.AreEqual(t.keypoints[4].state, 2);
-            Assert.AreEqual(t.keypoints[5].state, 2);
+            Assert.AreEqual(2, t.keypoints[0].state);
+            Assert.AreEqual(2, t.keypoints[1].state);
+            Assert.AreEqual(2, t.keypoints[4].state);
+            Assert.AreEqual(2, t.keypoints[5].state);
 
-            Assert.AreEqual(t.keypoints[2].state, 1);
-            Assert.AreEqual(t.keypoints[3].state, 1);
-            Assert.AreEqual(t.keypoints[6].state, 1);
-            Assert.AreEqual(t.keypoints[7].state, 1);
+            Assert.AreEqual(1, t.keypoints[2].state);
+            Assert.AreEqual(1, t.keypoints[3].state);
+            Assert.AreEqual(1, t.keypoints[6].state);
+            Assert.AreEqual(1, t.keypoints[7].state);
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
             Assert.Zero(t.keypoints[8].state);

@@ -20,10 +20,6 @@ Scenario serialization has been updated to include scalar values on randomizers 
 Added new ScenarioBase virtual lifecycle hooks: OnAwake, OnStart, OnComplete, and OnIdle.
 
 Keypoint occlusion has been added, no keypoint information will be recorded for a labeled asset completely out of the camera's frustum. 
-If a labeled asset is at least partially visible all keypoints will be annotated with the following state values:<br> 
-0: Off of screen or does not exist in model<br>
-1: Exists in model and in camera's frustum but occluded by another object<br>
-2: On screen and visible.
 
 New keypoint tests have been added to test keypoint state.
 

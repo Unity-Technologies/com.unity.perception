@@ -47,8 +47,7 @@ namespace UnityEngine.Perception.GroundTruth
         EntityQuery m_EntityQuery;
         Texture2D m_MissingTexture;
 
-        Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
-        Dictionary<int, Dictionary<uint, KeypointEntry>> m_Keypoints;
+        Dictionary<int, (AsyncAnnotation annotation, Dictionary<uint, KeypointEntry> keypoints)> m_AsyncAnnotations;
         List<KeypointEntry> m_ToReport;
 
         int m_CurrentFrame;
@@ -97,8 +96,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_KnownStatus = new Dictionary<uint, CachedData>();
 
-            m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
-            m_Keypoints = new Dictionary<int, Dictionary<uint, KeypointEntry>>();
+            m_AsyncAnnotations = new Dictionary<int, (AsyncAnnotation, Dictionary<uint, KeypointEntry>)>();
             m_ToReport = new List<KeypointEntry>();
             m_CurrentFrame = 0;
 
@@ -117,16 +115,11 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_AsyncAnnotations.Remove(frameCount);
 
-            if (!m_Keypoints.TryGetValue(frameCount, out var keypoints))
-                return;
-
             var width = renderTexture.width;
-
-            m_Keypoints.Remove(frameCount);
 
             m_ToReport.Clear();
 
-            foreach (var keypointSet in keypoints)
+            foreach (var keypointSet in asyncAnnotation.keypoints)
             {
                 if (InstanceIdToColorMapping.TryGetColorFromInstanceId(keypointSet.Key, out var idColor))
                 {
@@ -160,7 +153,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             KeypointsComputed?.Invoke(frameCount, m_ToReport);
-            asyncAnnotation.ReportValues(m_ToReport);
+            asyncAnnotation.annotation.ReportValues(m_ToReport);
         }
 
         /// <inheritdoc/>
@@ -168,9 +161,10 @@ namespace UnityEngine.Perception.GroundTruth
         {
             m_CurrentFrame = Time.frameCount;
 
-            m_Keypoints[m_CurrentFrame] = new Dictionary<uint, KeypointEntry>();
+            var annotation = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
+            var keypoints = new Dictionary<uint, KeypointEntry>();
 
-            m_AsyncAnnotations[m_CurrentFrame] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
+            m_AsyncAnnotations[m_CurrentFrame] = (annotation, keypoints);
 
             var entities = m_EntityQuery.ToEntityArray(Allocator.TempJob);
             var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -394,7 +388,7 @@ namespace UnityEngine.Perception.GroundTruth
                     cachedData.keypoints.pose = GetPose(cachedData.animator);
                 }
 
-                m_Keypoints[m_CurrentFrame][labeledEntity.instanceId] = cachedData.keypoints;
+                m_AsyncAnnotations[m_CurrentFrame].keypoints[labeledEntity.instanceId] = cachedData.keypoints;
             }
         }
 

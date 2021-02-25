@@ -15,7 +15,7 @@ All appearances of the term `KeyPoint` have been renamed to `Keypoint`. Therefor
 
 ### Added
 
-Added error message when missing randomizer scripts are detected
+Added error message when missing Randomizer scripts are detected
 
 Scenario serialization has been updated to include scalar values on randomizers and parameters.
 

@@ -82,7 +82,7 @@ namespace EditorTests
             yield return new ExitPlayMode();
         }
         [UnityTest]
-        public IEnumerator Labeler_ShouldSetupAndUpdateAndOnBeginRenderingInFirstFrame()
+        public IEnumerator Labeler_ShouldRunCallbacksInFirstFrame()
         {
             ResetScene();
             yield return new EnterPlayMode();
@@ -90,9 +90,30 @@ namespace EditorTests
             var camera = SetupCamera(null);
             camera.GetComponent<PerceptionCamera>().AddLabeler(mockLabeler.Object);
             yield return null;
+
             mockLabeler.Protected().Verify("Setup", Times.Once());
             mockLabeler.Protected().Verify("OnUpdate", Times.Once());
             mockLabeler.Protected().Verify("OnBeginRendering", Times.Once());
+            mockLabeler.Protected().Verify("OnEndRendering", Times.Once());
+            yield return new ExitPlayMode();
+        }
+        [UnityTest]
+        public IEnumerator Labeler_ShouldNotRunCallbacksWhenCameraDisabled()
+        {
+            ResetScene();
+            yield return new EnterPlayMode();
+            var mockLabeler = new Mock<CameraLabeler>();
+            var camera = SetupCamera(null);
+            var perceptionCamera = camera.GetComponent<PerceptionCamera>();
+            perceptionCamera.AddLabeler(mockLabeler.Object);
+            yield return null;
+            perceptionCamera.enabled = false;
+            yield return null;
+
+            mockLabeler.Protected().Verify("Setup", Times.Once());
+            mockLabeler.Protected().Verify("OnUpdate", Times.Once());
+            mockLabeler.Protected().Verify("OnBeginRendering", Times.Once());
+            mockLabeler.Protected().Verify("OnEndRendering", Times.Once());
             yield return new ExitPlayMode();
         }
         [UnityTest]
@@ -109,6 +130,7 @@ namespace EditorTests
             mockLabeler.Protected().Verify("Setup", Times.Never());
             mockLabeler.Protected().Verify("OnUpdate", Times.Never());
             mockLabeler.Protected().Verify("OnBeginRendering", Times.Never());
+            mockLabeler.Protected().Verify("OnEndRendering", Times.Never());
             mockLabeler.Protected().Verify("Cleanup", Times.Never());
             yield return new ExitPlayMode();
         }
@@ -168,6 +190,7 @@ namespace EditorTests
             mockLabeler.Protected().Verify("Setup", Times.Once());
             mockLabeler.Protected().Verify("OnUpdate", Times.Never());
             mockLabeler.Protected().Verify("OnBeginRendering", Times.Never());
+            mockLabeler.Protected().Verify("OnEndRendering", Times.Never());
             Assert.IsFalse(labeler.enabled);
             yield return new ExitPlayMode();
         }

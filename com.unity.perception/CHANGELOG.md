@@ -55,6 +55,8 @@ Fixed an issue preventing a user from adding more options to a Categorical Param
 
 Fixed a bug where uniform probabilities were not properly reset upon adding or removing options from a Categorical Parameter's list of options.
 
+Fixed keypoints being reporeted in wrong locations on the first frame an object is visible.
+
 ## [0.7.0-preview.2] - 2021-02-08
 
 ### Upgrade Notes

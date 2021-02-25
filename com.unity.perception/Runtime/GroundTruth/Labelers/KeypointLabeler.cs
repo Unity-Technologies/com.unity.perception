@@ -157,7 +157,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnEndRendering()
         {
             m_CurrentFrame = Time.frameCount;
 

@@ -92,6 +92,7 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
 
         int m_LastFrameCaptured = -1;
+        int m_LastFrameEndRendering = -1;
 
 #pragma warning disable 414
         //only used to confirm that GroundTruthRendererFeature is present in URP
@@ -185,6 +186,7 @@ namespace UnityEngine.Perception.GroundTruth
         void OnEnable()
         {
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
             RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
         }
 
@@ -424,21 +426,26 @@ namespace UnityEngine.Perception.GroundTruth
 
         void OnBeginCameraRendering(ScriptableRenderContext _, Camera cam)
         {
-            if (cam != m_AttachedCamera)
-                return;
-            if (!SensorHandle.ShouldCaptureThisFrame)
-                return;
-            //there are cases when OnBeginCameraRendering is called multiple times in the same frame. Ignore the subsequent calls.
-            if (m_LastFrameCaptured == Time.frameCount)
+            if (!ShouldCallLabelers(cam, m_LastFrameCaptured))
                 return;
 
             m_LastFrameCaptured = Time.frameCount;
-#if UNITY_EDITOR
-            if (UnityEditor.EditorApplication.isPaused)
-                return;
-#endif
             CaptureRgbData(cam);
+            CallOnLabelers(l => l.InternalOnBeginRendering());
+        }
 
+        void OnEndCameraRendering(ScriptableRenderContext _, Camera cam)
+        {
+            if (!ShouldCallLabelers(cam, m_LastFrameEndRendering))
+                return;
+
+            m_LastFrameEndRendering = Time.frameCount;
+            CallOnLabelers(l => l.InternalOnEndRendering());
+        }
+
+
+        private void CallOnLabelers(Action<CameraLabeler> action)
+        {
             foreach (var labeler in m_Labelers)
             {
                 if (!labeler.enabled)
@@ -447,13 +454,30 @@ namespace UnityEngine.Perception.GroundTruth
                 if (!labeler.isInitialized)
                     labeler.Init(this);
 
-                labeler.InternalOnBeginRendering();
+                action(labeler);
             }
+        }
+
+        private bool ShouldCallLabelers(Camera cam, int lastFrameCalledThisCallback)
+        {
+            if (cam != m_AttachedCamera)
+                return false;
+            if (!SensorHandle.ShouldCaptureThisFrame)
+                return false;
+            //there are cases when OnBeginCameraRendering is called multiple times in the same frame. Ignore the subsequent calls.
+            if (lastFrameCalledThisCallback == Time.frameCount)
+                return false;
+#if UNITY_EDITOR
+            if (UnityEditor.EditorApplication.isPaused)
+                return false;
+#endif
+            return true;
         }
 
         void OnDisable()
         {
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
             RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
         }
 

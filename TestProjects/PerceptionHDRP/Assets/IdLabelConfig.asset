@@ -21,5 +21,7 @@ MonoBehaviour:
     id: 3
   - label: Terrain
     id: 4
+  - label: Character
+    id: 5
   autoAssignIds: 1
   startingLabelId: 1

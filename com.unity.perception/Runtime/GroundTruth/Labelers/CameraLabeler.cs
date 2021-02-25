@@ -75,6 +75,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         protected virtual void OnBeginRendering() {}
         /// <summary>
+        /// Called just after the camera renders each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
+        /// </summary>
+        protected virtual void OnEndRendering() {}
+        /// <summary>
         /// Labeling pass to display labeler's visualization components, if applicable. Important note, all labeler's visualizations need
         /// to use Unity's Immediate Mode GUI (IMGUI) <see cref="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
         /// This called is triggered from <see cref="perceptionCamera.OnGUI"/> call. This call happens immediately before <see cref="OnVisualizeAdditionalUI"/>
@@ -103,6 +107,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
         internal void InternalOnUpdate() => OnUpdate();
         internal void InternalOnBeginRendering() => OnBeginRendering();
+        internal void InternalOnEndRendering() => OnEndRendering();
         internal void InternalCleanup() => Cleanup();
         internal void InternalVisualize() => OnVisualize();
 

@@ -248,7 +248,8 @@ bounding_box_3d {
 
 Keypoint data, commonly used for human pose estimation. A keypoint capture is associated to a template that defines the keypoints (see annotation.definition file).
 Each keypoint record maps a tuple of (instance, label) to template, pose, and an array of keypoints. A keypoint will exist in this record for each keypoint defined in the template file.
-If a given keypoint doesn't exist in the labeled gameobject, then that keypoint will have a state value of 0; if it does exist then it will have a keypoint value of 2.
+If a given keypoint doesn't exist in the labeled gameobject, then that keypoint will have a state value of 0; if it exists but is not visible, it will have a state value of 1, 
+if it exists and is visible it will have a state value of 2.
 ```
 keypoints {
   label_id:      <int>   -- Integer identifier of the label
@@ -260,7 +261,7 @@ keypoints {
       index:     <int>   -- Index of keypoint in template
       x:         <float> -- X pixel coordinate of keypoint
       y:         <float> -- Y pixel coordinate of keypoint
-      state:     <int>   -- 0: keypoint does not exist, 2 keypoint exists
+      state:     <int>   -- 0: keypoint does not exist, 1 keypoint exists but is not visible, 2 keypoint exists and is visible
     }, ...
   ]
 }
@@ -382,12 +383,24 @@ annotation_definition.spec {
     {
       label:         <str>           -- The label of the joint
       index:         <int>           -- The index of the joint
+      color {                        -- [Optional] The color to use for the visualization of the keypoint
+        r:           <float>         -- Value from 0 to 1 for the red channel
+        g:           <float>         -- Value from 0 to 1 for the green channel
+        b:           <float>         -- Value from 0 to 1 for the blue channel
+        a:           <float>         -- Value from 0 to 1 for the alpha channel
+      }
     }, ...
   ]
   skeleton [                         -- Array of skeletal connections (which joints have connections between one another) defined in this template
     {
       joint1:        <int>           -- The first joint of the connection
       joint2:        <int>           -- The second joint of the connection
+      color {                        -- [Optional] The color to use for the visualization of the bone
+        r:           <float>         -- Value from 0 to 1 for the red channel
+        g:           <float>         -- Value from 0 to 1 for the green channel
+        b:           <float>         -- Value from 0 to 1 for the blue channel
+        a:           <float>         -- Value from 0 to 1 for the alpha channel
+      }
     }, ...
   ]
 }

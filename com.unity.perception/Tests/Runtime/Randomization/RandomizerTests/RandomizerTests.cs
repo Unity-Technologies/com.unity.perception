@@ -28,7 +28,6 @@ namespace RandomizationTests.RandomizerTests
         IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration)
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
-            m_Scenario.quitOnComplete = false;
             m_Scenario.constants.totalIterations = totalIterations;
             m_Scenario.constants.framesPerIteration = framesPerIteration;
             yield return null; // Skip first frame
@@ -38,16 +37,15 @@ namespace RandomizationTests.RandomizerTests
         public void OneRandomizerInstancePerTypeTest()
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
-            m_Scenario.quitOnComplete = false;
-            m_Scenario.CreateRandomizer<ExampleTransformRandomizer>();
-            Assert.Throws<ScenarioException>(() => m_Scenario.CreateRandomizer<ExampleTransformRandomizer>());
+            m_Scenario.AddRandomizer(new ExampleTransformRandomizer());
+            Assert.Throws<ScenarioException>(() => m_Scenario.AddRandomizer(new ExampleTransformRandomizer()));
         }
 
         [UnityTest]
         public IEnumerator OnUpdateExecutesEveryFrame()
         {
             yield return CreateNewScenario(10, 1);
-            m_Scenario.CreateRandomizer<ExampleTransformRandomizer>();
+            m_Scenario.AddRandomizer(new ExampleTransformRandomizer());
             var transform = m_TestObject.transform;
             var initialPosition = Vector3.zero;
             transform.position = initialPosition;
@@ -66,7 +64,7 @@ namespace RandomizationTests.RandomizerTests
         public IEnumerator OnIterationStartExecutesEveryIteration()
         {
             yield return CreateNewScenario(10, 2);
-            m_Scenario.CreateRandomizer<ExampleTransformRandomizer>();
+            m_Scenario.AddRandomizer(new ExampleTransformRandomizer());
             var transform = m_TestObject.transform;
             var initialRotation = Quaternion.identity;
             transform.rotation = initialRotation;

@@ -7,8 +7,8 @@ namespace UnityEditor.Perception.Randomization
 {
     class CategoricalOptionElement : VisualElement
     {
-        SerializedProperty m_CategoryProperty;
         int m_Index;
+        SerializedProperty m_CategoryProperty;
         SerializedProperty m_ProbabilitiesProperty;
 
         internal CategoricalOptionElement(
@@ -35,10 +35,6 @@ namespace UnityEditor.Perception.Randomization
             var optionProperty = m_CategoryProperty.GetArrayElementAtIndex(i);
             var option = this.Q<PropertyField>("option");
             option.BindProperty(optionProperty);
-
-            // Remove the redundant element label to save space
-            var label = option.Q<Label>();
-            label.parent.Remove(label);
 
             var probabilityProperty = m_ProbabilitiesProperty.GetArrayElementAtIndex(i);
             var probability = this.Q<FloatField>("probability");

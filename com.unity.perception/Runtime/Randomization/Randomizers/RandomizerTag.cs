@@ -12,17 +12,18 @@ namespace UnityEngine.Perception.Randomization.Randomizers
         RandomizerTagManager tagManager => RandomizerTagManager.singleton;
 
         /// <summary>
-        /// Awake is called when this RandomizerTag is created or instantiated
+        /// OnEnable is called when this RandomizerTag is enabled, either created, instantiated, or enabled via
+        /// the Unity Editor
         /// </summary>
-        protected virtual void Awake()
+        protected void OnEnable()
         {
             Register();
         }
 
         /// <summary>
-        /// OnDestroy is called when this RandomizerTag is destroyed
+        /// OnDisable is called when this RandomizerTag is disabled
         /// </summary>
-        protected virtual void OnDestroy()
+        protected virtual void OnDisable()
         {
             Unregister();
         }

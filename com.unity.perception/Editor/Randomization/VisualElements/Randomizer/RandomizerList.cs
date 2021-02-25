@@ -68,7 +68,7 @@ namespace UnityEditor.Perception.Randomization
         public void RemoveRandomizer(RandomizerElement element)
         {
             Undo.RegisterCompleteObjectUndo(m_Property.serializedObject.targetObject, "Remove Randomizer");
-            scenario.RemoveRandomizer(element.randomizerType);
+            scenario.RemoveRandomizerAt(element.parent.IndexOf(element));
             m_Property.serializedObject.Update();
             RefreshList();
         }
@@ -77,8 +77,12 @@ namespace UnityEditor.Perception.Randomization
         {
             if (currentIndex == nextIndex)
                 return;
+            if (nextIndex > currentIndex)
+                nextIndex--;
             Undo.RegisterCompleteObjectUndo(m_Property.serializedObject.targetObject, "Reorder Randomizer");
-            scenario.ReorderRandomizer(currentIndex, nextIndex);
+            var randomizer = scenario.GetRandomizer(currentIndex);
+            scenario.RemoveRandomizerAt(currentIndex);
+            scenario.InsertRandomizer(nextIndex, randomizer);
             m_Property.serializedObject.Update();
             RefreshList();
         }

@@ -67,6 +67,8 @@ namespace UnityEditor.Perception.Randomization
             listView.style.flexGrow = 1.0f;
             listView.style.height = new StyleLength(listView.itemHeight * 4);
 
+            var uniformToggle = template.Q<Toggle>("uniform");
+
             VisualElement MakeItem()
             {
                 return new CategoricalOptionElement(
@@ -87,13 +89,26 @@ namespace UnityEditor.Perception.Randomization
                     // First delete sets option to null, second delete removes option
                     var numOptions = optionsProperty.arraySize;
                     optionsProperty.DeleteArrayElementAtIndex(i);
+
                     if (numOptions == optionsProperty.arraySize)
+                    {
                         optionsProperty.DeleteArrayElementAtIndex(i);
+                    }
 
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
+
                     listView.itemsSource = categoricalParameter.probabilities;
                     listView.Refresh();
                 };
+            }
+
+            void ResetProbabilities()
+            {
+                var uniformProbability = probabilitiesProperty.arraySize > 0 ? 1f / probabilitiesProperty.arraySize : 0;
+                for (var i = 0; i < probabilitiesProperty.arraySize; i++)
+                {
+                    probabilitiesProperty.GetArrayElementAtIndex(i).floatValue = uniformProbability;
+                }
             }
 
             listView.bindItem = BindItem;
@@ -114,6 +129,12 @@ namespace UnityEditor.Perception.Randomization
                         break;
                 }
 
+                // New items probability will be 0, unless uniform toggle is true
+                probabilitiesProperty.GetArrayElementAtIndex(probabilitiesProperty.arraySize - 1).floatValue = 0;
+
+                if (uniformToggle.value)
+                    ResetProbabilities();
+
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = categoricalParameter.probabilities;
                 listView.Refresh();
@@ -129,16 +150,21 @@ namespace UnityEditor.Perception.Randomization
                     if (folderPath == string.Empty)
                         return;
                     var categories = LoadAssetsFromFolder(folderPath, categoricalParameter.sampleType);
-                    probabilitiesProperty.arraySize += categories.Count;
+
+                    var optionsIndex = optionsProperty.arraySize;
                     optionsProperty.arraySize += categories.Count;
-                    var uniformProbability = 1f / categories.Count;
+
+                    probabilitiesProperty.arraySize += categories.Count;
+
                     for (var i = 0; i < categories.Count; i++)
                     {
-                        var optionProperty = optionsProperty.GetArrayElementAtIndex(i);
-                        var probabilityProperty = probabilitiesProperty.GetArrayElementAtIndex(i);
+                        var optionProperty = optionsProperty.GetArrayElementAtIndex(optionsIndex + i);
                         optionProperty.objectReferenceValue = categories[i];
-                        probabilityProperty.floatValue = uniformProbability;
+                        probabilitiesProperty.GetArrayElementAtIndex(i).floatValue = 0;
                     }
+
+                    if (uniformToggle.value)
+                        ResetProbabilities();
 
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = categoricalParameter.probabilities;
@@ -167,7 +193,7 @@ namespace UnityEditor.Perception.Randomization
                     evt.StopImmediatePropagation();
             });
 
-            var uniformToggle = template.Q<Toggle>("uniform");
+
             var uniformProperty = m_SerializedProperty.FindPropertyRelative("uniform");
             uniformToggle.BindProperty(uniformProperty);
 

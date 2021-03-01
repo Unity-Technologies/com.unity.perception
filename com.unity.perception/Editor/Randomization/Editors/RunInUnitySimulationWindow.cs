@@ -35,6 +35,8 @@ namespace UnityEditor.Perception.Randomization
         Label m_PrevExecutionIdLabel;
         RunParameters m_RunParameters;
 
+        private string supportedGPU = "NVIDIA";
+
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
         {
@@ -166,6 +168,16 @@ namespace UnityEditor.Perception.Randomization
 
         async void RunInUnitySimulation()
         {
+            #if PLATFORM_CLOUD_RENDERING
+            if (!m_SysParamDefinitions[m_SysParamIndex].description.Contains(supportedGPU))
+            {
+                EditorUtility.DisplayDialog("Unsupported Sysparam",
+                    "The current selection of the Sysparam " + m_SysParamDefinitions[m_SysParamIndex].description +
+                    " is not supported " +
+                    "by this build target. Please select a sysparam with GPU", "Ok");
+                return;
+            }
+            #endif
             m_RunParameters = new RunParameters
             {
                 runName = m_RunNameField.value,
@@ -228,7 +240,11 @@ namespace UnityEditor.Perception.Randomization
             {
                 scenes = new[] { m_RunParameters.currentOpenScenePath },
                 locationPathName = Path.Combine(projectBuildDirectory, $"{m_RunParameters.runName}.x86_64"),
+#if PLATFORM_CLOUD_RENDERING
+                target = BuildTarget.CloudRendering,
+#else
                 target = BuildTarget.StandaloneLinux64
+#endif
             };
             var report = BuildPipeline.BuildPlayer(buildPlayerOptions);
             var summary = report.summary;

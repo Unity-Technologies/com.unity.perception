@@ -173,8 +173,7 @@ namespace UnityEditor.Perception.Randomization
             {
                 EditorUtility.DisplayDialog("Unsupported Sysparam",
                     "The current selection of the Sysparam " + m_SysParamDefinitions[m_SysParamIndex].description +
-                    " is not supported " +
-                    "by this build target. Please select a sysparam with GPU", "Ok");
+                    " is not supported by this build target. Please select a sysparam with GPU", "Ok");
                 return;
             }
             #endif

@@ -254,6 +254,8 @@ Here is an example output of this command, indicating that there is only one nod
  
  `docker run -p 8888:8888 -v <download path>/data:/data -t unitytechnologies/datasetinsights:latest`
 
+> :information_source: If you get an error about the format of the command, try the command again **with quotation marks** around the folder mapping argument, i.e. `"<download path>/data:/data"`.
+
 In the above command, replace `<download path>` with the location on your computer in which you wish to download your data.
 
 Once the Docker image is running, the rest of the workflow is quite similar to what we did in Phase 1, with certain differences caused by the need to download the data from Unity Simulation.

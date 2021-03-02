@@ -406,7 +406,9 @@ To verify and analyze a variety of metrics for the generated data, such as numbe
 
 * **:green_circle: Action**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop)
 * **:green_circle: Action**: Open a command line interface (Command Prompt on Windows, Terminal on Mac OS, etc.) and type the following command to run the Dataset Insights Docker image: 
-`docker run -p 8888:8888 -v "<path to synthetic data>:/data" -t unitytechnologies/datasetinsights:latest`, where the path to data is what we looked at earlier. You can copy the path using the _**Copy Path**_ button in the `Perception Camera` UI.
+`docker run -p 8888:8888 -v <path to synthetic data>:/data -t unitytechnologies/datasetinsights:latest`, where the path to data is what we looked at earlier. You can copy the path using the _**Copy Path**_ button in the `Perception Camera` UI.
+
+> :information_source: If you get an error about the format of the command, try the command again **with quotation marks** around the folder mapping argument, i.e. `"<path to synthetic data>:/data"`.
 
 This will download a Docker image from Unity. If you get an error regarding the path to your dataset, make sure you have not included the enclosing `<` and `>` in the path and that the spaces are properly escaped.
 
@@ -417,9 +419,6 @@ This will download a Docker image from Unity. If you get an error regarding the 
 </p>
 
 * **:green_circle: Action**: To make sure your data is properly mounted, navigate to the `data` folder. If you see the dataset's folders there, we are good to go.
-
-> :information_source: If the `data` folder is empty, go back to your commaind line interface and use `Ctrl+C` to shutdown the image. Then, try the Docker command again, this time **without the quotation marks**.
-
 * **:green_circle: Action**: Navigate to the `datasetinsights/notebooks` folder and open `Perception_Statistics.ipynb`.
 * **:green_circle: Action**: Once in the notebook, remove the `/<GUID>` part of the `data_root = /data/<GUID>` path. Since the dataset root is already mapped to `/data`, you can use this path directly.
 

@@ -417,6 +417,9 @@ This will download a Docker image from Unity. If you get an error regarding the 
 </p>
 
 * **:green_circle: Action**: To make sure your data is properly mounted, navigate to the `data` folder. If you see the dataset's folders there, we are good to go.
+
+> :information_source: If the `data` folder is empty, go back to your commaind line interface and use `Ctrl+C` to shutdown the image. Then, try the Docker command again, this time **without the quotation marks**.
+
 * **:green_circle: Action**: Navigate to the `datasetinsights/notebooks` folder and open `Perception_Statistics.ipynb`.
 * **:green_circle: Action**: Once in the notebook, remove the `/<GUID>` part of the `data_root = /data/<GUID>` path. Since the dataset root is already mapped to `/data`, you can use this path directly.
 

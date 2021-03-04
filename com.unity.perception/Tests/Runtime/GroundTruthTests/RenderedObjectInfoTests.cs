@@ -159,12 +159,14 @@ namespace GroundTruthTests
 
             var dataNativeArray = new NativeArray<Color32>(producesCorrectObjectInfoData.data, Allocator.Persistent);
 
-            renderedObjectInfoGenerator.Compute(dataNativeArray, producesCorrectObjectInfoData.stride, producesCorrectObjectInfoData.boundingBoxOrigin, out var boundingBoxes, Allocator.Temp);
+            var idLabelMap = IdLabelConfig.GetIdLabelCache();
+            renderedObjectInfoGenerator.Compute(dataNativeArray, producesCorrectObjectInfoData.stride, producesCorrectObjectInfoData.boundingBoxOrigin, idLabelMap, out var boundingBoxes, Allocator.Temp);
 
             CollectionAssert.AreEqual(producesCorrectObjectInfoData.renderedObjectInfosExpected, boundingBoxes.ToArray());
 
             dataNativeArray.Dispose();
             boundingBoxes.Dispose();
+            idLabelMap.Dispose();
         }
     }
 }

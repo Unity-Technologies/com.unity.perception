@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Unity.Collections;
 
 namespace UnityEngine.Perception.GroundTruth {
     /// <summary>
@@ -88,6 +89,18 @@ namespace UnityEngine.Perception.GroundTruth {
                 label_id = l.id,
                 label_name = l.label,
             }).ToArray();
+        }
+
+        public static IdLabelMap GetIdLabelCache(Allocator allocator = Allocator.Temp)
+        {
+            return new IdLabelMap();
+        }
+    }
+
+    public struct IdLabelMap : IDisposable
+    {
+        public void Dispose()
+        {
         }
     }
 }

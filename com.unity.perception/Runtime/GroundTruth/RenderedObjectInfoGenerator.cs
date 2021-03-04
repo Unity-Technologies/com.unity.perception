@@ -93,7 +93,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="boundingBoxOrigin">Whether bounding boxes should be top-left or bottom-right-based.</param>
         /// <param name="renderedObjectInfos">When this method returns, filled with RenderedObjectInfo entries for each object visible in the frame.</param>
         /// <param name="allocator">The allocator to use for allocating renderedObjectInfos and perLabelEntryObjectCount.</param>
-        public void Compute(NativeArray<Color32> instanceSegmentationRawData, int stride, BoundingBoxOrigin boundingBoxOrigin, out NativeArray<RenderedObjectInfo> renderedObjectInfos, Allocator allocator)
+        public void Compute(NativeArray<Color32> instanceSegmentationRawData, int stride, BoundingBoxOrigin boundingBoxOrigin, IdLabelMap idLabelMap, out NativeArray<RenderedObjectInfo> renderedObjectInfos, Allocator allocator)
         {
             const int jobCount = 24;
             var height = instanceSegmentationRawData.Length / stride;

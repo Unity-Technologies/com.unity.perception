@@ -479,7 +479,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        void OnBeginCameraRendering(ScriptableRenderContext _, Camera cam)
+        void OnBeginCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera cam)
         {
             if (!ShouldCallLabelers(cam, m_LastFrameCaptured))
                 return;
@@ -489,13 +489,14 @@ namespace UnityEngine.Perception.GroundTruth
             CallOnLabelers(l => l.InternalOnBeginRendering());
         }
 
-        void OnEndCameraRendering(ScriptableRenderContext _, Camera cam)
+        void OnEndCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera cam)
         {
             if (!ShouldCallLabelers(cam, m_LastFrameEndRendering))
                 return;
 
             m_LastFrameEndRendering = Time.frameCount;
-            CallOnLabelers(l => l.InternalOnEndRendering());
+            CaptureInstanceSegmentation(scriptableRenderContext);
+            CallOnLabelers(l => l.InternalOnEndRendering(scriptableRenderContext));
         }
 
         void CallOnLabelers(Action<CameraLabeler> action)

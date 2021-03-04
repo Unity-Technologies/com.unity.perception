@@ -18,7 +18,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         public void OnEnable()
         {
-            m_LabelersList = new ReorderableList(this.serializedObject, labelersProperty, true, false, true, true);
+            m_LabelersList = new ReorderableList(this.serializedObject, labelersProperty, true, true, true, true);
             m_LabelersList.drawHeaderCallback = (rect) =>
             {
                 EditorGUI.LabelField(rect, "Camera Labelers", EditorStyles.largeLabel);

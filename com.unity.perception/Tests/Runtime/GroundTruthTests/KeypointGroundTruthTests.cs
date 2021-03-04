@@ -271,15 +271,14 @@ namespace GroundTruthTests
 
         static void SetupCubeJoints(GameObject cube, KeypointTemplate template)
         {
-            const float dim = 0.5f;
-            SetupCubeJoint(cube, template, "FrontLowerLeft", -dim, -dim, -dim);
-            SetupCubeJoint(cube, template, "FrontUpperLeft", -dim, dim, -dim);
-            SetupCubeJoint(cube, template, "FrontUpperRight", dim, dim, -dim);
-            SetupCubeJoint(cube, template, "FrontLowerRight", dim, -dim, -dim);
-            SetupCubeJoint(cube, template, "BackLowerLeft", -dim, -dim, dim);
-            SetupCubeJoint(cube, template, "BackUpperLeft", -dim, dim, dim);
-            SetupCubeJoint(cube, template, "BackUpperRight", dim, dim, dim);
-            SetupCubeJoint(cube, template, "BackLowerRight", dim, -dim, dim);
+            SetupCubeJoint(cube, template, "FrontLowerLeft", -0.495f, -0.495f, -0.495f);
+            SetupCubeJoint(cube, template, "FrontUpperLeft", -0.495f, 0.495f, -0.495f);
+            SetupCubeJoint(cube, template, "FrontUpperRight", 0.495f, 0.495f, -0.495f);
+            SetupCubeJoint(cube, template, "FrontLowerRight", 0.495f, -0.495f, -0.495f);
+            SetupCubeJoint(cube, template, "BackLowerLeft", -0.495f, -0.495f, 0.495f);
+            SetupCubeJoint(cube, template, "BackUpperLeft", -0.495f, 0.495f, 0.495f);
+            SetupCubeJoint(cube, template, "BackUpperRight", 0.495f, 0.495f, 0.495f);
+            SetupCubeJoint(cube, template, "BackLowerRight", 0.495f, -0.495f, 0.495f);
         }
 
         [UnityTest]

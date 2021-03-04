@@ -31,7 +31,10 @@ namespace GroundTruthTests
 
         void Awake()
         {
-            m_Reader = new RenderTextureReader<Color32>(source, cameraSource, ImageReadCallback);
+            m_Reader = new RenderTextureReader<Color32>(source);
+            RenderPipelineManager.endCameraRendering += (context, camera) =>
+                m_Reader.Capture(context,
+                    (frameCount, data, renderTexture) => ImageReadCallback(frameCount, data, renderTexture));
         }
 
         void ImageReadCallback(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)
@@ -177,13 +180,15 @@ namespace GroundTruthTests
                 if (frames < 10)
                     return;
 
+                var idLabelMap = IdLabelConfig.GetIdLabelCache();
+
                 // Calculate the bounding box
                 if (fLensDistortionEnabled == false)
                 {
                     fLensDistortionEnabled = true;
 
                     var renderedObjectInfoGenerator = new RenderedObjectInfoGenerator();
-                    renderedObjectInfoGenerator.Compute(data, tex.width, BoundingBoxOrigin.TopLeft, out var boundingBoxes, Allocator.Temp);
+                    renderedObjectInfoGenerator.Compute(data, tex.width, BoundingBoxOrigin.TopLeft, idLabelMap, out var boundingBoxes, Allocator.Temp);
 
                     boundingBoxWithoutLensDistortion = boundingBoxes[0].boundingBox;
 
@@ -196,7 +201,7 @@ namespace GroundTruthTests
                 {
                     var renderedObjectInfoGenerator = new RenderedObjectInfoGenerator();
 
-                    renderedObjectInfoGenerator.Compute(data, tex.width, BoundingBoxOrigin.TopLeft, out var boundingBoxes, Allocator.Temp);
+                    renderedObjectInfoGenerator.Compute(data, tex.width, BoundingBoxOrigin.TopLeft, idLabelMap, out var boundingBoxes, Allocator.Temp);
 
                     boundingBoxWithLensDistortion = boundingBoxes[0].boundingBox;
 
@@ -205,6 +210,7 @@ namespace GroundTruthTests
 
                     fDone = true;
                 }
+                idLabelMap.Dispose();
             }
 
             cameraObject = SetupCamera(out perceptionCamera, false);

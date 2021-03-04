@@ -1,6 +1,7 @@
 using System;
 using Unity.Simulation;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
@@ -74,10 +75,12 @@ namespace UnityEngine.Perception.GroundTruth
         /// Called just before the camera renders each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
         protected virtual void OnBeginRendering() {}
+
         /// <summary>
         /// Called just after the camera renders each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
-        protected virtual void OnEndRendering() {}
+        /// <param name="scriptableRenderContext"></param>
+        protected virtual void OnEndRendering(ScriptableRenderContext scriptableRenderContext) {}
         /// <summary>
         /// Labeling pass to display labeler's visualization components, if applicable. Important note, all labeler's visualizations need
         /// to use Unity's Immediate Mode GUI (IMGUI) <see cref="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
@@ -107,7 +110,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
         internal void InternalOnUpdate() => OnUpdate();
         internal void InternalOnBeginRendering() => OnBeginRendering();
-        internal void InternalOnEndRendering() => OnEndRendering();
+        internal void InternalOnEndRendering(ScriptableRenderContext context) => OnEndRendering(context);
         internal void InternalCleanup() => Cleanup();
         internal void InternalVisualize() => OnVisualize();
 

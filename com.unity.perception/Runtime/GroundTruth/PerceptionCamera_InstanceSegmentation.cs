@@ -1,7 +1,9 @@
 ﻿using System;
 using Unity.Collections;
+using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 #elif URP_PRESENT
@@ -16,13 +18,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// Invoked when instance segmentation images are read back from the graphics system. The first parameter is the
         /// Time.frameCount at which the objects were rendered. May be invoked many frames after the objects were rendered.
         /// </summary>
-        public event Action<int, NativeArray<Color32>, RenderTexture> InstanceSegmentationImageReadback;
+        public event Action<int, NativeArray<Color32>, RenderTexture/*, List<IdLabelEntry>*/> InstanceSegmentationImageReadback;
 
         /// <summary>
         /// Invoked when RenderedObjectInfos are calculated. The first parameter is the Time.frameCount at which the
         /// objects were rendered. This may be called many frames after the objects were rendered.
         /// </summary>
-        public event Action<int, NativeArray<RenderedObjectInfo>> RenderedObjectInfosCalculated;
+        public event Action<int, NativeArray<RenderedObjectInfo>/*, List<IdLabelEntry>*/> RenderedObjectInfosCalculated;
 
         RenderedObjectInfoGenerator m_RenderedObjectInfoGenerator;
         RenderTexture m_InstanceSegmentationTexture;
@@ -90,28 +92,42 @@ namespace UnityEngine.Perception.GroundTruth
                 m_LensDistortionIntensityOverride;
 #endif
 
-            m_InstanceSegmentationReader = new RenderTextureReader<Color32>(m_InstanceSegmentationTexture, myCamera, (frameCount, data, tex) =>
+            m_InstanceSegmentationReader = new RenderTextureReader<Color32>(m_InstanceSegmentationTexture);
+
+        }
+
+        void CaptureInstanceSegmentation(ScriptableRenderContext scriptableRenderContext)
+        {
+            //var myCache = new List<IdLabelEntry>();
+            var cache = IdLabelConfig.GetIdLabelCache();
+            var width = m_InstanceSegmentationTexture.width;
+
+            m_InstanceSegmentationReader.Capture(scriptableRenderContext,  (frameCount, data, renderTexture) =>
             {
-                InstanceSegmentationImageReadback?.Invoke(frameCount, data, tex);
-                if (RenderedObjectInfosCalculated != null)
+                InstanceSegmentationImageReadback?.Invoke(frameCount, data, m_InstanceSegmentationTexture/*, myCache*/);
+
+                if(RenderedObjectInfosCalculated != null)
                 {
-                    m_RenderedObjectInfoGenerator.Compute(data, tex.width, BoundingBoxOrigin.TopLeft, out var renderedObjectInfos, Allocator.Temp);
-                    RenderedObjectInfosCalculated?.Invoke(frameCount, renderedObjectInfos);
+                    m_RenderedObjectInfoGenerator.Compute(data, width,
+                        BoundingBoxOrigin.TopLeft, cache, out var renderedObjectInfos, Allocator.Temp);
+                    RenderedObjectInfosCalculated?.Invoke(frameCount, renderedObjectInfos/*, myCache*/);
                     renderedObjectInfos.Dispose();
                 }
+
+                cache.Dispose();
             });
         }
 
         void CleanUpInstanceSegmentation()
         {
+            m_InstanceSegmentationReader?.WaitForAllImages();
+            m_InstanceSegmentationReader?.Dispose();
+            m_InstanceSegmentationReader = null;
+
             if (m_InstanceSegmentationTexture != null)
                 m_InstanceSegmentationTexture.Release();
 
             m_InstanceSegmentationTexture = null;
-
-            m_InstanceSegmentationReader?.WaitForAllImages();
-            m_InstanceSegmentationReader?.Dispose();
-            m_InstanceSegmentationReader = null;
         }
     }
 }

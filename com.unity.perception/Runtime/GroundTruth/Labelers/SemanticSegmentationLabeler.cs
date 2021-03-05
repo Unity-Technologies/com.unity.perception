@@ -8,6 +8,7 @@ using Unity.Collections;
 using Unity.Simulation;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;

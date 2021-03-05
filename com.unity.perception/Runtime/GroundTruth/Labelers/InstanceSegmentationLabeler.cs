@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -157,8 +158,9 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
+        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {
             m_AsyncAnnotations[Time.frameCount] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
         }

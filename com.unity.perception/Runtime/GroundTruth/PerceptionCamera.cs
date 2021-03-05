@@ -213,7 +213,9 @@ namespace UnityEngine.Perception.GroundTruth
             RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
         }
 
-        void Update()
+        // LateUpdate is called once per frame. It is called after coroutines, ensuring it is called properly after
+        // creation when running tests, since the test runner uses coroutines to run test code.
+        void LateUpdate()
         {
             EnsureSensorRegistered();
             if (!SensorHandle.IsValid)
@@ -486,7 +488,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_LastFrameCaptured = Time.frameCount;
             CaptureRgbData(cam);
-            CallOnLabelers(l => l.InternalOnBeginRendering());
+            CallOnLabelers(l => l.InternalOnBeginRendering(scriptableRenderContext));
         }
 
         void OnEndCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera cam)
@@ -495,8 +497,8 @@ namespace UnityEngine.Perception.GroundTruth
                 return;
 
             m_LastFrameEndRendering = Time.frameCount;
-            CaptureInstanceSegmentation(scriptableRenderContext);
             CallOnLabelers(l => l.InternalOnEndRendering(scriptableRenderContext));
+            CaptureInstanceSegmentation(scriptableRenderContext);
         }
 
         void CallOnLabelers(Action<CameraLabeler> action)

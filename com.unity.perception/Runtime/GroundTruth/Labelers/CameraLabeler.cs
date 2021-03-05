@@ -71,15 +71,17 @@ namespace UnityEngine.Perception.GroundTruth
         /// Called during the Update each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
         protected virtual void OnUpdate() {}
+
         /// <summary>
         /// Called just before the camera renders each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
-        protected virtual void OnBeginRendering() {}
+        /// <param name="scriptableRenderContext">The current context from the Scriptable Render Pipeline.</param>
+        protected virtual void OnBeginRendering(ScriptableRenderContext scriptableRenderContext) {}
 
         /// <summary>
         /// Called just after the camera renders each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
-        /// <param name="scriptableRenderContext"></param>
+        /// <param name="scriptableRenderContext">The current context from the Scriptable Render Pipeline.</param>
         protected virtual void OnEndRendering(ScriptableRenderContext scriptableRenderContext) {}
         /// <summary>
         /// Labeling pass to display labeler's visualization components, if applicable. Important note, all labeler's visualizations need
@@ -109,7 +111,7 @@ namespace UnityEngine.Perception.GroundTruth
             set => visualizationEnabled = value;
         }
         internal void InternalOnUpdate() => OnUpdate();
-        internal void InternalOnBeginRendering() => OnBeginRendering();
+        internal void InternalOnBeginRendering(ScriptableRenderContext context) => OnBeginRendering(context);
         internal void InternalOnEndRendering(ScriptableRenderContext context) => OnEndRendering(context);
         internal void InternalCleanup() => Cleanup();
         internal void InternalVisualize() => OnVisualize();

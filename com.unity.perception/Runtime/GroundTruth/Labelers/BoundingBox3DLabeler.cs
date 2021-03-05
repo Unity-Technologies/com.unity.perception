@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Unity.Collections;
 using Unity.Profiling;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -173,8 +174,9 @@ namespace UnityEngine.Perception.GroundTruth
             return corners;
         }
 
+        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {
             m_CurrentFrame = Time.frameCount;
 

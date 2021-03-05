@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Unity.Collections;
 using Unity.Profiling;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -95,8 +96,9 @@ namespace UnityEngine.Perception.GroundTruth
             visualizationEnabled = supportsVisualization;
         }
 
+        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {
             if (m_ObjectCountMetricDefinition.Equals(default))
             {

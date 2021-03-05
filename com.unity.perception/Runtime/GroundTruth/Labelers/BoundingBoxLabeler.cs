@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine.Serialization;
 using Unity.Simulation;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -107,8 +108,9 @@ namespace UnityEngine.Perception.GroundTruth
             m_Style.alignment = TextAnchor.MiddleLeft;
         }
 
+        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {
             m_AsyncAnnotations[Time.frameCount] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_BoundingBoxAnnotationDefinition);
         }

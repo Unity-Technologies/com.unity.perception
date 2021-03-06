@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Profiling;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -14,8 +13,6 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public class BoundingBox3DLabeler : CameraLabeler
     {
-        EntityQuery m_EntityQuery;
-
         ///<inheritdoc/>
         public override string description
         {
@@ -114,7 +111,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="labelConfig">The label config for resolving the label for each object.</param>
         public BoundingBox3DLabeler(IdLabelConfig labelConfig)
         {
-            this.idLabelConfig = labelConfig;
+            idLabelConfig = labelConfig;
         }
 
         /// <inheritdoc/>
@@ -127,8 +124,6 @@ namespace UnityEngine.Perception.GroundTruth
                 "Bounding box for each labeled object visible to the sensor", id: new Guid(annotationId));
 
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderObjectInfosCalculated;
-
-            m_EntityQuery = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(Labeling), typeof(GroundTruthInfo));
 
             m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
             m_BoundingBoxValues = new Dictionary<int, Dictionary<uint, BoxData>>();
@@ -187,15 +182,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_AsyncAnnotations[m_CurrentFrame] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
 
-            var entities = m_EntityQuery.ToEntityArray(Allocator.TempJob);
-            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-
-            foreach (var entity in entities)
-            {
-                ProcessEntity(entityManager.GetComponentObject<Labeling>(entity));
-            }
-
-            entities.Dispose();
+            foreach (var label in LabeledObjectsManager.singleton.registeredLabels)
+                ProcessLabel(label);
         }
 
         void OnRenderObjectInfosCalculated(int frameCount, NativeArray<RenderedObjectInfo> renderedObjectInfos)
@@ -228,7 +216,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        void ProcessEntity(Labeling labeledEntity)
+        void ProcessLabel(Labeling labeledEntity)
         {
             using (s_BoundingBoxCallback.Auto())
             {

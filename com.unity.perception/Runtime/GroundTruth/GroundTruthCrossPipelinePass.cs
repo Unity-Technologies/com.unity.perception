@@ -1,12 +1,11 @@
 using System;
-using Unity.Entities;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Perception.GroundTruth
 {
-    internal abstract class GroundTruthCrossPipelinePass : IGroundTruthGenerator
+    abstract class GroundTruthCrossPipelinePass : IGroundTruthGenerator
     {
         public Camera targetCamera;
 
@@ -41,16 +40,14 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (!m_IsActivated)
             {
-                var labelSetupSystem = World.DefaultGameObjectInjectionWorld?.GetExistingSystem<GroundTruthLabelSetupSystem>();
-                labelSetupSystem?.Activate(this);
+                LabeledObjectsManager.singleton.Activate(this);
                 m_IsActivated = true;
             }
         }
 
         public void Cleanup()
         {
-            var labelSetupSystem = World.DefaultGameObjectInjectionWorld?.GetExistingSystem<GroundTruthLabelSetupSystem>();
-            labelSetupSystem?.Deactivate(this);
+            LabeledObjectsManager.singleton.Deactivate(this);
         }
 
         protected RendererListDesc CreateRendererListDesc(Camera camera, CullingResults cullingResult, string overrideMaterialPassName, int overrideMaterialPassIndex, Material overrideMaterial, LayerMask layerMask /*, PerObjectData perObjectData*/)

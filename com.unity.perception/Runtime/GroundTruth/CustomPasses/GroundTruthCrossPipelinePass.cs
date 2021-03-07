@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Perception.GroundTruth
 {
-    abstract class GroundTruthCrossPipelinePass : IGroundTruthGenerator
+    public abstract class GroundTruthCrossPipelinePass : IGroundTruthGenerator
     {
         public Camera targetCamera;
 
@@ -25,7 +25,8 @@ namespace UnityEngine.Perception.GroundTruth
             EnsureActivated();
         }
 
-        public void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
+        public void Execute(
+            ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
         {
             // CustomPasses are executed for each camera. We only want to run for the target camera
             if (camera != targetCamera)
@@ -34,7 +35,8 @@ namespace UnityEngine.Perception.GroundTruth
             ExecutePass(renderContext, cmd, camera, cullingResult);
         }
 
-        protected abstract void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult);
+        protected abstract void ExecutePass(
+            ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult);
 
         public void EnsureActivated()
         {
@@ -50,7 +52,13 @@ namespace UnityEngine.Perception.GroundTruth
             LabeledObjectsManager.singleton.Deactivate(this);
         }
 
-        protected RendererListDesc CreateRendererListDesc(Camera camera, CullingResults cullingResult, string overrideMaterialPassName, int overrideMaterialPassIndex, Material overrideMaterial, LayerMask layerMask /*, PerObjectData perObjectData*/)
+        protected RendererListDesc CreateRendererListDesc(
+            Camera camera,
+            CullingResults cullingResult,
+            string overrideMaterialPassName,
+            int overrideMaterialPassIndex,
+            Material overrideMaterial,
+            LayerMask layerMask)
         {
             var shaderPasses = new[]
             {
@@ -81,24 +89,32 @@ namespace UnityEngine.Perception.GroundTruth
             return result;
         }
 
-        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        protected static void DrawRendererList(
+            ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
         {
             if (!rendererList.isValid)
                 throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
 
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
+            // This is done here because DrawRenderers API lives outside command buffers so we need to call this before
+            // doing any DrawRenders or things will be executed out of order
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
             if (rendererList.stateBlock == null)
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
+                renderContext.DrawRenderers(
+                    rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
             else
             {
                 var renderStateBlock = rendererList.stateBlock.Value;
-                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
+                renderContext.DrawRenderers(
+                    rendererList.cullingResult,
+                    ref rendererList.drawSettings,
+                    ref rendererList.filteringSettings,
+                    ref renderStateBlock);
             }
         }
 
-        public abstract void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer meshRenderer, Labeling labeling, uint instanceId);
+        public abstract void SetupMaterialProperties(
+            MaterialPropertyBlock mpb, Renderer meshRenderer, Labeling labeling, uint instanceId);
     }
 }

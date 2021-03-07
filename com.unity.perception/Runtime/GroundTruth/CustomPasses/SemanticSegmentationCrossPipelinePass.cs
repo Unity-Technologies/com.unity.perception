@@ -17,16 +17,17 @@ namespace UnityEngine.Perception.GroundTruth
 
         SemanticSegmentationLabelConfig m_LabelConfig;
 
-        //Serialize the shader so that the shader asset is included in player builds when the SemanticSegmentationPass is used.
-        //Currently commented out and shaders moved to Resources folder due to serialization crashes when it is enabled.
-        //See https://fogbugz.unity3d.com/f/cases/1187378/
-        //[SerializeField]
+        // NOTICE: Serialize the shader so that the shader asset is included in player builds when the SemanticSegmentationPass is used.
+        // Currently commented out and shaders moved to Resources folder due to serialization crashes when it is enabled.
+        // See https://fogbugz.unity3d.com/f/cases/1187378/
+        // [SerializeField]
         Shader m_ClassLabelingShader;
         Material m_OverrideMaterial;
 
-        public SemanticSegmentationCrossPipelinePass(Camera targetCamera, SemanticSegmentationLabelConfig labelConfig) : base(targetCamera)
+        public SemanticSegmentationCrossPipelinePass(
+            Camera targetCamera, SemanticSegmentationLabelConfig labelConfig) : base(targetCamera)
         {
-            this.m_LabelConfig = labelConfig;
+            m_LabelConfig = labelConfig;
         }
 
         public override void Setup()
@@ -38,7 +39,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (shaderVariantCollection != null)
             {
-                shaderVariantCollection.Add(new ShaderVariantCollection.ShaderVariant(m_ClassLabelingShader, PassType.ScriptableRenderPipeline));
+                shaderVariantCollection.Add(
+                    new ShaderVariantCollection.ShaderVariant(m_ClassLabelingShader, PassType.ScriptableRenderPipeline));
             }
 
             m_OverrideMaterial = new Material(m_ClassLabelingShader);
@@ -46,7 +48,8 @@ namespace UnityEngine.Perception.GroundTruth
             shaderVariantCollection.WarmUp();
         }
 
-        protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
+        protected override void ExecutePass(
+            ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
         {
             if (s_LastFrameExecuted == Time.frameCount)
                 return;
@@ -57,10 +60,11 @@ namespace UnityEngine.Perception.GroundTruth
             DrawRendererList(renderContext, cmd, RendererList.Create(renderList));
         }
 
-        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
+        public override void SetupMaterialProperties(
+            MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
             var entry = new SemanticSegmentationLabelEntry();
-            bool found = false;
+            var found = false;
             foreach (var l in m_LabelConfig.labelEntries)
             {
                 if (labeling.labels.Contains(l.label))
@@ -71,7 +75,7 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             }
 
-            //Set the labeling ID so that it can be accessed in ClassSemanticSegmentationPass.shader
+            // Set the labeling ID so that it can be accessed in ClassSemanticSegmentationPass.shader
             if (found)
                 mpb.SetVector(k_LabelingId, entry.color);
         }

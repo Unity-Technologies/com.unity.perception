@@ -3,30 +3,43 @@ using UnityEngine.Perception.Randomization.Randomizers;
 
 namespace UnityEngine.Perception.GroundTruth
 {
-    class LabeledObjectsManager
+    /// <summary>
+    ///
+    /// </summary>
+    public class LabeledObjectsManager
     {
+        /// <summary>
+        /// Returns the active LabeledObjectsManager instance
+        /// </summary>
         public static LabeledObjectsManager singleton { get; } = new LabeledObjectsManager();
 
         const uint k_StartingIndex = 1;
         uint m_CurrentObjectIndex = k_StartingIndex;
         List<IGroundTruthGenerator> m_ActiveGenerators = new List<IGroundTruthGenerator>();
-        LinkedHashSet<Labeling> m_UnregisteredLabels = new LinkedHashSet<Labeling>();
+        LinkedHashSet<Labeling> m_LabelsPendingRegistration = new LinkedHashSet<Labeling>();
         LinkedHashSet<Labeling> m_RegisteredLabels = new LinkedHashSet<Labeling>();
 
+        /// <summary>
+        /// Returns the set of registered Labeling components
+        /// </summary>
         public IEnumerable<Labeling> registeredLabels => m_RegisteredLabels;
 
-        public void Update()
+        /// <summary>
+        /// Registers all pending labels. Called once per frame during LateUpdate by the PerceptionUpdater.
+        /// </summary>
+        public void RegisterPendingLabels()
         {
             if (m_RegisteredLabels.Count == 0)
                 m_CurrentObjectIndex = k_StartingIndex;
 
-            foreach (var unregisteredLabel in m_UnregisteredLabels)
+            foreach (var unregisteredLabel in m_LabelsPendingRegistration)
             {
                 if (m_RegisteredLabels.Contains(unregisteredLabel))
                     continue;
 
                 var instanceId = m_CurrentObjectIndex++;
-                InitGameObjectRecursive(
+
+                RecursivelyInitializeGameObjects(
                     unregisteredLabel.gameObject,
                     new MaterialPropertyBlock(),
                     unregisteredLabel,
@@ -36,26 +49,31 @@ namespace UnityEngine.Perception.GroundTruth
                 m_RegisteredLabels.Add(unregisteredLabel);
             }
 
-            m_UnregisteredLabels.Clear();
+            m_LabelsPendingRegistration.Clear();
         }
 
         /// <summary>
-        /// Activates the given <see cref="IGroundTruthGenerator"/>. <see cref="IGroundTruthGenerator.SetupMaterialProperties"/>
-        /// will be called for all <see cref="MeshRenderer"/> instances under each object containing a <see cref="Labeling"/> component.
+        /// Activates the given <see cref="IGroundTruthGenerator"/>.
+        /// <see cref="IGroundTruthGenerator.SetupMaterialProperties"/> will be called for all
+        /// <see cref="MeshRenderer"/> instances under each object containing a <see cref="Labeling"/> component.
         /// </summary>
         /// <param name="generator">The generator to register</param>
         public void Activate(IGroundTruthGenerator generator)
         {
             m_ActiveGenerators.Add(generator);
             foreach (var label in m_RegisteredLabels)
-                InitGameObjectRecursive(label.gameObject, new MaterialPropertyBlock(), label, label.instanceId);
+                RecursivelyInitializeGameObjects(label.gameObject, new MaterialPropertyBlock(), label, label.instanceId);
         }
 
         /// <summary>
-        /// Deactivates the given <see cref="IGroundTruthGenerator"/>. It will no longer receive calls when <see cref="Labeling"/> instances are created.
+        /// Deactivates the given <see cref="IGroundTruthGenerator"/>.
+        /// It will no longer receive calls when <see cref="Labeling"/> instances are created.
         /// </summary>
         /// <param name="generator">The generator to deactivate</param>
-        /// <returns>True if the <see cref="generator"/> was successfully removed. False if <see cref="generator"/> was not active.</returns>
+        /// <returns>
+        /// True if the <see cref="generator"/> was successfully removed.
+        /// False if <see cref="generator"/> was not active.
+        /// </returns>
         public bool Deactivate(IGroundTruthGenerator generator)
         {
             return m_ActiveGenerators.Remove(generator);
@@ -67,7 +85,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="labeledObject">the component to register</param>
         public void Register(Labeling labeledObject)
         {
-            m_UnregisteredLabels.Add(labeledObject);
+            m_LabelsPendingRegistration.Add(labeledObject);
         }
 
         /// <summary>
@@ -76,7 +94,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="labeledObject">the component to unregister</param>
         public void Unregister(Labeling labeledObject)
         {
-            m_UnregisteredLabels.Remove(labeledObject);
+            m_LabelsPendingRegistration.Remove(labeledObject);
             m_RegisteredLabels.Remove(labeledObject);
         }
 
@@ -88,10 +106,17 @@ namespace UnityEngine.Perception.GroundTruth
         public void RefreshLabeling(Labeling labeledObject)
         {
             m_RegisteredLabels.Remove(labeledObject);
-            m_UnregisteredLabels.Add(labeledObject);
+            m_LabelsPendingRegistration.Add(labeledObject);
         }
 
-        void InitGameObjectRecursive(
+        /// <summary>
+        /// Recursively initializes Renderer components on GameObjects with Labeling components
+        /// </summary>
+        /// <param name="gameObject">The parent GameObject being initialized</param>
+        /// <param name="mpb">A reusable material property block</param>
+        /// <param name="labeling">The labeling component attached to the current gameObject</param>
+        /// <param name="instanceId">The perception specific instanceId assigned to the current gameObject</param>
+        void RecursivelyInitializeGameObjects(
             GameObject gameObject, MaterialPropertyBlock mpb, Labeling labeling, uint instanceId)
         {
             var terrain = gameObject.GetComponent<Terrain>();
@@ -134,7 +159,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (child.GetComponent<Labeling>() != null)
                     continue;
 
-                InitGameObjectRecursive(child, mpb, labeling, instanceId);
+                RecursivelyInitializeGameObjects(child, mpb, labeling, instanceId);
             }
         }
     }

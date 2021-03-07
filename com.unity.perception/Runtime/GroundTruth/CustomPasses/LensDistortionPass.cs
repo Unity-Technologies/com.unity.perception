@@ -33,11 +33,6 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        public LensDistortionPass()
-        {
-            //
-        }
-
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             EnsureInit();

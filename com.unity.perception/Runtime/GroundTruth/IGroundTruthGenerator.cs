@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
-    /// Interface for setting up MeshRenderers for ground truth generation via <see cref="GroundTruthLabelSetupSystem"/>.
+    /// Interface for setting up Renderers for ground truth generation via <see cref="GroundTruthLabelSetupSystem"/>.
     /// </summary>
     public interface IGroundTruthGenerator
     {

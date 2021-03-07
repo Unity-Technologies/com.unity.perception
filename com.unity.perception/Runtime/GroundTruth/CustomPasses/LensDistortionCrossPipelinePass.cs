@@ -16,10 +16,10 @@ namespace UnityEngine.Perception.GroundTruth
     /// <summary>
     /// Custom Pass which will apply a lens distortion (per the respective volume override in URP or HDRP, or
     /// through a custom override directly through the pass) to an incoming mask / texture.  The purpose of this
-    /// is to allow the same lens distortion being applied to the RGB image ine the perception camera to be applied
+    /// is to allow the same lens distortion being applied to the RGB image in the perception camera to be applied
     /// to the respective ground truths generated.
     /// </summary>
-    internal class LensDistortionCrossPipelinePass : GroundTruthCrossPipelinePass
+    class LensDistortionCrossPipelinePass : GroundTruthCrossPipelinePass
     {
         const string k_ShaderName = "Perception/LensDistortion";
 
@@ -100,7 +100,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (SetLensDistortionShaderParameters() == false)
                 return;
 
-                // Blitmayhem
+            // Blit mayhem
             cmd.Blit(m_TargetTexture, m_distortedTexture, m_LensDistortionMaterial);
             cmd.Blit(m_distortedTexture, m_TargetTexture);
 

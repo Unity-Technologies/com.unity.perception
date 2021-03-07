@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -17,7 +16,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The LayerMask to apply when rendering objects.
         /// </summary>
-        public LayerMask layerMask = -1;
+        LayerMask m_LayerMask = -1;
 
         Shader m_SegmentationShader;
         Material m_OverrideMaterial;
@@ -42,37 +41,38 @@ namespace UnityEngine.Perception.GroundTruth
             base.Setup();
             m_SegmentationShader = Shader.Find(k_SegmentationPassShaderName);
             var shaderVariantCollection = new ShaderVariantCollection();
-            shaderVariantCollection.Add(new ShaderVariantCollection.ShaderVariant(m_SegmentationShader, PassType.ScriptableRenderPipeline));
+            shaderVariantCollection.Add(
+                new ShaderVariantCollection.ShaderVariant(m_SegmentationShader, PassType.ScriptableRenderPipeline));
             shaderVariantCollection.WarmUp();
 
             m_OverrideMaterial = new Material(m_SegmentationShader);
         }
 
-        //Render all objects to our target RenderTexture using `overrideMaterial` to use our shader
-        protected override void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
+        protected override void ExecutePass(
+            ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
         {
             using (s_ExecuteMarker.Auto())
             {
+                // Render all objects to our target RenderTexture using `m_OverrideMaterial` to use our shader
                 cmd.ClearRenderTarget(true, true, Color.black);
-                var result = CreateRendererListDesc(camera, cullingResult, "FirstPass", 0, m_OverrideMaterial, layerMask);
+                var result = CreateRendererListDesc(
+                    camera, cullingResult, "FirstPass", 0, m_OverrideMaterial, m_LayerMask);
 
                 DrawRendererList(renderContext, cmd, RendererList.Create(result));
             }
         }
 
-        public override void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
+        public override void SetupMaterialProperties(
+            MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
             var found = InstanceIdToColorMapping.TryGetColorFromInstanceId(instanceId, out var color);
-
             if (!found)
-            {
                 Debug.LogError($"Could not get a unique color for {instanceId}");
-            }
 
             mpb.SetVector(k_SegmentationIdProperty, (Color)color);
-    #if PERCEPTION_DEBUG
+#if PERCEPTION_DEBUG
             Debug.Log($"Assigning id. Frame {Time.frameCount} id {id}");
-    #endif
+#endif
         }
     }
 }

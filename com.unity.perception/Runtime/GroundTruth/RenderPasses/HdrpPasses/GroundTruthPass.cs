@@ -5,7 +5,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Perception.GroundTruth
 {
-    public abstract class GroundTruthPass : CustomPass, IGroundTruthGenerator
+    abstract class GroundTruthPass : CustomPass, IGroundTruthGenerator
     {
         public Camera targetCamera;
 
@@ -47,14 +47,14 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (!m_IsActivated)
             {
-                LabeledObjectsManager.singleton.Activate(this);
+                LabelManager.singleton.Activate(this);
                 m_IsActivated = true;
             }
         }
 
         protected override void Cleanup()
         {
-            LabeledObjectsManager.singleton.Deactivate(this);
+            LabelManager.singleton.Deactivate(this);
         }
     }
 }

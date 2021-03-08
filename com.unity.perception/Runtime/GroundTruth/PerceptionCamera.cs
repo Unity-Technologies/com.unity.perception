@@ -23,16 +23,23 @@ namespace UnityEngine.Perception.GroundTruth
     [RequireComponent(typeof(Camera))]
     public partial class PerceptionCamera : MonoBehaviour
     {
-        //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
-        internal string rgbDirectory { get; } = $"RGB{Guid.NewGuid()}";
-        const string k_RgbFilePrefix = "rgb_";
         const float k_PanelWidth = 200;
         const float k_PanelHeight = 250;
+        const string k_RgbFilePrefix = "rgb_";
 
         static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
         static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
 
         static PerceptionCamera s_VisualizedPerceptionCamera;
+
+        //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
+        internal string rgbDirectory { get; } = $"RGB{Guid.NewGuid()}";
+        internal HUDPanel hudPanel;
+        internal OverlayPanel overlayPanel;
+
+        [SerializeReference]
+        List<CameraLabeler> m_Labelers = new List<CameraLabeler>();
+        Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
 
         bool m_ShowingVisualizations;
         bool m_GUIStylesInitialized;
@@ -41,13 +48,6 @@ namespace UnityEngine.Perception.GroundTruth
         Ego m_EgoMarker;
         SensorHandle m_SensorHandle;
         Vector2 m_ScrollPosition;
-
-        internal HUDPanel hudPanel;
-        internal OverlayPanel overlayPanel;
-
-        [SerializeReference]
-        List<CameraLabeler> m_Labelers = new List<CameraLabeler>();
-        Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
 
 #if URP_PRESENT
         // only used to confirm that GroundTruthRendererFeature is present in URP

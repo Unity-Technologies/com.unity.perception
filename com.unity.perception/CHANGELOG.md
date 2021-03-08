@@ -51,6 +51,8 @@ The randomizer methods OnCreate(), OnStartRunning(), and OnStopRunning() are now
 
 ### Removed
 
+Removed the entities package dependency
+
 ### Fixed
 
 Fixed a null reference error that appeared when adding options to categorical parameters.

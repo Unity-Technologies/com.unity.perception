@@ -1,5 +1,4 @@
 #if HDRP_PRESENT
-
 using System;
 using JetBrains.Annotations;
 using UnityEngine.Rendering.HighDefinition;
@@ -19,8 +18,7 @@ namespace UnityEngine.Perception.GroundTruth
         public Camera targetCamera;
 
         [UsedImplicitly]
-        public InstanceSegmentationPass()
-        {}
+        public InstanceSegmentationPass() {}
 
         protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
         {

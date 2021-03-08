@@ -11,7 +11,7 @@
         {
             var updaterObject = new GameObject("PerceptionUpdater");
             updaterObject.AddComponent<PerceptionUpdater>();
-            // updaterObject.hideFlags = HideFlags.HideAndDontSave;
+            updaterObject.hideFlags = HideFlags.HideAndDontSave;
             DontDestroyOnLoad(updaterObject);
         }
 

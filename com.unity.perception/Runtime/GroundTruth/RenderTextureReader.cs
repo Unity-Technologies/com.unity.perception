@@ -29,9 +29,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="imageReadCallback">The callback to call after reading the texture</param>
         public RenderTextureReader(RenderTexture source, Camera cameraRenderingToSource, Action<int, NativeArray<T>, RenderTexture> imageReadCallback)
         {
-            this.m_Source = source;
-            this.m_ImageReadCallback = imageReadCallback;
-            this.m_CameraRenderingToSource = cameraRenderingToSource;
+            m_Source = source;
+            m_ImageReadCallback = imageReadCallback;
+            m_CameraRenderingToSource = cameraRenderingToSource;
             m_NextFrameToCapture = Time.frameCount;
 
             RenderPipelineManager.endFrameRendering += OnEndFrameRendering;
@@ -54,10 +54,10 @@ namespace UnityEngine.Perception.GroundTruth
             if (!GraphicsUtilities.SupportsAsyncReadback())
             {
                 RenderTexture.active = m_Source;
-                
+
                 if (m_CpuTexture == null)
                     m_CpuTexture = new Texture2D(m_Source.width, m_Source.height, m_Source.graphicsFormat, TextureCreationFlags.None);
-                
+
                 m_CpuTexture.ReadPixels(new Rect(
                     Vector2.zero,
                     new Vector2(m_Source.width, m_Source.height)),
@@ -65,7 +65,6 @@ namespace UnityEngine.Perception.GroundTruth
                 RenderTexture.active = null;
                 var data = m_CpuTexture.GetRawTextureData<T>();
                 m_ImageReadCallback(Time.frameCount, data, m_Source);
-                return;
             }
             else
             {

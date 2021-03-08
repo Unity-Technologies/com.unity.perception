@@ -4,7 +4,7 @@ using UnityEngine.Perception.Randomization.Randomizers;
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
-    ///
+    /// Manages the registration of <see cref="Labeling"/> components
     /// </summary>
     public class LabeledObjectsManager
     {
@@ -25,7 +25,8 @@ namespace UnityEngine.Perception.GroundTruth
         public IEnumerable<Labeling> registeredLabels => m_RegisteredLabels;
 
         /// <summary>
-        /// Registers all pending labels. Called once per frame during LateUpdate by the PerceptionUpdater.
+        /// Registers all pending labels.
+        /// Called once per frame during LateUpdate by the <see cref="PerceptionUpdater"/>.
         /// </summary>
         public void RegisterPendingLabels()
         {

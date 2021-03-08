@@ -42,14 +42,14 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (!m_IsActivated)
             {
-                LabeledObjectsManager.singleton.Activate(this);
+                LabelManager.singleton.Activate(this);
                 m_IsActivated = true;
             }
         }
 
         public void Cleanup()
         {
-            LabeledObjectsManager.singleton.Deactivate(this);
+            LabelManager.singleton.Deactivate(this);
         }
 
         protected RendererListDesc CreateRendererListDesc(

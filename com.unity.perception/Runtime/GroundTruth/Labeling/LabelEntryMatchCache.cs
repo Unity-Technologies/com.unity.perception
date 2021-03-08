@@ -19,7 +19,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             m_IdLabelConfig = idLabelConfig;
             m_InstanceIdToLabelEntryIndexLookup = new NativeList<ushort>(k_StartingObjectCount, Allocator.Persistent);
-            LabeledObjectsManager.singleton.Activate(this);
+            LabelManager.singleton.Activate(this);
         }
 
         public bool TryGetLabelEntryFromInstanceId(uint instanceId, out IdLabelEntry labelEntry, out int index)
@@ -57,7 +57,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         public void Dispose()
         {
-            LabeledObjectsManager.singleton.Deactivate(this);
+            LabelManager.singleton.Deactivate(this);
             m_InstanceIdToLabelEntryIndexLookup.Dispose();
         }
     }

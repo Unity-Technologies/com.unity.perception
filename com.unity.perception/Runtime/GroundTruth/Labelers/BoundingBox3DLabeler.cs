@@ -182,7 +182,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_AsyncAnnotations[m_CurrentFrame] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
 
-            foreach (var label in LabeledObjectsManager.singleton.registeredLabels)
+            foreach (var label in LabelManager.singleton.registeredLabels)
                 ProcessLabel(label);
         }
 

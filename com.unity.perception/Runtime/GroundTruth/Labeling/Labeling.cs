@@ -10,7 +10,7 @@ namespace UnityEngine.Perception.GroundTruth
     [AddComponentMenu("Perception/Labeling/Labeling")]
     public class Labeling : MonoBehaviour
     {
-        static LabeledObjectsManager labeledObjectManager => LabeledObjectsManager.singleton;
+        static LabelManager labelManager => LabelManager.singleton;
 
         /// <summary>
         /// The label names to associate with the GameObject. Modifications to this list after the Update() step of the frame the object is created in are
@@ -36,12 +36,12 @@ namespace UnityEngine.Perception.GroundTruth
 
         void Awake()
         {
-            labeledObjectManager.Register(this);
+            labelManager.Register(this);
         }
 
         void OnDestroy()
         {
-            labeledObjectManager.Unregister(this);
+            labelManager.Unregister(this);
         }
 
         void Reset()
@@ -60,7 +60,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public void RefreshLabeling()
         {
-            labeledObjectManager.RefreshLabeling(this);
+            labelManager.RefreshLabeling(this);
         }
 
         internal void SetInstanceId(uint id)

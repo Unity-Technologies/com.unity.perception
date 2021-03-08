@@ -6,12 +6,12 @@ namespace UnityEngine.Perception.GroundTruth
     /// <summary>
     /// Manages the registration of <see cref="Labeling"/> components
     /// </summary>
-    public class LabeledObjectsManager
+    public class LabelManager
     {
         /// <summary>
         /// Returns the active LabeledObjectsManager instance
         /// </summary>
-        public static LabeledObjectsManager singleton { get; } = new LabeledObjectsManager();
+        public static LabelManager singleton { get; } = new LabelManager();
 
         const uint k_StartingIndex = 1;
         uint m_CurrentObjectIndex = k_StartingIndex;

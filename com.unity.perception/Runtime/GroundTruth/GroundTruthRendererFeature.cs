@@ -22,7 +22,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!EditorApplication.isPlaying)
                 return;
 #endif
-            perceptionCamera.OnGroundTruthRendererFeatureRun();
+            perceptionCamera.MarkGroundTruthRendererFeatureAsPresent();
             foreach (var pass in perceptionCamera.passes)
                 renderer.EnqueuePass(pass);
         }

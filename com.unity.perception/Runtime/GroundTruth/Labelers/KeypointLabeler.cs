@@ -119,28 +119,29 @@ namespace UnityEngine.Perception.GroundTruth
             return AreEqual(pixelColor, idColor);
         }
 
-        static int s_PixelTolerance = 2;
+        static int s_PixelTolerance = 1;
 
         // Determine the state of a keypoint. A keypoint is considered visible (state = 2) if it is on screen and not occluded
         // by another object. The way that we determine if a point is occluded is by checking the pixel location of the keypoint
         // against the instance segmentation mask for the frame. The instance segmentation mask provides the instance id of the
         // visible object at a pixel location. Which means, if the keypoint does not match the visible pixel, then another
-        // object is in front of the keypoint occluding it from view. An important note here is that the keypoint has no mass, which
-        // can lead to false negatives due to rounding issues if the keypoint is on the edge of an object. Because of this we
-        // will test not only the keypoint pixel, but also the immediate surrounding pixels  to determine if the pixel
-        // is really visible. This method returns 1 if the pixel is not visible but on screen, and 0 if the pixel is off of the screen.
+        // object is in front of the keypoint occluding it from view. An important note here is that the keypoint is an infintely small
+        // point in space, which can lead to false negatives due to rounding issues if the keypoint is on the edge of an object or very
+        // close to the edge of the screen. Because of this we will test not only the keypoint pixel, but also the immediate surrounding
+        // pixels  to determine if the pixel is really visible. This method returns 1 if the pixel is not visible but on screen, and 0
+        // if the pixel is off of the screen (taken the tolerance into account).
         int DetermineKeypointState(Keypoint keypoint, Color32 instanceIdColor, (int x, int y) dimensions, NativeArray<Color32> data)
         {
             if (keypoint.state == 0) return 0;
 
-            var centerX = (int)keypoint.x;
-            var centerY = (int)keypoint.y;
+            var centerX = Mathf.RoundToInt(keypoint.x);
+            var centerY = Mathf.RoundToInt(keypoint.y);
 
             var pixelOnScreen = false;
 
-            for (var x = centerX - s_PixelTolerance; x <= centerX + s_PixelTolerance; x++)
+            for (var y = centerY - s_PixelTolerance; y <= centerY + s_PixelTolerance; y++)
             {
-                for (var y = centerY - s_PixelTolerance; y <= centerY + s_PixelTolerance; y++)
+                for (var x = centerX - s_PixelTolerance; x <= centerX + s_PixelTolerance; x++)
                 {
                     if (!PixelOnScreen(x, y, dimensions)) continue;
 

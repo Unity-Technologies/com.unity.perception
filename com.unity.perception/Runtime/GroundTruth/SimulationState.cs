@@ -670,54 +670,6 @@ namespace UnityEngine.Perception.GroundTruth
             ReportAsyncAnnotationResult(asyncAnnotation, filename, jArray);
         }
 
-        [SuppressMessage("ReSharper", "PossibleInvalidOperationException")]
-        public class QuaternionConverter : JsonConverter<Quaternion>
-        {
-            public override void WriteJson(JsonWriter writer, Quaternion quaternion, JsonSerializer serializer)
-            {
-                writer.WriteStartArray();
-                writer.WriteValue(quaternion.x);
-                writer.WriteValue(quaternion.y);
-                writer.WriteValue(quaternion.z);
-                writer.WriteValue(quaternion.w);
-                writer.WriteEndArray();
-            }
-
-            public override Quaternion ReadJson(JsonReader reader, Type objectType, Quaternion existingValue, bool hasExistingValue, JsonSerializer serializer)
-            {
-                var q = Quaternion.identity;
-                reader.Read(); // open [ token
-                q.x = (float)reader.ReadAsDecimal();
-                q.y = (float)reader.ReadAsDecimal();
-                q.z = (float)reader.ReadAsDecimal();
-                q.w = (float)reader.ReadAsDecimal();
-                reader.Read(); // close ] token
-                return q;
-            }
-        }
-        [SuppressMessage("ReSharper", "PossibleInvalidOperationException")]
-        public class Vector3Converter : JsonConverter<Vector3>
-        {
-            public override void WriteJson(JsonWriter writer, Vector3 value, JsonSerializer serializer)
-            {
-                writer.WriteStartArray();
-                writer.WriteValue(value.x);
-                writer.WriteValue(value.y);
-                writer.WriteValue(value.z);
-                writer.WriteEndArray();
-            }
-
-            public override Vector3 ReadJson(JsonReader reader, Type objectType, Vector3 existingValue, bool hasExistingValue, JsonSerializer serializer)
-            {
-                var outVector = new Vector3();
-                reader.Read(); // open array token
-                outVector.x = (float)reader.ReadAsDecimal();
-                outVector.y = (float)reader.ReadAsDecimal();
-                outVector.z = (float)reader.ReadAsDecimal();
-                reader.Read(); // close array token
-                return outVector;
-            }
-        }
         public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, IEnumerable<T> values = null)
         {
             JArray jArray = null;

@@ -4,6 +4,7 @@
     /// PerceptionUpdater is automatically spawned when the player starts and is used to coordinate and maintain
     /// static perception lifecycle behaviours.
     /// </summary>
+    [DefaultExecutionOrder(5)]
     class PerceptionUpdater : MonoBehaviour
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

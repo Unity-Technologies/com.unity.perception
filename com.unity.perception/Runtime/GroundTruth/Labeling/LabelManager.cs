@@ -84,31 +84,31 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Registers a labeling component
         /// </summary>
-        /// <param name="labeledObject">the component to register</param>
-        internal void Register(Labeling labeledObject)
+        /// <param name="labeling">the component to register</param>
+        internal void Register(Labeling labeling)
         {
-            m_LabelsPendingRegistration.Add(labeledObject);
+            m_LabelsPendingRegistration.Add(labeling);
         }
 
         /// <summary>
         /// Unregisters a labeling component
         /// </summary>
-        /// <param name="labeledObject">the component to unregister</param>
-        internal void Unregister(Labeling labeledObject)
+        /// <param name="labeling">the component to unregister</param>
+        internal void Unregister(Labeling labeling)
         {
-            m_LabelsPendingRegistration.Remove(labeledObject);
-            m_RegisteredLabels.Remove(labeledObject);
+            m_LabelsPendingRegistration.Remove(labeling);
+            m_RegisteredLabels.Remove(labeling);
         }
 
         /// <summary>
         /// Refresh ground truth generation for the labeling of a particular GameObject. This is necessary when the
         /// list of labels changes or when renderers or materials change on objects in the hierarchy.
         /// </summary>
-        /// <param name="labeledObject">the component to refresh</param>
-        internal void RefreshLabeling(Labeling labeledObject)
+        /// <param name="labeling">the component to refresh</param>
+        internal void RefreshLabeling(Labeling labeling)
         {
-            m_RegisteredLabels.Remove(labeledObject);
-            m_LabelsPendingRegistration.Add(labeledObject);
+            m_RegisteredLabels.Remove(labeling);
+            m_LabelsPendingRegistration.Add(labeling);
         }
 
         /// <summary>

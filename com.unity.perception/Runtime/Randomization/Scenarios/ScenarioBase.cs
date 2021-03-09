@@ -466,8 +466,19 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         public enum State
         {
+            /// <summary>
+            /// The scenario has yet to start
+            /// </summary>
             Initializing,
+
+            /// <summary>
+            /// The scenario is executing
+            /// </summary>
             Playing,
+
+            /// <summary>
+            /// The scenario has finished and is idle
+            /// </summary>
             Idle
         }
     }

@@ -23,6 +23,7 @@ namespace UnityEngine.Perception.GroundTruth
             public int left;
             public int right;
         }
+
         [BurstCompile]
         struct ComputeHistogramPerRowJob : IJob
         {
@@ -45,6 +46,7 @@ namespace UnityEngine.Perception.GroundTruth
                         instanceId = 0,
                         row = row + rowStart
                     };
+
                     for (var i = 0; i < rowSlice.Length; i++)
                     {
                         var packed = InstanceIdToColorMapping.GetPackedColorFromColor(rowSlice[i]);

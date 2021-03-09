@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Scenarios;
 

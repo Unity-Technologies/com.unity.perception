@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using Unity.Entities;
-using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -44,7 +42,6 @@ namespace UnityEngine.Perception.GroundTruth
         // ReSharper restore MemberCanBePrivate.Global
 
         AnnotationDefinition m_AnnotationDefinition;
-        EntityQuery m_EntityQuery;
         Texture2D m_MissingTexture;
 
         Dictionary<int, (AsyncAnnotation annotation, Dictionary<uint, KeypointEntry> keypoints)> m_AsyncAnnotations;
@@ -88,8 +85,6 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_AnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("keypoints", new []{TemplateToJson(activeTemplate)},
                 "pixel coordinates of keypoints in a model, along with skeletal connectivity data", id: new Guid(annotationId));
-
-            m_EntityQuery = World.DefaultGameObjectInjectionWorld.EntityManager.CreateEntityQuery(typeof(Labeling), typeof(GroundTruthInfo));
 
             // Texture to use in case the template does not contain a texture for the joints or the skeletal connections
             m_MissingTexture = new Texture2D(1, 1);
@@ -166,15 +161,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_AsyncAnnotations[m_CurrentFrame] = (annotation, keypoints);
 
-            var entities = m_EntityQuery.ToEntityArray(Allocator.TempJob);
-            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-
-            foreach (var entity in entities)
-            {
-                ProcessEntity(entityManager.GetComponentObject<Labeling>(entity));
-            }
-
-            entities.Dispose();
+            foreach (var label in LabelManager.singleton.registeredLabels)
+                ProcessLabel(label);
         }
 
         // ReSharper disable InconsistentNaming
@@ -297,7 +285,7 @@ namespace UnityEngine.Perception.GroundTruth
             return false;
         }
 
-        void ProcessEntity(Labeling labeledEntity)
+        void ProcessLabel(Labeling labeledEntity)
         {
             // Cache out the data of a labeled game object the first time we see it, this will
             // save performance each frame. Also checks to see if a labeled game object can be annotated.

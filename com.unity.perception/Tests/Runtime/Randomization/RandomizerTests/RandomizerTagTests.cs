@@ -3,7 +3,6 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Randomizers;
-using Assert = Unity.Assertions.Assert;
 
 namespace RandomizationTests.RandomizerTests
 {

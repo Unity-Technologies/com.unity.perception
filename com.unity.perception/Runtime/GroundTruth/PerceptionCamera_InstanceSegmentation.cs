@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-
 #if HDRP_PRESENT
-    using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 #elif URP_PRESENT
-    using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.Universal;
 #endif
 
 namespace UnityEngine.Perception.GroundTruth
@@ -30,23 +28,21 @@ namespace UnityEngine.Perception.GroundTruth
         RenderTexture m_InstanceSegmentationTexture;
         RenderTextureReader<Color32> m_InstanceSegmentationReader;
 
-        internal bool m_fLensDistortionEnabled = false;
-
 #if HDRP_PRESENT || URP_PRESENT
-        private float? m_LensDistortionIntensityOverride;
-    #if HDRP_PRESENT
+        float? m_LensDistortionIntensityOverride;
+#if HDRP_PRESENT
         InstanceSegmentationPass m_InstanceSegmentationPass;
         LensDistortionPass m_LensDistortionPass;
-    #elif URP_PRESENT
+#elif URP_PRESENT
         InstanceSegmentationUrpPass m_InstanceSegmentationPass;
         LensDistortionUrpPass m_LensDistortionPass;
-    #endif
+#endif
 
         internal void OverrideLensDistortionIntensity(float? intensity)
         {
             m_LensDistortionIntensityOverride = intensity;
             if (m_LensDistortionPass != null)
-                m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride = intensity;
+                m_LensDistortionPass.lensDistortionCrossPipelinePass.lensDistortionOverride = intensity;
         }
 #endif
 
@@ -82,8 +78,6 @@ namespace UnityEngine.Perception.GroundTruth
             };
             m_LensDistortionPass.EnsureInit();
             customPassVolume.customPasses.Add(m_LensDistortionPass);
-
-            m_fLensDistortionEnabled = true;
 #elif URP_PRESENT
             m_InstanceSegmentationPass = new InstanceSegmentationUrpPass(myCamera, m_InstanceSegmentationTexture);
             AddScriptableRenderPass(m_InstanceSegmentationPass);
@@ -91,10 +85,8 @@ namespace UnityEngine.Perception.GroundTruth
             // Lens Distortion
             m_LensDistortionPass = new LensDistortionUrpPass(myCamera, m_InstanceSegmentationTexture);
             AddScriptableRenderPass(m_LensDistortionPass);
-
-            m_fLensDistortionEnabled = true;
 #endif
-            m_LensDistortionPass.m_LensDistortionCrossPipelinePass.lensDistortionOverride =
+            m_LensDistortionPass.lensDistortionCrossPipelinePass.lensDistortionOverride =
                 m_LensDistortionIntensityOverride;
 #endif
 

@@ -4,6 +4,8 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
+// Disable value is never assigned to warning
+#pragma warning disable 649
 public class UIElementsEditorUtilitiesTests
 {
     //ScriptableObject so we can use ScriptableObject.CreateInstance()

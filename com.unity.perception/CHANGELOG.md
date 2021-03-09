@@ -51,6 +51,8 @@ Randomizer tags now use OnEnable and OnDisable to manage lifecycle. This allows 
 
 The randomizer methods OnCreate(), OnStartRunning(), and OnStopRunning() are now deprecated and have been replaced with OnAwake(), OnEnable() and OnDisable() respectively to better reflect the existing MonoBehaviour lifecycle methods.
 
+CameraLabeler methods OnBeginRendering() and OnEndRendering() have an added ScriptableRenderContext parameter.
+
 ### Deprecated
 
 ### Removed

@@ -57,7 +57,7 @@ Each package can come with a set of samples. As seen in the righthand panel, the
 
 * **:green_circle: Action**: In the _**Package Manager**_ window, from the list of _**Samples**_ for the Perception package, click on the _**Import into Project**_ button for the sample named _**Tutorial Files**_.
 
-Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project. You can view your project's folder structure and access your files from the _**Project**_ tab of the editor, as seen in the image below:
+Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project. You can view your project's folder structure and access your files from the _**Project**_ tab of the editor, as seen in the image below (the package version should match the version you downloaded):
 
 <p align="center">
 <img src="Images/project_folders_samples.png" width="600"/>
@@ -89,12 +89,11 @@ The _**Hierarchy**_ tab of the editor displays all the Scenes currently loaded, 
 
 As seen above, the new Scene already contains a camera (`Main Camera`) and a light (`Directional Light`). We will now modify the camera's field of view and position to prepare it for the tutorial. 
 
-* **:green_circle: Action**: Click on `Main Camera` and in the _**Inspector**_ tab, modify the camera's `Position`, `Rotation`, `Projection` and `Size` to match the screenshot below. (Note that `Size` only becomes available once you set `Projection` to `Orthographic`)
+* **:green_circle: Action**: Click on `Main Camera` and in the _**Inspector**_ tab, make sure the camera's `Position`, `Rotation`, `Projection` and `Field of View` match the screenshot below. 
 
 <p align="center">
-<img src="Images/camera_prep.png" width = "900"/>
+<img src="Images/camera_prep.png" width = "400"/>
 </p>
-
 
 For this tutorial, we prefer our light to not cast any shadows, therefore:
 
@@ -287,7 +286,7 @@ When the simulation starts running, Unity Editor will switch to the _**Game**_ t
 <img src="Images/first_run.png" width = "700"/>
 </p>
 
-In this view, you will also see the real-time visualizations we discussed before shown on top of the camera's view. In the top right corner of the window, you can see a visualization control panel, through which you can enable or disable visualizations for individual labelers. That said, we currently have no foreground objects in the Scene yet, so no bounding boxes or semantic segmentations will be displayed.
+In this view, you will also see the real-time visualizations we discussed before shown on top of the camera's view. In the top right corner of the window, you can see a visualization control panel, through which you can enable or disable visualizations for individual labelers. That said, we currently have no foreground objects in the Scene yet, so no bounding boxes or semantic segmentation overlays will be displayed.
 
 Note that disabling visualizations for a labeler does not affect your generated data. The annotations from all labelers that are active before running the simulation will continue to be recorded and will appear in the output data.
 

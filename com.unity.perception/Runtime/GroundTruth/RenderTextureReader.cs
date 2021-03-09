@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
-    /// RenderTextureReader reads a RenderTexture from the GPU each frame and passes the data back through a provided callback.
+    /// RenderTextureReader reads a RenderTexture from the GPU whenever Capture is called and passes the data back through a provided callback.
     /// </summary>
     /// <typeparam name="T">The type of the raw texture data to be provided.</typeparam>
     class RenderTextureReader<T> : IDisposable where T : struct
@@ -27,18 +27,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         public void Capture(ScriptableRenderContext context, Action<int, NativeArray<T>, RenderTexture> imageReadCallback)
         {
-// #if UNITY_EDITOR
-//             if (UnityEditor.EditorApplication.isPaused)
-//                 return;
-// #endif
-//             if (!cameras.Contains(m_CameraRenderingToSource))
-//                 return;
-//
-//             if (m_NextFrameToCapture > Time.frameCount)
-//                 return;
-//
-//             m_NextFrameToCapture = Time.frameCount + 1;
-
             if (!GraphicsUtilities.SupportsAsyncReadback())
             {
                 RenderTexture.active = m_Source;

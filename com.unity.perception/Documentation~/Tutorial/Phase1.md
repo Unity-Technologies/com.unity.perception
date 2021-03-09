@@ -59,7 +59,7 @@ Each package can come with a set of samples. As seen in the righthand panel, the
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project. You can view your project's folder structure and access your files from the _**Project**_ tab of the editor, as seen in the image below (the package version should match the version you downloaded):
 
 <p align="center">
-<img src="Images/project_folders_samples.png" width="600"/>
+<img src="Images/project_folders_samples.png" width="500"/>
 </p>
 
 * **:green_circle: Action**: **(For URP projects only)** The _**Project**_ tab contains a search bar; use it to find the file named `ForwardRenderer.asset`, as shown below:

@@ -29,6 +29,8 @@ The color of keypoints and connections are now reported in the annotation defini
 
 The PerceptionScenario abstract class has been added to abstract perception data capture specific functionality from the vanilla scenario lifecycle. 
 
+The newly added LabelManager class now enables custom Labelers to access the list of registered Labeling Components present in the scene
+
 ### Changed
 
 Renamed all appearances of the term `KeyPoint` within types and names to `Keypoint`.

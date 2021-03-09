@@ -83,8 +83,7 @@ namespace GroundTruthTests
                 if (frameStart == null || frameStart > frameCount) return;
 
                 timesSegmentationImageReceived++;
-                for (var i = 0; i < data.Length; i++)
-                    Assert.AreEqual(expectedPixelValue, data[i]);
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
             switch (segmentationKind)
@@ -242,8 +241,7 @@ namespace GroundTruthTests
             void OnSegmentationImageReceived(NativeArray<Color32> data)
             {
                 timesSegmentationImageReceived++;
-                for (var i = 0; i < data.Length; i++)
-                    Assert.AreEqual(expectedPixelValue, data[i]);
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
             var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), false);
@@ -263,8 +261,7 @@ namespace GroundTruthTests
             void OnSegmentationImageReceived(NativeArray<Color32> data)
             {
                 timesSegmentationImageReceived++;
-                for (var i = 0; i < data.Length; i++)
-                    Assert.AreEqual(expectedPixelValue, data[i]);
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
             var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), showVisualizations);
@@ -421,8 +418,7 @@ namespace GroundTruthTests
 
                 try
                 {
-                    for (var i = 0; i < data.Length; i++)
-                        Assert.AreEqual(expectedLabelAtFrame[frameCount], data[i]);
+                    CollectionAssert.AreEqual(Enumerable.Repeat(expectedLabelAtFrame[frameCount], data.Length), data.ToArray());
                 }
 
                 // ReSharper disable once RedundantCatchClause

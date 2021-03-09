@@ -6,6 +6,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// <summary>
     /// Manages the registration of <see cref="Labeling"/> components
     /// </summary>
+    [DefaultExecutionOrder(1)]
     public class LabelManager
     {
         /// <summary>
@@ -14,7 +15,7 @@ namespace UnityEngine.Perception.GroundTruth
         public static LabelManager singleton { get; } = new LabelManager();
 
         const uint k_StartingIndex = 1;
-        uint m_CurrentObjectIndex = k_StartingIndex;
+        uint m_NextObjectIndex = k_StartingIndex;
         List<IGroundTruthGenerator> m_ActiveGenerators = new List<IGroundTruthGenerator>();
         LinkedHashSet<Labeling> m_LabelsPendingRegistration = new LinkedHashSet<Labeling>();
         LinkedHashSet<Labeling> m_RegisteredLabels = new LinkedHashSet<Labeling>();
@@ -31,14 +32,14 @@ namespace UnityEngine.Perception.GroundTruth
         public void RegisterPendingLabels()
         {
             if (m_RegisteredLabels.Count == 0)
-                m_CurrentObjectIndex = k_StartingIndex;
+                m_NextObjectIndex = k_StartingIndex;
 
             foreach (var unregisteredLabel in m_LabelsPendingRegistration)
             {
                 if (m_RegisteredLabels.Contains(unregisteredLabel))
                     continue;
 
-                var instanceId = m_CurrentObjectIndex++;
+                var instanceId = m_NextObjectIndex++;
 
                 RecursivelyInitializeGameObjects(
                     unregisteredLabel.gameObject,
@@ -84,7 +85,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Registers a labeling component
         /// </summary>
         /// <param name="labeledObject">the component to register</param>
-        public void Register(Labeling labeledObject)
+        internal void Register(Labeling labeledObject)
         {
             m_LabelsPendingRegistration.Add(labeledObject);
         }
@@ -93,7 +94,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Unregisters a labeling component
         /// </summary>
         /// <param name="labeledObject">the component to unregister</param>
-        public void Unregister(Labeling labeledObject)
+        internal void Unregister(Labeling labeledObject)
         {
             m_LabelsPendingRegistration.Remove(labeledObject);
             m_RegisteredLabels.Remove(labeledObject);
@@ -104,7 +105,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// list of labels changes or when renderers or materials change on objects in the hierarchy.
         /// </summary>
         /// <param name="labeledObject">the component to refresh</param>
-        public void RefreshLabeling(Labeling labeledObject)
+        internal void RefreshLabeling(Labeling labeledObject)
         {
             m_RegisteredLabels.Remove(labeledObject);
             m_LabelsPendingRegistration.Add(labeledObject);

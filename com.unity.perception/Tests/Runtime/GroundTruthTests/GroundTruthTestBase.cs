@@ -41,5 +41,24 @@ namespace GroundTruthTests
             Object.DestroyImmediate(@object);
             m_ObjectsToDestroy.Remove(@object);
         }
+
+        public GameObject SetupCamera(Action<PerceptionCamera> initPerceptionCamera, bool activate = true)
+        {
+            var cameraObject = new GameObject();
+            cameraObject.SetActive(false);
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = 1;
+
+            var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
+            perceptionCamera.captureRgbImages = false;
+            initPerceptionCamera?.Invoke(perceptionCamera);
+
+            if (activate)
+                cameraObject.SetActive(true);
+
+            AddTestObjectForCleanup(cameraObject);
+            return cameraObject;
+        }
     }
 }

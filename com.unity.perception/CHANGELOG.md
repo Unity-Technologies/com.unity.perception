@@ -69,6 +69,8 @@ Fixed a bug where uniform probabilities were not properly reset upon adding or r
 
 Fixed keypoints being reporeted in wrong locations on the first frame an object is visible.
 
+Fixed wrong labels on 2d bounding boxes when all labeled objects are deleted in a frame.
+
 ## [0.7.0-preview.2] - 2021-02-08
 
 ### Upgrade Notes

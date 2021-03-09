@@ -29,7 +29,9 @@ The color of keypoints and connections are now reported in the annotation defini
 
 The PerceptionScenario abstract class has been added to abstract perception data capture specific functionality from the vanilla scenario lifecycle. 
 
-The newly added LabelManager class now enables custom Labelers to access the list of registered Labeling Components present in the scene
+The newly added LabelManager class now enables custom Labelers to access the list of registered Labeling Components present in the scene.
+
+Improved UI for KeypointTemplate and added useful default colors for keypoint and skeleton definitions.
 
 ### Changed
 
@@ -67,7 +69,7 @@ Fixed an issue preventing a user from adding more options to a Categorical Param
 
 Fixed a bug where uniform probabilities were not properly reset upon adding or removing options from a Categorical Parameter's list of options.
 
-Fixed keypoints being reporeted in wrong locations on the first frame an object is visible.
+Fixed keypoints being reported in wrong locations on the first frame an object is visible.
 
 ## [0.7.0-preview.2] - 2021-02-08
 

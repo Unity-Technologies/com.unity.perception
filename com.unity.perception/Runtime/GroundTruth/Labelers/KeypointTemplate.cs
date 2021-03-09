@@ -24,7 +24,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The color of the keypoint in the visualization
         /// </summary>
-        public Color color;
+        public Color color = Color.blue;
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The color of the skeleton in the visualization
         /// </summary>
-        public Color color;
+        public Color color = Color.blue;
     }
 
     /// <summary>

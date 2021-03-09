@@ -209,7 +209,7 @@ namespace UnityEngine.Perception.GroundTruth
         void OnEnable()
         {
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+            RenderPipelineManager.endFrameRendering += OnEndFrameRendering;
             RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
         }
 
@@ -298,7 +298,7 @@ namespace UnityEngine.Perception.GroundTruth
         void OnDisable()
         {
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+            RenderPipelineManager.endFrameRendering -= OnEndFrameRendering;
             RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
         }
 
@@ -491,9 +491,19 @@ namespace UnityEngine.Perception.GroundTruth
             CallOnLabelers(l => l.InternalOnBeginRendering(scriptableRenderContext));
         }
 
-        void OnEndCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera cam)
+        void OnEndFrameRendering(ScriptableRenderContext scriptableRenderContext, Camera[] cameras)
         {
-            if (!ShouldCallLabelers(cam, m_LastFrameEndRendering))
+            bool anyCamera = false;
+            foreach (var cam in cameras)
+            {
+                if (ShouldCallLabelers(cam, m_LastFrameEndRendering))
+                {
+                    anyCamera = true;
+                    break;
+                }
+            }
+
+            if (!anyCamera)
                 return;
 
             m_LastFrameEndRendering = Time.frameCount;

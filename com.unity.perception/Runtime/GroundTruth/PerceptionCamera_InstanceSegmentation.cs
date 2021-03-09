@@ -99,7 +99,6 @@ namespace UnityEngine.Perception.GroundTruth
         void CaptureInstanceSegmentation(ScriptableRenderContext scriptableRenderContext)
         {
             //var myCache = new List<IdLabelEntry>();
-            var cache = IdLabelConfig.GetIdLabelCache();
             var width = m_InstanceSegmentationTexture.width;
 
             m_InstanceSegmentationReader.Capture(scriptableRenderContext,  (frameCount, data, renderTexture) =>
@@ -109,12 +108,10 @@ namespace UnityEngine.Perception.GroundTruth
                 if(RenderedObjectInfosCalculated != null)
                 {
                     m_RenderedObjectInfoGenerator.Compute(data, width,
-                        BoundingBoxOrigin.TopLeft, cache, out var renderedObjectInfos, Allocator.Temp);
+                        BoundingBoxOrigin.TopLeft, out var renderedObjectInfos, Allocator.Temp);
                     RenderedObjectInfosCalculated?.Invoke(frameCount, renderedObjectInfos/*, myCache*/);
                     renderedObjectInfos.Dispose();
                 }
-
-                cache.Dispose();
             });
         }
 

@@ -37,7 +37,7 @@ Your Scenario should now look like this:
 We now need to import the sample files required for this tutorial.  
 
 * **:green_circle: Action**: Open _**Package Manager**_ and select the Perception package, which should already be present in the navigation pane to the left side. 
-* **:green_circle: Action**: From the list of ***Samples*** for the Perception package, click on the ***Import into Project*** button for the sample bundle named _**Human Pose Estimation**_.
+* **:green_circle: Action**: From the list of ***Samples*** for the Perception package, click on the ***Import into Project*** button for the sample bundle named _**Human Pose Labeling and Randomization**_.
 
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project, as seen in the image below:
 
@@ -45,7 +45,7 @@ Once the sample files are imported, they will be placed inside the `Assets/Sampl
 <img src="Images/project_folders_samples.png" width="600"/>
 </p>
 
-* **:green_circle: Action**: Select all of the assets inside the `Assets/Samples/Perception/<perception-package-version>/Human Pose Estimation/Models and Animations`.
+* **:green_circle: Action**: Select all of the assets inside the `Assets/Samples/Perception/<perception-package-version>/Human Pose Labeling and Randomization/Models and Animations`.
 * **:green_circle: Action**: In the _**Inspector**_ tab, navigate to the _**Rig**_ section. 
 
 Note how `Animation Type` is set to `Humanoid` for all selected assets. This is a requirement and makes sure all animations included in the sample `.fbx` files are ready to be used on a rigged humanoid model.

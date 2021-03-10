@@ -23,9 +23,37 @@ namespace UnityEngine.Perception.GroundTruth
     [RequireComponent(typeof(Camera))]
     public partial class PerceptionCamera : MonoBehaviour
     {
+        const float k_PanelWidth = 200;
+        const float k_PanelHeight = 250;
+        const string k_RgbFilePrefix = "rgb_";
+
+        static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
+        static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
+
+        static PerceptionCamera s_VisualizedPerceptionCamera;
+
         //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
         internal string rgbDirectory { get; } = $"RGB{Guid.NewGuid()}";
-        static string s_RgbFilePrefix = "rgb_";
+        internal HUDPanel hudPanel;
+        internal OverlayPanel overlayPanel;
+
+        [SerializeReference]
+        List<CameraLabeler> m_Labelers = new List<CameraLabeler>();
+        Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
+
+        bool m_ShowingVisualizations;
+        bool m_GUIStylesInitialized;
+        int m_LastFrameCaptured = -1;
+        int m_LastFrameEndRendering = -1;
+        Ego m_EgoMarker;
+        SensorHandle m_SensorHandle;
+        Vector2 m_ScrollPosition;
+
+#if URP_PRESENT
+        // only used to confirm that GroundTruthRendererFeature is present in URP
+        bool m_IsGroundTruthRendererFeaturePresent;
+        internal List<ScriptableRenderPass> passes = new List<ScriptableRenderPass>();
+#endif
 
         /// <summary>
         /// A human-readable description of the camera.
@@ -37,16 +65,15 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public bool captureRgbImages = true;
 
-        Camera m_AttachedCamera = null;
         /// <summary>
         /// Caches access to the camera attached to the perception camera
         /// </summary>
-        public Camera attachedCamera => m_AttachedCamera;
+        public Camera attachedCamera { get; private set; }
 
         /// <summary>
         /// Frame number at which this camera starts capturing.
         /// </summary>
-        public int firstCaptureFrame = 0;
+        public int firstCaptureFrame;
 
         /// <summary>
         /// The method of triggering captures for this camera.
@@ -54,22 +81,38 @@ namespace UnityEngine.Perception.GroundTruth
         public CaptureTriggerMode captureTriggerMode = CaptureTriggerMode.Scheduled;
 
         /// <summary>
-        /// Have this unscheduled (manual capture) camera affect simulation timings (similar to a scheduled camera) by requesting a specific frame delta time
+        /// Have this unscheduled (manual capture) camera affect simulation timings (similar to a scheduled camera) by
+        /// requesting a specific frame delta time
         /// </summary>
-        public bool manualSensorAffectSimulationTiming = false;
+        public bool manualSensorAffectSimulationTiming;
 
         /// <summary>
-        /// The simulation frame time (seconds) for this camera. E.g. 0.0166 translates to 60 frames per second. This will be used as Unity's <see cref="Time.captureDeltaTime"/>, causing a fixed number of frames to be generated for each second of elapsed simulation time regardless of the capabilities of the underlying hardware.
+        /// The simulation frame time (seconds) for this camera. E.g. 0.0166 translates to 60 frames per second.
+        /// This will be used as Unity's <see cref="Time.captureDeltaTime"/>, causing a fixed number of frames to be
+        /// generated for each second of elapsed simulation time regardless of the capabilities of the underlying hardware.
         /// </summary>
         public float simulationDeltaTime = 0.0166f;
 
         /// <summary>
-        /// The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame.
+        /// The number of frames to simulate and render between the camera's scheduled captures.
+        /// Setting this to 0 makes the camera capture every frame.
         /// </summary>
-        public int framesBetweenCaptures = 0;
+        public int framesBetweenCaptures;
 
         /// <summary>
-        /// Requests a capture from this camera on the next rendered frame. Can only be used when using <see cref="PerceptionCamera.CaptureTriggerMode.Manual"/> capture mode.
+        /// Turns on/off the realtime visualization capability.
+        /// </summary>
+        [SerializeField]
+        public bool showVisualizations = true;
+
+        /// <summary>
+        /// The <see cref="CameraLabeler"/> instances which will be run for this PerceptionCamera.
+        /// </summary>
+        public IReadOnlyList<CameraLabeler> labelers => m_Labelers;
+
+        /// <summary>
+        /// Requests a capture from this camera on the next rendered frame.
+        /// Can only be used when using <see cref="CaptureTriggerMode.Manual"/> capture mode.
         /// </summary>
         public void RequestCapture()
         {
@@ -79,38 +122,14 @@ namespace UnityEngine.Perception.GroundTruth
             }
             else
             {
-                Debug.LogError($"{nameof(RequestCapture)} can only be used if the camera is in {nameof(CaptureTriggerMode.Manual)} capture mode.");
+                Debug.LogError($"{nameof(RequestCapture)} can only be used if the camera is in " +
+                    $"{nameof(CaptureTriggerMode.Manual)} capture mode.");
             }
         }
 
         /// <summary>
-        /// Event invoked after the camera finishes rendering during a frame.
-        /// </summary>
-
-        [SerializeReference]
-        List<CameraLabeler> m_Labelers = new List<CameraLabeler>();
-        Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
-
-        int m_LastFrameCaptured = -1;
-        int m_LastFrameEndRendering = -1;
-
-#pragma warning disable 414
-        //only used to confirm that GroundTruthRendererFeature is present in URP
-        bool m_GroundTruthRendererFeatureRun;
-#pragma warning restore 414
-
-        static PerceptionCamera s_VisualizedPerceptionCamera;
-
-        /// <summary>
-        /// Turns on/off the realtime visualization capability.
-        /// </summary>
-        [SerializeField]
-        public bool showVisualizations = true;
-
-        bool m_ShowingVisualizations = false;
-
-        /// <summary>
-        /// The <see cref="SensorHandle"/> associated with this camera. Use this to report additional annotations and metrics at runtime.
+        /// The <see cref="SensorHandle"/> associated with this camera.
+        /// Use this to report additional annotations and metrics at runtime.
         /// </summary>
         public SensorHandle SensorHandle
         {
@@ -122,23 +141,9 @@ namespace UnityEngine.Perception.GroundTruth
             private set => m_SensorHandle = value;
         }
 
-        SensorHandle m_SensorHandle;
-        Ego m_EgoMarker;
-
-        static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
-        static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
-
-
-#if URP_PRESENT
-        internal List<ScriptableRenderPass> passes = new List<ScriptableRenderPass>();
-        public void AddScriptableRenderPass(ScriptableRenderPass pass)
-        {
-            passes.Add(pass);
-        }
-#endif
-
         /// <summary>
-        /// Add a data object which will be added to the dataset with each capture. Overrides existing sensor data associated with the given key.
+        /// Add a data object which will be added to the dataset with each capture.
+        /// Overrides existing sensor data associated with the given key.
         /// </summary>
         /// <param name="key">The key to associate with the data.</param>
         /// <param name="data">An object containing the data. Will be serialized into json.</param>
@@ -157,30 +162,48 @@ namespace UnityEngine.Perception.GroundTruth
             return m_PersistentSensorData.Remove(key);
         }
 
+        /// <summary>
+        /// Add the given <see cref="CameraLabeler"/> to the PerceptionCamera. It will be set up and executed by this
+        /// PerceptionCamera each frame it captures data.
+        /// </summary>
+        /// <param name="cameraLabeler">The labeler to add to this PerceptionCamera</param>
+        public void AddLabeler(CameraLabeler cameraLabeler) => m_Labelers.Add(cameraLabeler);
+
+        /// <summary>
+        /// Removes the given <see cref="CameraLabeler"/> from the list of labelers under this PerceptionCamera, if it
+        /// is in the list. The labeler is cleaned up in the process. Labelers removed from a PerceptionCamera should
+        /// not be used again.
+        /// </summary>
+        /// <param name="cameraLabeler"></param>
+        /// <returns></returns>
+        public bool RemoveLabeler(CameraLabeler cameraLabeler)
+        {
+            if (m_Labelers.Remove(cameraLabeler))
+            {
+                if (cameraLabeler.isInitialized)
+                    cameraLabeler.InternalCleanup();
+
+                return true;
+            }
+            return false;
+        }
+
         void Start()
         {
-            AsyncRequest.maxJobSystemParallelism = 0; // Jobs are not chained to one another in any way, maximizing parallelism
-            AsyncRequest.maxAsyncRequestFrameAge = 4; // Ensure that readbacks happen before Allocator.TempJob allocations get stale
+            // Jobs are not chained to one another in any way, maximizing parallelism
+            AsyncRequest.maxJobSystemParallelism = 0;
+
+            // Ensure that read-backs happen before Allocator.TempJob allocations get stale
+            AsyncRequest.maxAsyncRequestFrameAge = 4;
 
             Application.runInBackground = true;
 
             SetupInstanceSegmentation();
-            m_AttachedCamera = GetComponent<Camera>();
+            attachedCamera = GetComponent<Camera>();
 
-            SetupVisualizationCamera(m_AttachedCamera);
-
+            SetupVisualizationCamera();
 
             DatasetCapture.SimulationEnding += OnSimulationEnding;
-        }
-
-        void EnsureSensorRegistered()
-        {
-            if (m_SensorHandle.IsNil)
-            {
-                m_EgoMarker = GetComponentInParent<Ego>();
-                var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
-                SensorHandle = DatasetCapture.RegisterSensor(ego, "camera", description, firstCaptureFrame, captureTriggerMode, simulationDeltaTime, framesBetweenCaptures, manualSensorAffectSimulationTiming);
-            }
         }
 
         void OnEnable()
@@ -190,122 +213,31 @@ namespace UnityEngine.Perception.GroundTruth
             RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
         }
 
-        internal HUDPanel hudPanel = null;
-        internal OverlayPanel overlayPanel = null;
-
-        void SetupVisualizationCamera(Camera cam)
-        {
-#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
-            showVisualizations = false;
-#else
-
-            var visualizationAllowed = s_VisualizedPerceptionCamera == null;
-
-            if (!visualizationAllowed && showVisualizations)
-            {
-                Debug.LogWarning($"Currently only one PerceptionCamera may be visualized at a time. Disabling visualization on {gameObject.name}.");
-                showVisualizations = false;
-                return;
-            }
-            if (!showVisualizations)
-                return;
-
-            m_ShowingVisualizations = true;
-            s_VisualizedPerceptionCamera = this;
-
-            hudPanel = gameObject.AddComponent<HUDPanel>();
-            overlayPanel = gameObject.AddComponent<OverlayPanel>();
-            overlayPanel.perceptionCamera = this;
-#endif
-        }
-
-        void CheckForRendererFeature(ScriptableRenderContext context, Camera camera)
-        {
-            if (camera == m_AttachedCamera)
-            {
-#if URP_PRESENT
-                if (!m_GroundTruthRendererFeatureRun)
-                {
-                    Debug.LogError("GroundTruthRendererFeature must be present on the ScriptableRenderer associated with the camera. The ScriptableRenderer can be accessed through Edit -> Project Settings... -> Graphics -> Scriptable Render Pipeline Settings -> Renderer List.");
-                    enabled = false;
-                }
-#endif
-                RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
-            }
-        }
-        // Update is called once per frame
         void Update()
         {
             EnsureSensorRegistered();
             if (!SensorHandle.IsValid)
                 return;
 
-            bool anyVisualizing = false;
             foreach (var labeler in m_Labelers)
             {
                 if (!labeler.enabled)
                     continue;
 
                 if (!labeler.isInitialized)
-                {
                     labeler.Init(this);
-                }
 
                 labeler.InternalOnUpdate();
-                anyVisualizing |= labeler.InternalVisualizationEnabled;
             }
 
             // Currently there is an issue in the perception camera that causes the UI layer not to be visualized
-            // if we are utilizing async readback and we have to flip our captured image. We have created a jira
-            // issue for this (aisv-779) and have notified the engine team about this.
-            anyVisualizing = true;
-
+            // if we are utilizing async readback and we have to flip our captured image.
+            // We have created a jira issue for this (aisv-779) and have notified the engine team about this.
             if (m_ShowingVisualizations)
-                CaptureOptions.useAsyncReadbackIfSupported = !anyVisualizing;
+                CaptureOptions.useAsyncReadbackIfSupported = false;
         }
 
-        private Vector2 scrollPosition;
-
-        private const float panelWidth = 200;
-        private const float panelHeight = 250;
-
-        private void SetUpGUIStyles()
-        {
-            GUI.skin.label.fontSize = 12;
-            GUI.skin.label.font = Resources.Load<Font>("Inter-Light");
-            GUI.skin.label.padding = new RectOffset(0, 0, 1, 1);
-            GUI.skin.label.margin = new RectOffset(0, 0, 1, 1);
-            GUI.skin.label.wordWrap = true;
-            GUI.skin.label.alignment = TextAnchor.MiddleLeft;
-            GUI.skin.box.padding = new RectOffset(5, 5, 5, 5);
-            GUI.skin.toggle.margin = new RectOffset(0, 0, 0, 0);
-            GUI.skin.horizontalSlider.margin = new RectOffset(0, 0, 0, 0);
-            m_GUIStylesInitialized = true;
-        }
-
-        private bool m_GUIStylesInitialized = false;
-
-        private void DisplayNoLabelersMessage()
-        {
-            var x = Screen.width - panelWidth - 10;
-            var height = Math.Min(Screen.height * 0.5f - 20, 90);
-
-            GUILayout.BeginArea(new Rect(x, 10, panelWidth, height), GUI.skin.box);
-
-            GUILayout.Label("Visualization: No labelers are currently active. Enable at least one labeler from the inspector window of your perception camera to see visualizations.");
-
-            // If a labeler has never been initialized then it was off from the
-            // start, it should not be called to draw on the UI
-            foreach (var labeler in m_Labelers.Where(labeler => labeler.isInitialized))
-            {
-                labeler.VisualizeUI();
-                GUILayout.Space(4);
-            }
-
-            GUILayout.EndArea();
-        }
-
-        private void OnGUI()
+        void OnGUI()
         {
             if (!m_ShowingVisualizations) return;
 
@@ -333,12 +265,12 @@ namespace UnityEngine.Perception.GroundTruth
 
             hudPanel.OnDrawGUI();
 
-            var x = Screen.width - panelWidth - 10;
-            var height = Math.Min(Screen.height * 0.5f - 20, panelHeight);
+            var x = Screen.width - k_PanelWidth - 10;
+            var height = Math.Min(Screen.height * 0.5f - 20, k_PanelHeight);
 
-            GUILayout.BeginArea(new Rect(x, 10, panelWidth, height), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(x, 10, k_PanelWidth, height), GUI.skin.box);
 
-            scrollPosition = GUILayout.BeginScrollView(scrollPosition);
+            m_ScrollPosition = GUILayout.BeginScrollView(m_ScrollPosition);
 
             // If a labeler has never been initialized then it was off from the
             // start, it should not be called to draw on the UI
@@ -349,12 +281,10 @@ namespace UnityEngine.Perception.GroundTruth
 
             // This needs to happen here so that the overlay panel controls
             // are placed in the controls panel
-            overlayPanel.OnDrawGUI(x, 10, panelWidth, height);
+            overlayPanel.OnDrawGUI(x, 10, k_PanelWidth, height);
 
             GUILayout.EndScrollView();
             GUILayout.EndArea();
-
-
         }
 
         void OnValidate()
@@ -363,7 +293,126 @@ namespace UnityEngine.Perception.GroundTruth
                 m_Labelers = new List<CameraLabeler>();
         }
 
-        // Convert the Unity 4x4 projection matrix to a 3x3 matrix
+        void OnDisable()
+        {
+            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+            RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
+        }
+
+        void OnDestroy()
+        {
+            DatasetCapture.SimulationEnding -= OnSimulationEnding;
+
+            OnSimulationEnding();
+            CleanupVisualization();
+
+            if (SensorHandle.IsValid)
+                SensorHandle.Dispose();
+
+            SensorHandle = default;
+        }
+
+        void EnsureSensorRegistered()
+        {
+            if (m_SensorHandle.IsNil)
+            {
+                m_EgoMarker = GetComponentInParent<Ego>();
+                var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
+                SensorHandle = DatasetCapture.RegisterSensor(
+                    ego, "camera", description, firstCaptureFrame, captureTriggerMode,
+                    simulationDeltaTime, framesBetweenCaptures, manualSensorAffectSimulationTiming);
+            }
+        }
+
+        void SetupVisualizationCamera()
+        {
+#if !UNITY_EDITOR && !DEVELOPMENT_BUILD
+            showVisualizations = false;
+#else
+            var visualizationAllowed = s_VisualizedPerceptionCamera == null;
+
+            if (!visualizationAllowed && showVisualizations)
+            {
+                Debug.LogWarning("Currently only one PerceptionCamera may be visualized at a time. " +
+                    $"Disabling visualization on {gameObject.name}.");
+                showVisualizations = false;
+                return;
+            }
+            if (!showVisualizations)
+                return;
+
+            m_ShowingVisualizations = true;
+            s_VisualizedPerceptionCamera = this;
+
+            hudPanel = gameObject.AddComponent<HUDPanel>();
+            overlayPanel = gameObject.AddComponent<OverlayPanel>();
+            overlayPanel.perceptionCamera = this;
+#endif
+        }
+
+        void CheckForRendererFeature(ScriptableRenderContext context, Camera cam)
+        {
+            if (cam == attachedCamera)
+            {
+#if URP_PRESENT
+                if (!m_IsGroundTruthRendererFeaturePresent)
+                {
+                    Debug.LogError("GroundTruthRendererFeature must be present on the ScriptableRenderer associated " +
+                        "with the camera. The ScriptableRenderer can be accessed through Edit -> Project Settings... " +
+                        "-> Graphics -> Scriptable Render Pipeline Settings -> Renderer List.");
+                    enabled = false;
+                }
+#endif
+                RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
+            }
+        }
+
+#if URP_PRESENT
+        public void AddScriptableRenderPass(ScriptableRenderPass pass)
+        {
+            passes.Add(pass);
+        }
+#endif
+
+        void SetUpGUIStyles()
+        {
+            GUI.skin.label.fontSize = 12;
+            GUI.skin.label.font = Resources.Load<Font>("Inter-Light");
+            GUI.skin.label.padding = new RectOffset(0, 0, 1, 1);
+            GUI.skin.label.margin = new RectOffset(0, 0, 1, 1);
+            GUI.skin.label.wordWrap = true;
+            GUI.skin.label.alignment = TextAnchor.MiddleLeft;
+            GUI.skin.box.padding = new RectOffset(5, 5, 5, 5);
+            GUI.skin.toggle.margin = new RectOffset(0, 0, 0, 0);
+            GUI.skin.horizontalSlider.margin = new RectOffset(0, 0, 0, 0);
+            m_GUIStylesInitialized = true;
+        }
+
+        void DisplayNoLabelersMessage()
+        {
+            var x = Screen.width - k_PanelWidth - 10;
+            var height = Math.Min(Screen.height * 0.5f - 20, 90);
+
+            GUILayout.BeginArea(new Rect(x, 10, k_PanelWidth, height), GUI.skin.box);
+
+            GUILayout.Label("Visualization: No labelers are currently active. Enable at least one labeler from the " +
+                "inspector window of your perception camera to see visualizations.");
+
+            // If a labeler has never been initialized then it was off from the
+            // start, it should not be called to draw on the UI
+            foreach (var labeler in m_Labelers.Where(labeler => labeler.isInitialized))
+            {
+                labeler.VisualizeUI();
+                GUILayout.Space(4);
+            }
+
+            GUILayout.EndArea();
+        }
+
+        /// <summary>
+        /// Convert the Unity 4x4 projection matrix to a 3x3 matrix
+        /// </summary>
         // ReSharper disable once InconsistentNaming
         static float3x3 ToProjectionMatrix3x3(Matrix4x4 inMatrix)
         {
@@ -383,9 +432,11 @@ namespace UnityEngine.Perception.GroundTruth
             // Record the camera's projection matrix
             SetPersistentSensorData("camera_intrinsic", ToProjectionMatrix3x3(cam.projectionMatrix));
 
-            var captureFilename = $"{Manager.Instance.GetDirectoryFor(rgbDirectory)}/{s_RgbFilePrefix}{Time.frameCount}.png";
-            var dxRootPath = $"{rgbDirectory}/{s_RgbFilePrefix}{Time.frameCount}.png";
-            SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(m_EgoMarker == null ? null : m_EgoMarker.gameObject, gameObject), m_PersistentSensorData.Select(kvp => (kvp.Key, kvp.Value)).ToArray());
+            var captureFilename = $"{Manager.Instance.GetDirectoryFor(rgbDirectory)}/{k_RgbFilePrefix}{Time.frameCount}.png";
+            var dxRootPath = $"{rgbDirectory}/{k_RgbFilePrefix}{Time.frameCount}.png";
+            SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(
+                m_EgoMarker == null ? null : m_EgoMarker.gameObject, gameObject),
+                m_PersistentSensorData.Select(kvp => (kvp.Key, kvp.Value)).ToArray());
 
             Func<AsyncRequest<CaptureCamera.CaptureState>, AsyncRequest.Result> colorFunctor;
             var width = cam.pixelWidth;
@@ -400,10 +451,13 @@ namespace UnityEngine.Perception.GroundTruth
                     byte[] encodedData;
                     using (s_EncodeAndSave.Auto())
                     {
-                        encodedData = ImageConversion.EncodeArrayToPNG(dataColorBuffer, GraphicsFormat.R8G8B8A8_UNorm, (uint)width, (uint)height);
+                        encodedData = ImageConversion.EncodeArrayToPNG(
+                            dataColorBuffer, GraphicsFormat.R8G8B8A8_UNorm, (uint)width, (uint)height);
                     }
 
-                    return !FileProducer.Write(captureFilename, encodedData) ? AsyncRequest.Result.Error : AsyncRequest.Result.Completed;
+                    return !FileProducer.Write(captureFilename, encodedData)
+                        ? AsyncRequest.Result.Error
+                        : AsyncRequest.Result.Completed;
                 }
             };
 
@@ -444,8 +498,7 @@ namespace UnityEngine.Perception.GroundTruth
             CallOnLabelers(l => l.InternalOnEndRendering());
         }
 
-
-        private void CallOnLabelers(Action<CameraLabeler> action)
+        void CallOnLabelers(Action<CameraLabeler> action)
         {
             foreach (var labeler in m_Labelers)
             {
@@ -459,13 +512,14 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        private bool ShouldCallLabelers(Camera cam, int lastFrameCalledThisCallback)
+        bool ShouldCallLabelers(Camera cam, int lastFrameCalledThisCallback)
         {
-            if (cam != m_AttachedCamera)
+            if (cam != attachedCamera)
                 return false;
             if (!SensorHandle.ShouldCaptureThisFrame)
                 return false;
-            //there are cases when OnBeginCameraRendering is called multiple times in the same frame. Ignore the subsequent calls.
+            // There are cases when OnBeginCameraRendering is called multiple times in the same frame.
+            // Ignore the subsequent calls.
             if (lastFrameCalledThisCallback == Time.frameCount)
                 return false;
 #if UNITY_EDITOR
@@ -473,26 +527,6 @@ namespace UnityEngine.Perception.GroundTruth
                 return false;
 #endif
             return true;
-        }
-
-        void OnDisable()
-        {
-            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
-            RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
-        }
-
-        void OnDestroy()
-        {
-            DatasetCapture.SimulationEnding -= OnSimulationEnding;
-
-            OnSimulationEnding();
-            CleanupVisualization();
-
-            if (SensorHandle.IsValid)
-                SensorHandle.Dispose();
-
-            SensorHandle = default;
         }
 
         void CleanupVisualization()
@@ -503,40 +537,12 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        /// <summary>
-        /// The <see cref="CameraLabeler"/> instances which will be run for this PerceptionCamera.
-        /// </summary>
-        public IReadOnlyList<CameraLabeler> labelers => m_Labelers;
-        /// <summary>
-        /// Add the given <see cref="CameraLabeler"/> to the PerceptionCamera. It will be set up and executed by this
-        /// PerceptionCamera each frame it captures data.
-        /// </summary>
-        /// <param name="cameraLabeler">The labeler to add to this PerceptionCamera</param>
-        public void AddLabeler(CameraLabeler cameraLabeler) => m_Labelers.Add(cameraLabeler);
-
-        /// <summary>
-        /// Removes the given <see cref="CameraLabeler"/> from the list of labelers under this PerceptionCamera, if it
-        /// is in the list. The labeler is cleaned up in the process. Labelers removed from a PerceptionCamera should
-        /// not be used again.
-        /// </summary>
-        /// <param name="cameraLabeler"></param>
-        /// <returns></returns>
-        public bool RemoveLabeler(CameraLabeler cameraLabeler)
+#if URP_PRESENT
+        internal void MarkGroundTruthRendererFeatureAsPresent()
         {
-            if (m_Labelers.Remove(cameraLabeler))
-            {
-                if (cameraLabeler.isInitialized)
-                    cameraLabeler.InternalCleanup();
-
-                return true;
-            }
-            return false;
+            // only used to confirm that GroundTruthRendererFeature is present in URP
+            m_IsGroundTruthRendererFeaturePresent = true;
         }
-
-        internal void OnGroundTruthRendererFeatureRun()
-        {
-            //only used to confirm that GroundTruthRendererFeature is present in URP
-            m_GroundTruthRendererFeatureRun = true;
-        }
+#endif
     }
 }

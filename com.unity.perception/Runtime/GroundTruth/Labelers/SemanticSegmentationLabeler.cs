@@ -8,8 +8,6 @@ using Unity.Collections;
 using Unity.Simulation;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering;
-using UnityEngine.UI;
 
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
@@ -21,7 +19,6 @@ namespace UnityEngine.Perception.GroundTruth
     /// Labeler which generates a semantic segmentation image each frame. Each object is rendered to the semantic segmentation
     /// image using the color associated with it based on the given <see cref="SemanticSegmentationLabelConfig"/>.
     /// Semantic segmentation images are saved to the dataset in PNG format.
-    ///
     /// Only one SemanticSegmentationLabeler can render at once across all cameras.
     /// </summary>
     [Serializable]
@@ -32,13 +29,13 @@ namespace UnityEngine.Perception.GroundTruth
         {
             get => "Generates a semantic segmentation image for each captured frame. Each object is rendered to the semantic segmentation image using the color associated with it based on this labeler's associated semantic segmentation label configuration. " +
                    "Semantic segmentation images are saved to the dataset in PNG format. " +
-                   "Please note that only one " + this.GetType().Name + " can render at once across all cameras.";
+                   "Please note that only one " + GetType().Name + " can render at once across all cameras.";
             protected set {}
         }
 
         const string k_SemanticSegmentationDirectory = "SemanticSegmentation";
         const string k_SegmentationFilePrefix = "segmentation_";
-        internal string m_SemanticSegmentationDirectory;
+        internal string semanticSegmentationDirectory;
 
         /// <summary>
         /// The id to associate with semantic segmentation annotations in the dataset.
@@ -93,9 +90,7 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_SemanticSegmentationAnnotationDefinition;
         RenderTextureReader<Color32> m_SemanticSegmentationTextureReader;
 
-        internal bool m_fLensDistortionEnabled = false;
-
-    #if HDRP_PRESENT
+#if HDRP_PRESENT
         SemanticSegmentationPass m_SemanticSegmentationPass;
         LensDistortionPass m_LensDistortionPass;
     #elif URP_PRESENT
@@ -118,7 +113,7 @@ namespace UnityEngine.Perception.GroundTruth
         public SemanticSegmentationLabeler(SemanticSegmentationLabelConfig labelConfig, RenderTexture targetTextureOverride = null)
         {
             this.labelConfig = labelConfig;
-            this.m_TargetTextureOverride = targetTextureOverride;
+            m_TargetTextureOverride = targetTextureOverride;
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -161,7 +156,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (targetTexture.sRGB)
                 {
                     Debug.LogError("targetTexture supplied to SemanticSegmentationLabeler must be in Linear mode. Disabling labeler.");
-                    this.enabled = false;
+                    enabled = false;
                 }
                 var renderTextureDescriptor = new RenderTextureDescriptor(camWidth, camHeight, GraphicsFormat.R8G8B8A8_UNorm, 8);
                 targetTexture.descriptor = renderTextureDescriptor;
@@ -171,7 +166,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             targetTexture.Create();
             targetTexture.name = "Labeling";
-            m_SemanticSegmentationDirectory = k_SemanticSegmentationDirectory + Guid.NewGuid();
+            semanticSegmentationDirectory = k_SemanticSegmentationDirectory + Guid.NewGuid();
 
 #if HDRP_PRESENT
             var gameObject = perceptionCamera.gameObject;
@@ -189,8 +184,6 @@ namespace UnityEngine.Perception.GroundTruth
                 name = "Lens Distortion Pass"
             };
             customPassVolume.customPasses.Add(m_LensDistortionPass);
-
-            m_fLensDistortionEnabled = true;
 #elif URP_PRESENT
             // Semantic Segmentation
             m_SemanticSegmentationPass = new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig);
@@ -200,8 +193,6 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_LensDistortionPass = new LensDistortionUrpPass(myCamera, targetTexture);
             perceptionCamera.AddScriptableRenderPass(m_LensDistortionPass);
-
-            m_fLensDistortionEnabled = true;
 #endif
 
             var specs = labelConfig.labelEntries.Select((l) => new SemanticSegmentationSpec()
@@ -228,8 +219,8 @@ namespace UnityEngine.Perception.GroundTruth
             if (!m_AsyncAnnotations.TryGetValue(frameCount, out var annotation))
                 return;
 
-            var datasetRelativePath = $"{m_SemanticSegmentationDirectory}/{k_SegmentationFilePrefix}{frameCount}.png";
-            var localPath = $"{Manager.Instance.GetDirectoryFor(m_SemanticSegmentationDirectory)}/{k_SegmentationFilePrefix}{frameCount}.png";
+            var datasetRelativePath = $"{semanticSegmentationDirectory}/{k_SegmentationFilePrefix}{frameCount}.png";
+            var localPath = $"{Manager.Instance.GetDirectoryFor(semanticSegmentationDirectory)}/{k_SegmentationFilePrefix}{frameCount}.png";
 
             annotation.ReportFile(datasetRelativePath);
 

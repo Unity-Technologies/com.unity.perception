@@ -83,7 +83,7 @@ namespace GroundTruthTests
             {
                 var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
                 var capturesJson = File.ReadAllText(capturesPath);
-                var imagePath = $"{semanticSegmentationLabeler.m_SemanticSegmentationDirectory}/{expectedImageFilename}";
+                var imagePath = $"{semanticSegmentationLabeler.semanticSegmentationDirectory}/{expectedImageFilename}";
                 StringAssert.Contains(imagePath, capturesJson);
             }
             else
@@ -110,7 +110,7 @@ namespace GroundTruthTests
 
             var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
-            var imagePath = $"{semanticSegmentationLabeler.m_SemanticSegmentationDirectory}/{expectedImageFilename}";
+            var imagePath = $"{semanticSegmentationLabeler.semanticSegmentationDirectory}/{expectedImageFilename}";
             StringAssert.Contains(imagePath, capturesJson);
         }
 

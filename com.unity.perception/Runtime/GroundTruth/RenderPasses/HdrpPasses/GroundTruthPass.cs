@@ -1,18 +1,17 @@
 #if HDRP_PRESENT
-
 using System;
-using Unity.Entities;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Perception.GroundTruth
 {
-    public abstract class GroundTruthPass : CustomPass, IGroundTruthGenerator
+    abstract class GroundTruthPass : CustomPass, IGroundTruthGenerator
     {
         public Camera targetCamera;
 
         bool m_IsActivated;
-        public abstract void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer meshRenderer, Labeling labeling, uint instanceId);
+        public abstract void SetupMaterialProperties(
+            MaterialPropertyBlock mpb, Renderer meshRenderer, Labeling labeling, uint instanceId);
 
         protected GroundTruthPass(Camera targetCamera)
         {
@@ -27,11 +26,12 @@ namespace UnityEngine.Perception.GroundTruth
             // If we are forced to activate here we will get zeroes in the first frame.
             EnsureActivated();
 
-            this.targetColorBuffer = TargetBuffer.Custom;
-            this.targetDepthBuffer = TargetBuffer.Custom;
+            targetColorBuffer = TargetBuffer.Custom;
+            targetDepthBuffer = TargetBuffer.Custom;
         }
 
-        protected sealed override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+        protected sealed override void Execute(
+            ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
         {
             // CustomPasses are executed for each camera. We only want to run for the target camera
             if (hdCamera.camera != targetCamera)
@@ -40,22 +40,21 @@ namespace UnityEngine.Perception.GroundTruth
             ExecutePass(renderContext, cmd, hdCamera, cullingResult);
         }
 
-        protected abstract void ExecutePass(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult);
+        protected abstract void ExecutePass(
+            ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult);
 
         protected void EnsureActivated()
         {
             if (!m_IsActivated)
             {
-                var labelSetupSystem = World.DefaultGameObjectInjectionWorld?.GetExistingSystem<GroundTruthLabelSetupSystem>();
-                labelSetupSystem?.Activate(this);
+                LabelManager.singleton.Activate(this);
                 m_IsActivated = true;
             }
         }
 
         protected override void Cleanup()
         {
-            var labelSetupSystem = World.DefaultGameObjectInjectionWorld?.GetExistingSystem<GroundTruthLabelSetupSystem>();
-            labelSetupSystem?.Deactivate(this);
+            LabelManager.singleton.Deactivate(this);
         }
     }
 }

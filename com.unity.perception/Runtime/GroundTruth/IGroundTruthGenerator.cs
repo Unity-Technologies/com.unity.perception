@@ -3,12 +3,12 @@ using UnityEngine;
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
-    /// Interface for setting up MeshRenderers for ground truth generation via <see cref="GroundTruthLabelSetupSystem"/>.
+    /// Interface for setting up Renderers for ground truth generation via <see cref="LabelManager"/>.
     /// </summary>
     public interface IGroundTruthGenerator
     {
         /// <summary>
-        /// Called by <see cref="GroundTruthLabelSetupSystem"/> when first registered or when a Labeling is created at runtime.
+        /// Called by <see cref="LabelManager"/> when first registered or when a Labeling is created at runtime.
         /// </summary>
         /// <param name="mpb">The MaterialPropertyBlock for the given meshRenderer. Can be used to set properties for custom rendering.</param>
         /// <param name="renderer">The Renderer under the given Labeling.</param>

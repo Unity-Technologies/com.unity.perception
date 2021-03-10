@@ -1,5 +1,4 @@
 #if HDRP_PRESENT
-
 using System;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -33,10 +32,6 @@ namespace UnityEngine.Perception.GroundTruth
                 m_SemanticSegmentationCrossPipelinePass = new SemanticSegmentationCrossPipelinePass(targetCamera, semanticSegmentationLabelConfig);
                 m_SemanticSegmentationCrossPipelinePass.EnsureActivated();
             }
-        }
-
-        public SemanticSegmentationPass()
-        {
         }
 
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)

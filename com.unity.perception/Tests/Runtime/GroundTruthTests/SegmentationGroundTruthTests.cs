@@ -83,7 +83,7 @@ namespace GroundTruthTests
                 if (frameStart == null || frameStart > frameCount) return;
 
                 timesSegmentationImageReceived++;
-                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data);
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
             switch (segmentationKind)
@@ -241,7 +241,7 @@ namespace GroundTruthTests
             void OnSegmentationImageReceived(NativeArray<Color32> data)
             {
                 timesSegmentationImageReceived++;
-                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data);
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
             var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), false);
@@ -261,7 +261,7 @@ namespace GroundTruthTests
             void OnSegmentationImageReceived(NativeArray<Color32> data)
             {
                 timesSegmentationImageReceived++;
-                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data);
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
             var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), showVisualizations);
@@ -418,7 +418,7 @@ namespace GroundTruthTests
 
                 try
                 {
-                    CollectionAssert.AreEqual(Enumerable.Repeat(expectedLabelAtFrame[frameCount], data.Length), data);
+                    CollectionAssert.AreEqual(Enumerable.Repeat(expectedLabelAtFrame[frameCount], data.Length), data.ToArray());
                 }
 
                 // ReSharper disable once RedundantCatchClause
@@ -431,11 +431,11 @@ namespace GroundTruthTests
             }
 
             var cameraObject = segmentationKind == SegmentationKind.Instance ?
-                SetupCameraInstanceSegmentation(OnSegmentationImageReceived<Color32>) :
-                SetupCameraSemanticSegmentation((a) => OnSegmentationImageReceived<Color32>(a.frameCount, a.data, a.sourceTexture), false);
+                SetupCameraInstanceSegmentation(OnSegmentationImageReceived) :
+                SetupCameraSemanticSegmentation((a) => OnSegmentationImageReceived(a.frameCount, a.data, a.sourceTexture), false);
 
             //object expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) new Color32(0, 74, 255, 255) : k_SemanticPixelValue;
-            object expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) k_InstanceSegmentationPixelValue : k_SemanticPixelValue;
+            var expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) k_InstanceSegmentationPixelValue : k_SemanticPixelValue;
 
             expectedLabelAtFrame = new Dictionary<int, object>
             {

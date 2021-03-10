@@ -449,6 +449,12 @@ namespace UnityEngine.Perception.GroundTruth
             return "unset";
         }
 
+        Keypoint GetKeypointForJoint(KeypointEntry entry, int joint)
+        {
+            if (joint < 0 || joint >= entry.keypoints.Length) return null;
+            return entry.keypoints[joint];
+        }
+
         /// <inheritdoc/>
         protected override void OnVisualize()
         {
@@ -464,10 +470,10 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 foreach (var bone in activeTemplate.skeleton)
                 {
-                    var joint1 = entry.keypoints[bone.joint1];
-                    var joint2 = entry.keypoints[bone.joint2];
+                    var joint1 = GetKeypointForJoint(entry, bone.joint1);
+                    var joint2 = GetKeypointForJoint(entry, bone.joint2);
 
-                    if (joint1.state == 2 && joint2.state == 2)
+                    if (joint1 != null && joint1.state == 2 && joint2 != null && joint2.state == 2)
                     {
                         VisualizationHelper.DrawLine(joint1.x, joint1.y, joint2.x, joint2.y, bone.color, 8, skeletonTexture);
                     }

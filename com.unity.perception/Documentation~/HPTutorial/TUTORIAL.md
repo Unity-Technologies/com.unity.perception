@@ -2,7 +2,7 @@
 
 In this tutorial, we will walk through the production of keypoint and pose datasets for computer vision tasks such as human pose estimation and gesture recognition.
 
-We strongly recommend you finish [Phase 1 of the Perception Tutorial](../Tutorial/Phase1.md) before continuing with this one, especially if you do not have prior experience with Unity Editor. This tutorial requires at least version **0.7.0-preview.2** of the Perception package.
+We strongly recommend you finish [Phase 1 of the Perception Tutorial](../Tutorial/Phase1.md) before continuing with this one, especially if you do not have prior experience with Unity Editor. This tutorial requires at least version **0.8.0-preview.1** of the Perception package.
 
 In this tutorial, **":green_circle: Action:"** mark all of the actions needed to progress through the tutorial. If you are in a hurry, just follow the actions!
 

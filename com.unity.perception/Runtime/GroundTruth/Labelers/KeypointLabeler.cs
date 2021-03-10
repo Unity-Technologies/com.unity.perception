@@ -104,6 +104,55 @@ namespace UnityEngine.Perception.GroundTruth
             return lhs.r == rhs.r && lhs.g == rhs.g && lhs.b == rhs.b && lhs.a == rhs.a;
         }
 
+        bool PixelOnScreen(int x, int y, (int x, int y) dimensions)
+        {
+            return x >= 0 && x < dimensions.x && y >= 0 && y < dimensions.y;
+        }
+
+        bool PixelsMatch(int x, int y, Color32 idColor, (int x, int y) dimensions, NativeArray<Color32> data)
+        {
+            var h = dimensions.y - y;
+            var pixelColor = data[h * dimensions.x + x];
+            return AreEqual(pixelColor, idColor);
+        }
+
+        static int s_PixelTolerance = 1;
+
+        // Determine the state of a keypoint. A keypoint is considered visible (state = 2) if it is on screen and not occluded
+        // by another object. The way that we determine if a point is occluded is by checking the pixel location of the keypoint
+        // against the instance segmentation mask for the frame. The instance segmentation mask provides the instance id of the
+        // visible object at a pixel location. Which means, if the keypoint does not match the visible pixel, then another
+        // object is in front of the keypoint occluding it from view. An important note here is that the keypoint is an infintely small
+        // point in space, which can lead to false negatives due to rounding issues if the keypoint is on the edge of an object or very
+        // close to the edge of the screen. Because of this we will test not only the keypoint pixel, but also the immediate surrounding
+        // pixels  to determine if the pixel is really visible. This method returns 1 if the pixel is not visible but on screen, and 0
+        // if the pixel is off of the screen (taken the tolerance into account).
+        int DetermineKeypointState(Keypoint keypoint, Color32 instanceIdColor, (int x, int y) dimensions, NativeArray<Color32> data)
+        {
+            if (keypoint.state == 0) return 0;
+
+            var centerX = Mathf.RoundToInt(keypoint.x);
+            var centerY = Mathf.RoundToInt(keypoint.y);
+
+            var pixelOnScreen = false;
+
+            for (var y = centerY - s_PixelTolerance; y <= centerY + s_PixelTolerance; y++)
+            {
+                for (var x = centerX - s_PixelTolerance; x <= centerX + s_PixelTolerance; x++)
+                {
+                    if (!PixelOnScreen(x, y, dimensions)) continue;
+
+                    pixelOnScreen = true;
+                    if (PixelsMatch(x, y, instanceIdColor, dimensions, data))
+                    {
+                        return 2;
+                    }
+                }
+            }
+
+            return pixelOnScreen ? 1 : 0;
+        }
+
         void OnInstanceSegmentationImageReadback(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)
         {
             if (!m_AsyncAnnotations.TryGetValue(frameCount, out var asyncAnnotation))
@@ -111,7 +160,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_AsyncAnnotations.Remove(frameCount);
 
-            var width = renderTexture.width;
+            var dimensions = (renderTexture.width, renderTexture.height);
 
             m_ToReport.Clear();
 
@@ -123,22 +172,15 @@ namespace UnityEngine.Perception.GroundTruth
 
                     foreach (var keypoint in keypointSet.Value.keypoints)
                     {
-                        // If the keypoint isn't mapped to a body part keep it at 0
-                        if (keypoint.state == 0) continue;
+                        keypoint.state = DetermineKeypointState(keypoint, idColor, dimensions, data);
 
-                        if (keypoint.x < 0 || keypoint.x > width || keypoint.y < 0 || keypoint.y > renderTexture.height)
+                        if (keypoint.state == 0)
                         {
-                            keypoint.state = 0;
                             keypoint.x = 0;
                             keypoint.y = 0;
                         }
                         else
                         {
-                            // Get the pixel color at the keypoints location
-                            var height = renderTexture.height - (int)keypoint.y;
-                            var pixel = data[height * width + (int)keypoint.x];
-
-                            keypoint.state = AreEqual(pixel, idColor) ? 2 : 1;
                             shouldReport = true;
                         }
                     }
@@ -230,8 +272,9 @@ namespace UnityEngine.Perception.GroundTruth
 
         float GetCaptureHeight()
         {
-            return perceptionCamera.attachedCamera.targetTexture != null ?
-                perceptionCamera.attachedCamera.targetTexture.height : Screen.height;
+            var targetTexture = perceptionCamera.attachedCamera.targetTexture;
+            return targetTexture != null ?
+                targetTexture.height : Screen.height;
         }
 
         // Converts a coordinate from world space into pixel space
@@ -307,7 +350,7 @@ namespace UnityEngine.Perception.GroundTruth
 
                     cached.keypoints.instance_id = labeledEntity.instanceId;
                     cached.keypoints.label_id = labelEntry.id;
-                    cached.keypoints.template_guid = activeTemplate.templateID.ToString();
+                    cached.keypoints.template_guid = activeTemplate.templateID;
 
                     cached.keypoints.keypoints = new Keypoint[activeTemplate.keypoints.Length];
                     for (var i = 0; i < cached.keypoints.keypoints.Length; i++)
@@ -408,6 +451,12 @@ namespace UnityEngine.Perception.GroundTruth
             return "unset";
         }
 
+        Keypoint GetKeypointForJoint(KeypointEntry entry, int joint)
+        {
+            if (joint < 0 || joint >= entry.keypoints.Length) return null;
+            return entry.keypoints[joint];
+        }
+
         /// <inheritdoc/>
         protected override void OnVisualize()
         {
@@ -423,10 +472,10 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 foreach (var bone in activeTemplate.skeleton)
                 {
-                    var joint1 = entry.keypoints[bone.joint1];
-                    var joint2 = entry.keypoints[bone.joint2];
+                    var joint1 = GetKeypointForJoint(entry, bone.joint1);
+                    var joint2 = GetKeypointForJoint(entry, bone.joint2);
 
-                    if (joint1.state == 2 && joint2.state == 2)
+                    if (joint1 != null && joint1.state == 2 && joint2 != null && joint2.state == 2)
                     {
                         VisualizationHelper.DrawLine(joint1.x, joint1.y, joint2.x, joint2.y, bone.color, 8, skeletonTexture);
                     }
@@ -472,7 +521,7 @@ namespace UnityEngine.Perception.GroundTruth
         KeypointJson TemplateToJson(KeypointTemplate input)
         {
             var json = new KeypointJson();
-            json.template_id = input.templateID.ToString();
+            json.template_id = input.templateID;
             json.template_name = input.templateName;
             json.key_points = new JointJson[input.keypoints.Length];
             json.skeleton = new SkeletonJson[input.skeleton.Length];

@@ -130,7 +130,6 @@ namespace UnityEngine.Perception.GroundTruth
             m_Style.alignment = TextAnchor.MiddleLeft;
         }
 
-        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
         protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {

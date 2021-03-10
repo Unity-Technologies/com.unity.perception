@@ -96,7 +96,6 @@ namespace UnityEngine.Perception.GroundTruth
             visualizationEnabled = supportsVisualization;
         }
 
-        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
         protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {
@@ -143,7 +142,7 @@ namespace UnityEngine.Perception.GroundTruth
                     // Clear out all of the old entries...
                     hudPanel.RemoveEntries(this);
                 }
-                
+
                 for (var i = 0; i < entries.Count; i++)
                 {
                     m_ClassCountValues[i] = new ClassCountValue()

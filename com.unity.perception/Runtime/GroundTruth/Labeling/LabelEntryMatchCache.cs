@@ -52,6 +52,7 @@ namespace UnityEngine.Perception.GroundTruth
             return true;
         }
 
+        /// <inheritdoc/>
         void IGroundTruthGenerator.SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
         {
             if (m_IdLabelConfig.TryGetMatchingConfigurationEntry(labeling, out _, out var index))

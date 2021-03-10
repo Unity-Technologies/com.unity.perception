@@ -253,6 +253,7 @@ namespace UnityEngine.Perception.GroundTruth
             asyncRequest.Execute();
         }
 
+        /// <inheritdoc/>
         protected override void OnEndRendering(ScriptableRenderContext scriptableRenderContext)
         {
             m_AsyncAnnotations[Time.frameCount] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_SemanticSegmentationAnnotationDefinition);

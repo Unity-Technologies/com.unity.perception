@@ -174,7 +174,6 @@ namespace UnityEngine.Perception.GroundTruth
             return corners;
         }
 
-        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
         protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {

@@ -89,7 +89,6 @@ namespace UnityEngine.Perception.GroundTruth
             visualizationEnabled = supportsVisualization;
         }
 
-        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
         protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {

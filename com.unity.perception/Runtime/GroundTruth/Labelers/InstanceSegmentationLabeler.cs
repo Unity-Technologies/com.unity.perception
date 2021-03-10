@@ -158,7 +158,6 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
         protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {

@@ -37,7 +37,7 @@ Your Scenario should now look like this:
 We now need to import the sample files required for this tutorial.  
 
 * **:green_circle: Action**: Open _**Package Manager**_ and select the Perception package, which should already be present in the navigation pane to the left side. 
-* **:green_circle: Action**: From the list of ***Samples*** for the Perception package, click on the ***Import into Project*** button for the sample bundle named _**Human Pose Labeling and Randomization**_.
+* **:green_circle: Action**: From the list of ***Samples*** for the Perception package, click on the ***Import*** button for the sample bundle named _**Human Pose Labeling and Randomization**_.
 
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project, as seen in the image below:
 

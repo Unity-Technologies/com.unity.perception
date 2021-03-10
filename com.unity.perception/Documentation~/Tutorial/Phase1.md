@@ -88,7 +88,7 @@ The _**Hierarchy**_ tab of the editor displays all the Scenes currently loaded, 
 
 As seen above, the new Scene already contains a camera (`Main Camera`) and a light (`Directional Light`). We will now modify the camera's field of view and position to prepare it for the tutorial. 
 
-* **:green_circle: Action**: Click on `Main Camera` and in the _**Inspector**_ tab, make sure the camera's `Position`, `Rotation`, `Projection` and `Field of View` match the screenshot below. 
+* **:green_circle: Action**: Click on `Main Camera` and in the _**Inspector**_ tab, make sure the camera's `Position`, `Rotation`, `Projection`, and `Field of View` match the screenshot below. 
 
 <p align="center">
 <img src="Images/camera_prep.png" width = "400"/>

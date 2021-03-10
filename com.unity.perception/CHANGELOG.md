@@ -51,6 +51,8 @@ Randomizer tags now use OnEnable and OnDisable to manage lifecycle. This allows 
 
 The randomizer methods OnCreate(), OnStartRunning(), and OnStopRunning() are now deprecated and have been replaced with OnAwake(), OnEnable() and OnDisable() respectively to better reflect the existing MonoBehaviour lifecycle methods.
 
+Upgraded com.unity.simulation.capture package dependency to integrate new changes that prevent the API updater from looping infinitely when opening the project settings window on new URP projects.
+
 ### Deprecated
 
 ### Removed
@@ -69,7 +71,7 @@ Fixed an issue preventing a user from adding more options to a Categorical Param
 
 Fixed a bug where uniform probabilities were not properly reset upon adding or removing options from a Categorical Parameter's list of options.
 
-Fixed keypoints being reported in wrong locations on the first frame an object is visible.
+Fixed keypoints being reported in wrong locations on the first frame an object is visible. 
 
 ## [0.7.0-preview.2] - 2021-02-08
 

@@ -20,30 +20,32 @@ In order to use Unity Simulation, you need to first create a Unity account or lo
 <img src="Images/cloud_icon.png" width="400"/>
 </p>
 
-If you have not logged in yet, the _**Services**_ tab will display a message noting that you are offline:
+* **:green_circle: Action** Click the ***General settings***.
+
+This will open the ***Services*** tab of the ***Project Settings*** window. If you have not logged in yet, you will see a message noting that you are signed out:
 
 <p align="center">
-<img src="Images/signin.png" width="400"/>
+<img src="Images/signin.png" width="600"/>
 </p>
 
-* **:green_circle: Action**: Click _**Sign in...**_ and follow the steps in the window that opens to sign in or create an account.
+* **:green_circle: Action**: Click _**Sign in...**_ and follow the steps in the window that opens to sign in or create a Unity account.
 * **:green_circle: Action**: Sign up for a free trial of Unity Simulation [here](https://unity.com/products/unity-simulation).
 
 Unity Simulation is a cloud-based service that makes it possible for you to run hundreds of instances of Unity builds in order to generate massive amounts of data. The Unity Simulation service is billed on a per-usage basis, and the free trial offers up to $100 of free credit per month. In order to access the free trial, you will need to provide credit card information. **This information will be used to charge your account if you exceed the $100 monthly credit.** A list of hourly and daily rates for various computational resources is available in the page where you first register for Unity Simulation.
 
-Once you have registered for a free trial, you will be taken to your Unity Simulation dashboard, where you will be able to observe your usage and billing invoices.
+Once you have registered for a free trial, you will be taken to your Unity Simulation dashboard, where you will be able to observe your usage and billing information.
 
 It is now time to connect your local Unity project to a cloud project.
 
-* **:green_circle: Action**: Return to Unity Editor. In the _**Services**_ tab click _**Select Organization**_ and choose the only available option (which typically has the same name as your Unity username).
+* **:green_circle: Action**: Return to Unity Editor. Click _**Select Organization**_ and choose the only available option (which typically has the same name as your Unity username).
 
-If you have used Unity before, you might have set-up multiple organizations for your account. In that case, choose whichever you would like to associate with this project.
+If you have used Unity before, you might have set up multiple organizations for your account. In that case, choose whichever you would like to associate with this project.
 
 <p align="center">
-<img src="Images/create_proj.png" width="400"/>
+<img src="Images/create_proj.png" width="600"/>
 </p>
 
-* **:green_circle: Action**: Click _**Create**_ to create a new cloud project and connect your local project to it.
+* **:green_circle: Action**: Click _**Create Project ID**_ to create a new cloud project and connect your local project to it.
 
 ### <a name="step-2">Step 2: Run Project on Unity Simulation</a> 
 
@@ -75,21 +77,20 @@ In order to make sure our builds are compatible with Unity Simulation, we need t
 <img src="Images/runinusim.png" width="600"/>
 </p>
 
-* **:green_circle: Action**: Choose `TutorialScene` (which is the Scene we have been working in) as your _**Main Scene**_ and the `SimulationScenario` object as your _**Scenario**_.
-
-Here, you can also specify a name for the run, the number of Iterations the Scenario will execute for, and the number of _**Instances**_ (number of nodes the work will be distributed across) for the run. 
+Here, you can also specify a name for the run, the number of Iterations the Scenario will execute for, and the number of _**Instances**_ (number of nodes the work will be distributed across) for the run. This window automatically picks the currently active Scene and Scenario to run in Unity Simulation.
 
 * **:green_circle: Action**: Name your run `FirstRun`, set the number of Iterations to `1000`, and Instances to `20`. 
 * **:green_circle: Action**: Click _**Build and Run**_.
 
-Your project will now be built and then uploaded to Unity Simulation. This may take a few minutes to complete, during which the editor may become frozen; this is normal behaviour.
+> :information_source: You can ignore the ***Optional Configuration*** section for now. This is useful if you plan to specify a configuration for your Scenario (including the Randomizers) that will override the values set in the Scenario UI, in Unity Simulation. To generate a configuration, you can click on the ***Generate JSON Config*** button provided in the ***Inspector*** view of Scenario components.
 
-* **:green_circle: Action**: Once the operation is complete, you can find the **Build ID**, **Run Definition ID**, and **Execution ID** of this Unity Simulation run in the _**Console**_ tab:
+Your project will now be built and then uploaded to Unity Simulation and run. This may take a few minutes to complete, during which the editor may become frozen; this is normal behaviour.
+
+* **:green_circle: Action**: Once the operation is complete, you can find the **Execution ID** of this Unity Simulation run in the **Console** tab and the ***Run in Unity Simulation** Window: 
 
 <p align="center">
-<img src="Images/build_uploaded.png"/>
+<img src="Images/build_uploaded.png" width="600"/>
 </p>
-
 
 ### <a name="step-3">Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface</a> 
 
@@ -322,4 +323,6 @@ The next couple of code blocks (under "Load dataset metadata") analyze the downl
 
 Follow the rest of the steps inside the notebook to generate a variety of plots and stats. Keep in mind that this notebook is provided just as an example, and you can modify and extend it according to your own needs using the tools provided by the [Dataset Insights framework](https://datasetinsights.readthedocs.io/en/latest/).
 
-This concludes the Perception Tutorial. The next step in this workflow would be to train an object-detection model using a dataset generated on Unity Simulation. It is important to note that the 1000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the run would complete in a fairly short period of time, allowing us to move on to learning how to analyze the statistics of the dataset. In order to generate data for training, we recommend a dataset of about 400,000 captures. 
+The next step in this workflow, which is out of the scope of this tutorial, is to train an object-detection model using our synthetic dataset. It is important to note that the 1000 large dataset we generated here is probably not sufficiently large for training most models. We chose this number here so that the Unity Simulation run would finish quickly, allowing us to move on to learning how to analyze the statistics of the dataset. In order to generate data for training, we recommend a minimum dataset size of around 50,000 captures with a large degree of randomization. 
+
+This concludes the Perception Tutorial. In case of any issues or questions, please feel free to open a GitHub issue on the `com.unity.perception` repository so that the Unity Computer Vision team can get back to you as soon as possible.

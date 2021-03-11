@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -193,8 +194,9 @@ namespace UnityEngine.Perception.GroundTruth
             asyncAnnotation.annotation.ReportValues(m_ToReport);
         }
 
+        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
-        protected override void OnEndRendering()
+        protected override void OnEndRendering(ScriptableRenderContext scriptableRenderContext)
         {
             m_CurrentFrame = Time.frameCount;
 

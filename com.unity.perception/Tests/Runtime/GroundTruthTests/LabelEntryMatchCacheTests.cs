@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using NUnit.Framework;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
@@ -13,7 +14,7 @@ namespace GroundTruthTests
         public void TryGet_ReturnsFalse_ForInvalidInstanceId()
         {
             var config = ScriptableObject.CreateInstance<IdLabelConfig>();
-            using (var cache = new LabelEntryMatchCache(config))
+            using (var cache = new LabelEntryMatchCache(config, Allocator.Persistent))
             {
                 Assert.IsFalse(cache.TryGetLabelEntryFromInstanceId(100, out var labelEntry, out var index));
                 Assert.AreEqual(-1, index);
@@ -35,7 +36,7 @@ namespace GroundTruthTests
                     label = label
                 },
             });
-            using (var cache = new LabelEntryMatchCache(config))
+            using (var cache = new LabelEntryMatchCache(config, Allocator.Persistent))
             {
                 //allow label to be registered
                 yield return null;
@@ -51,7 +52,7 @@ namespace GroundTruthTests
             var labeledPlane = TestHelper.CreateLabeledPlane(label: label);
             AddTestObjectForCleanup(labeledPlane);
             var config = ScriptableObject.CreateInstance<IdLabelConfig>();
-            using (var cache = new LabelEntryMatchCache(config))
+            using (var cache = new LabelEntryMatchCache(config, Allocator.Persistent))
             {
                 //allow label to be registered
                 yield return null;
@@ -80,7 +81,7 @@ namespace GroundTruthTests
                     label = label
                 },
             });
-            using (var cache = new LabelEntryMatchCache(config))
+            using (var cache = new LabelEntryMatchCache(config, Allocator.Persistent))
             {
                 //allow label to be registered
                 yield return null;
@@ -107,7 +108,7 @@ namespace GroundTruthTests
                 },
             });
 
-            using (var cache = new LabelEntryMatchCache(config))
+            using (var cache = new LabelEntryMatchCache(config, Allocator.Persistent))
             {
                 //allow label to be registered
                 yield return null;

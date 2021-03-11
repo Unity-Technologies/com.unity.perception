@@ -31,7 +31,10 @@ namespace GroundTruthTests
 
         void Awake()
         {
-            m_Reader = new RenderTextureReader<Color32>(source, cameraSource, ImageReadCallback);
+            m_Reader = new RenderTextureReader<Color32>(source);
+            RenderPipelineManager.endCameraRendering += (context, camera) =>
+                m_Reader.Capture(context,
+                    (frameCount, data, renderTexture) => ImageReadCallback(frameCount, data, renderTexture));
         }
 
         void ImageReadCallback(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)

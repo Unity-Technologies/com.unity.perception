@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Unity.Collections;
 using Unity.Profiling;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -96,7 +97,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {
             if (m_ObjectCountMetricDefinition.Equals(default))
             {
@@ -141,7 +142,7 @@ namespace UnityEngine.Perception.GroundTruth
                     // Clear out all of the old entries...
                     hudPanel.RemoveEntries(this);
                 }
-                
+
                 for (var i = 0; i < entries.Count; i++)
                 {
                     m_ClassCountValues[i] = new ClassCountValue()

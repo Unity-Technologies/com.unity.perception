@@ -8,6 +8,7 @@ using Unity.Collections;
 using Unity.Simulation;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
@@ -208,9 +209,7 @@ namespace UnityEngine.Perception.GroundTruth
                 "PNG",
                 id: Guid.Parse(annotationId));
 
-            m_SemanticSegmentationTextureReader = new RenderTextureReader<Color32>(targetTexture, myCamera,
-                (frameCount, data, tex) => OnSemanticSegmentationImageRead(frameCount, data));
-
+            m_SemanticSegmentationTextureReader = new RenderTextureReader<Color32>(targetTexture);
             visualizationEnabled = supportsVisualization;
         }
 
@@ -255,9 +254,12 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnEndRendering(ScriptableRenderContext scriptableRenderContext)
         {
             m_AsyncAnnotations[Time.frameCount] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_SemanticSegmentationAnnotationDefinition);
+            m_SemanticSegmentationTextureReader.Capture(scriptableRenderContext,
+                (frameCount, data, renderTexture) => OnSemanticSegmentationImageRead(frameCount, data));
+
         }
 
         /// <inheritdoc/>

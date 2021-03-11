@@ -9,71 +9,89 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Upgrade Notes
 
-All appearances of the term `KeyPoint` have been renamed to `Keypoint`. Therefore, after upgrading to this version, if you have code that relies on any renamed types or names, make sure to alter your code to reflect the new names.
-
 ### Known Issues
 
 ### Added
 
-Added error message when missing Randomizer scripts are detected
-
-Scenario serialization has been updated to include scalar values on randomizers and parameters.
-
-Added new ScenarioBase virtual lifecycle hooks: OnAwake, OnStart, OnComplete, and OnIdle.
-
-Keypoint occlusion has been added, no keypoint information will be recorded for a labeled asset completely out of the camera's frustum. 
-
-New keypoint tests have been added to test keypoint state.
-
-The color of keypoints and connections are now reported in the annotation definition json file for keypoint templates.
-
-The PerceptionScenario abstract class has been added to abstract perception data capture specific functionality from the vanilla scenario lifecycle. 
-
-The newly added LabelManager class now enables custom Labelers to access the list of registered Labeling Components present in the scene.
-
-Improved UI for KeypointTemplate and added useful default colors for keypoint and skeleton definitions.
-
 ### Changed
-
-Renamed all appearances of the term `KeyPoint` within types and names to `Keypoint`.
-
-ScenarioBase's Awake, Start, and Update methods are now private. The newly added virtual lifecycle hooks are to be used as replacements.
-
-Improved Run Unity Simulation window UI.
-
-The Run Unity Simulation window now accepts option scenario JSON configurations to override existing scenario editor settings.
-
-ScenarioBase's Get and Create randomizer methods have been augmented or replaced with more generic list index style accessors.
-
-The scenario inspector buttons serialize and deserialize have been refactored to open a file explorer generate and import JSON configurations.
-
-Randomizer tags now use OnEnable and OnDisable to manage lifecycle. This allows the user to toggle them on and off in the editor.
-
-The randomizer methods OnCreate(), OnStartRunning(), and OnStopRunning() are now deprecated and have been replaced with OnAwake(), OnEnable() and OnDisable() respectively to better reflect the existing MonoBehaviour lifecycle methods.
-
-Upgraded com.unity.simulation.capture package dependency to integrate new changes that prevent the API updater from looping infinitely when opening the project settings window on new URP projects.
 
 ### Deprecated
 
 ### Removed
 
-Removed the entities package dependency
+### Fixed
+
+## [0.8.0-preview.1] - 2021-03-15
+
+### Upgrade Notes
+
+All appearances of the term `KeyPoint` have been renamed to `Keypoint`. If you have code that relies on any renamed types or names, make sure to alter your code to reflect the new names.
+
+`ScenarioBase`'s `Awake`, `Start`, and `Update` functions are now private. If you previously used these, replace the usages with `OnAwake`, `OnStart`, and `OnUpdate`.
+
+### Known Issues
+
+### Added
+
+Added error message when missing Randomizer scripts are detected.
+
+Scenario serialization has been updated to include scalar values on Randomizers and Parameters.
+
+Added new `ScenarioBase` virtual lifecycle hooks: `OnAwake`, `OnStart`, `OnUpdate`, `OnComplete`, and `OnIdle`.
+
+Keypoint occlusion has been added. No keypoint information will be recorded for a labeled asset completely out of the camera's frustum. 
+
+New keypoint tests have been added to test keypoint states.
+
+The color of keypoints and connections are now reported in the annotation definition JSON file for keypoint templates.
+
+The `PerceptionScenario` abstract class has been added to abstract perception data capture specific functionality from the vanilla Scenario lifecycle. 
+
+The newly added `LabelManager` class now enables custom Labelers to access the list of registered `Labeling` Components present in the Scene.
+
+Improved UI for `KeypointTemplate` and added useful default colors for keypoint and skeleton definitions.
+
+### Changed
+
+Renamed all appearances of the term `KeyPoint` within types and names to `Keypoint`.
+
+ScenarioBase's `Awake`, `Start`, and `Update` methods are now private. The newly added virtual lifecycle hooks are to be used as replacements.
+
+Improved _Run in Unity Simulation_ window UI.
+
+The _Run in Unity Simulation_ window now accepts an optional Scenario JSON configuration to override existing Scenario editor UI settings.
+
+The `GetRandomizer` and `CreateRandomizer` methods of `ScenarioBase` have been augmented or replaced with more generic list index style accessors.
+
+The Scenario inspector buttons for serialization and deserialization have been refactored to open a file explorer so that the user can choose where to save the generated JSON configuration or which file to import a configuration from.
+
+RandomizerTags now use `OnEnable` and `OnDisable` to manage their lifecycle. This allows the user to toggle them on and off in the editor.
+
+Upgraded `com.unity.simulation.capture` package dependency to integrate new changes that prevent the API updater from looping infinitely when opening the project settings window on new URP projects.
+
+### Deprecated
+
+The Randomizer methods `OnCreate`, `OnStartRunning`, and `OnStopRunning` are now deprecated and have been replaced with `OnAwake`, `OnEnable` and `OnDisable` respectively, so as to better reflect the existing MonoBehaviour lifecycle methods.
+
+### Removed
+
+Removed the Entities package dependency.
 
 ### Fixed
 
-Fixed a null reference error that appeared when adding options to categorical parameters.
+Fixed a null reference error that appeared when adding options to Categorical Parameters.
 
-Fixed ground truth not properly produced when there are other disabled PerceptionCameras present. Note: this does not yet add support for multiple enabled PerceptionCameras.
+Fixed ground truth not properly being produced when there are other disabled PerceptionCameras present. Note: this does not yet add support for multiple enabled PerceptionCameras.
 
-Fixed exception when rendering inspector for randomizers with private serialized fields
+Fixed an exception when rendering inspector for Randomizers with private serialized fields.
 
-Fixed an issue preventing a user from adding more options to a Categorical Parameter's list of options with the 'Add Folder' button. 'Add Folder' now correctly appends the contents of the new folder on the list.
+Fixed an issue preventing the user from adding more options to a Categorical Parameter's list of options with the _Add Folder_ button. _Add Folder_ now correctly appends the contents of the new folder to the existing list.
 
 Fixed a bug where uniform probabilities were not properly reset upon adding or removing options from a Categorical Parameter's list of options.
 
-Fixed keypoints being reported in wrong locations on the first frame an object is visible. 
+Fixed keypoints being reported in wrong locations on the first frame in which an object is visible. 
 
-Fixed an out of range error if a keypoint template skeleton relies on a joint that is not available.
+Fixed an out of range error that occurred when a keypoint template skeleton relied on a joint that was not available.
 
 ## [0.7.0-preview.2] - 2021-02-08
 

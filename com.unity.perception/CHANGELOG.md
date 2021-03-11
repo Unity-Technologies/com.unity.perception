@@ -53,6 +53,8 @@ The randomizer methods OnCreate(), OnStartRunning(), and OnStopRunning() are now
 
 CameraLabeler methods OnBeginRendering() and OnEndRendering() have an added ScriptableRenderContext parameter.
 
+Upgraded com.unity.simulation.capture package dependency to integrate new changes that prevent the API updater from looping infinitely when opening the project settings window on new URP projects.
+
 ### Deprecated
 
 ### Removed
@@ -71,7 +73,9 @@ Fixed an issue preventing a user from adding more options to a Categorical Param
 
 Fixed a bug where uniform probabilities were not properly reset upon adding or removing options from a Categorical Parameter's list of options.
 
-Fixed keypoints being reported in wrong locations on the first frame an object is visible.
+Fixed keypoints being reported in wrong locations on the first frame an object is visible. 
+
+Fixed an out of range error if a keypoint template skeleton relies on a joint that is not available.
 
 Fixed wrong labels on 2d bounding boxes when all labeled objects are deleted in a frame.
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using Unity.Collections;
 using Unity.Profiling;
+using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
@@ -89,7 +90,7 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {
             if (m_RenderedObjectInfoMetricDefinition.Equals(default))
             {

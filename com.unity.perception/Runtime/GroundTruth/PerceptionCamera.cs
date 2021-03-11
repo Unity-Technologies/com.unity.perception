@@ -209,11 +209,13 @@ namespace UnityEngine.Perception.GroundTruth
         void OnEnable()
         {
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+            RenderPipelineManager.endFrameRendering += OnEndFrameRendering;
             RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
         }
 
-        void Update()
+        // LateUpdate is called once per frame. It is called after coroutines, ensuring it is called properly after
+        // creation when running tests, since the test runner uses coroutines to run test code.
+        void LateUpdate()
         {
             EnsureSensorRegistered();
             if (!SensorHandle.IsValid)
@@ -296,7 +298,7 @@ namespace UnityEngine.Perception.GroundTruth
         void OnDisable()
         {
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+            RenderPipelineManager.endFrameRendering -= OnEndFrameRendering;
             RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
         }
 
@@ -479,23 +481,34 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        void OnBeginCameraRendering(ScriptableRenderContext _, Camera cam)
+        void OnBeginCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera cam)
         {
             if (!ShouldCallLabelers(cam, m_LastFrameCaptured))
                 return;
 
             m_LastFrameCaptured = Time.frameCount;
             CaptureRgbData(cam);
-            CallOnLabelers(l => l.InternalOnBeginRendering());
+            CallOnLabelers(l => l.InternalOnBeginRendering(scriptableRenderContext));
         }
 
-        void OnEndCameraRendering(ScriptableRenderContext _, Camera cam)
+        void OnEndFrameRendering(ScriptableRenderContext scriptableRenderContext, Camera[] cameras)
         {
-            if (!ShouldCallLabelers(cam, m_LastFrameEndRendering))
+            bool anyCamera = false;
+            foreach (var cam in cameras)
+            {
+                if (ShouldCallLabelers(cam, m_LastFrameEndRendering))
+                {
+                    anyCamera = true;
+                    break;
+                }
+            }
+
+            if (!anyCamera)
                 return;
 
             m_LastFrameEndRendering = Time.frameCount;
-            CallOnLabelers(l => l.InternalOnEndRendering());
+            CallOnLabelers(l => l.InternalOnEndRendering(scriptableRenderContext));
+            CaptureInstanceSegmentation(scriptableRenderContext);
         }
 
         void CallOnLabelers(Action<CameraLabeler> action)

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Unity.Collections;
 
 namespace UnityEngine.Perception.GroundTruth {
     /// <summary>
@@ -45,10 +46,15 @@ namespace UnityEngine.Perception.GroundTruth {
         /// <returns>True if a labelId is found for the given instanceId.</returns>
         public bool TryGetLabelEntryFromInstanceId(uint instanceId, out IdLabelEntry labelEntry, out int index)
         {
-            if (m_LabelEntryMatchCache == null)
-                m_LabelEntryMatchCache = new LabelEntryMatchCache(this);
+            EnsureInitLabelEntryMatchCache();
 
             return m_LabelEntryMatchCache.TryGetLabelEntryFromInstanceId(instanceId, out labelEntry, out index);
+        }
+
+        private void EnsureInitLabelEntryMatchCache()
+        {
+            if (m_LabelEntryMatchCache == null)
+                m_LabelEntryMatchCache = new LabelEntryMatchCache(this, Allocator.Persistent);
         }
 
         /// <inheritdoc/>
@@ -88,6 +94,22 @@ namespace UnityEngine.Perception.GroundTruth {
                 label_id = l.id,
                 label_name = l.label,
             }).ToArray();
+        }
+
+        /// <summary>
+        /// Creates a LabelEntryMatchCache from the currently registered labeled objects, which can be used to look up
+        /// labeling information in future frames, even after the objects have been destroyed. Due to timing of labeled
+        /// object registration, if this is called during or before LateUpdate, this cache may become invalid.
+        ///
+        /// It is recommended to only use this method in rendering, as the cache is guaranteed to be in its final state
+        /// for ground truth generation.
+        /// </summary>
+        /// <param name="allocator">The allocator for creating the cache.</param>
+        /// <returns>The created cache.</returns>
+        public LabelEntryMatchCache CreateLabelEntryMatchCache(Allocator allocator)
+        {
+            EnsureInitLabelEntryMatchCache();
+            return m_LabelEntryMatchCache.CloneCurrentState(allocator);
         }
     }
 }

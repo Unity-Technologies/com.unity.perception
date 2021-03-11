@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
 namespace GroundTruthTests
 {
@@ -159,12 +161,102 @@ namespace GroundTruthTests
 
             var dataNativeArray = new NativeArray<Color32>(producesCorrectObjectInfoData.data, Allocator.Persistent);
 
+            var cache = labelingConfiguration.CreateLabelEntryMatchCache(Allocator.Persistent);
             renderedObjectInfoGenerator.Compute(dataNativeArray, producesCorrectObjectInfoData.stride, producesCorrectObjectInfoData.boundingBoxOrigin, out var boundingBoxes, Allocator.Temp);
 
             CollectionAssert.AreEqual(producesCorrectObjectInfoData.renderedObjectInfosExpected, boundingBoxes.ToArray());
 
             dataNativeArray.Dispose();
             boundingBoxes.Dispose();
+            cache.Dispose();
+        }
+
+
+        [UnityTest]
+        public IEnumerator LabelsCorrectWhenIdsReset()
+        {
+            int timesInfoReceived = 0;
+            Dictionary<int, int> expectedLabelIdAtFrame = null;
+
+            //TestHelper.LoadAndStartRenderDocCapture(out var gameView);
+
+            void OnBoundingBoxesReceived(BoundingBox2DLabeler.BoundingBoxesCalculatedEventArgs eventArgs)
+            {
+                if (expectedLabelIdAtFrame == null || !expectedLabelIdAtFrame.ContainsKey(eventArgs.frameCount)) return;
+
+                timesInfoReceived++;
+
+                Debug.Log($"Bounding boxes received. FrameCount: {eventArgs.frameCount}");
+
+                Assert.AreEqual(1, eventArgs.data.Count());
+                Assert.AreEqual(expectedLabelIdAtFrame[eventArgs.frameCount], eventArgs.data.First().label_id);
+            }
+
+            var idLabelConfig = ScriptableObject.CreateInstance<IdLabelConfig>();
+            idLabelConfig.Init(new []
+            {
+                new IdLabelEntry()
+                {
+                    id = 1,
+                    label = "label1"
+                },
+                new IdLabelEntry()
+                {
+                    id = 2,
+                    label = "label2"
+                },
+                new IdLabelEntry()
+                {
+                    id = 3,
+                    label = "label3"
+                },
+            });
+            AddTestObjectForCleanup(idLabelConfig);
+
+            var cameraObject = SetupCameraBoundingBox2D(OnBoundingBoxesReceived, idLabelConfig);
+
+            expectedLabelIdAtFrame = new Dictionary<int, int>
+            {
+                {Time.frameCount    , 1},
+                {Time.frameCount + 1, 2},
+                {Time.frameCount + 2, 3}
+            };
+            GameObject planeObject;
+
+            //Put a plane in front of the camera
+            planeObject = TestHelper.CreateLabeledPlane(label: "label1");
+            yield return null;
+
+            //UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(gameView);
+            Object.DestroyImmediate(planeObject);
+            planeObject = TestHelper.CreateLabeledPlane(label: "label2");
+
+            //TestHelper.LoadAndStartRenderDocCapture(out gameView);
+            yield return null;
+
+            //UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(gameView);
+            Object.DestroyImmediate(planeObject);
+            planeObject = TestHelper.CreateLabeledPlane(label: "label3");
+            yield return null;
+            Object.DestroyImmediate(planeObject);
+            yield return null;
+
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+
+            Assert.AreEqual(3, timesInfoReceived);
+        }
+
+        private GameObject SetupCameraBoundingBox2D(Action<BoundingBox2DLabeler.BoundingBoxesCalculatedEventArgs> onBoundingBoxesCalculated, IdLabelConfig idLabelConfig)
+        {
+            var cameraObject = SetupCamera(camera =>
+            {
+                camera.showVisualizations = false;
+                var boundingBox2DLabeler = new BoundingBox2DLabeler(idLabelConfig);
+                boundingBox2DLabeler.boundingBoxesCalculated += onBoundingBoxesCalculated;
+                camera.AddLabeler(boundingBox2DLabeler);
+            });
+            return cameraObject;
         }
     }
 }

@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine.Serialization;
 using Unity.Simulation;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -24,7 +25,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         [SuppressMessage("ReSharper", "NotAccessedField.Local")]
-        struct BoundingBoxValue
+        internal struct BoundingBoxValue
         {
             public int label_id;
             public string label_name;
@@ -47,7 +48,7 @@ namespace UnityEngine.Perception.GroundTruth
         [FormerlySerializedAs("labelingConfiguration")]
         public IdLabelConfig idLabelConfig;
 
-        Dictionary<int, AsyncAnnotation> m_AsyncAnnotations;
+        Dictionary<int, (AsyncAnnotation annotation, LabelEntryMatchCache labelEntryMatchCache)> m_AsyncData;
         AnnotationDefinition m_BoundingBoxAnnotationDefinition;
         List<BoundingBoxValue> m_BoundingBoxValues;
 
@@ -76,13 +77,35 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override bool supportsVisualization => true;
 
+
+
+        /// <summary>
+        /// Event information for <see cref="BoundingBox2DLabeler.BoundingBoxesCalculated"/>
+        /// </summary>
+        internal struct BoundingBoxesCalculatedEventArgs
+        {
+            /// <summary>
+            /// The <see cref="Time.frameCount"/> on which the data was derived. This may be multiple frames in the past.
+            /// </summary>
+            public int frameCount;
+            /// <summary>
+            /// Bounding boxes.
+            /// </summary>
+            public IEnumerable<BoundingBoxValue> data;
+        }
+
+        /// <summary>
+        /// Event which is called each frame a semantic segmentation image is read back from the GPU.
+        /// </summary>
+        internal event Action<BoundingBoxesCalculatedEventArgs> boundingBoxesCalculated;
+
         /// <inheritdoc/>
         protected override void Setup()
         {
             if (idLabelConfig == null)
                 throw new InvalidOperationException("BoundingBox2DLabeler's idLabelConfig field must be assigned");
 
-            m_AsyncAnnotations = new Dictionary<int, AsyncAnnotation>();
+            m_AsyncData = new Dictionary<int, (AsyncAnnotation annotation, LabelEntryMatchCache labelEntryMatchCache)>();
             m_BoundingBoxValues = new List<BoundingBoxValue>();
 
             m_BoundingBoxAnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("bounding box", idLabelConfig.GetAnnotationSpecification(),
@@ -108,24 +131,26 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <inheritdoc/>
-        protected override void OnBeginRendering()
+        protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {
-            m_AsyncAnnotations[Time.frameCount] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_BoundingBoxAnnotationDefinition);
+            m_AsyncData[Time.frameCount] =
+                (perceptionCamera.SensorHandle.ReportAnnotationAsync(m_BoundingBoxAnnotationDefinition),
+                 idLabelConfig.CreateLabelEntryMatchCache(Allocator.TempJob));
         }
 
         void OnRenderedObjectInfosCalculated(int frameCount, NativeArray<RenderedObjectInfo> renderedObjectInfos)
         {
-            if (!m_AsyncAnnotations.TryGetValue(frameCount, out var asyncAnnotation))
+            if (!m_AsyncData.TryGetValue(frameCount, out var asyncData))
                 return;
 
-            m_AsyncAnnotations.Remove(frameCount);
+            m_AsyncData.Remove(frameCount);
             using (s_BoundingBoxCallback.Auto())
             {
                 m_BoundingBoxValues.Clear();
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
-                    if (!idLabelConfig.TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry))
+                    if (!asyncData.labelEntryMatchCache.TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry, out _))
                         continue;
 
                     m_BoundingBoxValues.Add(new BoundingBoxValue
@@ -143,7 +168,13 @@ namespace UnityEngine.Perception.GroundTruth
                 if (!CaptureOptions.useAsyncReadbackIfSupported && frameCount != Time.frameCount)
                     Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
 
-                asyncAnnotation.ReportValues(m_BoundingBoxValues);
+                boundingBoxesCalculated?.Invoke(new BoundingBoxesCalculatedEventArgs()
+                {
+                    data = m_BoundingBoxValues,
+                    frameCount = frameCount
+                });
+                asyncData.annotation.ReportValues(m_BoundingBoxValues);
+                asyncData.labelEntryMatchCache.Dispose();
             }
         }
 

@@ -6,7 +6,7 @@ using UnityEngine.Perception.GroundTruth;
 namespace UnityEditor.Perception.GroundTruth
 {
     [CustomEditor(typeof(KeypointTemplate))]
-    public class KeypointTemplateEditor: Editor
+    class KeypointTemplateEditor: Editor
     {
         ReorderableList m_KeypointsList;
         ReorderableList m_SkeletonList;

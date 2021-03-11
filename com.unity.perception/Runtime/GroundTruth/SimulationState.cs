@@ -373,7 +373,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 modality = modality,
                 description = description,
-                firstCaptureTime = firstCaptureFrame * renderingDeltaTime,
+                firstCaptureTime = UnscaledSequenceTime + firstCaptureFrame * renderingDeltaTime,
                 captureTriggerMode = captureTriggerMode,
                 renderingDeltaTime = renderingDeltaTime,
                 framesBetweenCaptures = framesBetweenCaptures,
@@ -382,7 +382,7 @@ namespace UnityEngine.Perception.GroundTruth
                 lastCaptureFrameCount = -1
             };
             sensorData.sequenceTimeOfNextCapture = GetSequenceTimeOfNextCapture(sensorData);
-            sensorData.sequenceTimeOfNextRender = 0;
+            sensorData.sequenceTimeOfNextRender = UnscaledSequenceTime;
             m_ActiveSensors.Add(sensor);
             m_Sensors.Add(sensor, sensorData);
             m_Ids.Add(sensor.Id);

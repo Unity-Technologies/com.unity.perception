@@ -49,7 +49,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="egoHandle">The ego container for the sensor. Sensor orientation will be reported in the context of the given ego.</param>
         /// <param name="modality">The kind of the sensor (ex. "camera", "lidar")</param>
         /// <param name="description">A human-readable description of the sensor (ex. "front-left rgb camera")</param>
-        /// <param name="firstCaptureFrame">The time, in seconds, from the start of the sequence on which this sensor should first be scheduled.</param>
+        /// <param name="firstCaptureFrame">The offset from the current frame on which this sensor should first be scheduled.</param>
         /// <param name="captureTriggerMode">The method of triggering captures for this sensor.</param>
         /// <param name="simulationDeltaTime">The simulation frame time (seconds) requested by this sensor.</param>
         /// <param name="framesBetweenCaptures">The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame.</param>

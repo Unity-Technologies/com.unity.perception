@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine.Serialization;
@@ -34,14 +35,19 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public uint instanceId { get; private set; }
 
-        void Awake()
-        {
-            labelManager.Register(this);
-        }
-
         void OnDestroy()
         {
             labelManager.Unregister(this);
+        }
+
+        void OnEnable()
+        {
+            RefreshLabeling();
+        }
+
+        void OnDisable()
+        {
+            RefreshLabeling();
         }
 
         void Reset()

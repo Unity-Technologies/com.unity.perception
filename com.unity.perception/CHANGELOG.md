@@ -51,6 +51,8 @@ The newly added `LabelManager` class now enables custom Labelers to access the l
 
 Improved UI for `KeypointTemplate` and added useful default colors for keypoint and skeleton definitions.
 
+Added the ability to switch ground-truth labeling on or off for an object at runtime by enabling or disabling its `Labeling` component.
+
 ### Changed
 
 Renamed all appearances of the term `KeyPoint` within types and names to `Keypoint`.

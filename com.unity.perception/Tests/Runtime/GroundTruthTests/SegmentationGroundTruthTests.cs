@@ -257,6 +257,50 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
+        public IEnumerator SemanticSegmentationPass_WithMatchingButDisabledLabel_ProducesBlack()
+        {
+            int timesSegmentationImageReceived = 0;
+            var expectedPixelValue = new Color32(0, 0, 0, 255);
+            void OnSegmentationImageReceived(NativeArray<Color32> data)
+            {
+                timesSegmentationImageReceived++;
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
+            }
+
+            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), false);
+
+            var gameObject = TestHelper.CreateLabeledPlane();
+            gameObject.GetComponent<Labeling>().enabled = false;
+            AddTestObjectForCleanup(gameObject);
+            yield return null;
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            Assert.AreEqual(1, timesSegmentationImageReceived);
+        }
+
+        [UnityTest]
+        public IEnumerator InstanceSegmentationPass_WithMatchingButDisabledLabel_ProducesBlack()
+        {
+            int timesSegmentationImageReceived = 0;
+            var expectedPixelValue = new Color32(0, 0, 0, 255);
+            void OnSegmentationImageReceived(NativeArray<Color32> data)
+            {
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data);
+                timesSegmentationImageReceived++;
+            }
+
+            var cameraObject = SetupCameraInstanceSegmentation((frame, data, renderTexture) => OnSegmentationImageReceived(data));
+
+            var gameObject = TestHelper.CreateLabeledPlane();
+            gameObject.GetComponent<Labeling>().enabled = false;
+            AddTestObjectForCleanup(gameObject);
+            yield return null;
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            Assert.AreEqual(1, timesSegmentationImageReceived);
+        }
+
+        [UnityTest]
         public IEnumerator SemanticSegmentationPass_WithEmptyFrame_ProducesBlack([Values(false, true)] bool showVisualizations)
         {
             int timesSegmentationImageReceived = 0;

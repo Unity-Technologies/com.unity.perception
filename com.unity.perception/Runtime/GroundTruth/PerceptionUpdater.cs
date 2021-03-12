@@ -4,6 +4,7 @@
     /// PerceptionUpdater is automatically spawned when the player starts and is used to coordinate and maintain
     /// static perception lifecycle behaviours.
     /// </summary>
+    [AddComponentMenu("")]
     [DefaultExecutionOrder(5)]
     class PerceptionUpdater : MonoBehaviour
     {

@@ -79,10 +79,7 @@ The RenderedObjectInfoLabeler records a list of all objects visible in the Camer
 
 ### KeypointLabeler
 
-The keypoint labeler captures keypoints of a labeled gameobject. The typical use of this labeler is capturing human pose
-estimation data. The labeler uses a [keypoint template](#KeypointTemplate) which defines the keypoints to capture for the
-model and the skeletal connections between those keypoints. The positions of the keypoints are recorded in pixel coordinates
-and saved to the captures json file.
+The keypoint labeler captures keypoints of a labeled gameobject. The typical use of this labeler is capturing human pose estimation data. The labeler uses a [keypoint template](#KeypointTemplate) which defines the keypoints to capture for the model and the skeletal connections between those keypoints. The positions of the keypoints are recorded in pixel coordinates. Each keypoint has a state value: 0 - the keypoint either does not exist or is outside of the image's bounds, 1 - the keypoint exists and is inside of the image's bounds but cannot be seen because it is occluded by another object, and 2 - the keypoint exists and is visible.
 
 ```
 keypoints {
@@ -95,7 +92,7 @@ keypoints {
       index:     <int>   -- Index of keypoint in template
       x:         <float> -- X pixel coordinate of keypoint
       y:         <float> -- Y pixel coordinate of keypoint
-      state:     <int>   -- 0: keypoint does not exist, 1 keypoint exists
+      state:     <int>   -- 0: keypoint does not exist, 1: keypoint exists but is not visible, 2: keypoint exists and is visible
     }, ...
   ]
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -16,6 +15,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         [Tooltip("The percentage within the clip that the pose starts, a value from 0 (beginning) to 1 (end)")]
         public float startOffsetPercent;
+
         /// <summary>
         /// The label to use for any captures inside of this time period
         /// </summary>
@@ -29,26 +29,30 @@ namespace UnityEngine.Perception.GroundTruth
     [CreateAssetMenu(fileName = "AnimationPoseConfig", menuName = "Perception/Animation Pose Config")]
     public class AnimationPoseConfig : ScriptableObject
     {
+        const string k_Unset = "unset";
+
         /// <summary>
         /// The animation clip used for all of the timestamps
         /// </summary>
         public AnimationClip animationClip;
-        /// <summary>
-        /// The list of timestamps, order dependent
-        /// </summary>
-        public List<PoseTimestampRecord> timestamps;
 
-        SortedList<float, string> sortedTimestamps;
-        void OnEnable()
+        /// <summary>
+        /// The list of timestamps
+        /// </summary>
+        [SerializeField] List<PoseTimestampRecord> m_Timestamps = new List<PoseTimestampRecord>();
+
+        /// <summary>
+        /// The sorted list of timestamps
+        /// </summary>
+        public List<PoseTimestampRecord> timestamps
         {
-            sortedTimestamps = new SortedList<float, string>(timestamps.Count);
-            foreach (var ts in timestamps)
+            get => m_Timestamps;
+            set
             {
-                sortedTimestamps.Add(ts.startOffsetPercent, ts.poseLabel);
+                m_Timestamps = value;
+                SortTimestamps();
             }
         }
-
-        const string k_Unset = "unset";
 
         /// <summary>
         /// Retrieves the pose for the clip at the current time.
@@ -57,21 +61,33 @@ namespace UnityEngine.Perception.GroundTruth
         /// <returns>The pose for the passed in time</returns>
         public string GetPoseAtTime(float time)
         {
-            if (time < 0 || time > 1) return k_Unset;
-            if (timestamps == null || !timestamps.Any()) return k_Unset;
+            if (time < 0f || time > 1f) return k_Unset;
+            if (m_Timestamps == null || !m_Timestamps.Any()) return k_Unset;
 
             // Special case code if there is only 1 timestamp in the config
-            if (sortedTimestamps.Keys.Count == 1)
+            if (m_Timestamps.Count == 1)
             {
-                return time > sortedTimestamps.Keys[0] ? sortedTimestamps.Values[0] : k_Unset;
+                return time > m_Timestamps[0].startOffsetPercent ? m_Timestamps[0].poseLabel : k_Unset;
             }
 
-            for (var i = 0; i < sortedTimestamps.Keys.Count - 1; i++)
+            for (var i = 0; i < m_Timestamps.Count - 1; i++)
             {
-                if (time >= sortedTimestamps.Keys[i] && time <= sortedTimestamps.Keys[i + 1]) return sortedTimestamps.Values[i];
+                if (time >= m_Timestamps[i].startOffsetPercent && time <= m_Timestamps[i + 1].startOffsetPercent)
+                    return m_Timestamps[i].poseLabel;
             }
 
-            return time < sortedTimestamps.Keys.Last() ? k_Unset : sortedTimestamps.Values.Last();
+            var last = m_Timestamps.Last();
+            return time < last.startOffsetPercent ? k_Unset : last.poseLabel;
+        }
+
+        void OnEnable()
+        {
+            SortTimestamps();
+        }
+
+        void SortTimestamps()
+        {
+            m_Timestamps.Sort((stamp1, stamp2) => stamp1.startOffsetPercent.CompareTo(stamp2.startOffsetPercent));
         }
     }
 }

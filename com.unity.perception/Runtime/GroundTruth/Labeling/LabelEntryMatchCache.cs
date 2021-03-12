@@ -58,17 +58,24 @@ namespace UnityEngine.Perception.GroundTruth
             if (m_IdLabelConfig.TryGetMatchingConfigurationEntry(labeling, out _, out var index))
             {
                 Debug.Assert(index < k_DefaultValue, "Too many entries in the label config");
-                if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
+                if (labeling.enabled)
                 {
-                    var oldLength = m_InstanceIdToLabelEntryIndexLookup.Length;
-                    m_InstanceIdToLabelEntryIndexLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
+                    if (m_InstanceIdToLabelEntryIndexLookup.Length <= instanceId)
+                    {
+                        var oldLength = m_InstanceIdToLabelEntryIndexLookup.Length;
+                        m_InstanceIdToLabelEntryIndexLookup.Resize((int)instanceId + 1, NativeArrayOptions.ClearMemory);
 
-                    for (var i = oldLength; i < instanceId; i++)
-                        m_InstanceIdToLabelEntryIndexLookup[i] = k_DefaultValue;
+                        for (var i = oldLength; i < instanceId; i++)
+                            m_InstanceIdToLabelEntryIndexLookup[i] = k_DefaultValue;
+                    }
+                    m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] = (ushort)index;
                 }
-                m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] = (ushort)index;
+                else if (m_InstanceIdToLabelEntryIndexLookup.Length > instanceId)
+                {
+                    m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] = k_DefaultValue;
+                }
             }
-            else if (m_InstanceIdToLabelEntryIndexLookup.Length > (int)instanceId)
+            else if (m_InstanceIdToLabelEntryIndexLookup.Length > instanceId)
             {
                 m_InstanceIdToLabelEntryIndexLookup[(int)instanceId] = k_DefaultValue;
             }

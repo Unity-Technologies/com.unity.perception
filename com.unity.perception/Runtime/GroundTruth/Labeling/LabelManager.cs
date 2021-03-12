@@ -82,15 +82,6 @@ namespace UnityEngine.Perception.GroundTruth
         }
 
         /// <summary>
-        /// Registers a labeling component
-        /// </summary>
-        /// <param name="labeling">the component to register</param>
-        internal void Register(Labeling labeling)
-        {
-            m_LabelsPendingRegistration.Add(labeling);
-        }
-
-        /// <summary>
         /// Unregisters a labeling component
         /// </summary>
         /// <param name="labeling">the component to unregister</param>

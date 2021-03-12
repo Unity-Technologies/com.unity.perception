@@ -233,7 +233,7 @@ namespace UnityEngine.Perception.GroundTruth
             });
             asyncRequest.data = new AsyncSemanticSegmentationWrite
             {
-                data = new NativeArray<Color32>(data, Allocator.TempJob),
+                data = new NativeArray<Color32>(data, Allocator.Persistent),
                 width = targetTexture.width,
                 height = targetTexture.height,
                 path = localPath

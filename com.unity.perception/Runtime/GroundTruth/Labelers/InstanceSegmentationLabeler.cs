@@ -130,7 +130,7 @@ namespace UnityEngine.Perception.GroundTruth
                 m_InstancePath = $"{k_Directory}/{k_FilePrefix}{frameCount}.png";
                 var localPath = $"{Manager.Instance.GetDirectoryFor(k_Directory)}/{k_FilePrefix}{frameCount}.png";
 
-                var colors = new NativeArray<Color32>(data, Allocator.TempJob);
+                var colors = new NativeArray<Color32>(data, Allocator.Persistent);
 
                 var asyncRequest = Manager.Instance.CreateRequest<AsyncRequest<AsyncWrite>>();
 

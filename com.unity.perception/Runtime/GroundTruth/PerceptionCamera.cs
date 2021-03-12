@@ -192,9 +192,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             // Jobs are not chained to one another in any way, maximizing parallelism
             AsyncRequest.maxJobSystemParallelism = 0;
-
-            // Ensure that read-backs happen before Allocator.TempJob allocations get stale
-            AsyncRequest.maxAsyncRequestFrameAge = 4;
+            AsyncRequest.maxAsyncRequestFrameAge = 0;
 
             Application.runInBackground = true;
 

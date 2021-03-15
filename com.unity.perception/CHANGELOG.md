@@ -29,6 +29,8 @@ All appearances of the term `KeyPoint` have been renamed to `Keypoint`. If you h
 
 `ScenarioBase`'s `Awake()`, `Start()`, and `Update()` functions are now private. If you previously used these, replace the usages with `OnAwake()`, `OnStart()`, and `OnUpdate()`.
 
+The interface `IGroundTruthGenerator` now contains a new method named `ClearMaterialProperties` for disabling ground truth generation on a `Labeling` component or its associated `MaterialPropertyBlock`. Update your implementing classes to including this method.
+
 ### Known Issues
 
 ### Added
@@ -51,7 +53,7 @@ The newly added `LabelManager` class now enables custom Labelers to access the l
 
 Improved UI for `KeypointTemplate` and added useful default colors for keypoint and skeleton definitions.
 
-Added the ability to switch ground-truth labeling on or off for an object at runtime by enabling or disabling its `Labeling` component.
+Added the ability to switch ground truth generation on or off for an object at runtime by enabling or disabling its `Labeling` component. A new method named `ClearMaterialProperties()` in `IGroundTruthGenerator` handles this functionality.
 
 ### Changed
 

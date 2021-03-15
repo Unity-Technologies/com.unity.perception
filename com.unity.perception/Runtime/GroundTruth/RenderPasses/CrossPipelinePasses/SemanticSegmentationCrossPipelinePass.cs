@@ -65,25 +65,24 @@ namespace UnityEngine.Perception.GroundTruth
         {
             var entry = new SemanticSegmentationLabelEntry();
             var found = false;
-            if (labeling.enabled)
+
+            foreach (var l in m_LabelConfig.labelEntries)
             {
-                foreach (var l in m_LabelConfig.labelEntries)
+                if (labeling.labels.Contains(l.label))
                 {
-                    if (labeling.labels.Contains(l.label))
-                    {
-                        entry = l;
-                        found = true;
-                        break;
-                    }
+                    entry = l;
+                    found = true;
+                    break;
                 }
             }
 
             // Set the labeling ID so that it can be accessed in ClassSemanticSegmentationPass.shader
-            if (found)
-                mpb.SetVector(k_LabelingId, entry.color);
-            else
-                mpb.SetVector(k_LabelingId, Color.black);
+            mpb.SetVector(k_LabelingId, found ? entry.color : Color.black);
+        }
 
+        public override void ClearMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
+        {
+            mpb.SetVector(k_LabelingId, Color.black);
         }
     }
 }

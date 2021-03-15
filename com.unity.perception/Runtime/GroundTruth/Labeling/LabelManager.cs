@@ -117,7 +117,16 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 terrain.GetSplatMaterialPropertyBlock(mpb);
                 foreach (var pass in m_ActiveGenerators)
-                    pass.SetupMaterialProperties(mpb, null, labeling, instanceId);
+                {
+                    if (labeling.enabled)
+                    {
+                        pass.SetupMaterialProperties(mpb, null, labeling, instanceId);
+                    }
+                    else
+                    {
+                        pass.ClearMaterialProperties(mpb, null, labeling, instanceId);
+                    }
+                }
 
                 terrain.SetSplatMaterialPropertyBlock(mpb);
             }
@@ -127,7 +136,16 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 renderer.GetPropertyBlock(mpb);
                 foreach (var pass in m_ActiveGenerators)
-                    pass.SetupMaterialProperties(mpb, renderer, labeling, instanceId);
+                {
+                    if (labeling.enabled)
+                    {
+                        pass.SetupMaterialProperties(mpb, renderer, labeling, instanceId);
+                    }
+                    else
+                    {
+                        pass.ClearMaterialProperties(mpb, renderer, labeling, instanceId);
+                    }
+                }
 
                 renderer.SetPropertyBlock(mpb);
 
@@ -139,7 +157,16 @@ namespace UnityEngine.Perception.GroundTruth
                     if (!mpb.isEmpty)
                     {
                         foreach (var pass in m_ActiveGenerators)
-                            pass.SetupMaterialProperties(mpb, renderer, labeling, instanceId);
+                        {
+                            if (labeling.enabled)
+                            {
+                                pass.SetupMaterialProperties(mpb, renderer, labeling, instanceId);
+                            }
+                            else
+                            {
+                                pass.ClearMaterialProperties(mpb, renderer, labeling, instanceId);
+                            }
+                        }
 
                         renderer.SetPropertyBlock(mpb, i);
                     }

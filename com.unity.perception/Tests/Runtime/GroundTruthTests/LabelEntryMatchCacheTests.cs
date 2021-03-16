@@ -131,5 +131,43 @@ namespace GroundTruthTests
             }
         }
 
+        [UnityTest]
+        public IEnumerator TryGet_ReturnsFalse_ForMatchingLabelWithDisabledLabelingComponent()
+        {
+            var label = "label";
+            var labeledPlane = TestHelper.CreateLabeledPlane(label: label);
+            AddTestObjectForCleanup(labeledPlane);
+            var config = ScriptableObject.CreateInstance<IdLabelConfig>();
+            var labeling = labeledPlane.GetComponent<Labeling>();
+
+            config.Init(new[]
+            {
+                new IdLabelEntry()
+                {
+                    id = 1,
+                    label = label
+                },
+            });
+            using (var cache = new LabelEntryMatchCache(config, Allocator.Persistent))
+            {
+                labeling.enabled = false;
+                //allow label to be registered
+                yield return null;
+                Assert.IsFalse(cache.TryGetLabelEntryFromInstanceId(labeledPlane.GetComponent<Labeling>().instanceId, out var labelEntry, out var index));
+                Assert.AreEqual(-1, index);
+
+                labeling.enabled = true;
+                yield return null;
+                Assert.IsTrue(cache.TryGetLabelEntryFromInstanceId(labeledPlane.GetComponent<Labeling>().instanceId, out labelEntry, out index));
+                Assert.AreEqual(0, index);
+                Assert.AreEqual(config.labelEntries[0], labelEntry);
+
+                labeling.enabled = false;
+                yield return null;
+                Assert.IsFalse(cache.TryGetLabelEntryFromInstanceId(labeledPlane.GetComponent<Labeling>().instanceId, out labelEntry, out index));
+                Assert.AreEqual(-1, index);
+            }
+        }
+
     }
 }

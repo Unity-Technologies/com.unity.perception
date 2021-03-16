@@ -69,7 +69,10 @@ namespace UnityEngine.Perception.GroundTruth
             if (!found)
                 Debug.LogError($"Could not get a unique color for {instanceId}");
 
-            mpb.SetVector(k_SegmentationIdProperty, (Color)color);
+            if (labeling.enabled)
+                mpb.SetVector(k_SegmentationIdProperty, (Color)color);
+            else
+                mpb.SetVector(k_SegmentationIdProperty, (Color) InstanceIdToColorMapping.invalidColor);
 #if PERCEPTION_DEBUG
             Debug.Log($"Assigning id. Frame {Time.frameCount} id {id}");
 #endif

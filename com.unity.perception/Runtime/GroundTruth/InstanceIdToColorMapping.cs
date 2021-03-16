@@ -26,7 +26,7 @@ namespace UnityEngine.Perception.GroundTruth
         const uint k_HslCount = 64;
         const uint k_ColorsPerAlpha = 256 * 256 * 256;
         const uint k_InvalidPackedColor = 255; // packed uint for color (0, 0, 0, 255);
-        static readonly Color32 k_InvalidColor = new Color(0, 0, 0, 255);
+        public static readonly Color32 invalidColor = new Color(0, 0, 0, 255);
         static readonly float k_GoldenRatio = (1 + Mathf.Sqrt(5)) / 2;
         const int k_HuesInEachValue = 30;
 
@@ -143,7 +143,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <returns>Returns true if the ID was mapped to a non-black color, otherwise returns false</returns>
         public static bool TryGetColorFromInstanceId(uint id, out Color32 color)
         {
-            color = k_InvalidColor;
+            color = invalidColor;
             if (id > maxId) return false;
 
             var packed = GetColorForId(id);

@@ -116,5 +116,8 @@ namespace UnityEngine.Perception.GroundTruth
 
         public abstract void SetupMaterialProperties(
             MaterialPropertyBlock mpb, Renderer meshRenderer, Labeling labeling, uint instanceId);
+
+        public abstract void ClearMaterialProperties(
+            MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId);
     }
 }

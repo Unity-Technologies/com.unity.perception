@@ -16,12 +16,12 @@ namespace UnityEngine.Perception
         public static List<string> assets = new List<string>();
 
         public TestHelpers testHelpers;
-        public AIContentTests tests; 
+        public ContentValidation tests; 
 
         [SetUp]
         public void Setup()
         {
-            tests = new AIContentTests();
+            tests = new ContentValidation();
             testHelpers = new TestHelpers();
             selectionLists = new List<GameObject>();
             testHelpers.AssetListCreation();

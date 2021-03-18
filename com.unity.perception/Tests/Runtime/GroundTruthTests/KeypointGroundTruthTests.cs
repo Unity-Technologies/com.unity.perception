@@ -14,6 +14,7 @@ namespace GroundTruthTests
     public class KeyPointGroundTruthTests : GroundTruthTestBase, IPrebuildSetup, IPostBuildCleanup
     {
         private const string kAnimatedCubeScenePath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/AnimatedCubeScene.unity";
+        private const double k_Delta = .01;
 
         public void Setup()
         {
@@ -646,6 +647,92 @@ namespace GroundTruthTests
             Assert.AreEqual(screenPointCenterExpected.y, t.keypoints[8].y, Screen.height * .1);
             Assert.AreEqual(8, t.keypoints[8].index);
             Assert.AreEqual(2, t.keypoints[8].state);
+        }
+
+        static IEnumerable<(float scale, bool expectObject, int expectedState, Vector2 expectedTopLeft, Vector2 expectedBottomRight)> Keypoint_OnBox_ReportsProperCoordinates_TestCases()
+        {
+            yield return (
+                1,
+                true,
+                2,
+                new Vector2(0, 0),
+                new Vector2(1023.99f, 1023.99f));
+            yield return (
+                1.001f,
+                true,
+                0,
+                new Vector2(0, 0),
+                new Vector2(0, 0));
+            yield return (
+                1.2f,
+                true,
+                0,
+                new Vector2(0, 0),
+                new Vector2(0, 0));
+            yield return (
+                0f,
+                false,
+                0,
+                new Vector2(512, 512),
+                new Vector2(512, 512));
+        }
+        [UnityTest]
+        public IEnumerator Keypoint_OnBox_ReportsProperCoordinates([ValueSource(nameof(Keypoint_OnBox_ReportsProperCoordinates_TestCases))](float scale, bool expectObject, int expectedState, Vector2 expectedTopLeft, Vector2 expectedBottomRight) args)
+        {
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var frameSize = 1024;
+            var texture = new RenderTexture(frameSize, frameSize, 16);
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(data);
+            }, texture);
+
+            var camComponent = cam.GetComponent<Camera>();
+            camComponent.orthographic = true;
+            camComponent.orthographicSize = .5f;
+
+            var cube = TestHelper.CreateLabeledCube(scale: args.scale, z: 8);
+            SetupCubeJoints(cube, template);
+
+            cube.SetActive(true);
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+            AddTestObjectForCleanup(cube);
+
+            yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+            texture.Release();
+
+            var testCase = incoming.Last();
+            if (!args.expectObject)
+            {
+                Assert.AreEqual(0, testCase.Count);
+                yield break;
+            }
+            Assert.AreEqual(1, testCase.Count);
+            var t = testCase.First();
+            Assert.NotNull(t);
+            Assert.AreEqual(1, t.instance_id);
+            Assert.AreEqual(1, t.label_id);
+            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(9, t.keypoints.Length);
+
+            CollectionAssert.AreEqual(Enumerable.Repeat(args.expectedState, 8), t.keypoints.Take(8).Select(k => k.state), "State mismatch");
+            Assert.AreEqual(args.expectedTopLeft.x, t.keypoints[0].x, k_Delta);
+            Assert.AreEqual(args.expectedBottomRight.y, t.keypoints[0].y, k_Delta);
+
+            Assert.AreEqual(args.expectedTopLeft.x, t.keypoints[1].x, k_Delta);
+            Assert.AreEqual(args.expectedTopLeft.y, t.keypoints[1].y, k_Delta);
+
+            Assert.AreEqual(args.expectedBottomRight.x, t.keypoints[2].x, k_Delta);
+            Assert.AreEqual(args.expectedTopLeft.y, t.keypoints[2].y, k_Delta);
+
+            Assert.AreEqual(args.expectedBottomRight.x, t.keypoints[3].x, k_Delta);
+            Assert.AreEqual(args.expectedBottomRight.y, t.keypoints[3].y, k_Delta);
         }
     }
 }

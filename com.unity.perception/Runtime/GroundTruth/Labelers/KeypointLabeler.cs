@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -46,7 +47,7 @@ namespace UnityEngine.Perception.GroundTruth
         Texture2D m_MissingTexture;
 
         Dictionary<int, (AsyncAnnotation annotation, Dictionary<uint, KeypointEntry> keypoints)> m_AsyncAnnotations;
-        List<KeypointEntry> m_ToReport;
+        List<KeypointEntry> m_KeypointEntriesToReport;
 
         int m_CurrentFrame;
 
@@ -93,10 +94,11 @@ namespace UnityEngine.Perception.GroundTruth
             m_KnownStatus = new Dictionary<uint, CachedData>();
 
             m_AsyncAnnotations = new Dictionary<int, (AsyncAnnotation, Dictionary<uint, KeypointEntry>)>();
-            m_ToReport = new List<KeypointEntry>();
+            m_KeypointEntriesToReport = new List<KeypointEntry>();
             m_CurrentFrame = 0;
 
             perceptionCamera.InstanceSegmentationImageReadback += OnInstanceSegmentationImageReadback;
+            perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfoReadback;
         }
 
         bool AreEqual(Color32 lhs, Color32 rhs)
@@ -111,7 +113,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         bool PixelsMatch(int x, int y, Color32 idColor, (int x, int y) dimensions, NativeArray<Color32> data)
         {
-            var h = dimensions.y - y;
+            var h = dimensions.y - 1 - y;
             var pixelColor = data[h * dimensions.x + x];
             return AreEqual(pixelColor, idColor);
         }
@@ -131,8 +133,11 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (keypoint.state == 0) return 0;
 
-            var centerX = Mathf.RoundToInt(keypoint.x);
-            var centerY = Mathf.RoundToInt(keypoint.y);
+            var centerX = Mathf.FloorToInt(keypoint.x);
+            var centerY = Mathf.FloorToInt(keypoint.y);
+
+            if (!PixelOnScreen(centerX, centerY, dimensions))
+                return 0;
 
             var pixelOnScreen = false;
 
@@ -158,18 +163,12 @@ namespace UnityEngine.Perception.GroundTruth
             if (!m_AsyncAnnotations.TryGetValue(frameCount, out var asyncAnnotation))
                 return;
 
-            m_AsyncAnnotations.Remove(frameCount);
-
             var dimensions = (renderTexture.width, renderTexture.height);
-
-            m_ToReport.Clear();
 
             foreach (var keypointSet in asyncAnnotation.keypoints)
             {
                 if (InstanceIdToColorMapping.TryGetColorFromInstanceId(keypointSet.Key, out var idColor))
                 {
-                    var shouldReport = false;
-
                     foreach (var keypoint in keypointSet.Value.keypoints)
                     {
                         keypoint.state = DetermineKeypointState(keypoint, idColor, dimensions, data);
@@ -181,17 +180,45 @@ namespace UnityEngine.Perception.GroundTruth
                         }
                         else
                         {
-                            shouldReport = true;
+                            keypoint.x = math.clamp(keypoint.x, 0, dimensions.width - .001f);
+                            keypoint.y = math.clamp(keypoint.y, 0, dimensions.height - .001f);
                         }
                     }
-
-                    if (shouldReport)
-                        m_ToReport.Add(keypointSet.Value);
                 }
             }
 
-            KeypointsComputed?.Invoke(frameCount, m_ToReport);
-            asyncAnnotation.annotation.ReportValues(m_ToReport);
+        }
+
+        private void OnRenderedObjectInfoReadback(int frameCount, NativeArray<RenderedObjectInfo> objectInfos)
+        {
+            if (!m_AsyncAnnotations.TryGetValue(frameCount, out var asyncAnnotation))
+                return;
+
+            m_AsyncAnnotations.Remove(frameCount);
+
+            m_KeypointEntriesToReport.Clear();
+
+            //filter out objects that are not visible
+            foreach (var keypointSet in asyncAnnotation.keypoints)
+            {
+                var entry = keypointSet.Value;
+
+                bool found = false;
+                foreach (var objectInfo in objectInfos)
+                {
+                    if (entry.instance_id == objectInfo.instanceId)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found)
+                    m_KeypointEntriesToReport.Add(entry);
+            }
+
+            //This code assumes that OnRenderedObjectInfoReadback will be called immediately after OnInstanceSegmentationImageReadback
+            KeypointsComputed?.Invoke(frameCount, m_KeypointEntriesToReport);
+            asyncAnnotation.annotation.ReportValues(m_KeypointEntriesToReport);
         }
 
         /// <param name="scriptableRenderContext"></param>
@@ -276,12 +303,15 @@ namespace UnityEngine.Perception.GroundTruth
             return targetTexture != null ?
                 targetTexture.height : Screen.height;
         }
-
-        // Converts a coordinate from world space into pixel space
         Vector3 ConvertToScreenSpace(Vector3 worldLocation)
         {
             var pt = perceptionCamera.attachedCamera.WorldToScreenPoint(worldLocation);
             pt.y = GetCaptureHeight() - pt.y;
+            if (Mathf.Approximately(pt.y, perceptionCamera.attachedCamera.pixelHeight))
+                pt.y -= .0001f;
+            if (Mathf.Approximately(pt.x, perceptionCamera.attachedCamera.pixelWidth))
+                pt.x -= .0001f;
+
             return pt;
         }
 
@@ -461,7 +491,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override void OnVisualize()
         {
-            if (m_ToReport == null) return;
+            if (m_KeypointEntriesToReport == null) return;
 
             var jointTexture = activeTemplate.jointTexture;
             if (jointTexture == null) jointTexture = m_MissingTexture;
@@ -469,7 +499,7 @@ namespace UnityEngine.Perception.GroundTruth
             var skeletonTexture = activeTemplate.skeletonTexture;
             if (skeletonTexture == null) skeletonTexture = m_MissingTexture;
 
-            foreach (var entry in m_ToReport)
+            foreach (var entry in m_KeypointEntriesToReport)
             {
                 foreach (var bone in activeTemplate.skeleton)
                 {

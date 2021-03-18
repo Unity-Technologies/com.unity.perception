@@ -287,7 +287,7 @@ namespace UnityEngine.Perception.GroundTruth
 
                     // Convert the combined bounds into world space
                     combinedBounds.center = labelTransform.TransformPoint(combinedBounds.center);
-                    combinedBounds.extents = Vector3.Scale(combinedBounds.extents,  labelTransform.localScale);
+                    combinedBounds.extents = Vector3.Scale(combinedBounds.extents,  labelTransform.lossyScale);
 
                     // Now convert all points into camera's space
                     var cameraCenter = cameraTransform.InverseTransformPoint(combinedBounds.center);

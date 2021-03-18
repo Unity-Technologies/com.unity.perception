@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+A bug in the Normal Sampler where it would return values less than the passed in min, or greater than the passed in max, for random values very close to 0 or 1 respectively.
+
 ## [0.8.0-preview.2] - 2021-03-15
 
 ### Upgrade Notes

@@ -49,7 +49,8 @@ annotation_definition.spec {
 ## Setup
 The Keypoint Labeler captures keypoints each frame from each object in the scene that meets the following conditions:
 
-* The object or its children are at least partially visible in the frame
+* The object or its children are at least partially visible in the frame 
+  * The _Object Filter_ option on the Keypoint Labeler can be used to also include fully occluded or off-screen objects
 * The root object has a `Labeling` component
 * The object matches at least one entry in the Keypoint Template by either:
   * Containing an Animator with a [humanoid avatar](https://docs.unity3d.com/Manual/ConfiguringtheAvatar.html) whose rig matches a keypoint OR

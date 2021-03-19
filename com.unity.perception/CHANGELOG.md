@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+Fixed compiler warnings in projects with HDRP on 2020.1 and later
+
 ## [0.8.0-preview.2] - 2021-03-15
 
 ### Upgrade Notes

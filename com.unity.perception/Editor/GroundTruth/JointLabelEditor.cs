@@ -12,7 +12,7 @@ namespace UnityEditor.Perception.GroundTruth
             base.OnInspectorGUI();
 #if UNITY_2020_1_OR_NEWER
             //GetComponentInParent<T>(bool includeInactive) only exists on 2020.1 and later
-            if (targets.Any(t => ((Component)t).GetComponentInParent<Labeling>(true) == null))
+            if (targets.Any(t => ((Component)t).gameObject.GetComponentInParent<Labeling>(true) == null))
 #else
             if (targets.Any(t => ((Component)t).GetComponentInParent<Labeling>() == null))
 #endif

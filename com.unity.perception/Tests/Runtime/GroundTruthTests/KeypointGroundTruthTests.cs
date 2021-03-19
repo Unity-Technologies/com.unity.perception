@@ -479,7 +479,7 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
-        public IEnumerator Keypoint_TestAllBlockedByOther()
+        public IEnumerator Keypoint_FullyOccluded_DoesNotReport()
         {
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
@@ -512,21 +512,7 @@ namespace GroundTruthTests
             if (texture != null) texture.Release();
 
             var testCase = incoming.Last();
-            Assert.AreEqual(1, testCase.Count);
-            var t = testCase.First();
-            Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
-            Assert.AreEqual(9, t.keypoints.Length);
-
-            for (var i = 0; i < 8; i++)
-                Assert.AreEqual(1, t.keypoints[i].state);
-
-            for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
-            Assert.Zero(t.keypoints[8].state);
-            Assert.Zero(t.keypoints[8].x);
-            Assert.Zero(t.keypoints[8].y);
+            Assert.AreEqual(0, testCase.Count);
         }
 
         [UnityTest]

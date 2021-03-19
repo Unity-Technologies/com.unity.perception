@@ -56,6 +56,8 @@ The Keypoint Labeler captures keypoints each frame from each object in the scene
   * Containing an Animator with a [humanoid avatar](https://docs.unity3d.com/Manual/ConfiguringtheAvatar.html) whose rig matches a keypoint OR
   * Containing children with Joint Label components whose labels match keypoints
 
+For a tutorial on setting up your project for keypoint labeling, see the [Human Pose Labeling and Randomization Tutorial](../HPTutorial/TUTORIAL.md).
+
 ## Keypoint Template
 
 Keypoint templates are used to define the keypoints and skeletal connections captured by the KeypointLabeler. The keypoint template takes advantage of Unity's humanoid animation rig, and allows the user to automatically associate template keypoints to animation rig joints. Additionally, the user can choose to ignore the rigged points, or add points not defined in the rig.

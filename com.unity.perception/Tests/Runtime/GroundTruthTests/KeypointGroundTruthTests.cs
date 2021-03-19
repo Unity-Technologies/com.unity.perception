@@ -34,7 +34,7 @@ namespace GroundTruthTests
 #endif
         }
 
-        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<int, List<KeypointLabeler.KeypointEntry>> computeListener, RenderTexture renderTexture = null)
+        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<int, List<KeypointLabeler.KeypointEntry>> computeListener, RenderTexture renderTexture = null, KeypointObjectFilter keypointObjectFilter = KeypointObjectFilter.Visible)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -54,6 +54,7 @@ namespace GroundTruthTests
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
             perceptionCamera.captureRgbImages = false;
             var keyPointLabeler = new KeypointLabeler(config, template);
+            keyPointLabeler.objectFilter = keypointObjectFilter;
             if (computeListener != null)
                 keyPointLabeler.KeypointsComputed += computeListener;
 
@@ -490,6 +491,61 @@ namespace GroundTruthTests
                 incoming.Add(data);
             }, texture);
 
+            CreateFullyOccludedScene(template, cam);
+
+            yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+
+            if (texture != null) texture.Release();
+
+            var testCase = incoming.Last();
+            Assert.AreEqual(0, testCase.Count);
+        }
+        [UnityTest]
+        public IEnumerator Keypoint_FullyOccluded_WithIncludeOccluded_ReportsProperly(
+            [Values(KeypointObjectFilter.VisibleAndOccluded, KeypointObjectFilter.All)] KeypointObjectFilter keypointObjectFilter)
+        {
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var texture = new RenderTexture(1024, 768, 16);
+            texture.Create();
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(data);
+            }, texture, keypointObjectFilter);
+
+            CreateFullyOccludedScene(template, cam);
+
+            yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+
+            if (texture != null) texture.Release();
+
+            var testCase = incoming.Last();
+            Assert.AreEqual(1, testCase.Count);
+
+            var t = testCase.First();
+            Assert.NotNull(t);
+            Assert.AreEqual(1, t.instance_id);
+            Assert.AreEqual(1, t.label_id);
+            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(9, t.keypoints.Length);
+
+            for (var i = 0; i < 8; i++)
+                Assert.AreEqual(1, t.keypoints[i].state);
+
+            for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
+            Assert.Zero(t.keypoints[8].state);
+            Assert.Zero(t.keypoints[8].x);
+            Assert.Zero(t.keypoints[8].y);
+        }
+
+        private void CreateFullyOccludedScene(KeypointTemplate template, GameObject cam)
+        {
             var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
 
@@ -503,6 +559,30 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(cam);
             AddTestObjectForCleanup(cube);
             AddTestObjectForCleanup(blocker);
+        }
+
+
+        [UnityTest]
+        public IEnumerator Keypoint_Offscreen_DoesNotReport(
+            [Values(KeypointObjectFilter.VisibleAndOccluded, KeypointObjectFilter.Visible)] KeypointObjectFilter keypointObjectFilter)
+        {
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var texture = new RenderTexture(1024, 768, 16);
+            texture.Create();
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(data);
+            }, texture, keypointObjectFilter);
+
+            var cube = TestHelper.CreateLabeledCube(scale: 6, z: -100);
+            SetupCubeJoints(cube, template);
+
+            cube.SetActive(true);
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+            AddTestObjectForCleanup(cube);
 
             yield return null;
 
@@ -513,6 +593,51 @@ namespace GroundTruthTests
 
             var testCase = incoming.Last();
             Assert.AreEqual(0, testCase.Count);
+        }
+        [UnityTest]
+        public IEnumerator Keypoint_Offscreen_WithIncludeAll_ReportsProperly()
+        {
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var texture = new RenderTexture(1024, 768, 16);
+            texture.Create();
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(data);
+            }, texture, KeypointObjectFilter.All);
+
+            var cube = TestHelper.CreateLabeledCube(scale: 6, z: -20);
+            SetupCubeJoints(cube, template);
+
+            cube.SetActive(true);
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+            AddTestObjectForCleanup(cube);
+
+            yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+
+            if (texture != null) texture.Release();
+
+            var testCase = incoming.Last();
+            Assert.AreEqual(1, testCase.Count);
+
+            var t = testCase.First();
+            Assert.NotNull(t);
+            Assert.AreEqual(1, t.instance_id);
+            Assert.AreEqual(1, t.label_id);
+            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(9, t.keypoints.Length);
+
+            for (var i = 0; i < 9; i++)
+            {
+                Assert.Zero(t.keypoints[i].state);
+                Assert.Zero(t.keypoints[i].x);
+                Assert.Zero(t.keypoints[i].y);
+            }
         }
 
         [UnityTest]
@@ -635,35 +760,48 @@ namespace GroundTruthTests
             Assert.AreEqual(2, t.keypoints[8].state);
         }
 
-        static IEnumerable<(float scale, bool expectObject, int expectedState, Vector2 expectedTopLeft, Vector2 expectedBottomRight)> Keypoint_OnBox_ReportsProperCoordinates_TestCases()
+        static IEnumerable<(float scale, bool expectObject, int expectedState, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight)> Keypoint_OnBox_ReportsProperCoordinates_TestCases()
         {
             yield return (
                 1,
                 true,
                 2,
+                KeypointObjectFilter.Visible,
                 new Vector2(0, 0),
                 new Vector2(1023.99f, 1023.99f));
             yield return (
                 1.001f,
                 true,
                 0,
+                KeypointObjectFilter.Visible,
                 new Vector2(0, 0),
                 new Vector2(0, 0));
             yield return (
                 1.2f,
                 true,
                 0,
+                KeypointObjectFilter.Visible,
                 new Vector2(0, 0),
                 new Vector2(0, 0));
             yield return (
                 0f,
                 false,
-                0,
+                1,
+                KeypointObjectFilter.Visible,
+                new Vector2(512, 512),
+                new Vector2(512, 512));
+            yield return (
+                0f,
+                true,
+                1,
+                KeypointObjectFilter.VisibleAndOccluded,
                 new Vector2(512, 512),
                 new Vector2(512, 512));
         }
         [UnityTest]
-        public IEnumerator Keypoint_OnBox_ReportsProperCoordinates([ValueSource(nameof(Keypoint_OnBox_ReportsProperCoordinates_TestCases))](float scale, bool expectObject, int expectedState, Vector2 expectedTopLeft, Vector2 expectedBottomRight) args)
+        public IEnumerator Keypoint_OnBox_ReportsProperCoordinates(
+            [ValueSource(nameof(Keypoint_OnBox_ReportsProperCoordinates_TestCases))]
+            (float scale, bool expectObject, int expectedState, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight) args)
         {
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
@@ -672,7 +810,7 @@ namespace GroundTruthTests
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
                 incoming.Add(data);
-            }, texture);
+            }, texture, args.keypointFilter);
 
             var camComponent = cam.GetComponent<Camera>();
             camComponent.orthographic = true;

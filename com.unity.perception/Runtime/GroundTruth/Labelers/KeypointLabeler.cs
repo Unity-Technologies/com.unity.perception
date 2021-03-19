@@ -41,6 +41,12 @@ namespace UnityEngine.Perception.GroundTruth
         /// The <see cref="IdLabelConfig"/> which associates objects with labels.
         /// </summary>
         public IdLabelConfig idLabelConfig;
+
+        /// <summary>
+        /// Controls which objects will have keypoints recorded in the dataset.
+        /// <see cref="KeypointObjectFilter"/>
+        /// </summary>
+        public KeypointObjectFilter objectFilter;
         // ReSharper restore MemberCanBePrivate.Global
 
         AnnotationDefinition m_AnnotationDefinition;
@@ -78,6 +84,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// Array of animation pose labels which map animation clip times to ground truth pose labels.
         /// </summary>
         public List<AnimationPoseConfig> animationPoseConfigs;
+
+
 
         /// <inheritdoc/>
         protected override void Setup()
@@ -139,7 +147,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (!PixelOnScreen(centerX, centerY, dimensions))
                 return 0;
 
-            var pixelOnScreen = false;
+            var pixelMatched = false;
 
             for (var y = centerY - s_PixelTolerance; y <= centerY + s_PixelTolerance; y++)
             {
@@ -147,7 +155,7 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     if (!PixelOnScreen(x, y, dimensions)) continue;
 
-                    pixelOnScreen = true;
+                    pixelMatched = true;
                     if (PixelsMatch(x, y, instanceIdColor, dimensions, data))
                     {
                         return 2;
@@ -155,7 +163,7 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             }
 
-            return pixelOnScreen ? 1 : 0;
+            return pixelMatched ? 1 : 0;
         }
 
         void OnInstanceSegmentationImageReadback(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)
@@ -203,16 +211,24 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 var entry = keypointSet.Value;
 
-                bool found = false;
-                foreach (var objectInfo in objectInfos)
+                var include = false;
+                if (objectFilter == KeypointObjectFilter.All)
+                    include = true;
+                else
                 {
-                    if (entry.instance_id == objectInfo.instanceId)
+                    foreach (var objectInfo in objectInfos)
                     {
-                        found = true;
-                        break;
+                        if (entry.instance_id == objectInfo.instanceId)
+                        {
+                            include = true;
+                            break;
+                        }
                     }
+
+                    if (!include && objectFilter == KeypointObjectFilter.VisibleAndOccluded)
+                        include = keypointSet.Value.keypoints.Any(k => k.state == 1);
                 }
-                if (found)
+                if (include)
                     m_KeypointEntriesToReport.Add(entry);
             }
 
@@ -424,11 +440,7 @@ namespace UnityEngine.Perception.GroundTruth
                             var bone = animator.GetBoneTransform(pt.rigLabel);
                             if (bone != null)
                             {
-                                var loc = ConvertToScreenSpace(bone.position);
-                                keypoints[i].index = i;
-                                keypoints[i].x = loc.x;
-                                keypoints[i].y = loc.y;
-                                keypoints[i].state = 2;
+                                InitKeypoint(bone.position, keypoints, i);
                             }
                         }
                     }
@@ -437,11 +449,7 @@ namespace UnityEngine.Perception.GroundTruth
                     // their locations
                     foreach (var (joint, idx) in cachedData.overrides)
                     {
-                        var loc = ConvertToScreenSpace(joint.transform.position);
-                        keypoints[idx].index = idx;
-                        keypoints[idx].x = loc.x;
-                        keypoints[idx].y = loc.y;
-                        keypoints[idx].state = 2;
+                        InitKeypoint(joint.transform.position, keypoints, idx);
                     }
 
                     cachedData.keypoints.pose = "unset";
@@ -453,6 +461,24 @@ namespace UnityEngine.Perception.GroundTruth
 
                     m_AsyncAnnotations[m_CurrentFrame].keypoints[labeledEntity.instanceId] = cachedData.keypoints;
                 }
+            }
+        }
+
+        private void InitKeypoint(Vector3 position, Keypoint[] keypoints, int idx)
+        {
+            var loc = ConvertToScreenSpace(position);
+            keypoints[idx].index = idx;
+            if (loc.z < 0)
+            {
+                keypoints[idx].x = 0;
+                keypoints[idx].y = 0;
+                keypoints[idx].state = 0;
+            }
+            else
+            {
+                keypoints[idx].x = loc.x;
+                keypoints[idx].y = loc.y;
+                keypoints[idx].state = 2;
             }
         }
 

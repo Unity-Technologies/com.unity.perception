@@ -260,6 +260,7 @@ namespace UnityEngine.Perception.GroundTruth
                         // Apply the transformations on this object until we reach the labeled transform
                         while (currentTransform != labelTransform)
                         {
+                            transformedBounds.center = currentTransform.localRotation * transformedBounds.center;
                             transformedBounds.center += currentTransform.localPosition;
                             transformedBounds.extents = Vector3.Scale(transformedBounds.extents, currentTransform.localScale);
                             transformedRotation *= currentTransform.localRotation;

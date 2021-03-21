@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -84,7 +85,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// The scenario will begin on the frame this property first returns true
         /// </summary>
         /// <returns>Whether the scenario should start this frame</returns>
-        protected abstract bool isScenarioReadyToStart { get; }
+        protected virtual bool isScenarioReadyToStart => true;
 
         /// <summary>
         /// Returns whether the current scenario iteration has completed
@@ -296,6 +297,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         void Update()
         {
+            // There are two known issues with the starting simulations on the first frame: rendered frames cannot be
+            // captured and the WaitForEndOfFrame will not function properly on the first frame.
+            if (Time.frameCount == 1)
+                return;
+
             switch (state)
             {
                 case State.Initializing:
@@ -327,6 +333,31 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         void IterationLoop()
         {
+            // Perform new iteration tasks
+            if (currentIterationFrame == 0)
+            {
+                ResetRandomStateOnIteration();
+                OnIterationStart();
+                foreach (var randomizer in activeRandomizers)
+                    randomizer.IterationStart();
+            }
+
+            // Perform new frame tasks
+            OnUpdate();
+            foreach (var randomizer in activeRandomizers)
+                randomizer.Update();
+
+            StartCoroutine(EndOfFrameIterationLoop());
+        }
+
+        IEnumerator EndOfFrameIterationLoop()
+        {
+            yield return new WaitForEndOfFrame();
+
+            // Iterate scenario frame count
+            currentIterationFrame++;
+            framesSinceInitialization++;
+
             // Increment iteration and cleanup last iteration
             if (isIterationComplete)
             {
@@ -345,26 +376,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 OnComplete();
                 state = State.Idle;
                 OnIdle();
-                return;
             }
-
-            // Perform new iteration tasks
-            if (currentIterationFrame == 0)
-            {
-                ResetRandomStateOnIteration();
-                OnIterationStart();
-                foreach (var randomizer in activeRandomizers)
-                    randomizer.IterationStart();
-            }
-
-            // Perform new frame tasks
-            OnUpdate();
-            foreach (var randomizer in activeRandomizers)
-                randomizer.Update();
-
-            // Iterate scenario frame count
-            currentIterationFrame++;
-            framesSinceInitialization++;
         }
 
         /// <summary>

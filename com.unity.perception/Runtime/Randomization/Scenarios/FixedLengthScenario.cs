@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -8,6 +9,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     [AddComponentMenu("Perception/Scenarios/Fixed Length Scenario")]
     public class FixedLengthScenario: UnitySimulationScenario<FixedLengthScenario.Constants>
     {
+        PerceptionCamera m_PerceptionCamera;
+
         /// <summary>
         /// Constants describing the execution of this scenario
         /// </summary>
@@ -25,5 +28,25 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// Returns whether the current scenario iteration has completed
         /// </summary>
         protected override bool isIterationComplete => currentIterationFrame >= constants.framesPerIteration;
+
+        /// <inheritdoc/>
+        protected override void OnAwake()
+        {
+            base.OnAwake();
+            m_PerceptionCamera = FindObjectOfType<PerceptionCamera>();
+            if (m_PerceptionCamera != null && m_PerceptionCamera.captureTriggerMode != CaptureTriggerMode.Manual)
+            {
+                Debug.LogError("The perception camera must be set to manual capture mode", m_PerceptionCamera);
+                m_PerceptionCamera.enabled = false;
+                enabled = false;
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void OnIterationStart()
+        {
+            if (m_PerceptionCamera != null && currentIterationFrame == constants.framesPerIteration - 1)
+                m_PerceptionCamera.RequestCapture();
+        }
     }
 }

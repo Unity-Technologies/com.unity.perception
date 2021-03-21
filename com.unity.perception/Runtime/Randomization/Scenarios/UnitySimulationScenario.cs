@@ -13,20 +13,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         where T : UnitySimulationScenarioConstants, new()
     {
         /// <inheritdoc/>
-        protected override bool isScenarioReadyToStart
-        {
-            get
-            {
-                if (!Configuration.Instance.IsSimulationRunningInCloud() && !m_SkippedFirstFrame)
-                {
-                    m_SkippedFirstFrame = true;
-                    return false;
-                }
-                return true;
-            }
-        }
-
-        /// <inheritdoc/>
         protected sealed override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 
         /// <inheritdoc/>

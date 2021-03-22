@@ -175,17 +175,33 @@ namespace GroundTruthTests
             yield return new ParentedTestData()
             {
                 name = "ParentAndChildRotation",
-                expectedRotation = Quaternion.Euler(2f, 0, 0) * Quaternion.Euler(0, 2f, 0),
-                childRotation = Quaternion.Euler(2f, 0, 0),
-                parentRotation = Quaternion.Euler(0, 2f, 0),
+                expectedRotation = Quaternion.identity,
+                childRotation = Quaternion.Euler(20f, 0, 0),
+                parentRotation = Quaternion.Euler(-20f, 0, 0),
             };
             var diagonalSize = Mathf.Sqrt(2 * 2 + 2 * 2); //A^2 + B^2 = C^2
             yield return new ParentedTestData()
             {
                 name = "GrandchildRotation",
                 expectedRotation = Quaternion.identity,
-                expectedScale = new Vector3(diagonalSize / 2f, diagonalSize / 2f, 1),
-                grandchildRotation = Quaternion.Euler(0, 90, 0),
+                expectedScale = new Vector3(diagonalSize / 2f, 1, diagonalSize / 2f),
+                grandchildRotation = Quaternion.Euler(0, 45, 0),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "GrandparentRotation",
+                expectedRotation = Quaternion.Euler(-20f, 0, 0),
+                grandparentRotation = Quaternion.Euler(-20f, 0, 0),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "GrandchildTRS",
+                expectedRotation = Quaternion.identity,
+                expectedPosition = new Vector3(-5, 0, 10),
+                expectedScale = new Vector3(.5f * diagonalSize / 2f, .5f, .5f * diagonalSize / 2f),
+                grandchildRotation = Quaternion.Euler(0, -45, 0),
+                grandchildPosition = new Vector3(-5, 0, 0),
+                grandchildScale = new Vector3(.5f, .5f, .5f),
             };
         }
         [UnityTest]

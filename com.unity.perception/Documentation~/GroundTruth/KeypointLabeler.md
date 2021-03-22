@@ -60,13 +60,13 @@ For a tutorial on setting up your project for keypoint labeling, see the [Human 
 
 ## Keypoint Template
 
-Keypoint templates are used to define the keypoints and skeletal connections captured by the KeypointLabeler. The keypoint template takes advantage of Unity's humanoid animation rig, and allows the user to automatically associate template keypoints to animation rig joints. Additionally, the user can choose to ignore the rigged points, or add points not defined in the rig.
+Keypoint Templates are used to define the keypoints and skeletal connections captured by the Keypoint Labeler. The Keypoint Template takes advantage of Unity's humanoid animation rig, and allows the user to automatically associate template keypoints to animation rig joints. Additionally, the user can choose to ignore the rigged points, or add points not defined in the rig.
 
-A [COCO](https://cocodataset.org/#home) keypoint template is included in the Perception package.
+A [COCO](https://cocodataset.org/#home) Keypoint Template is included in the Perception package.
 
 ### Editor
 
-The keypoint template editor allows the user to create/modify a keypoint template. The editor consists of the header information, the keypoint array, and the skeleton array.
+The Keypoint Template editor allows the user to create/modify a Keypoint Template. The editor consists of the header information, the keypoint array, and the skeleton array.
 
 ![Header section of the keypoint template](../images/keypoint_template_header.png)
 <br/>_Header section of the keypoint template_
@@ -78,7 +78,7 @@ In the header section, a user can change the name of the template and supply tex
 
 The keypoint section allows the user to create/edit keypoints and associate them with Unity animation rig points. Each keypoint record
 has 4 fields: label (the name of the keypoint), Associate to Rig (a boolean value which, if true, automatically maps the keypoint to
-the gameobject defined by the rig), Rig Label (only needed if Associate To Rig is true, defines which rig component to associate with
+the GameObject defined by the rig), Rig Label (only needed if Associate To Rig is true, defines which rig component to associate with
 the keypoint), and Color (RGB color value of the keypoint in the visualization).
 
 ![Skeleton section of the keypoint template](../images/keypoint_template_skeleton.png)

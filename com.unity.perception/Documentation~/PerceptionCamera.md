@@ -79,7 +79,7 @@ The RenderedObjectInfoLabeler records a list of all objects visible in the Camer
 
 ### Keypoint Labeler
 
-The keypoint labeler captures the screen locations of specific points on labeled GameObjects. The typical use of this labeler is capturing human pose estimation data, but it can be used to capture points on any kind of object. The labeler uses a [keypoint template](#KeypointTemplate) which defines the keypoints to capture for the model and the skeletal connections between those keypoints. The positions of the keypoints are recorded in pixel coordinates.
+The keypoint labeler captures the screen locations of specific points on labeled GameObjects. The typical use of this Labeler is capturing human pose estimation data, but it can be used to capture points on any kind of object. The Labeler uses a [Keypoint Template](#KeypointTemplate) which defines the keypoints to capture for the model and the skeletal connections between those keypoints. The positions of the keypoints are recorded in pixel coordinates.
 
 For more information, see [Keypoint Labeler](GroundTruth/KeypointLabeler.md) or the [Human Pose Labeling and Randomization Tutorial](HPTutorial/TUTORIAL.md)
 

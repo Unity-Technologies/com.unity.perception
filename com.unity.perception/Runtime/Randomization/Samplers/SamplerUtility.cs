@@ -177,7 +177,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
                 return min;
 
             var stdTruncNorm = NormalCdfInverse(c);
-            return stdTruncNorm * stdDev + mean;
+            return math.clamp(stdTruncNorm * stdDev + mean, min, max);
         }
 
         /// <summary>

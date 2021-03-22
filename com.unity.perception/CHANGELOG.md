@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+Expanded documentation on the Keypoint Labeler
+Updated Keypoint Labeler logic to only report keypoints for visible objects by default
 
 ### Deprecated
 

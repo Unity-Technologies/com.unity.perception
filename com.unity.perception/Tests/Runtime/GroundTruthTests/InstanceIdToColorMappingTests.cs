@@ -9,12 +9,17 @@ namespace GroundTruthTests
     public class InstanceIdToColorMappingTests
     {
         [Test]
+        public void InitializeMaps_DoesNotThrow()
+        {
+            Assert.DoesNotThrow(InstanceIdToColorMapping.InitializeMaps);
+        }
+        [Test]
         public void InstanceIdToColorMappingTests_TestHslColors()
         {
-            for (var i = 1u; i <= 64u; i++)
+            for (var i = 1u; i <= 1024u; i++)
             {
-                Assert.IsTrue(InstanceIdToColorMapping.TryGetColorFromInstanceId(i, out var color));
-                Assert.IsTrue(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id));
+                Assert.IsTrue(InstanceIdToColorMapping.TryGetColorFromInstanceId(i, out var color), $"Failed TryGetColorFromInstanceId on id {i}");
+                Assert.IsTrue(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id), $"Failed TryGetInstanceIdFromColor on id {i}");
                 Assert.AreEqual(i, id);
 
                 color = InstanceIdToColorMapping.GetColorFromInstanceId(i);
@@ -50,31 +55,25 @@ namespace GroundTruthTests
         [TestCase(4u,255,0,223,255)]
         [TestCase(5u,0,255,212,255)]
         [TestCase(6u,255,138,0,255)]
-        [TestCase(64u,195,0,75,255)]
-        [TestCase(65u,0,0,1,254)]
-        [TestCase(66u,0,0,2,254)]
-        [TestCase(64u + 256u,0,1,0,254)]
-        [TestCase(65u + 256u,0,1,1,254)]
-        [TestCase(64u + 65536u,1,0,0,254)]
-        [TestCase(16777216u,255,255,192,254)]
-        [TestCase(64u + 16777216u,0,0,0,253)]
-        [TestCase(64u + (16777216u * 2),0,0,0,252)]
+        [TestCase(1024u,30, 0, 11,255)]
+        [TestCase(1025u,0,0,1,254)]
+        [TestCase(1026u,0,0,2,254)]
+        [TestCase(1024u + 256u,0,1,0,254)]
+        [TestCase(1025u + 256u,0,1,1,254)]
+        [TestCase(1024u + 65536u,1,0,0,254)]
+        [TestCase(1024u + 16777216u,0,0,0,253)]
+        [TestCase(1024u + (16777216u * 2),0,0,0,252)]
         public void InstanceIdToColorMappingTests_TestColorForId(uint id, byte r, byte g, byte b, byte a)
         {
             Assert.IsTrue(InstanceIdToColorMapping.TryGetColorFromInstanceId(id, out var color));
-            Assert.AreEqual(color.r, r);
-            Assert.AreEqual(color.g, g);
-            Assert.AreEqual(color.b, b);
-            Assert.AreEqual(color.a, a);
+            var expected = new Color32(r, g, b, a);
+            Assert.AreEqual(expected, color);
 
             Assert.IsTrue(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id2));
             Assert.AreEqual(id, id2);
 
             color = InstanceIdToColorMapping.GetColorFromInstanceId(id);
-            Assert.AreEqual(color.r, r);
-            Assert.AreEqual(color.g, g);
-            Assert.AreEqual(color.b, b);
-            Assert.AreEqual(color.a, a);
+            Assert.AreEqual(expected, color);
 
             id2 = InstanceIdToColorMapping.GetInstanceIdFromColor(color);
             Assert.AreEqual(id, id2);
@@ -83,21 +82,15 @@ namespace GroundTruthTests
         [Test]
         public void InstanceIdToColorMappingTests_GetCorrectValuesFor255()
         {
-            var expectedColor = new Color(0, 0, 191, 254);
+            var expectedColor = new Color32(19, 210, 0, 255);
 
             Assert.IsTrue(InstanceIdToColorMapping.TryGetColorFromInstanceId(255u, out var color));
-            Assert.AreEqual(color.r, expectedColor.r);
-            Assert.AreEqual(color.g, expectedColor.g);
-            Assert.AreEqual(color.b, expectedColor.b);
-            Assert.AreEqual(color.a, expectedColor.a);
+            Assert.AreEqual(expectedColor, color);
             Assert.IsTrue(InstanceIdToColorMapping.TryGetInstanceIdFromColor(color, out var id2));
             Assert.AreEqual(255u, id2);
 
             color = InstanceIdToColorMapping.GetColorFromInstanceId(255u);
-            Assert.AreEqual(color.r, expectedColor.r);
-            Assert.AreEqual(color.g, expectedColor.g);
-            Assert.AreEqual(color.b, expectedColor.b);
-            Assert.AreEqual(color.a, expectedColor.a);
+            Assert.AreEqual(expectedColor, color);
             id2 = InstanceIdToColorMapping.GetInstanceIdFromColor(color);
             Assert.AreEqual(255u, id2);
         }

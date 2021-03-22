@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 ### Changed
+Expanded documentation on the Keypoint Labeler
+Updated Keypoint Labeler logic to only report keypoints for visible objects by default
 Increased color variety in instance segmentation images
 
 ### Deprecated
@@ -21,6 +23,8 @@ Increased color variety in instance segmentation images
 ### Removed
 
 ### Fixed
+
+Fixed compiler warnings in projects with HDRP on 2020.1 and later
 
 Fixed a bug in the Normal Sampler where it would return values less than the passed in minimum value, or greater than the passed in maximum value, for random values very close to 0 or 1 respectively.
 

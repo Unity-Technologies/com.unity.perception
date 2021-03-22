@@ -1,6 +1,5 @@
 {
     "name": "Unity.Perception.Runtime",
-    "rootNamespace": "",
     "references": [
         "Unity.Burst",
         "Unity.Collections",
@@ -40,7 +39,7 @@
         },
         {
             "name": "com.unity.render-pipelines.high-definition",
-            "expression": "9",
+            "expression": "9.0",
             "define": "HDRP_9_OR_NEWER"
         }
     ],

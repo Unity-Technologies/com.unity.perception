@@ -29,7 +29,7 @@ namespace UnityEngine.Perception.GroundTruth
         const uint k_InvalidPackedColor = 255; // packed uint for color (0, 0, 0, 255);
         static readonly float k_GoldenRatio = (1 + Mathf.Sqrt(5)) / 2;
         const int k_HuesInEachValue = 64;
-        const int k_Values = 1024 / 64;
+        const uint k_Values = k_HslCount / k_HuesInEachValue;
 
         /// <summary>
         /// The color returned when an instanceId is not mapped to any color, and for clearing ground truth material properties on a <see cref="MaterialPropertyBlock"/>.

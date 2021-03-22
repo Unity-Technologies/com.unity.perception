@@ -22,7 +22,7 @@ Increased color variety in instance segmentation images
 
 ### Fixed
 
-A bug in the Normal Sampler where it would return values less than the passed in min, or greater than the passed in max, for random values very close to 0 or 1 respectively.
+Fixed a bug in the Normal Sampler where it would return values less than the passed in minimum value, or greater than the passed in maximum value, for random values very close to 0 or 1 respectively.
 
 ## [0.8.0-preview.2] - 2021-03-15
 

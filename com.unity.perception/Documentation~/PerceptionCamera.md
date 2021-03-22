@@ -75,7 +75,7 @@ The ObjectCountLabeler records object counts for each label you define in the Id
 ```
 _Example rendered object info for a single object_
 
-The RenderedObjectInfoLabeler records a list of all objects visible in the Camera image, including its instance ID, resolved label ID and visible pixels. If Unity cannot resolve objects to a label in the IdLabelConfig, it does not record these objects.
+The `RenderedObjectInfoLabeler` records a list of all objects visible in the camera image, including their instance IDs, resolved label IDs, and visible pixel counts. If Unity cannot resolve objects to a label in the `IdLabelConfig`, it does not record these objects.
 
 ### Keypoint Labeler
 

@@ -185,6 +185,11 @@ namespace UnityEngine.Perception.GroundTruth
         {
             SetLensDistortionShaderParameters();
         }
+
+        public override void ClearMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId)
+        {
+            SetLensDistortionShaderParameters();
+        }
     }
 }
 

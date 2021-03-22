@@ -195,7 +195,7 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             }
 
-        }
+                }
 
         private void OnRenderedObjectInfoReadback(int frameCount, NativeArray<RenderedObjectInfo> objectInfos)
         {
@@ -222,12 +222,12 @@ namespace UnityEngine.Perception.GroundTruth
                         {
                             include = true;
                             break;
-                        }
+            }
                     }
 
                     if (!include && objectFilter == KeypointObjectFilter.VisibleAndOccluded)
                         include = keypointSet.Value.keypoints.Any(k => k.state == 1);
-                }
+        }
                 if (include)
                     m_KeypointEntriesToReport.Add(entry);
             }
@@ -378,89 +378,88 @@ namespace UnityEngine.Perception.GroundTruth
 
         void ProcessLabel(Labeling labeledEntity)
         {
-            if (idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
+            if (!idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
+                return;
+
+            // Cache out the data of a labeled game object the first time we see it, this will
+            // save performance each frame. Also checks to see if a labeled game object can be annotated.
+            if (!m_KnownStatus.ContainsKey(labeledEntity.instanceId))
             {
-                // Cache out the data of a labeled game object the first time we see it, this will
-                // save performance each frame. Also checks to see if a labeled game object can be annotated.
-                if (!m_KnownStatus.ContainsKey(labeledEntity.instanceId))
+                var cached = new CachedData()
                 {
-                    var cached = new CachedData()
+                    status = false,
+                    animator = null,
+                    keypoints = new KeypointEntry(),
+                    overrides = new List<(JointLabel, int)>()
+                };
+
+                var entityGameObject = labeledEntity.gameObject;
+
+                cached.keypoints.instance_id = labeledEntity.instanceId;
+                cached.keypoints.label_id = labelEntry.id;
+                cached.keypoints.template_guid = activeTemplate.templateID;
+
+                cached.keypoints.keypoints = new Keypoint[activeTemplate.keypoints.Length];
+                for (var i = 0; i < cached.keypoints.keypoints.Length; i++)
+                {
+                    cached.keypoints.keypoints[i] = new Keypoint { index = i, state = 0 };
+                }
+
+                var animator = entityGameObject.transform.GetComponentInChildren<Animator>();
+                if (animator != null)
+                {
+                    cached.animator = animator;
+                    cached.status = true;
+                }
+
+                foreach (var joint in entityGameObject.transform.GetComponentsInChildren<JointLabel>())
+                {
+                    if (TryToGetTemplateIndexForJoint(activeTemplate, joint, out var idx))
                     {
-                        status = false,
-                        animator = null,
-                        keypoints = new KeypointEntry(),
-                        overrides = new List<(JointLabel, int)>()
-                    };
-
-
-                    var entityGameObject = labeledEntity.gameObject;
-
-                    cached.keypoints.instance_id = labeledEntity.instanceId;
-                    cached.keypoints.label_id = labelEntry.id;
-                    cached.keypoints.template_guid = activeTemplate.templateID;
-
-                    cached.keypoints.keypoints = new Keypoint[activeTemplate.keypoints.Length];
-                    for (var i = 0; i < cached.keypoints.keypoints.Length; i++)
-                    {
-                        cached.keypoints.keypoints[i] = new Keypoint { index = i, state = 0 };
-                    }
-
-                    var animator = entityGameObject.transform.GetComponentInChildren<Animator>();
-                    if (animator != null)
-                    {
-                        cached.animator = animator;
+                        cached.overrides.Add((joint, idx));
                         cached.status = true;
                     }
-
-                    foreach (var joint in entityGameObject.transform.GetComponentsInChildren<JointLabel>())
-                    {
-                        if (TryToGetTemplateIndexForJoint(activeTemplate, joint, out var idx))
-                        {
-                            cached.overrides.Add((joint, idx));
-                            cached.status = true;
-                        }
-                    }
-
-                    m_KnownStatus[labeledEntity.instanceId] = cached;
                 }
 
-                var cachedData = m_KnownStatus[labeledEntity.instanceId];
+                m_KnownStatus[labeledEntity.instanceId] = cached;
+            }
 
-                if (cachedData.status)
+            var cachedData = m_KnownStatus[labeledEntity.instanceId];
+
+            if (cachedData.status)
+            {
+                var animator = cachedData.animator;
+                var keypoints = cachedData.keypoints.keypoints;
+
+                // Go through all of the rig keypoints and get their location
+                for (var i = 0; i < activeTemplate.keypoints.Length; i++)
                 {
-                    var animator = cachedData.animator;
-                    var keypoints = cachedData.keypoints.keypoints;
-
-                    // Go through all of the rig keypoints and get their location
-                    for (var i = 0; i < activeTemplate.keypoints.Length; i++)
+                    var pt = activeTemplate.keypoints[i];
+                    if (pt.associateToRig)
                     {
-                        var pt = activeTemplate.keypoints[i];
-                        if (pt.associateToRig)
+                        var bone = animator.GetBoneTransform(pt.rigLabel);
+                        if (bone != null)
                         {
-                            var bone = animator.GetBoneTransform(pt.rigLabel);
-                            if (bone != null)
-                            {
                                 InitKeypoint(bone.position, keypoints, i);
-                            }
                         }
                     }
-
-                    // Go through all of the additional or override points defined by joint labels and get
-                    // their locations
-                    foreach (var (joint, idx) in cachedData.overrides)
-                    {
-                        InitKeypoint(joint.transform.position, keypoints, idx);
-                    }
-
-                    cachedData.keypoints.pose = "unset";
-
-                    if (cachedData.animator != null)
-                    {
-                        cachedData.keypoints.pose = GetPose(cachedData.animator);
-                    }
-
-                    m_AsyncAnnotations[m_CurrentFrame].keypoints[labeledEntity.instanceId] = cachedData.keypoints;
                 }
+
+                // Go through all of the additional or override points defined by joint labels and get
+                // their locations
+                foreach (var (joint, idx) in cachedData.overrides)
+                {
+                        InitKeypoint(joint.transform.position, keypoints, idx);
+                }
+
+                cachedData.keypoints.pose = "unset";
+
+                if (cachedData.animator != null)
+                {
+                    cachedData.keypoints.pose = GetPose(cachedData.animator);
+                }
+
+                m_AsyncAnnotations[m_CurrentFrame].keypoints[labeledEntity.instanceId] = cachedData.keypoints;
             }
         }
 

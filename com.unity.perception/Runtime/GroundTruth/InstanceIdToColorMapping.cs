@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Profiling;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -21,29 +22,37 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public const uint maxId = uint.MaxValue - ((256 * 256 * 256) * 2) + k_HslCount;
 
-        static Dictionary<uint, uint> s_IdToColorCache;
+        static uint[] s_IdToColorCache;
         static Dictionary<uint, uint> s_ColorToIdCache;
-        const uint k_HslCount = 64;
+        const uint k_HslCount = 1024;
         const uint k_ColorsPerAlpha = 256 * 256 * 256;
         const uint k_InvalidPackedColor = 255; // packed uint for color (0, 0, 0, 255);
-        public static readonly Color32 invalidColor = new Color(0, 0, 0, 255);
         static readonly float k_GoldenRatio = (1 + Mathf.Sqrt(5)) / 2;
-        const int k_HuesInEachValue = 30;
+        const int k_HuesInEachValue = 64;
+        const uint k_Values = k_HslCount / k_HuesInEachValue;
 
-        static void InitializeMaps()
+        /// <summary>
+        /// The color returned when an instanceId is not mapped to any color, and for clearing ground truth material properties on a <see cref="MaterialPropertyBlock"/>.
+        /// </summary>
+        public static readonly Color32 invalidColor = new Color(0, 0, 0, 255);
+
+        private static ProfilerMarker k_InitializeMapsMarker = new ProfilerMarker(nameof(InitializeMaps));
+        internal static void InitializeMaps()
         {
-
-            s_IdToColorCache = new Dictionary<uint, uint>();
-            s_ColorToIdCache = new Dictionary<uint, uint>();
-
-            s_IdToColorCache[0] = k_InvalidPackedColor;
-            s_IdToColorCache[k_InvalidPackedColor] = 0;
-
-            for (uint i = 1; i <= k_HslCount; i++)
+            using (k_InitializeMapsMarker.Auto())
             {
-                var color = GenerateHSLValueForId(i);
-                s_IdToColorCache[i] = color;
-                s_ColorToIdCache[color] = i;
+                s_IdToColorCache = new uint[k_HslCount + 1];
+                s_ColorToIdCache = new Dictionary<uint, uint>();
+
+                s_IdToColorCache[0] = k_InvalidPackedColor;
+                s_ColorToIdCache[k_InvalidPackedColor] = 0;
+
+                for (uint i = 1; i <= k_HslCount; i++)
+                {
+                    var color = GenerateHSLValueForId(i);
+                    s_IdToColorCache[i] = color;
+                    s_ColorToIdCache.Add(color, i);
+                }
             }
         }
 
@@ -51,12 +60,15 @@ namespace UnityEngine.Perception.GroundTruth
         {
             count -= 1;
 
-            var ratio = count * k_GoldenRatio;
+            // assign hue based on golden ratio
+            var hueId = count % k_HuesInEachValue;
+            var ratio = hueId * k_GoldenRatio;
             var hue = ratio - Mathf.Floor(ratio);
 
-            count /= k_HuesInEachValue;
-            ratio = count * k_GoldenRatio;
-            var value = 1 - (ratio - Mathf.Floor(ratio));
+            var valueId = count / k_HuesInEachValue;
+
+            // avoid value 0
+            var value = 1 - (float)valueId / (k_Values + 1);
 
             var color = (Color32)Color.HSVToRGB(hue, 1f, value);
             color.a = 255;

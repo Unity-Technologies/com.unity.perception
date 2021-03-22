@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 Expanded documentation on the Keypoint Labeler
 Updated Keypoint Labeler logic to only report keypoints for visible objects by default
+Increased color variety in instance segmentation images
 
 ### Deprecated
 
@@ -25,6 +26,8 @@ Updated Keypoint Labeler logic to only report keypoints for visible objects by d
 
 Fixed compiler warnings in projects with HDRP on 2020.1 and later
 
+Fixed a bug in the Normal Sampler where it would return values less than the passed in minimum value, or greater than the passed in maximum value, for random values very close to 0 or 1 respectively.
+
 ## [0.8.0-preview.2] - 2021-03-15
 
 ### Upgrade Notes
@@ -32,6 +35,8 @@ Fixed compiler warnings in projects with HDRP on 2020.1 and later
 All appearances of the term `KeyPoint` have been renamed to `Keypoint`. If you have code that relies on any renamed types or names, make sure to alter your code to reflect the new names.
 
 `ScenarioBase`'s `Awake()`, `Start()`, and `Update()` functions are now private. If you previously used these, replace the usages with `OnAwake()`, `OnStart()`, and `OnUpdate()`.
+
+The interface `IGroundTruthGenerator` now contains a new method named `ClearMaterialProperties` for disabling ground truth generation on a `Labeling` component or its associated `MaterialPropertyBlock`. Update your implementing classes to including this method.
 
 ### Known Issues
 
@@ -55,7 +60,7 @@ The newly added `LabelManager` class now enables custom Labelers to access the l
 
 Improved UI for `KeypointTemplate` and added useful default colors for keypoint and skeleton definitions.
 
-Added the ability to switch ground-truth labeling on or off for an object at runtime by enabling or disabling its `Labeling` component.
+Added the ability to switch ground truth generation on or off for an object at runtime by enabling or disabling its `Labeling` component. A new method named `ClearMaterialProperties()` in `IGroundTruthGenerator` handles this functionality.
 
 ### Changed
 

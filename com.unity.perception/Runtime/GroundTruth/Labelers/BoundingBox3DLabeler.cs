@@ -248,6 +248,9 @@ namespace UnityEngine.Perception.GroundTruth
                     // Need to convert all bounds into labeling mesh space...
                     foreach (var mesh in meshFilters)
                     {
+                        if (!mesh.GetComponent<Renderer>().enabled)
+                            continue;
+
                         var currentTransform = mesh.gameObject.transform;
                         // Grab the bounds of the game object from the mesh, although these bounds are axis-aligned,
                         // they are axis-aligned with respect to the current component's coordinate space. This, in theory
@@ -260,6 +263,8 @@ namespace UnityEngine.Perception.GroundTruth
                         // Apply the transformations on this object until we reach the labeled transform
                         while (currentTransform != labelTransform)
                         {
+                            transformedBounds.center = Vector3.Scale(transformedBounds.center, currentTransform.localScale);
+                            transformedBounds.center = currentTransform.localRotation * transformedBounds.center;
                             transformedBounds.center += currentTransform.localPosition;
                             transformedBounds.extents = Vector3.Scale(transformedBounds.extents, currentTransform.localScale);
                             transformedRotation *= currentTransform.localRotation;
@@ -287,7 +292,7 @@ namespace UnityEngine.Perception.GroundTruth
 
                     // Convert the combined bounds into world space
                     combinedBounds.center = labelTransform.TransformPoint(combinedBounds.center);
-                    combinedBounds.extents = Vector3.Scale(combinedBounds.extents,  labelTransform.localScale);
+                    combinedBounds.extents = Vector3.Scale(combinedBounds.extents,  labelTransform.lossyScale);
 
                     // Now convert all points into camera's space
                     var cameraCenter = cameraTransform.InverseTransformPoint(combinedBounds.center);

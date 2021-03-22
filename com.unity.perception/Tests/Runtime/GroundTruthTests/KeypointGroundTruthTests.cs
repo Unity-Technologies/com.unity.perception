@@ -293,7 +293,7 @@ namespace GroundTruthTests
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(data);
+                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
             var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
@@ -338,6 +338,73 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
+        public IEnumerator Keypoint_TestStaticLabeledCube_WithDisabledLabeling_AndSwitchingLabelingState()
+        {
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var texture = new RenderTexture(1024, 768, 16);
+            texture.Create();
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+            }, texture);
+
+            var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
+            SetupCubeJoints(cube, template);
+            var labeling = cube.GetComponent<Labeling>();
+
+            cube.SetActive(true);
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+            AddTestObjectForCleanup(cube);
+
+            labeling.enabled = false;
+            yield return null;
+
+            labeling.enabled = true;
+            yield return null;
+
+            labeling.enabled = false;
+            yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+            texture.Release();
+
+            var testCase = incoming[0];
+            Assert.AreEqual(0, testCase.Count);
+
+            testCase = incoming[1];
+            Assert.AreEqual(1, testCase.Count);
+            var t = testCase.First();
+            Assert.NotNull(t);
+            Assert.AreEqual(1, t.instance_id);
+            Assert.AreEqual(1, t.label_id);
+            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(9, t.keypoints.Length);
+
+            Assert.AreEqual(t.keypoints[0].x, t.keypoints[1].x);
+            Assert.AreEqual(t.keypoints[2].x, t.keypoints[3].x);
+            Assert.AreEqual(t.keypoints[4].x, t.keypoints[5].x);
+            Assert.AreEqual(t.keypoints[6].x, t.keypoints[7].x);
+
+            Assert.AreEqual(t.keypoints[0].y, t.keypoints[3].y);
+            Assert.AreEqual(t.keypoints[1].y, t.keypoints[2].y);
+            Assert.AreEqual(t.keypoints[4].y, t.keypoints[7].y);
+            Assert.AreEqual(t.keypoints[5].y, t.keypoints[6].y);
+
+            for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
+            for (var i = 0; i < 8; i++) Assert.AreEqual(2, t.keypoints[i].state);
+            Assert.Zero(t.keypoints[8].state);
+            Assert.Zero(t.keypoints[8].x);
+            Assert.Zero(t.keypoints[8].y);
+
+            testCase = incoming[2];
+            Assert.AreEqual(0, testCase.Count);
+        }
+
+        [UnityTest]
         public IEnumerator Keypoint_TestAllOffScreen()
         {
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
@@ -345,7 +412,7 @@ namespace GroundTruthTests
 
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(data);
+                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             });
 
             var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
@@ -378,7 +445,7 @@ namespace GroundTruthTests
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(data);
+                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
             var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
@@ -432,7 +499,7 @@ namespace GroundTruthTests
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(data);
+                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
             var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
@@ -488,7 +555,7 @@ namespace GroundTruthTests
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(data);
+                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
             CreateFullyOccludedScene(template, cam);
@@ -648,7 +715,7 @@ namespace GroundTruthTests
             var texture = new RenderTexture(1024, 768, 16);
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(data);
+                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
             var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
@@ -707,7 +774,7 @@ namespace GroundTruthTests
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(data);
+                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
             var cameraComponent = cam.GetComponent<Camera>();

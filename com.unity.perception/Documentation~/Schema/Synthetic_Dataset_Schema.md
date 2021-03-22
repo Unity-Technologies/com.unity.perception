@@ -216,7 +216,7 @@ bounding_box_3d {
   label_id:      <int>   -- Integer identifier of the label
   label_name:    <str>   -- String identifier of the label
   instance_id:   <str>   -- UUID of the instance.
-  translation {          -- 3d bounding box's center location in meters with respect to global coordinate system.
+  translation {          -- 3d bounding box's center location in meters with respect to the sensor's coordinate system
     x:           <float> -- The x coordinate
     y:           <float> -- The y coordinate
     z:           <float> -- The z coordinate

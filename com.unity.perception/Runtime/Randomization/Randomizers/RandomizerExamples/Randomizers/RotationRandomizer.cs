@@ -13,8 +13,9 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
     public class RotationRandomizer : Randomizer
     {
         /// <summary>
-        /// Defines the range of random rotations that can be assigned to tagged objects
+        /// The range of random rotations to assign to target objects
         /// </summary>
+        [Tooltip("The range of random rotations to assign to target objects.")]
         public Vector3Parameter rotation = new Vector3Parameter
         {
             x = new UniformSampler(0, 360),

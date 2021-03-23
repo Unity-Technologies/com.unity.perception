@@ -14,8 +14,9 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
         static readonly int k_BaseColor = Shader.PropertyToID("_BaseColor");
 
         /// <summary>
-        /// Describes the range of random colors to assign to tagged objects
+        /// The range of random colors to assign to target objects
         /// </summary>
+        [Tooltip("The range of random colors to assign to target objects.")]
         public ColorHsvaParameter colorParameter;
 
         /// <summary>

@@ -13,18 +13,21 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
     public class SunAngleRandomizer : Randomizer
     {
         /// <summary>
-        /// The hour of the day (0 to 24)
+        /// The range of hours in a day (default is 0 to 24)
         /// </summary>
+        [Tooltip("The range of hours in a day (default is 0 to 24).")]
         public FloatParameter hour = new FloatParameter { value = new UniformSampler(0, 24)};
 
         /// <summary>
-        /// The day of the year (0 being Jan 1st and 364 being December 31st)
+        /// The range of days in a year with 0 being Jan 1st and 364 being December 31st (default is 0 to 364)
         /// </summary>
-        public FloatParameter dayOfTheYear = new FloatParameter { value = new UniformSampler(0, 365)};
+        [Tooltip("The range of days in a year with 0 being Jan 1st and 364 being December 31st (default is 0 to 364).")]
+        public FloatParameter dayOfTheYear = new FloatParameter { value = new UniformSampler(0, 364)};
 
         /// <summary>
-        /// The earth's latitude (-90 is the south pole, 0 is the equator, and +90 is the north pole)
+        /// The range of latitudes. A latitude of -90 is the south pole, 0 is the equator, and +90 is the north pole (default is -90 to 90).
         /// </summary>
+        [Tooltip("The range of latitudes. A latitude of -90 is the south pole, 0 is the equator, and +90 is the north pole (default is -90 to 90).")]
         public FloatParameter latitude = new FloatParameter { value = new UniformSampler(-90, 90)};
 
         /// <summary>

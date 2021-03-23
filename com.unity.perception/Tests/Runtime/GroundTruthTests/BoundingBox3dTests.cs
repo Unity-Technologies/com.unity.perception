@@ -119,6 +119,14 @@ namespace GroundTruthTests
             public Vector3 grandparentPosition = Vector3.zero;
             public Quaternion grandparentRotation = Quaternion.identity;
 
+            public Vector3 cameraParentScale = Vector3.one;
+            public Vector3 cameraParentPosition = Vector3.zero;
+            public Quaternion cameraParentRotation = Quaternion.identity;
+
+            public Vector3 cameraScale = Vector3.one;
+            public Vector3 cameraPosition = new Vector3(0, 0, -10);
+            public Quaternion cameraRotation = Quaternion.identity;
+
             public override string ToString()
             {
                 return name;
@@ -203,6 +211,42 @@ namespace GroundTruthTests
                 grandchildPosition = new Vector3(-5, 0, 0),
                 grandchildScale = new Vector3(.5f, .5f, .5f),
             };
+            yield return new ParentedTestData()
+            {
+                name = "CamParentPositionAndScale",
+                expectedRotation = Quaternion.identity,
+                expectedPosition = new Vector3(2, 0, 6.5f),
+                expectedScale = new Vector3(1, 1, 1),
+                childPosition = new Vector3(0, 0, 4),
+                cameraParentPosition = new Vector3(-2, 0, 0),
+                cameraParentScale = new Vector3(1/2f, 1/3f, 1/4f),
+            };
+            //point at the left side of the box
+            yield return new ParentedTestData()
+            {
+                name = "CamParentRotate",
+                expectedRotation = Quaternion.Euler(0, -90, 0),
+                expectedPosition = new Vector3(0, 0, 10),
+                cameraParentRotation = Quaternion.Euler(0, 90, 0),
+            };
+            //point at the left side of the box
+            yield return new ParentedTestData()
+            {
+                name = "CamParentScale",
+                expectedPosition = new Vector3(0, 0, 2.5f),
+                //Scale on the camera's hierarchy only affects the position of the camera. It does not affect the camera frustum
+                cameraParentScale = new Vector3(1/2f, 1/3f, 1/4f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "CamRotationParentScale",
+                expectedRotation = Quaternion.Euler(0, -90, 0),
+                expectedPosition = new Vector3(0, 0, 5),
+                cameraParentPosition = new Vector3(-5, 0, 0),
+                cameraParentScale = new Vector3(.5f, 1, 1),
+                cameraPosition = Vector3.zero,
+                cameraRotation = Quaternion.Euler(0, 90, 0),
+            };
         }
         [UnityTest]
         public IEnumerator ParentedObject_ProduceProperResults([ValueSource(nameof(ParentedObject_ProduceProperResults_Values))] ParentedTestData parentedTestData)
@@ -226,13 +270,13 @@ namespace GroundTruthTests
             goGrandparent.transform.localRotation = parentedTestData.grandparentRotation;
 
             var goParent = new GameObject();
-            goParent.transform.parent = goGrandparent.transform;
+            goParent.transform.SetParent(goGrandparent.transform, false);
             goParent.transform.localPosition = parentedTestData.parentPosition;
             goParent.transform.localScale = parentedTestData.parentScale;
             goParent.transform.localRotation = parentedTestData.parentRotation;
 
             var goChild = new GameObject();
-            goChild.transform.parent = goParent.transform;
+            goChild.transform.SetParent(goParent.transform, false);
 
             goChild.transform.localPosition = parentedTestData.childPosition;
             goChild.transform.localScale = parentedTestData.childScale;
@@ -242,15 +286,30 @@ namespace GroundTruthTests
             labeling.labels.Add("label");
 
             var goGrandchild = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            goGrandchild.transform.parent = goChild.transform;
+            goGrandchild.transform.SetParent(goChild.transform, false);
 
             goGrandchild.transform.localPosition = parentedTestData.grandchildPosition;
             goGrandchild.transform.localScale = parentedTestData.grandchildScale;
             goGrandchild.transform.localRotation = parentedTestData.grandchildRotation;
 
-            var cameraPosition = new Vector3(0, 0, -10);
-            var cameraRotation = Quaternion.identity;
-            return ExecuteTest(goGrandparent, cameraPosition, cameraRotation, expected);
+            var goCameraParent = new GameObject();
+            goCameraParent.transform.localPosition = parentedTestData.cameraParentPosition;
+            goCameraParent.transform.localScale = parentedTestData.cameraParentScale;
+            goCameraParent.transform.localRotation = parentedTestData.cameraParentRotation;
+
+            var receivedResults = new List<(int, List<BoundingBox3DLabeler.BoxData>)>();
+            var cameraObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
+            {
+                receivedResults.Add((frame, data));
+            });
+
+            cameraObject.transform.SetParent(goCameraParent.transform, false);
+            cameraObject.transform.localPosition = parentedTestData.cameraPosition;
+            cameraObject.transform.localScale = parentedTestData.cameraScale;
+            cameraObject.transform.localRotation = parentedTestData.cameraRotation;
+            cameraObject.SetActive(true);
+
+            return ExecuteTestOnCamera(goGrandparent, expected, goCameraParent, receivedResults);
         }
 
         [UnityTest]
@@ -381,12 +440,18 @@ namespace GroundTruthTests
             gameObject.transform.position = cameraPos;
             gameObject.transform.rotation = cameraRotation;
 
-            AddTestObjectForCleanup(gameObject);
+            return ExecuteTestOnCamera(target, expectations, gameObject, receivedResults);
+        }
+
+        private IEnumerator ExecuteTestOnCamera(GameObject target, IList<ExpectedResult> expectations, GameObject cameraObject,
+            List<(int, List<BoundingBox3DLabeler.BoxData>)> receivedResults)
+        {
+            AddTestObjectForCleanup(cameraObject);
             AddTestObjectForCleanup(target);
 
-            gameObject.SetActive(false);
+            cameraObject.SetActive(false);
             receivedResults.Clear();
-            gameObject.SetActive(true);
+            cameraObject.SetActive(true);
 
             yield return null;
             yield return null;
@@ -403,7 +468,7 @@ namespace GroundTruthTests
                 TestResults(b, expectations[i]);
             }
 
-            DestroyTestObject(gameObject);
+            DestroyTestObject(cameraObject);
         }
 
         static IdLabelConfig SetupLabelConfig()

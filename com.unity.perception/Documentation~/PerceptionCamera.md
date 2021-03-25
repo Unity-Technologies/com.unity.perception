@@ -64,7 +64,7 @@ object with a unique color.
 
 The BoundingBox2DLabeler produces 2D bounding boxes for each visible object with a label you define in the IdLabelConfig.  Unity calculates bounding boxes using the rendered image, so it only excludes occluded or out-of-frame portions of the objects.
 
-### Bounding Box 3D Ground Truth Labeler
+### Bounding Box 3D Labeler
 
 The Bounding Box 3D Ground Truth Labeler produces 3D ground truth bounding boxes for each labeled game object in the scene. Unlike the 2D bounding boxes, 3D bounding boxes are calculated from the labeled meshes in the scene and all objects (independent of their occlusion state) are recorded.
 

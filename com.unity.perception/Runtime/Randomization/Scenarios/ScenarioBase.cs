@@ -33,12 +33,23 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             }
         }
 
+        /// <summary>
+        /// A list of the addressable bundle catalog URLs to load before the scenario starts
+        /// </summary>
+        protected List<string> m_CatalogUrls = new List<string>();
+
+        /// <summary>
+        /// Maps bundle primary keys (the name of the bundle file) to the bundle's URL. Enables the addressable asset
+        /// system to use signed URLs for remote asset bundles.
+        /// </summary>
+        protected Dictionary<string, string> m_BundleToUrlMap = new Dictionary<string, string>();
+
 #if UNITY_EDITOR
+        /// <summary>
+        /// A reference to a test app-param json file to enable app-param testing in the editor
+        /// </summary>
         public TextAsset testAppParam;
 #endif
-
-        protected List<string> m_CatalogUrls = new List<string>();
-        protected Dictionary<string, string> m_BundleToUrlMap = new Dictionary<string, string>();
 
         /// <summary>
         /// The current activity state of the scenario
@@ -475,12 +486,21 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             throw new ScenarioException($"A Randomizer of type {typeof(T).Name} was not added to this scenario");
         }
 
-        public void AddBundleUrl(string bundle, string url)
+        /// <summary>
+        /// Maps a bundle primary key to a specific URL
+        /// </summary>
+        /// <param name="bundle">The bundle's primary key (file name)</param>
+        /// <param name="url">The bundle's URL</param>
+        internal void AddBundleUrl(string bundle, string url)
         {
             m_BundleToUrlMap.Add(bundle, url);
         }
 
-        public void AddCatalogUrl(string url)
+        /// <summary>
+        /// Specifies a catalog URL to load before starting the simulation
+        /// </summary>
+        /// <param name="url"></param>
+        internal void AddCatalogUrl(string url)
         {
             m_CatalogUrls.Add(url);
         }

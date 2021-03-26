@@ -63,6 +63,7 @@ namespace GroundTruthTests
     {
         static readonly Color32 k_SemanticPixelValue = new Color32(10, 20, 30, Byte.MaxValue);
         private static readonly Color32 k_InstanceSegmentationPixelValue = new Color32(255,0,0, 255);
+        private static readonly Color32 k_SkyValue = new Color32(10, 20, 30, 40);
 
         public enum SegmentationKind
         {
@@ -246,7 +247,7 @@ namespace GroundTruthTests
                 CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
-            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), false);
+            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), false, k_SkyValue);
 
             AddTestObjectForCleanup(TestHelper.CreateLabeledPlane(label: "non-matching"));
             yield return null;
@@ -266,7 +267,7 @@ namespace GroundTruthTests
                 CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
-            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), false);
+            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), false, k_SkyValue);
 
             var gameObject = TestHelper.CreateLabeledPlane();
             gameObject.GetComponent<Labeling>().enabled = false;
@@ -300,17 +301,17 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
-        public IEnumerator SemanticSegmentationPass_WithEmptyFrame_ProducesBlack([Values(false, true)] bool showVisualizations)
+        public IEnumerator SemanticSegmentationPass_WithEmptyFrame_ProducesSky([Values(false, true)] bool showVisualizations)
         {
             int timesSegmentationImageReceived = 0;
-            var expectedPixelValue = new Color32(0, 0, 0, 255);
+            var expectedPixelValue = k_SkyValue;
             void OnSegmentationImageReceived(NativeArray<Color32> data)
             {
                 timesSegmentationImageReceived++;
                 CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
-            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), showVisualizations);
+            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), showVisualizations, expectedPixelValue);
 
             //TestHelper.LoadAndStartRenderDocCapture(out var gameView);
             yield return null;
@@ -333,10 +334,10 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
-        public IEnumerator SemanticSegmentationPass_WithNoObjects_ProducesBackground()
+        public IEnumerator SemanticSegmentationPass_WithNoObjects_ProducesSky()
         {
             int timesSegmentationImageReceived = 0;
-            var expectedPixelValue = new Color32(10, 20, 30, 40);
+            var expectedPixelValue = k_SkyValue;
             void OnSegmentationImageReceived(NativeArray<Color32> data)
             {
                 timesSegmentationImageReceived++;
@@ -557,7 +558,7 @@ namespace GroundTruthTests
             });
             if (backgroundColor != null)
             {
-                labelConfig.backgroundColor = backgroundColor.Value;
+                labelConfig.skyColor = backgroundColor.Value;
             }
             var semanticSegmentationLabeler = new SemanticSegmentationLabeler(labelConfig);
             semanticSegmentationLabeler.imageReadback += onSegmentationImageReceived;

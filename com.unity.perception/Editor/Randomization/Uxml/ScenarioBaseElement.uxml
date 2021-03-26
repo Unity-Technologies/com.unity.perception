@@ -2,7 +2,7 @@
     <VisualElement>
         <Style src="../Uss/Styles.uss"/>
         <VisualElement name="inspector-properties" style="margin-bottom: 4px;"/>
-        <VisualElement class="scenario__dark-viewport" >
+        <VisualElement name="scenario-properties-container" class="scenario__dark-viewport" >
             <TextElement text="Scenario Properties" class="scenario__title-label"/>
             <TextElement
                 class="scenario__info-box"

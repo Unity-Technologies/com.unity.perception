@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.UIElements;
@@ -57,6 +58,12 @@ namespace UnityEditor.Perception.Randomization
                     "Using undo in the editor will revert these changes to your scenario.");
                 PlayerPrefs.SetString(k_ConfigFilePlayerPrefKey, filePath);
             };
+
+            var appParamField = new ObjectField();
+            appParamField.objectType = typeof(TextAsset);
+            appParamField.BindProperty(serializedObject.FindProperty(nameof(ScenarioBase.testAppParam)));
+            var scenarioPropertiesContainer = m_Root.Q<VisualElement>("scenario-properties-container");
+            scenarioPropertiesContainer.Add(appParamField);
 
             return m_Root;
         }

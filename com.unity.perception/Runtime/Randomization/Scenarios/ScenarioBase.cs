@@ -33,6 +33,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             }
         }
 
+#if UNITY_EDITOR
+        public TextAsset testAppParam;
+#endif
+
+        protected List<string> m_CatalogUrls = new List<string>();
+        protected Dictionary<string, string> m_BundleToUrlMap = new Dictionary<string, string>();
+
         /// <summary>
         /// The current activity state of the scenario
         /// </summary>
@@ -206,7 +213,12 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         protected virtual void OnConfigurationImport()
         {
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
+            if (testAppParam != null)
+            {
+                DeserializeFromFile(AssetDatabase.GetAssetPath(testAppParam));
+            }
+#else
             DeserializeFromCommandLine();
 #endif
         }
@@ -273,10 +285,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         void Awake()
         {
             activeScenario = this;
-            OnAwake();
             foreach (var randomizer in m_Randomizers)
                 randomizer.Awake();
             ValidateParameters();
+            OnConfigurationImport();
+            OnAwake();
         }
 
         /// <summary>
@@ -307,7 +320,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 case State.Initializing:
                     if (isScenarioReadyToStart)
                     {
-                        OnConfigurationImport();
                         state = State.Playing;
                         OnStart();
                         foreach (var randomizer in m_Randomizers)
@@ -461,6 +473,16 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 if (randomizer is T typedRandomizer)
                     return typedRandomizer;
             throw new ScenarioException($"A Randomizer of type {typeof(T).Name} was not added to this scenario");
+        }
+
+        public void AddBundleUrl(string bundle, string url)
+        {
+            m_BundleToUrlMap.Add(bundle, url);
+        }
+
+        public void AddCatalogUrl(string url)
+        {
+            m_CatalogUrls.Add(url);
         }
 
         void ValidateParameters()

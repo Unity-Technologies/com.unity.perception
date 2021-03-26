@@ -159,6 +159,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public static void Deserialize(ScenarioBase scenario, string json)
         {
             var jsonData = JObject.Parse(json);
+            if (jsonData.ContainsKey("contents"))
+                DeserializeContents(scenario, (JObject)jsonData["contents"]);
             if (jsonData.ContainsKey("constants"))
                 DeserializeConstants(scenario.genericConstants, (JObject)jsonData["constants"]);
             if (jsonData.ContainsKey("randomizers"))
@@ -166,6 +168,22 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     scenario, jsonData["randomizers"].ToObject<TemplateConfigurationOptions>());
         }
 
+        static void DeserializeContents(ScenarioBase scenario, JObject contentsData)
+        {
+            var catalogs = (JArray)contentsData["catalogs"];
+            foreach (var catalogToken in catalogs)
+            {
+                var catalog = (JObject)catalogToken;
+                scenario.AddCatalogUrl(catalog["catalogUrl"].Value<string>());
+
+                var bundles = (JArray) catalog["bundles"];
+                foreach (var bundleToken in bundles)
+                {
+                    var bundle = (JObject) bundleToken;
+                    scenario.AddBundleUrl(bundle["name"].Value<string>(), bundle["url"].Value<string>());
+                }
+            }
+        }
         static void DeserializeConstants(ScenarioConstants constants, JObject constantsData)
         {
             var serializer = new JsonSerializer();

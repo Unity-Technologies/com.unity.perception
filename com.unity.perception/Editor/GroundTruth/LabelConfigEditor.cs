@@ -41,9 +41,12 @@ namespace UnityEditor.Perception.GroundTruth
         protected Button m_MoveDownButton;
         protected VisualElement m_MoveButtons;
         protected VisualElement m_IdSpecificUi;
-        protected VisualElement m_BackgroundColorUi;
+        protected VisualElement m_SkyColorUi;
         protected EnumField m_StartingIdEnumField;
         protected Toggle m_AutoIdToggle;
+
+        protected ColorField m_SkyColorField;
+        protected Label m_SkyHexLabel;
 
 
         public void OnEnable()
@@ -115,7 +118,9 @@ namespace UnityEditor.Perception.GroundTruth
             m_StartingIdEnumField = m_Root.Q<EnumField>("starting-id-dropdown");
             m_AutoIdToggle = m_Root.Q<Toggle>("auto-id-toggle");
             m_IdSpecificUi = m_Root.Q<VisualElement>("id-specific-ui");
-            m_BackgroundColorUi = m_Root.Q<VisualElement>("background-color-ui");
+            m_SkyColorUi = m_Root.Q<VisualElement>("sky-color-ui");
+            m_SkyColorField = m_Root.Q<ColorField>("sky-color-value");
+            m_SkyHexLabel = m_Root.Q<Label>("sky-color-hex");
 
             m_SaveButton.SetEnabled(false);
 

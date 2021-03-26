@@ -25,7 +25,7 @@ namespace UnityEngine.Perception.GroundTruth {
         /// <summary>
         /// The color to use for the background of semantic segmentation images
         /// </summary>
-        public Color backgroundColor { get; set; } = Color.black;
+        public Color backgroundColor = Color.black;
     }
 
     /// <summary>

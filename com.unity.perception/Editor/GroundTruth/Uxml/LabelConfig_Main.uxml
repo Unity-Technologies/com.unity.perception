@@ -8,12 +8,12 @@
                                   style="flex-grow:1; margin:0"/>
             </VisualElement>
         </VisualElement>
-        <VisualElement class="inner-container" name="background-color-ui">
-            <Label text="Background Color" name="added-labels-title" class="title-label"/>
+        <VisualElement class="inner-container" name="sky-color-ui">
             <VisualElement class="generic-hover"
-                           style="min-width : 137px; flex-direction: row; padding: 3px 0 3px 6px; margin-left: 3px; margin-right: 3px; border-width: 1px; border-color: #555555; border-radius: 4px;">
-                <editor:ColorField name="label-color-value" style="min-width : 60px; max-width: 60px; align-self:center; margin:2px"/>
-                <Label name="label-color-hex" style="font-size: 11; min-width : 60px; max-width: 60px; align-self:center;"/>
+                           style="min-width : 137px; flex-direction: row; padding: 3px 0 3px 6px; margin-left: 3px; margin-right: 3px;">
+                <Label text="Sky Color" name="added-labels-title"  style="font-size: 11; min-width : 60px; max-width: 60px; align-self:center;"/>
+                <editor:ColorField name="sky-color-value" style="min-width : 60px; max-width: 60px; align-self:center; margin:2px"/>
+                <Label name="sky-color-hex" style="font-size: 11; min-width : 60px; max-width: 60px; align-self:center;"/>
             </VisualElement>
         </VisualElement>
         <VisualElement name="added-labels" class="inner-container" style="margin-top:5px">

@@ -37,7 +37,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_StartingIdEnumField.SetEnabled(AutoAssign);
 
-            m_IdSpecificUi.style.display = DisplayStyle.None;
+            m_SkyColorUi.style.display = DisplayStyle.None;
 
             AutoAssignIdsIfNeeded();
             m_MoveDownButton.clicked += MoveSelectedItemDown;

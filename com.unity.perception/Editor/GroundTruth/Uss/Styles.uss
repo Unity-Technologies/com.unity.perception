@@ -16,12 +16,6 @@
     align-content: center;
 }
 
-.background-color {
-    margin: 3px 4px 3px 4px;
-    flex-direction: row;
-    align-content: center;
-}
-
 .labeling__added-label-value {
     width: 40%;
     flex-grow: 1;

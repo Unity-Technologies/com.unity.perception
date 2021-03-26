@@ -92,7 +92,6 @@ namespace GroundTruthTests
             switch (segmentationKind)
             {
                 case SegmentationKind.Instance:
-                    //expectedPixelValue = new Color32(0, 74, 255, 255);
                     expectedPixelValue = k_InstanceSegmentationPixelValue;
                     cameraObject = SetupCameraInstanceSegmentation(OnSegmentationImageReceived);
                     break;
@@ -334,6 +333,26 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
+        public IEnumerator SemanticSegmentationPass_WithNoObjects_ProducesBackground()
+        {
+            int timesSegmentationImageReceived = 0;
+            var expectedPixelValue = new Color32(10, 20, 30, 40);
+            void OnSegmentationImageReceived(NativeArray<Color32> data)
+            {
+                timesSegmentationImageReceived++;
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
+            }
+
+            var cameraObject = SetupCameraSemanticSegmentation(
+                a => OnSegmentationImageReceived(a.data), false, expectedPixelValue);
+
+            yield return null;
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            Assert.AreEqual(1, timesSegmentationImageReceived);
+        }
+
+        [UnityTest]
         public IEnumerator SemanticSegmentationPass_WithTextureOverride_RendersToOverride([Values(true, false)] bool showVisualizations)
         {
             var expectedPixelValue = new Color32(0, 0, 255, 255);
@@ -524,7 +543,7 @@ namespace GroundTruthTests
             return cameraObject;
         }
 
-        GameObject SetupCameraSemanticSegmentation(Action<SemanticSegmentationLabeler.ImageReadbackEventArgs> onSegmentationImageReceived, bool showVisualizations)
+        GameObject SetupCameraSemanticSegmentation(Action<SemanticSegmentationLabeler.ImageReadbackEventArgs> onSegmentationImageReceived, bool showVisualizations, Color? backgroundColor = null)
         {
             var cameraObject = SetupCamera(out var perceptionCamera, showVisualizations);
             var labelConfig = ScriptableObject.CreateInstance<SemanticSegmentationLabelConfig>();
@@ -536,6 +555,10 @@ namespace GroundTruthTests
                     color = k_SemanticPixelValue
                 }
             });
+            if (backgroundColor != null)
+            {
+                labelConfig.backgroundColor = backgroundColor.Value;
+            }
             var semanticSegmentationLabeler = new SemanticSegmentationLabeler(labelConfig);
             semanticSegmentationLabeler.imageReadback += onSegmentationImageReceived;
             perceptionCamera.AddLabeler(semanticSegmentationLabeler);

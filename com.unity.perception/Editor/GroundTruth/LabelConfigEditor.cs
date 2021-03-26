@@ -41,6 +41,7 @@ namespace UnityEditor.Perception.GroundTruth
         protected Button m_MoveDownButton;
         protected VisualElement m_MoveButtons;
         protected VisualElement m_IdSpecificUi;
+        protected VisualElement m_BackgroundColorUi;
         protected EnumField m_StartingIdEnumField;
         protected Toggle m_AutoIdToggle;
 
@@ -114,6 +115,7 @@ namespace UnityEditor.Perception.GroundTruth
             m_StartingIdEnumField = m_Root.Q<EnumField>("starting-id-dropdown");
             m_AutoIdToggle = m_Root.Q<Toggle>("auto-id-toggle");
             m_IdSpecificUi = m_Root.Q<VisualElement>("id-specific-ui");
+            m_BackgroundColorUi = m_Root.Q<VisualElement>("background-color-ui");
 
             m_SaveButton.SetEnabled(false);
 

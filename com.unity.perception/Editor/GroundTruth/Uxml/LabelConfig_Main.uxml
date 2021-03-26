@@ -8,6 +8,14 @@
                                   style="flex-grow:1; margin:0"/>
             </VisualElement>
         </VisualElement>
+        <VisualElement class="inner-container" name="background-color-ui">
+            <Label text="Background Color" name="added-labels-title" class="title-label"/>
+            <VisualElement class="generic-hover"
+                           style="min-width : 137px; flex-direction: row; padding: 3px 0 3px 6px; margin-left: 3px; margin-right: 3px; border-width: 1px; border-color: #555555; border-radius: 4px;">
+                <editor:ColorField name="label-color-value" style="min-width : 60px; max-width: 60px; align-self:center; margin:2px"/>
+                <Label name="label-color-hex" style="font-size: 11; min-width : 60px; max-width: 60px; align-self:center;"/>
+            </VisualElement>
+        </VisualElement>
         <VisualElement name="added-labels" class="inner-container" style="margin-top:5px">
             <Label text="Added Labels" name="added-labels-title" class="title-label"/>
             <ListView name="labels-listview" class="labeling__label-listview" style="margin-top: 5px;"/>

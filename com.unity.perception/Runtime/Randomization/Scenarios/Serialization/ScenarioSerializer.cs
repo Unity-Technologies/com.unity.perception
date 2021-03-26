@@ -184,6 +184,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 }
             }
         }
+
         static void DeserializeConstants(ScenarioConstants constants, JObject constantsData)
         {
             var serializer = new JsonSerializer();

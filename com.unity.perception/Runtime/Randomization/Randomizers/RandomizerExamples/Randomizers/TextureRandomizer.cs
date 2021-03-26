@@ -18,8 +18,9 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
 #endif
 
         /// <summary>
-        /// The list of textures to sample and apply to tagged objects
+        /// The list of textures to sample and apply to target objects
         /// </summary>
+        [Tooltip("The list of textures to sample and apply to target objects.")]
         public Texture2DParameter texture;
 
         /// <summary>

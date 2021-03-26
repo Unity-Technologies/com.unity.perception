@@ -248,7 +248,7 @@ You can now check out the output dataset to see what the annotations look like. 
 }
 ```
 
-In the above annotation, all of the 18 joints defined in the COCO template we used are listed. For each joint that is present in our character, you can see the X and Y coordinates within the captured frame. However, you may notice three of the joints are listed with (0,0) coordinates. These joints are not present in our character. A fact that is also denoted by the `state` field. A state of **0** means the joint was not present, **1** denotes a joint that is present but not visible (to be implemented in a later version of the package), and **2** means the joint was present and visible.
+In the above annotation, all of the 18 joints defined in the COCO template we used are listed. For each joint that is present in our character, you can see the X and Y coordinates within the captured frame. However, you may notice three of the joints are listed with (0,0) coordinates. These joints are not present in our character. A fact that is also denoted by the `state` field. A state of **0** means the joint either does not exist or is outside of the image's bounds, **1** denotes a joint that is inside of the image but cannot be seen because the part of the object it belongs to is not visible in the image, and **2** means the joint was present and visible.
 
 You may also note that the `pose` field has a value of `unset`. This is because we have not defined poses for our animation clip and `Perception Camera` yet. We will do this next.
 

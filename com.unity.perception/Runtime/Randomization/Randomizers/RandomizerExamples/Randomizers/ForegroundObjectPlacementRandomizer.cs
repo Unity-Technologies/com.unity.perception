@@ -16,21 +16,25 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
         /// <summary>
         /// The Z offset component applied to the generated layer of GameObjects
         /// </summary>
+        [Tooltip("The Z offset applied to positions of all placed objects.")]
         public float depth;
 
         /// <summary>
         /// The minimum distance between all placed objects
         /// </summary>
+        [Tooltip("The minimum distance between the centers of the placed objects.")]
         public float separationDistance = 2f;
 
         /// <summary>
         /// The size of the 2D area designated for object placement
         /// </summary>
+        [Tooltip("The width and height of the area in which objects will be placed. These should be positive numbers and sufficiently large in relation with the Separation Distance specified.")]
         public Vector2 placementArea;
 
         /// <summary>
         /// The list of prefabs sample and randomly place
         /// </summary>
+        [Tooltip("The list of Prefabs to be placed by this Randomizer.")]
         public GameObjectParameter prefabs;
 
         GameObject m_Container;

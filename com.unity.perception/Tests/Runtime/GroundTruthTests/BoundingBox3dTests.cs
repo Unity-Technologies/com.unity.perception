@@ -42,7 +42,7 @@ namespace GroundTruthTests
                     labelId = 1,
                     labelName = "label",
                     position = new Vector3(0, 0, 10),
-                    scale = new Vector3(5, 5, 5),
+                    scale = new Vector3(10, 10, 10),
                     rotation = Quaternion.identity
                 }
             };
@@ -63,7 +63,7 @@ namespace GroundTruthTests
                     labelId = 1,
                     labelName = "label",
                     position = new Vector3(0, 0, Mathf.Sqrt(200)),
-                    scale = new Vector3(5, 5, 5),
+                    scale = new Vector3(10, 10, 10),
                     rotation = Quaternion.identity
                 }
             };
@@ -84,7 +84,7 @@ namespace GroundTruthTests
                     labelId = 1,
                     labelName = "label",
                     position = new Vector3(0, 0, 10),
-                    scale = new Vector3(6.5f, 2.5f, 2.5f),
+                    scale = new Vector3(13f, 5f, 5f),
                     rotation = Quaternion.identity
                 }
             };
@@ -93,6 +93,223 @@ namespace GroundTruthTests
             var cameraPosition = new Vector3(0, 0, -10);
             var cameraRotation = Quaternion.identity;
             return ExecuteTest(target, cameraPosition, cameraRotation, expected);
+        }
+
+        public class ParentedTestData
+        {
+            public string name;
+
+            public Vector3 expectedScale = Vector3.one;
+            public Vector3 expectedPosition = new Vector3(0, 0, 10);
+            public Quaternion expectedRotation = Quaternion.identity;
+
+            public Vector3 childScale = Vector3.one;
+            public Vector3 childPosition = Vector3.zero;
+            public Quaternion childRotation = Quaternion.identity;
+
+            public Vector3 grandchildScale = Vector3.one;
+            public Vector3 grandchildPosition = Vector3.zero;
+            public Quaternion grandchildRotation = Quaternion.identity;
+
+            public Vector3 parentScale = Vector3.one;
+            public Vector3 parentPosition = Vector3.zero;
+            public Quaternion parentRotation = Quaternion.identity;
+
+            public Vector3 grandparentScale = Vector3.one;
+            public Vector3 grandparentPosition = Vector3.zero;
+            public Quaternion grandparentRotation = Quaternion.identity;
+
+            public Vector3 cameraParentScale = Vector3.one;
+            public Vector3 cameraParentPosition = Vector3.zero;
+            public Quaternion cameraParentRotation = Quaternion.identity;
+
+            public Vector3 cameraScale = Vector3.one;
+            public Vector3 cameraPosition = new Vector3(0, 0, -10);
+            public Quaternion cameraRotation = Quaternion.identity;
+
+            public override string ToString()
+            {
+                return name;
+            }
+        }
+
+        static IEnumerable<ParentedTestData> ParentedObject_ProduceProperResults_Values()
+        {
+            yield return new ParentedTestData()
+            {
+                name = "ParentScale",
+                expectedScale = new Vector3(1/5f, 1/5f, 1/5f),
+                parentScale = new Vector3(1/5f, 1/5f, 1/5f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "GrandparentScale",
+                expectedScale = new Vector3(1/5f, 1/5f, 1/5f),
+                grandparentScale = new Vector3(1/5f, 1/5f, 1/5f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "ChildScale",
+                expectedScale = new Vector3(1/5f, 1/5f, 1/5f),
+                childScale = new Vector3(1/5f, 1/5f, 1/5f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "ChildAndParentScale",
+                expectedScale = new Vector3(1f, 1f, 1f),
+                childScale = new Vector3(5, 5, 5),
+                parentScale = new Vector3(1/5f, 1/5f, 1/5f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "GrandchildScale",
+                expectedScale = new Vector3(2, 2, 2),
+                childScale = new Vector3(2, 2, 2),
+                grandchildScale = new Vector3(5, 5, 5),
+                parentScale = new Vector3(1/5f, 1/5f, 1/5f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "ParentRotation",
+                expectedRotation = Quaternion.Euler(1f, 2f, 3f),
+                parentRotation = Quaternion.Euler(1f, 2f, 3f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "ChildRotation",
+                expectedRotation = Quaternion.Euler(1f, 2f, 3f),
+                childRotation = Quaternion.Euler(1f, 2f, 3f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "ParentAndChildRotation",
+                expectedRotation = Quaternion.identity,
+                childRotation = Quaternion.Euler(20f, 0, 0),
+                parentRotation = Quaternion.Euler(-20f, 0, 0),
+            };
+            var diagonalSize = Mathf.Sqrt(2 * 2 + 2 * 2); //A^2 + B^2 = C^2
+            yield return new ParentedTestData()
+            {
+                name = "GrandchildRotation",
+                expectedRotation = Quaternion.identity,
+                expectedScale = new Vector3(diagonalSize / 2f, 1, diagonalSize / 2f),
+                grandchildRotation = Quaternion.Euler(0, 45, 0),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "GrandparentRotation",
+                expectedRotation = Quaternion.Euler(-20f, 0, 0),
+                grandparentRotation = Quaternion.Euler(-20f, 0, 0),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "GrandchildTRS",
+                expectedRotation = Quaternion.identity,
+                expectedPosition = new Vector3(-5, 0, 10),
+                expectedScale = new Vector3(.5f * diagonalSize / 2f, .5f, .5f * diagonalSize / 2f),
+                grandchildRotation = Quaternion.Euler(0, -45, 0),
+                grandchildPosition = new Vector3(-5, 0, 0),
+                grandchildScale = new Vector3(.5f, .5f, .5f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "CamParentPositionAndScale",
+                expectedRotation = Quaternion.identity,
+                expectedPosition = new Vector3(2, 0, 6.5f),
+                expectedScale = new Vector3(1, 1, 1),
+                childPosition = new Vector3(0, 0, 4),
+                cameraParentPosition = new Vector3(-2, 0, 0),
+                cameraParentScale = new Vector3(1/2f, 1/3f, 1/4f),
+            };
+            //point at the left side of the box
+            yield return new ParentedTestData()
+            {
+                name = "CamParentRotate",
+                expectedRotation = Quaternion.Euler(0, -90, 0),
+                expectedPosition = new Vector3(0, 0, 10),
+                cameraParentRotation = Quaternion.Euler(0, 90, 0),
+            };
+            //point at the left side of the box
+            yield return new ParentedTestData()
+            {
+                name = "CamParentScale",
+                expectedPosition = new Vector3(0, 0, 2.5f),
+                //Scale on the camera's hierarchy only affects the position of the camera. It does not affect the camera frustum
+                cameraParentScale = new Vector3(1/2f, 1/3f, 1/4f),
+            };
+            yield return new ParentedTestData()
+            {
+                name = "CamRotationParentScale",
+                expectedRotation = Quaternion.Euler(0, -90, 0),
+                expectedPosition = new Vector3(0, 0, 5),
+                cameraParentPosition = new Vector3(-5, 0, 0),
+                cameraParentScale = new Vector3(.5f, 1, 1),
+                cameraPosition = Vector3.zero,
+                cameraRotation = Quaternion.Euler(0, 90, 0),
+            };
+        }
+        [UnityTest]
+        public IEnumerator ParentedObject_ProduceProperResults([ValueSource(nameof(ParentedObject_ProduceProperResults_Values))] ParentedTestData parentedTestData)
+        {
+            var expected = new[]
+            {
+                new ExpectedResult
+                {
+                    instanceId = 1,
+                    labelId = 1,
+                    labelName = "label",
+                    position = parentedTestData.expectedPosition,
+                    scale = parentedTestData.expectedScale,
+                    rotation = parentedTestData.expectedRotation
+                }
+            };
+
+            var goGrandparent = new GameObject();
+            goGrandparent.transform.localPosition = parentedTestData.grandparentPosition;
+            goGrandparent.transform.localScale = parentedTestData.grandparentScale;
+            goGrandparent.transform.localRotation = parentedTestData.grandparentRotation;
+
+            var goParent = new GameObject();
+            goParent.transform.SetParent(goGrandparent.transform, false);
+            goParent.transform.localPosition = parentedTestData.parentPosition;
+            goParent.transform.localScale = parentedTestData.parentScale;
+            goParent.transform.localRotation = parentedTestData.parentRotation;
+
+            var goChild = new GameObject();
+            goChild.transform.SetParent(goParent.transform, false);
+
+            goChild.transform.localPosition = parentedTestData.childPosition;
+            goChild.transform.localScale = parentedTestData.childScale;
+            goChild.transform.localRotation = parentedTestData.childRotation;
+
+            var labeling = goChild.AddComponent<Labeling>();
+            labeling.labels.Add("label");
+
+            var goGrandchild = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            goGrandchild.transform.SetParent(goChild.transform, false);
+
+            goGrandchild.transform.localPosition = parentedTestData.grandchildPosition;
+            goGrandchild.transform.localScale = parentedTestData.grandchildScale;
+            goGrandchild.transform.localRotation = parentedTestData.grandchildRotation;
+
+            var goCameraParent = new GameObject();
+            goCameraParent.transform.localPosition = parentedTestData.cameraParentPosition;
+            goCameraParent.transform.localScale = parentedTestData.cameraParentScale;
+            goCameraParent.transform.localRotation = parentedTestData.cameraParentRotation;
+
+            var receivedResults = new List<(int, List<BoundingBox3DLabeler.BoxData>)>();
+            var cameraObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
+            {
+                receivedResults.Add((frame, data));
+            });
+
+            cameraObject.transform.SetParent(goCameraParent.transform, false);
+            cameraObject.transform.localPosition = parentedTestData.cameraPosition;
+            cameraObject.transform.localScale = parentedTestData.cameraScale;
+            cameraObject.transform.localRotation = parentedTestData.cameraRotation;
+            cameraObject.SetActive(true);
+
+            return ExecuteTestOnCamera(goGrandparent, expected, goCameraParent, receivedResults);
         }
 
         [UnityTest]
@@ -106,7 +323,7 @@ namespace GroundTruthTests
                     labelId = 2,
                     labelName = "car",
                     position = new Vector3(0, 0.525f, 20),
-                    scale = new Vector3(2f, 0.875f, 2.4f),
+                    scale = new Vector3(4f, 1.75f, 4.8f),
                     rotation = Quaternion.identity
                 },
             };
@@ -121,7 +338,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator MultiInheritedMeshDifferentLabels_ProduceProperTranslationTest()
         {
-            var wheelScale = new Vector3(0.35f, 1.0f, 0.35f);
+            var wheelScale = new Vector3(0.7f, 2.0f, 0.7f);
             var wheelRot = Quaternion.Euler(0, 0, 90);
 
             var expected = new[]
@@ -132,7 +349,7 @@ namespace GroundTruthTests
                     labelId = 2,
                     labelName = "car",
                     position = new Vector3(0, 1.05f, 20),
-                    scale = new Vector3(1f, 0.7f, 2.4f),
+                    scale = new Vector3(2f, 1.4f, 4.8f),
                     rotation = Quaternion.identity
                 },
                 new ExpectedResult
@@ -174,8 +391,8 @@ namespace GroundTruthTests
             var target = TestHelper.CreateLabeledCube(scale: 15f, z: -50f);
             return ExecuteSeenUnseenTest(target, Vector3.zero, quaternion.identity, 0);
         }
-        
-        
+
+
         struct ExpectedResult
         {
             public int labelId;
@@ -205,13 +422,13 @@ namespace GroundTruthTests
 
             yield return null;
             yield return null;
-            
+
             Assert.AreEqual(expectedSeen, receivedResults[0].Item2.Count);
 
             DestroyTestObject(gameObject);
             UnityEngine.Object.DestroyImmediate(target);
         }
-        
+
         IEnumerator ExecuteTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, IList<ExpectedResult> expectations)
         {
             var receivedResults = new List<(int, List<BoundingBox3DLabeler.BoxData>)>();
@@ -223,15 +440,22 @@ namespace GroundTruthTests
             gameObject.transform.position = cameraPos;
             gameObject.transform.rotation = cameraRotation;
 
-            AddTestObjectForCleanup(gameObject);
+            return ExecuteTestOnCamera(target, expectations, gameObject, receivedResults);
+        }
 
-            gameObject.SetActive(false);
+        private IEnumerator ExecuteTestOnCamera(GameObject target, IList<ExpectedResult> expectations, GameObject cameraObject,
+            List<(int, List<BoundingBox3DLabeler.BoxData>)> receivedResults)
+        {
+            AddTestObjectForCleanup(cameraObject);
+            AddTestObjectForCleanup(target);
+
+            cameraObject.SetActive(false);
             receivedResults.Clear();
-            gameObject.SetActive(true);
+            cameraObject.SetActive(true);
 
             yield return null;
             yield return null;
-            
+
             Assert.AreEqual(expectations.Count, receivedResults[0].Item2.Count);
 
             for (var i = 0; i < receivedResults[0].Item2.Count; i++)
@@ -244,8 +468,7 @@ namespace GroundTruthTests
                 TestResults(b, expectations[i]);
             }
 
-            DestroyTestObject(gameObject);
-            UnityEngine.Object.DestroyImmediate(target);
+            DestroyTestObject(cameraObject);
         }
 
         static IdLabelConfig SetupLabelConfig()
@@ -297,15 +520,13 @@ namespace GroundTruthTests
 
         static void TestResults(BoundingBox3DLabeler.BoxData data, ExpectedResult e)
         {
-            var scale = e.scale * 2;
-
             Assert.IsNotNull(data);
             Assert.AreEqual(e.position[0], data.translation[0], k_Delta);
             Assert.AreEqual(e.position[1], data.translation[1], k_Delta);
             Assert.AreEqual(e.position[2], data.translation[2], k_Delta);
-            Assert.AreEqual(scale[0], data.size[0], k_Delta);
-            Assert.AreEqual(scale[1], data.size[1], k_Delta);
-            Assert.AreEqual(scale[2], data.size[2], k_Delta);
+            Assert.AreEqual(e.scale[0], data.size[0], k_Delta);
+            Assert.AreEqual(e.scale[1], data.size[1], k_Delta);
+            Assert.AreEqual(e.scale[2], data.size[2], k_Delta);
             Assert.AreEqual(e.rotation[0], data.rotation[0], k_Delta);
             Assert.AreEqual(e.rotation[1], data.rotation[1], k_Delta);
             Assert.AreEqual(e.rotation[2], data.rotation[2], k_Delta);

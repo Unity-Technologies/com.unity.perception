@@ -31,6 +31,9 @@ namespace UnityEditor.Perception.Randomization
             CreatePropertyFields();
             CheckIfConstantsExist();
 
+            var appParamField = m_Root.Q<ObjectField>("test-app-param");
+            appParamField.objectType = typeof(TextAsset);
+
             var generateConfigButton = m_Root.Q<Button>("generate-json-config");
             generateConfigButton.clicked += () =>
             {
@@ -59,12 +62,6 @@ namespace UnityEditor.Perception.Randomization
                 PlayerPrefs.SetString(k_ConfigFilePlayerPrefKey, filePath);
             };
 
-            var appParamField = new ObjectField();
-            appParamField.objectType = typeof(TextAsset);
-            appParamField.BindProperty(serializedObject.FindProperty(nameof(ScenarioBase.testAppParam)));
-            var scenarioPropertiesContainer = m_Root.Q<VisualElement>("scenario-properties-container");
-            scenarioPropertiesContainer.Add(appParamField);
-
             return m_Root;
         }
 
@@ -92,6 +89,8 @@ namespace UnityEditor.Perception.Randomization
                     case "constants":
                         m_HasConstantsField = true;
                         UIElementsEditorUtilities.CreatePropertyFields(iterator.Copy(), m_ConstantsListVisualContainer);
+                        break;
+                    case nameof(ScenarioBase.testAppParam):
                         break;
                     default:
                     {

@@ -7,6 +7,7 @@
             <TextElement
                 class="scenario__info-box"
                 text="Scenarios control the execution flow of your simulation by applying randomization parameters. Make sure to always have only one scenario active within your scene."/>
+            <editor:ObjectField name="test-app-param" label="Test App Param" binding-path="testAppParam"/>
             <VisualElement name="constants-container">
                 <Foldout style="padding-left: 16px" text="Constants" name="constants-list" tooltip="A list of parameters for this scenario that will be JSON serialized in the configuration file."/>
                 <editor:PropertyField name="configuration-file-name" label="Constants File Name" binding-path="serializedConstantsFileName"/>

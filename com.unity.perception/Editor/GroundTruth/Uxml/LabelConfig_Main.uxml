@@ -2,6 +2,7 @@
     <VisualElement class="outer-container" name="outer-container">
         <Style src="../Uss/Styles.uss"/>
         <VisualElement class="inner-container" name="id-specific-ui">
+            <Label text="Options" name="options-title" class="title-label"/>
             <Toggle name="auto-id-toggle" text="Auto Assign IDs" style="margin:0" binding-path="autoAssignIds"/>
             <VisualElement style="flex-direction: row; flex-grow: 1;">
                 <editor:EnumField label="Starting ID" name="starting-id-dropdown" binding-path="startingLabelId"
@@ -9,11 +10,16 @@
             </VisualElement>
         </VisualElement>
         <VisualElement class="inner-container" name="sky-color-ui">
-            <VisualElement class="generic-hover"
-                           style="min-width : 137px; flex-direction: row; padding: 3px 0 3px 6px; margin-left: 3px; margin-right: 3px;">
-                <Label text="Sky Color" name="added-labels-title"  style="font-size: 11; min-width : 60px; max-width: 60px; align-self:center;"/>
-                <editor:ColorField name="sky-color-value" style="min-width : 60px; max-width: 60px; align-self:center; margin:2px"/>
-                <Label name="sky-color-hex" style="font-size: 11; min-width : 60px; max-width: 60px; align-self:center;"/>
+            <Label text="Options" name="options-title" class="title-label"/>
+            <VisualElement style="flex-direction: row; flex-grow: 1;">
+                <Label text="Sky Color" name="added-labels-title"
+                       style="flex-grow: 1; font-size: 11; min-width : 60px; align-self:center;"/>
+                <VisualElement class="generic-hover"
+                               style="min-width : 137px; flex-direction: row; padding: 3px 5px 3px 5px; margin-left: 3px; margin-right: 3px; border-width: 1px; border-color: #666666; border-radius: 4px;">
+                    <editor:ColorField name="sky-color-value" style="min-width : 60px; max-width: 60px; align-self:center;"/>
+                    <Label name="sky-color-hex"
+                           style="font-size: 11; min-width : 60px; max-width: 60px; align-self:center; margin: 2px"/>
+                </VisualElement>
             </VisualElement>
         </VisualElement>
         <VisualElement name="added-labels" class="inner-container" style="margin-top:5px">

@@ -20,8 +20,18 @@ namespace UnityEngine.Perception.GroundTruth
         [UsedImplicitly]
         public InstanceSegmentationPass() {}
 
+        //overrides obsolete member in HDRP on 2020.1+. Re-address when removing 2019.4 support or the API is dropped
+#if HDRP_9_OR_NEWER
+        protected override void Execute(CustomPassContext ctx)
+        {
+            ScriptableRenderContext renderContext = ctx.renderContext;
+            var cmd = ctx.cmd;
+            var hdCamera = ctx.hdCamera;
+            var cullingResult = ctx.cullingResults;
+#else
         protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
         {
+#endif
             CoreUtils.SetRenderTarget(cmd, targetTexture, ClearFlag.All);
             m_InstanceSegmentationCrossPipelinePass.Execute(renderContext, cmd, hdCamera.camera, cullingResult);
         }

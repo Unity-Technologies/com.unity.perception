@@ -162,7 +162,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (visualizationEnabled) OnVisualize();
         }
 
-        internal void Init(PerceptionCamera newPerceptionCamera)
+        public void Init(PerceptionCamera newPerceptionCamera)
         {
             try
             {

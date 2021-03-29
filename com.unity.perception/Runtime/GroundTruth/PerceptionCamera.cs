@@ -225,7 +225,7 @@ namespace UnityEngine.Perception.GroundTruth
                     continue;
 
                 if (!labeler.isInitialized)
-                    labeler.Init(this);
+                    continue;
 
                 labeler.InternalOnUpdate();
             }
@@ -517,7 +517,7 @@ namespace UnityEngine.Perception.GroundTruth
                     continue;
 
                 if (!labeler.isInitialized)
-                    labeler.Init(this);
+                    continue;
 
                 action(labeler);
             }

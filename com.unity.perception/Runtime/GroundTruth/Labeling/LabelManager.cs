@@ -25,6 +25,14 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public IEnumerable<Labeling> registeredLabels => m_RegisteredLabels;
 
+        public List<string> LabelStringsForAutoLabelConfig { get; } = new List<string>();
+
+        public void AddLabelStringToAutoLabelConfigList(string label)
+        {
+            if(!LabelStringsForAutoLabelConfig.Contains(label))
+                LabelStringsForAutoLabelConfig.Add(label);
+        }
+
         /// <summary>
         /// Registers all pending labels.
         /// Called once per frame during LateUpdate by the <see cref="PerceptionUpdater"/>.

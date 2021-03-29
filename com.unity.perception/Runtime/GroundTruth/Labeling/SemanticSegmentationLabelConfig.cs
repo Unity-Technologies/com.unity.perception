@@ -20,6 +20,12 @@ namespace UnityEngine.Perception.GroundTruth {
             Color.yellow,
             Color.gray
         };
+
+
+        /// <summary>
+        /// The color to use for the sky in semantic segmentation images
+        /// </summary>
+        public Color skyColor = Color.black;
     }
 
     /// <summary>

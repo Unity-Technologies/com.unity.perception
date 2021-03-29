@@ -48,8 +48,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <inheritdoc/>
         protected override void OnUpdate()
         {
-            if (m_PerceptionCamera && currentIterationFrame == constants.framesPerIteration - 1
-            && currentIteration > 1)
+            if (m_PerceptionCamera && currentIterationFrame == constants.framesPerIteration - 1)
             {
                 m_PerceptionCamera.RequestCapture();
             }

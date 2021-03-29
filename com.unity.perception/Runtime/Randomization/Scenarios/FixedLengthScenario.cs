@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -9,7 +12,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     [AddComponentMenu("Perception/Scenarios/Fixed Length Scenario")]
     public class FixedLengthScenario: UnitySimulationScenario<FixedLengthScenario.Constants>
     {
-        PerceptionCamera m_PerceptionCamera;
+        protected PerceptionCamera m_PerceptionCamera;
 
         /// <summary>
         /// Constants describing the execution of this scenario
@@ -43,10 +46,12 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         /// <inheritdoc/>
-        protected override void OnIterationStart()
+        protected override void OnUpdate()
         {
-            if (m_PerceptionCamera != null && currentIterationFrame == constants.framesPerIteration - 1)
+            if (m_PerceptionCamera && currentIterationFrame == constants.framesPerIteration - 1)
+            {
                 m_PerceptionCamera.RequestCapture();
+            }
         }
     }
 }

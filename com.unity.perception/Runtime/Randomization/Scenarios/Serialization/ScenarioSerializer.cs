@@ -182,9 +182,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     var bundle = (JObject) bundleToken;
                     scenario.AddBundleUrl(bundle["name"].Value<string>(), bundle["url"].Value<string>());
                 }
-
-                if (catalog.ContainsKey("hashUrl"))
-                    scenario.AddBundleUrl(catalog["hashName"].Value<string>(), catalog["hashUrl"].Value<string>());
             }
         }
 

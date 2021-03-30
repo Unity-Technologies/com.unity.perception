@@ -35,7 +35,7 @@ namespace UnityEditor.Perception.Randomization
         Label m_PrevExecutionIdLabel;
         RunParameters m_RunParameters;
 
-        const string  m_SupportedGPUString = "NVIDIA";
+        const string k_SupportedGPUString = "NVIDIA";
 
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
@@ -263,6 +263,11 @@ namespace UnityEditor.Perception.Randomization
                 : m_RunParameters.currentScenario.SerializeToJson());
 
             var constants = configuration["constants"];
+            if (constants == null)
+            {
+                constants = new JObject();
+                configuration["constants"] = constants;
+            }
             constants["totalIterations"] = m_RunParameters.totalIterations;
             constants["instanceCount"] = m_RunParameters.instanceCount;
 

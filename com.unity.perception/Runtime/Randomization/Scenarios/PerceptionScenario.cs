@@ -20,6 +20,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         MetricDefinition m_IterationMetricDefinition;
 
+
+        /// <summary>
+        /// Skip the first frame if not running on Unity simulation
+        /// </summary>
+        protected override bool isScenarioReadyToStart =>
+            !Configuration.Instance.IsSimulationRunningInCloud() && Time.frameCount == 1;
+
         /// <inheritdoc/>
         protected override void OnAwake()
         {

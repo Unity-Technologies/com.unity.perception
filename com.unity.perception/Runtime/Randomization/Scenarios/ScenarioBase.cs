@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Unity.Simulation;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;

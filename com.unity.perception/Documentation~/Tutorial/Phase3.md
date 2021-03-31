@@ -51,8 +51,6 @@ If you have used Unity before, you might have set up multiple organizations for 
 
 The process of running a project on Unity Simulation involves building it for Linux and then uploading this build, along with a set of parameters, to Unity Simulation. The Perception package simplifies this process by including a dedicated _**Run in Unity Simulation**_ window that accepts a small number of required parameters and handles everything else automatically.
 
-For performance reasons, it is best to disable real-time visualizations before carrying on with the Unity Simulation run. 
-
 * **:green_circle: Action**: From the _**Inspector**_ view of `Perception Camera`, disable real-time visualizations.
 
 In order to make sure our builds are compatible with Unity Simulation, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_ (if not already set). We will also need to switch to _**Windowed**_ mode.

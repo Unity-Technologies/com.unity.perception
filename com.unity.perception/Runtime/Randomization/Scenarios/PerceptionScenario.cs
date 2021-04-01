@@ -20,7 +20,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         MetricDefinition m_IterationMetricDefinition;
 
-
         /// <summary>
         /// Skip the first simulation frame if not running on Unity simulation
         /// </summary>

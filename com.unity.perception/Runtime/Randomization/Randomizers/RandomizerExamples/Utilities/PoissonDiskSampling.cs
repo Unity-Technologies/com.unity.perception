@@ -21,13 +21,15 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         /// <param name="minimumRadius">The minimum distance required between each sampled point</param>
         /// <param name="seed">The random seed used to initialize the algorithm state</param>
         /// <param name="samplingResolution">The number of potential points sampled around every valid point</param>
+        /// <param name="allocator">The allocator to use for the samples container</param>
         /// <returns>The list of generated poisson points</returns>
         public static NativeList<float2> GenerateSamples(
             float width,
             float height,
             float minimumRadius,
             uint seed = 12345,
-            int samplingResolution = k_DefaultSamplingResolution)
+            int samplingResolution = k_DefaultSamplingResolution,
+            Allocator allocator = Allocator.TempJob)
         {
             if (width < 0)
                 throw new ArgumentException($"Width {width} cannot be negative");
@@ -40,17 +42,29 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
             if (samplingResolution <= 0)
                 throw new ArgumentException($"SamplingAttempts {samplingResolution} cannot be <= 0");
 
-            var samples = new NativeList<float2>(Allocator.TempJob);
-            new SampleJob
+            var superSampledPoints = new NativeList<float2>(allocator);
+            var sampleJob = new SampleJob
+            {
+                width = width + minimumRadius * 2,
+                height = height + minimumRadius * 2,
+                minimumRadius = minimumRadius,
+                seed = seed,
+                samplingResolution = samplingResolution,
+                samples = superSampledPoints
+            }.Schedule();
+
+            var croppedSamples = new NativeList<float2>(allocator);
+            new CropJob
             {
                 width = width,
                 height = height,
                 minimumRadius = minimumRadius,
-                seed = seed,
-                samplingResolution = samplingResolution,
-                samples = samples
-            }.Schedule().Complete();
-            return samples;
+                superSampledPoints = superSampledPoints.AsDeferredJobArray(),
+                croppedSamples = croppedSamples
+            }.Schedule(sampleJob).Complete();
+            superSampledPoints.Dispose();
+
+            return croppedSamples;
         }
 
         [BurstCompile]
@@ -68,6 +82,44 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 var newSamples = Sample(width, height, minimumRadius, seed, samplingResolution, Allocator.Temp);
                 samples.AddRange(newSamples);
                 newSamples.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// This job is for filtering out all super sampled Poisson points that are found outside of the originally
+        /// specified 2D region. This job will also shift the cropped points back to their original region.
+        /// </summary>
+        [BurstCompile]
+        struct CropJob : IJob
+        {
+            public float width;
+            public float height;
+            public float minimumRadius;
+            [ReadOnly] public NativeArray<float2> superSampledPoints;
+            public NativeList<float2> croppedSamples;
+
+            public void Execute()
+            {
+                var results = new NativeArray<bool>(
+                    superSampledPoints.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+
+                for (var i = 0; i < superSampledPoints.Length; i++)
+                {
+                    var point = superSampledPoints[i];
+                    results[i] = point.x >= minimumRadius && point.x <= width + minimumRadius
+                        && point.y >= minimumRadius && point.y <= height + minimumRadius;
+                }
+
+                for (var i = 0; i < superSampledPoints.Length; i++)
+                {
+                    if (results[i])
+                    {
+                        var p = superSampledPoints[i];
+                        croppedSamples.Add(new float2(p.x - minimumRadius, p.y - minimumRadius));
+                    }
+                }
+
+                results.Dispose();
             }
         }
 

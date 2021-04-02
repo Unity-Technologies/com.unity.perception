@@ -147,9 +147,9 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
 
             // Calculate occupancy grid dimensions
             var random = new Unity.Mathematics.Random(seed);
-            var cellSize = minimumRadius / math.sqrt(2);
-            var rows = Mathf.FloorToInt(height / cellSize);
-            var cols = Mathf.FloorToInt(width / cellSize);
+            var cellSize = minimumRadius / math.sqrt(2f);
+            var rows = Mathf.CeilToInt(height / cellSize);
+            var cols = Mathf.CeilToInt(width / cellSize);
             var gridSize = rows * cols;
             if (gridSize == 0)
                 return samples;
@@ -167,10 +167,8 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
             // This list will track all points that may still have space around them for generating new points
             var activePoints = new NativeList<float2>(Allocator.Temp);
 
-            // Randomly place a seed point in a central location within the generation space to kick off the algorithm
-            var firstPoint = new float2(
-                random.NextFloat(0.4f, 0.6f) * width,
-                random.NextFloat(0.4f, 0.6f) * height);
+            // Randomly place a seed point to kick off the algorithm
+            var firstPoint = new float2(random.NextFloat(0f, width), random.NextFloat(0f, height));
             samples.Add(firstPoint);
             var firstPointCol = Mathf.FloorToInt(firstPoint.x / cellSize);
             var firstPointRow = Mathf.FloorToInt(firstPoint.y / cellSize);

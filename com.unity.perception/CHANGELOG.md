@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 Increased color variety in instance segmentation images
 
+The PoissonDiskSampling utility now samples a larger region of points to then crop to size of the intended region to prevent edge case bias.
+
 ### Deprecated
 
 ### Removed

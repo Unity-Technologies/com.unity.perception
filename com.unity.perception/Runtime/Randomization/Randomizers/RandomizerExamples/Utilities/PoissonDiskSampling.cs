@@ -121,10 +121,9 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 }
 
                 // Remove the positional offset from the filtered-but-still-super-sampled points
+                var offset = new float2(minimumRadius, minimumRadius);
                 for (var i = 0; i < croppedSamples.Length; i++)
-                {
-                    croppedSamples[i] -= new float2(minimumRadius, minimumRadius);
-                }
+                    croppedSamples[i] -= offset;
 
                 results.Dispose();
             }

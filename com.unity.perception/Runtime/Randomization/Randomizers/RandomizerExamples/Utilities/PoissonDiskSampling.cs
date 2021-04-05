@@ -103,6 +103,8 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 var results = new NativeArray<bool>(
                     superSampledPoints.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
+                // The comparisons operations made in this loop are done separately from the second loop
+                // so that burst can automatically generate vectorized assembly code this portion of the job.
                 for (var i = 0; i < superSampledPoints.Length; i++)
                 {
                     var point = superSampledPoints[i];
@@ -110,6 +112,8 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                         && point.y >= minimumRadius && point.y <= height + minimumRadius;
                 }
 
+                // This list-building code is done separately from the filtering loop
+                // because it cannot be vectorized by burst.
                 for (var i = 0; i < superSampledPoints.Length; i++)
                 {
                     if (results[i])

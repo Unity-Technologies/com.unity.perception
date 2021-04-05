@@ -104,7 +104,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                     superSampledPoints.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
                 // The comparisons operations made in this loop are done separately from the list-building loop
-                // so that burst can automatically generate vectorized assembly code this portion of the job.
+                // so that burst can automatically generate vectorized assembly code for this portion of the job.
                 for (var i = 0; i < superSampledPoints.Length; i++)
                 {
                     var point = superSampledPoints[i];

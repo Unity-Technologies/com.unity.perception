@@ -103,7 +103,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 var results = new NativeArray<bool>(
                     superSampledPoints.Length, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-                // The comparisons operations made in this loop are done separately from the second loop
+                // The comparisons operations made in this loop are done separately from the list-building loop
                 // so that burst can automatically generate vectorized assembly code this portion of the job.
                 for (var i = 0; i < superSampledPoints.Length; i++)
                 {
@@ -117,10 +117,13 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 for (var i = 0; i < superSampledPoints.Length; i++)
                 {
                     if (results[i])
-                    {
-                        var p = superSampledPoints[i];
-                        croppedSamples.Add(new float2(p.x - minimumRadius, p.y - minimumRadius));
-                    }
+                        croppedSamples.Add(superSampledPoints[i]);
+                }
+
+                // Remove the positional offset from the filtered-but-still-super-sampled points
+                for (var i = 0; i < croppedSamples.Length; i++)
+                {
+                    croppedSamples[i] -= new float2(minimumRadius, minimumRadius);
                 }
 
                 results.Dispose();

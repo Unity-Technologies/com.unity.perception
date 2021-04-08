@@ -53,6 +53,11 @@ In-depth documentation on individual components of the package.
 
 The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how the Perception package could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
 
+
+### Robotics Object Pose Estimation Demo
+
+The [Robotics Object Pose Estimation Demo & Tutorial](https://github.com/Unity-Technologies/Robotics-Object-Pose-Estimation) demonstrates pick-and-place with a robot arm in Unity. It includes using ROS with Unity, importing URDF models, collecting labeled training data using the Perception package, and training and deploying a deep learning model.
+
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.
 
@@ -67,11 +72,11 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 ## License
 * [License](com.unity.perception/LICENSE.md)
 
-## Support 
+## Community and Feedback
 
-For general questions or concerns please contact the Computer Vision team at computer-vision@unity3d.com.
+For setup problems or discussions about leveraging the Perception package in your project, please create a new thread on the [Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/) and make sure to include as much detail as possible. If you run into any other problems with the Perception package or have a specific feature request, please submit a [GitHub issue](https://github.com/Unity-Technologies/com.unity.perception/issues).
 
-For feedback, bugs, or other issues please file a GitHub issue and the Computer Vision team will investigate the issue as soon as possible.
+For any other questions or feedback, connect directly with the Computer Vision team at [computer-vision@unity3d.com](mailto:computer-vision@unity3d.com).
 
 ## Citation
 If you find this package useful, consider citing it using:

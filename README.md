@@ -55,6 +55,7 @@ The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologie
 
 
 ### Robotics Object Pose Estimation Demo
+<img src="com.unity.perception/Documentation~/images/robotics_pose.png"/>
 
 The [Robotics Object Pose Estimation Demo & Tutorial](https://github.com/Unity-Technologies/Robotics-Object-Pose-Estimation) demonstrates pick-and-place with a robot arm in Unity. It includes using ROS with Unity, importing URDF models, collecting labeled training data using the Perception package, and training and deploying a deep learning model.
 

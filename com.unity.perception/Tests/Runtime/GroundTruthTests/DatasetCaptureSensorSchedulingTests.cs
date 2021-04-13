@@ -65,7 +65,7 @@ namespace GroundTruthTests
         {
             var ego = DatasetCapture.RegisterEgo("ego");
             var firstCaptureFrame = 2f;
-            var simulationDeltaTime = 105f;
+            var simulationDeltaTime = .4f;
             var sensorHandle = DatasetCapture.RegisterSensor(ego, "cam", "", firstCaptureFrame, CaptureTriggerMode.Scheduled, simulationDeltaTime, 0);
 
             var startTime = firstCaptureFrame * simulationDeltaTime;

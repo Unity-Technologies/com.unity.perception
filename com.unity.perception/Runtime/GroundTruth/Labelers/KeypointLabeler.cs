@@ -471,8 +471,7 @@ namespace UnityEngine.Perception.GroundTruth
                     pose = cachedKeypointEntry.pose,
                     template_guid = cachedKeypointEntry.template_guid
                 };
-                m_AsyncAnnotations[m_CurrentFrame].keypoints[labeledEntity.instanceId] =
-                    /*cachedKeypointEntry;*/ keypointEntry;
+                m_AsyncAnnotations[m_CurrentFrame].keypoints[labeledEntity.instanceId] = keypointEntry;
             }
         }
 

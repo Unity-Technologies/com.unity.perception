@@ -2,255 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEngine.Perception.Content
 {
-    public static class GeomertryValidation
-    {
-        public struct MeshEdge
-        {
-            public Vector3 v1;
-            public Vector3 v2;
-            public MeshEdge(Vector3 v1, Vector3 v2)
-            {
-                this.v1 = v1;
-                this.v2 = v2;
-            }
-        }
-
-        public struct MeshTrianlge
-        {
-            public MeshEdge e1;
-            public MeshEdge e2;
-            public MeshEdge e3;
-            public MeshTrianlge(MeshEdge e1, MeshEdge e2, MeshEdge e3)
-            {
-                this.e1 = e1;
-                this.e2 = e2;
-                this.e3 = e3;
-            }
-        }
-
-        public static List<MeshEdge> GetMeshEdges(Mesh mesh, bool drawMesh)
-        {
-            List<MeshEdge> result = new List<MeshEdge>();
-
-            for (int i = 0; i < mesh.triangles.Length; i += 3)
-            {
-                var v1 = mesh.vertices[mesh.triangles[i]];
-                var v2 = mesh.vertices[mesh.triangles[i + 1]];
-                var v3 = mesh.vertices[mesh.triangles[i + 2]];
-                result.Add(new MeshEdge(v1, v2));
-                result.Add(new MeshEdge(v2, v3));
-                result.Add(new MeshEdge(v3, v1));
-
-                if (drawMesh)
-                {
-                    Debug.DrawLine(v1, v2, Color.green, 30f);
-                    Debug.DrawLine(v1, v3, Color.green, 30f);
-                    Debug.DrawLine(v2, v3, Color.green, 30f);
-                }
-            }
-            return result;
-        }
-
-        public static List<MeshTrianlge> CreateTrianlges(Mesh mesh, bool drawMesh)
-        {
-            List<MeshTrianlge> result = new List<MeshTrianlge>();
-
-            for (int i = 0; i < mesh.triangles.Length; i += 3)
-            {
-                var v1 = mesh.vertices[mesh.triangles[i]];
-                var v2 = mesh.vertices[mesh.triangles[i + 1]];
-                var v3 = mesh.vertices[mesh.triangles[i + 2]];
-
-                result.Add(new MeshTrianlge(new MeshEdge(v1, v2), new MeshEdge(v2, v3), new MeshEdge(v3, v1)));
-
-                if (drawMesh)
-                {
-                    Debug.DrawLine(v1, v2, Color.green, 30f);
-                    Debug.DrawLine(v1, v3, Color.green, 30f);
-                    Debug.DrawLine(v2, v3, Color.green, 30f);
-                }
-            }
-            return result;
-        }
-
-        public static List<MeshEdge> DetectOpenEdges(this List<MeshEdge> Edges, bool drawMesh)
-        {
-            List<MeshEdge> result = Edges;
-            for (int i = result.Count - 1; i > 0; i--)
-            {
-                for (int n = i - 1; n >= 0; n--)
-                {
-                    if (result[i].v1 == result[n].v2 && result[i].v2 == result[n].v1)
-                    {
-                        // shared edge so remove both
-                        result.RemoveAt(i);
-                        result.RemoveAt(n);
-                        i--;
-                        break;
-                    }
-                }
-            }
-
-            if (drawMesh)
-            {
-                if (result.Count > 0)
-                {
-                    for (int e = 0; e < result.Count; e++)
-                    {
-                        Debug.DrawLine(result[e].v1, result[e].v2, Color.blue, 30f);
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        public static List<MeshEdge> SortEdges(this List<MeshEdge> Edges)
-        {
-            List<MeshEdge> result = new List<MeshEdge>(Edges);
-            for (int i = 0; i < result.Count - 2; i++)
-            {
-                MeshEdge e = result[i];
-                for (int n = i + 1; n < result.Count; n++)
-                {
-                    MeshEdge a = result[n];
-                    if (e.v2 == a.v1)
-                    {
-                        if (n == i + 1)
-                            break;
-                        result[n] = result[i + 1];
-                        result[i + 1] = a;
-                        break;
-                    }
-                }
-            }
-            return result;
-        }
-
-        public static List<Vector3> DetectUnweldedVerts(Mesh mesh, float distance)
-        {
-            List<Vector3> result = mesh.vertices.ToList();
-
-            for (int i = result.Count - 1; i > 0; i--)
-            {
-                for (int p = i - 1; p >= 0; p--)
-                {
-                    var m = mesh.vertices[i];
-                    var a = mesh.vertices[p];
-                    var factor = Vector3.Distance(m, a);
-                    if (factor > distance || factor != 0)
-                    {
-                        result.Remove(m);
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        public static List<MeshEdge> DetectMeshSpikes(this List<MeshEdge> Edges, bool DebugDraw)
-        {
-            /// TODO: Doesn't support simple object i.e. a cube because cube all edges z's outside of the bounds
-            /// Can possibly do this by checking each triangle and the angles within to see if it contains a 90 degree
-            
-            List<MeshEdge> result = Edges;
-            List<MeshEdge> spikes = new List<MeshEdge>();
-
-            for (int i = 0; i < result.Count; i++)
-            {
-                var v1 = result[i].v1;
-                var v2 = result[i].v2;
-
-                var zDiff = v1.z - v2.z;
-                var yDiff = v1.y - v2.y;
-                var xDiff = v1.x - v2.x;
-
-                if (zDiff > 0.0500 || zDiff < -0.0500)
-                {
-                    spikes.Add(result[i]);
-                    if(DebugDraw)
-                        Debug.DrawLine(v1, v2, Color.red, 30f);
-                }
-            }
-
-            return spikes;
-        }
-    }
-
-    public static class TextureValidation
-    {
-        public struct TexelDensity
-        {
-            public double texelDensity;
-            public double tilingValue;
-
-            public TexelDensity(double texelDensity, double tilingValue)
-            {
-                this.texelDensity = texelDensity;
-                this.tilingValue = tilingValue;
-            }
-        }
-
-        public static List<TexelDensity> GetTexelDensity(MeshFilter meshFilter, MeshRenderer meshRenderer, float scale, int targetResolution)
-        {
-            // Correct TD for an object is meter x pixel per meter / texture Resolution = tiling value 
-            // Find TD is pixel / 100cm = TD
-            List <TexelDensity> result = new List<TexelDensity>();
-            List<Vector2> uvs = meshFilter.sharedMesh.uv.ToList();
-            
-            var assetWorldSize = meshRenderer.bounds.size;
-            
-            // Place a texture, although might need to just make the texture 2048
-            Texture2D testTexture = new Texture2D(targetResolution, targetResolution);
-            testTexture.wrapMode = TextureWrapMode.Repeat;
-            testTexture.filterMode = FilterMode.Bilinear;
-            testTexture.anisoLevel = 1;
-
-            AssetDatabase.CreateAsset(testTexture, "Assets/testTexture.renderTexture");
-            var path = AssetDatabase.GetAssetPath(testTexture);
-            var test = (Texture2D)AssetDatabase.LoadAssetAtPath(path, typeof(Texture2D));
-
-            if(meshRenderer.sharedMaterial != null)
-                meshRenderer.sharedMaterial.mainTexture = test;
-
-            int textureheight = meshRenderer.sharedMaterial.mainTexture.height;
-            int texturewidth = meshRenderer.sharedMaterial.mainTexture.width;
-            Vector2 uvSize = new Vector2();
-            float uvScale = 0;
-
-            // Scale UV's to scale input
-            for (int i = 0; i < uvs.Count; i++)
-            {
-                // UVs support a texel density of 2048x2048px to 4'0''x4'0'' 
-                uvs[i] = new Vector2(uvs[i].x * scale, uvs[i].y * scale);
-                if (i == 0)
-                {
-                    uvSize = uvs[i];
-                }
-                else
-                {
-                    if (uvs[i].x > uvs[i - 1].x)
-                        uvSize.x = uvs[i].x;
-                    if (uvs[i].y > uvs[i - 1].y)
-                        uvSize.y = uvs[i].y;
-                }
-            }
-
-            // Calculate tile map to see if it is supported as whole number
-            // Calculate TD and check to make sure it is supported version of 20.48 or other rez
-            uvScale = uvSize.x;
-            double texelDensity = textureheight / 100.0;
-            double tilingValue = uvScale * (texelDensity * 100) / textureheight;
-
-            result.Add(new TexelDensity(texelDensity, tilingValue));
-
-            return result;
-        }
-    }
-
     public static class CharacterValidation
     {
         public static string[] RequiredBones =
@@ -507,6 +262,8 @@ namespace UnityEngine.Perception.Content
                         nose.transform.position = nosePosition;
                         nose.name = "nose";
                         nose.transform.SetParent(child);
+
+                        AddJointLabel(nose);
                     }
 
                     if (earRightPosition != Vector3.zero)
@@ -515,6 +272,8 @@ namespace UnityEngine.Perception.Content
                         earRight.transform.position = earRightPosition;
                         earRight.name = "earRight";
                         earRight.transform.SetParent(child);
+
+                        AddJointLabel(earRight);
                     }
 
                     if (earLeftPosition != Vector3.zero)
@@ -523,6 +282,8 @@ namespace UnityEngine.Perception.Content
                         earLeft.transform.position = earLeftPosition;
                         earLeft.name = "earLeft";
                         earLeft.transform.SetParent(child);
+
+                        AddJointLabel(earLeft);
                     }
                 }
             }
@@ -530,6 +291,15 @@ namespace UnityEngine.Perception.Content
             var model = PrefabUtility.SaveAsPrefabAsset(root, "Assets/" + root.name + ".prefab");
 
             return model;
+        }
+
+        private static void AddJointLabel(GameObject gameObject)
+        {
+            var jointLabel = gameObject.AddComponent<JointLabel>();
+            var data = new JointLabel.TemplateData();
+
+            data.label = gameObject.name;
+            jointLabel.templateInformation.Add(data);
         }
     }
 }

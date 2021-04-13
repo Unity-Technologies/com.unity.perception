@@ -177,8 +177,9 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 if (InstanceIdToColorMapping.TryGetColorFromInstanceId(keypointSet.Key, out var idColor))
                 {
-                    foreach (var keypoint in keypointSet.Value.keypoints)
+                    for (var i = 0; i < keypointSet.Value.keypoints.Length; i++)
                     {
+                        var keypoint = keypointSet.Value.keypoints[i];
                         keypoint.state = DetermineKeypointState(keypoint, idColor, dimensions, data);
 
                         if (keypoint.state == 0)
@@ -191,6 +192,8 @@ namespace UnityEngine.Perception.GroundTruth
                             keypoint.x = math.clamp(keypoint.x, 0, dimensions.width - .001f);
                             keypoint.y = math.clamp(keypoint.y, 0, dimensions.height - .001f);
                         }
+
+                        keypointSet.Value.keypoints[i] = keypoint;
                     }
                 }
             }
@@ -286,7 +289,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// The values of a specific keypoint
         /// </summary>
         [Serializable]
-        public class Keypoint
+        public struct Keypoint
         {
             /// <summary>
             /// The index of the keypoint in the template file
@@ -458,7 +461,18 @@ namespace UnityEngine.Perception.GroundTruth
                     cachedData.keypoints.pose = GetPose(cachedData.animator);
                 }
 
-                m_AsyncAnnotations[m_CurrentFrame].keypoints[labeledEntity.instanceId] = cachedData.keypoints;
+
+                var cachedKeypointEntry = cachedData.keypoints;
+                var keypointEntry = new KeypointEntry()
+                {
+                    instance_id = cachedKeypointEntry.instance_id,
+                    keypoints = cachedKeypointEntry.keypoints.ToArray(),
+                    label_id = cachedKeypointEntry.label_id,
+                    pose = cachedKeypointEntry.pose,
+                    template_guid = cachedKeypointEntry.template_guid
+                };
+                m_AsyncAnnotations[m_CurrentFrame].keypoints[labeledEntity.instanceId] =
+                    /*cachedKeypointEntry;*/ keypointEntry;
             }
         }
 
@@ -506,7 +520,7 @@ namespace UnityEngine.Perception.GroundTruth
             return "unset";
         }
 
-        Keypoint GetKeypointForJoint(KeypointEntry entry, int joint)
+        Keypoint? GetKeypointForJoint(KeypointEntry entry, int joint)
         {
             if (joint < 0 || joint >= entry.keypoints.Length) return null;
             return entry.keypoints[joint];
@@ -530,9 +544,9 @@ namespace UnityEngine.Perception.GroundTruth
                     var joint1 = GetKeypointForJoint(entry, bone.joint1);
                     var joint2 = GetKeypointForJoint(entry, bone.joint2);
 
-                    if (joint1 != null && joint1.state == 2 && joint2 != null && joint2.state == 2)
+                    if (joint1 != null && joint1.Value.state == 2 && joint2 != null && joint2.Value.state == 2)
                     {
-                        VisualizationHelper.DrawLine(joint1.x, joint1.y, joint2.x, joint2.y, bone.color, 8, skeletonTexture);
+                        VisualizationHelper.DrawLine(joint1.Value.x, joint1.Value.y, joint2.Value.x, joint2.Value.y, bone.color, 8, skeletonTexture);
                     }
                 }
 

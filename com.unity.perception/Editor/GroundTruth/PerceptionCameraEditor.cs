@@ -77,7 +77,7 @@ namespace UnityEditor.Perception.GroundTruth
         }
 
         const string k_FrametimeTitle = "Simulation Delta Time";
-
+        const float k_DeltaTimeTooLarge = 200;
         public override void OnInspectorGUI()
         {
             using(new EditorGUI.DisabledScope(EditorApplication.isPlaying))
@@ -93,9 +93,14 @@ namespace UnityEditor.Perception.GroundTruth
                     GUILayout.BeginVertical("TextArea");
                     EditorGUILayout.LabelField("Scheduled Capture Properties", EditorStyles.boldLabel);
 
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.simulationDeltaTime)),new GUIContent(k_FrametimeTitle, $"Sets Unity's Time.{nameof(Time.captureDeltaTime)} to the specified number, causing a fixed number of frames to be simulated for each second of elapsed simulation time regardless of the capabilities of the underlying hardware. Thus, simulation time and real time will not be synchronized."));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.simulationDeltaTime)),new GUIContent(k_FrametimeTitle, $"Sets Unity's Time.{nameof(Time.captureDeltaTime)} to the specified number, causing a fixed number of frames to be simulated for each second of elapsed simulation time regardless of the capabilities of the underlying hardware. Thus, simulation time and real time will not be synchronized. Note that large {k_FrametimeTitle} values will lead to lower performance as the engine will need to simulate longer periods of elapsed time for each rendered frame."));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.firstCaptureFrame)), new GUIContent("Start at Frame",$"Frame number at which this camera starts capturing."));
                     EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(perceptionCamera.framesBetweenCaptures)),new GUIContent("Frames Between Captures", "The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame."));
+
+                    if (perceptionCamera.simulationDeltaTime > k_DeltaTimeTooLarge)
+                    {
+                        EditorGUILayout.HelpBox($"Large {k_FrametimeTitle} values can lead to significantly lower performance due to the processing time needed for simulating a larger period of time for each rendered frame. ", MessageType.Warning);
+                    }
 
                     var interval = (perceptionCamera.framesBetweenCaptures + 1) * perceptionCamera.simulationDeltaTime;
                     var startTime = perceptionCamera.simulationDeltaTime * perceptionCamera.firstCaptureFrame;

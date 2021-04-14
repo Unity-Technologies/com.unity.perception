@@ -99,7 +99,7 @@ namespace UnityEditor.Perception.GroundTruth
 
                     if (perceptionCamera.simulationDeltaTime > k_DeltaTimeTooLarge)
                     {
-                        EditorGUILayout.HelpBox($"Large {k_FrametimeTitle} values can lead to significantly lower performance due to the processing time needed for simulating a larger period of time for each rendered frame. ", MessageType.Warning);
+                        EditorGUILayout.HelpBox($"Large {k_FrametimeTitle} values can lead to significantly lower simulation performance.", MessageType.Warning);
                     }
 
                     var interval = (perceptionCamera.framesBetweenCaptures + 1) * perceptionCamera.simulationDeltaTime;

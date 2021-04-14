@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Known Issues
 
 ### Added
+Added support for 'step' button in editor.
 
 ### Changed
 Increased color variety in instance segmentation images
@@ -23,6 +24,7 @@ The PoissonDiskSampling utility now samples a larger region of points to then cr
 ### Removed
 
 ### Fixed
+Fixed keypoint labeling bug when visualizations are disabled.
 
 ## [0.8.0-preview.3] - 2021-03-24
 ### Changed

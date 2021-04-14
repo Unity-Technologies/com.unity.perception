@@ -452,6 +452,8 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     //When the user clicks the 'step' button in the editor, frames will always progress at .02 seconds per step.
                     //In this case, just run all sensors each frame to allow for debugging
+                    Debug.Log($"Frame step forced all sensors to synchronize, changing frame timings.");
+
                     sensorData.sequenceTimeOfNextRender = UnscaledSequenceTime;
                     sensorData.sequenceTimeOfNextCapture = UnscaledSequenceTime;
                 }

@@ -85,6 +85,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public List<AnimationPoseConfig> animationPoseConfigs;
 
+        private ComputeShader m_KeypointDepthTestShader;
 
 
         /// <inheritdoc/>
@@ -104,6 +105,7 @@ namespace UnityEngine.Perception.GroundTruth
             m_AsyncAnnotations = new Dictionary<int, (AsyncAnnotation, Dictionary<uint, KeypointEntry>)>();
             m_KeypointEntriesToReport = new List<KeypointEntry>();
             m_CurrentFrame = 0;
+            m_KeypointDepthTestShader = (ComputeShader) Resources.Load("KeypointDepthTest");
 
             perceptionCamera.InstanceSegmentationImageReadback += OnInstanceSegmentationImageReadback;
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfoReadback;
@@ -236,6 +238,11 @@ namespace UnityEngine.Perception.GroundTruth
             asyncAnnotation.annotation.ReportValues(m_KeypointEntriesToReport);
         }
 
+        struct KeypointDepthCheckData
+        {
+            private float3 position;
+        }
+
         /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
         protected override void OnEndRendering(ScriptableRenderContext scriptableRenderContext)
@@ -249,6 +256,23 @@ namespace UnityEngine.Perception.GroundTruth
 
             foreach (var label in LabelManager.singleton.registeredLabels)
                 ProcessLabel(label);
+
+            var keypointCount = keypoints.Count * activeTemplate.keypoints.Length;
+
+            var commandBuffer = CommandBufferPool.Get();
+            var depthTexture = Shader.GetGlobalTexture("_CameraDepthTexture");
+            commandBuffer.SetComputeTextureParam(m_KeypointDepthTestShader, 0, "depth", depthTexture);
+
+            var keypointDepthCheckData =
+                new NativeArray<KeypointDepthCheckData>(keypointCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var keypointDataComputeBuffer = new ComputeBuffer(keypointCount, 4, ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+            keypointDataComputeBuffer.SetData(keypointDepthCheckData);
+            var resultsComputeBuffer = new ComputeBuffer(keypointCount, 4, ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+
+            commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "keypoints", keypointDataComputeBuffer);
+            commandBuffer.DispatchCompute(m_KeypointDepthTestShader, 0, keypointCount, 1, 1);
+            scriptableRenderContext.ExecuteCommandBuffer(commandBuffer);
+            CommandBufferPool.Release(commandBuffer);
         }
 
         // ReSharper disable InconsistentNaming

@@ -35,6 +35,8 @@ Fixed an issue where Simulation Delta Time values larger than 100 seconds (in Pe
 
 Fixed an issue where Categorical Parameters sometimes tried to fetch items at `i = categories.Count`, which caused an exception.
 
+Fixed an issue where Simulation Delta Time values larger than 100 seconds (in Perception Camera) would cause incorrect capture scheduling behavior.
+
 ## [0.8.0-preview.3] - 2021-03-24
 ### Changed
 

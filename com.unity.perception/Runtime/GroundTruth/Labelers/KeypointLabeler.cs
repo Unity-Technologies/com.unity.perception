@@ -52,7 +52,7 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_AnnotationDefinition;
         Texture2D m_MissingTexture;
 
-        Dictionary<int, (AsyncAnnotation annotation, Dictionary<uint, KeypointEntry> keypoints)> m_AsyncAnnotations;
+        Dictionary<int, (AsyncAnnotation annotation, List<KeypointEntry> keypoints, List<float> zValues)> m_AsyncAnnotations;
         List<KeypointEntry> m_KeypointEntriesToReport;
 
         int m_CurrentFrame;
@@ -175,11 +175,11 @@ namespace UnityEngine.Perception.GroundTruth
 
             var dimensions = (renderTexture.width, renderTexture.height);
 
-            foreach (var keypointSet in asyncAnnotation.keypoints)
+            foreach (var keypointEntry in asyncAnnotation.keypoints)
             {
-                if (InstanceIdToColorMapping.TryGetColorFromInstanceId(keypointSet.Key, out var idColor))
+                if (InstanceIdToColorMapping.TryGetColorFromInstanceId(keypointEntry.instance_id, out var idColor))
                 {
-                    foreach (var keypoint in keypointSet.Value.keypoints)
+                    foreach (var keypoint in keypointEntry.keypoints)
                     {
                         keypoint.state = DetermineKeypointState(keypoint, idColor, dimensions, data);
 
@@ -208,10 +208,8 @@ namespace UnityEngine.Perception.GroundTruth
             m_KeypointEntriesToReport.Clear();
 
             //filter out objects that are not visible
-            foreach (var keypointSet in asyncAnnotation.keypoints)
+            foreach (var entry in asyncAnnotation.keypoints)
             {
-                var entry = keypointSet.Value;
-
                 var include = false;
                 if (objectFilter == KeypointObjectFilter.All)
                     include = true;
@@ -223,12 +221,12 @@ namespace UnityEngine.Perception.GroundTruth
                         {
                             include = true;
                             break;
-                }
-            }
+                        }
+                    }
 
                     if (!include && objectFilter == KeypointObjectFilter.VisibleAndOccluded)
-                        include = keypointSet.Value.keypoints.Any(k => k.state == 1);
-        }
+                        include = entry.keypoints.Any(k => k.state == 1);
+                }
                 if (include)
                     m_KeypointEntriesToReport.Add(entry);
             }
@@ -240,7 +238,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         struct KeypointDepthCheckData
         {
-            private float3 position;
+            public float3 position;
         }
 
         /// <param name="scriptableRenderContext"></param>
@@ -250,29 +248,50 @@ namespace UnityEngine.Perception.GroundTruth
             m_CurrentFrame = Time.frameCount;
 
             var annotation = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
-            var keypoints = new Dictionary<uint, KeypointEntry>();
+            var keypointEntries = new List<KeypointEntry>();
 
-            m_AsyncAnnotations[m_CurrentFrame] = (annotation, keypoints);
+            m_AsyncAnnotations[m_CurrentFrame] = (annotation, keypointEntries);
 
             foreach (var label in LabelManager.singleton.registeredLabels)
                 ProcessLabel(label);
 
-            var keypointCount = keypoints.Count * activeTemplate.keypoints.Length;
+            var keypointCount = keypointEntries.Count * activeTemplate.keypoints.Length;
 
             var commandBuffer = CommandBufferPool.Get();
             var depthTexture = Shader.GetGlobalTexture("_CameraDepthTexture");
-            commandBuffer.SetComputeTextureParam(m_KeypointDepthTestShader, 0, "depth", depthTexture);
+            commandBuffer.SetComputeTextureParam(m_KeypointDepthTestShader, 0, "DepthBuffer", depthTexture);
 
             var keypointDepthCheckData =
                 new NativeArray<KeypointDepthCheckData>(keypointCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            int index = 0;
+            foreach (var keypointEntry in keypointEntries)
+            {
+                foreach (var keypoint in keypointEntry.keypoints)
+                {
+                    keypointDepthCheckData[index++] = new KeypointDepthCheckData()
+                    {
+                        position = new float3(keypoint.x, keypoint.y)
+                    }
+                }
+            }
+
             var keypointDataComputeBuffer = new ComputeBuffer(keypointCount, 4, ComputeBufferType.Default, ComputeBufferMode.Dynamic);
             keypointDataComputeBuffer.SetData(keypointDepthCheckData);
             var resultsComputeBuffer = new ComputeBuffer(keypointCount, 4, ComputeBufferType.Default, ComputeBufferMode.Dynamic);
 
-            commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "keypoints", keypointDataComputeBuffer);
+            commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "CheckPositions", keypointDataComputeBuffer);
+            commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "CheckResults", resultsComputeBuffer);
             commandBuffer.DispatchCompute(m_KeypointDepthTestShader, 0, keypointCount, 1, 1);
+
+            commandBuffer.RequestAsyncReadback(resultsComputeBuffer, OnDepthCheckReadback);
             scriptableRenderContext.ExecuteCommandBuffer(commandBuffer);
             CommandBufferPool.Release(commandBuffer);
+        }
+
+        private void OnDepthCheckReadback(AsyncGPUReadbackRequest obj)
+        {
+            var data = obj.GetData<uint>();
+
         }
 
         // ReSharper disable InconsistentNaming
@@ -310,7 +329,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// The values of a specific keypoint
         /// </summary>
         [Serializable]
-        public class Keypoint
+        public struct Keypoint
         {
             /// <summary>
             /// The index of the keypoint in the template file
@@ -359,6 +378,7 @@ namespace UnityEngine.Perception.GroundTruth
             public bool status;
             public Animator animator;
             public KeypointEntry keypoints;
+            public List<float> zValues;
             public List<(JointLabel, int)> overrides;
         }
 
@@ -413,7 +433,8 @@ namespace UnityEngine.Perception.GroundTruth
                     status = false,
                     animator = null,
                     keypoints = new KeypointEntry(),
-                    overrides = new List<(JointLabel, int)>()
+                    overrides = new List<(JointLabel, int)>(),
+                    zValues = new List<float>(activeTemplate.keypoints.Length)
                 };
 
                 var entityGameObject = labeledEntity.gameObject;
@@ -463,7 +484,7 @@ namespace UnityEngine.Perception.GroundTruth
                         var bone = animator.GetBoneTransform(pt.rigLabel);
                         if (bone != null)
                         {
-                                InitKeypoint(bone.position, keypoints, i);
+                            InitKeypoint(bone.position, cachedData, i);
                         }
                     }
                 }
@@ -472,7 +493,7 @@ namespace UnityEngine.Perception.GroundTruth
                 // their locations
                 foreach (var (joint, idx) in cachedData.overrides)
                 {
-                        InitKeypoint(joint.transform.position, keypoints, idx);
+                    InitKeypoint(joint.transform.position, cachedData, idx);
                 }
 
                 cachedData.keypoints.pose = "unset";
@@ -482,13 +503,15 @@ namespace UnityEngine.Perception.GroundTruth
                     cachedData.keypoints.pose = GetPose(cachedData.animator);
                 }
 
-                m_AsyncAnnotations[m_CurrentFrame].keypoints[labeledEntity.instanceId] = cachedData.keypoints;
+                m_AsyncAnnotations[m_CurrentFrame].keypoints.Add(cachedData.keypoints);
             }
         }
 
-        private void InitKeypoint(Vector3 position, Keypoint[] keypoints, int idx)
+        private void InitKeypoint(Vector3 position, CachedData cachedData, int idx)
         {
             var loc = ConvertToScreenSpace(position);
+            cachedData.zValues[idx] = position.z;
+            var keypoints = cachedData.keypoints.keypoints;
             keypoints[idx].index = idx;
             if (loc.z < 0)
             {

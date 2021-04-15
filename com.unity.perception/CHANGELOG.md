@@ -24,6 +24,8 @@ The PoissonDiskSampling utility now samples a larger region of points to then cr
 
 ### Fixed
 
+Fixed an issue where Simulation Delta Time values larger than 100 seconds (in Perception Camera) would cause incorrect capture scheduling behavior.
+
 ## [0.8.0-preview.3] - 2021-03-24
 ### Changed
 

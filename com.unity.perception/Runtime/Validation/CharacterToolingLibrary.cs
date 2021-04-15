@@ -149,7 +149,7 @@ namespace UnityEngine.Perception.Content
                         Debug.Log("Found Nose: " + nosePos);
                     }
 
-                    if(nosePos == Vector3.zero)
+                    else if(nosePos == Vector3.zero)
                     {
                         if (distHeadZ < 0.001 && distHeadX < 0.001)
                         {
@@ -297,8 +297,19 @@ namespace UnityEngine.Perception.Content
         {
             var jointLabel = gameObject.AddComponent<JointLabel>();
             var data = new JointLabel.TemplateData();
+            var asset = new Object();
+            var template = AssetDatabase.GetAllAssetPaths().Where(o => o.EndsWith("CocoKeypointTemplate.asset", StringComparison.OrdinalIgnoreCase)).ToList();
+            foreach (string o in template)
+            {
+                if (o.Contains("com.unity.perception"))
+                {
+                    asset = AssetDatabase.LoadAssetAtPath<Object>(o);
+                }
+            }
 
             data.label = gameObject.name;
+            data.template = (KeypointTemplate)asset;
+            jointLabel.templateInformation = new List<JointLabel.TemplateData>();
             jointLabel.templateInformation.Add(data);
         }
     }

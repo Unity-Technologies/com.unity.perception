@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using static UnityEngine.Perception.Content.CharacterValidation;
 using System.Linq;
-using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEngine.Perception.Content
 {

@@ -1,4 +1,4 @@
-<img src="../images/unity-wide.png" align="middle" width="3000"/>
+<img src="../images/unity-wide-whiteback.png" align="middle" width="3000"/>
 
 # Perception Tutorial
 

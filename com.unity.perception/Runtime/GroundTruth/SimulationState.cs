@@ -446,6 +446,18 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 var sensorData = m_Sensors[activeSensor];
 
+#if UNITY_EDITOR
+                if (UnityEditor.EditorApplication.isPaused)
+                {
+                    //When the user clicks the 'step' button in the editor, frames will always progress at .02 seconds per step.
+                    //In this case, just run all sensors each frame to allow for debugging
+                    Debug.Log($"Frame step forced all sensors to synchronize, changing frame timings.");
+
+                    sensorData.sequenceTimeOfNextRender = UnscaledSequenceTime;
+                    sensorData.sequenceTimeOfNextCapture = UnscaledSequenceTime;
+                }
+#endif
+
                 if (Mathf.Abs(sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime) < k_SimulationTimingAccuracy)
                 {
                     //means this frame fulfills this sensor's simulation time requirements, we can move target to next frame.
@@ -459,6 +471,8 @@ namespace UnityEngine.Perception.GroundTruth
                         sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + 1);
                         Debug.Assert(sensorData.sequenceTimeOfNextCapture > UnscaledSequenceTime,
                             $"Next scheduled capture should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeOfNextCapture}");
+                        while (sensorData.sequenceTimeOfNextCapture <= UnscaledSequenceTime)
+                            sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + 1);
                     }
                     else if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Manual))
                     {

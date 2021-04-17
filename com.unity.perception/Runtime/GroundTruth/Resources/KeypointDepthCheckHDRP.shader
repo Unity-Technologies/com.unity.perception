@@ -5,6 +5,7 @@
         _Positions("Positions", 2D) = "defaultTexture" {}
         _KeypointDepth("KeypointDepth", 2D) = "defaultTexture" {}
         _DepthTexture("Depth", 2DArray) = "defaultTexture" {}
+        _DistanceThreshold("Distance Threshold", float) = .1
     }
 
     HLSLINCLUDE
@@ -46,6 +47,8 @@
             SamplerState my_point_clamp_sampler;
             Texture2D _KeypointDepth;
 
+            float _DistanceThreshold;
+
 #if HDRP_ENABLED
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
@@ -57,13 +60,13 @@
                 float4 checkPosition = _Positions.Load(float3(varyings.positionCS.xy, 0));
                 float4 checkDepth = _KeypointDepth.Load(float3(varyings.positionCS.xy, 0));
 
-                float depth = LoadCameraDepth(checkPosition.xy);
+                float depth = LoadCameraDepth(float2(checkPosition.x, _ScreenSize.y - checkPosition.y));
                 depth = LinearEyeDepth(depth, _ZBufferParams);
                 // float depth = UNITY_SAMPLE_TEX2DARRAY(_DepthTexture, float3(checkPosition.xy, 0)).r; //SAMPLE_DEPTH_TEXTURE(_DepthTexture, checkPosition.xy);
                 //float depth_decoded = LinearEyeDepth(depth);
                 // float depth_decoded = Linear01Depth(depth);
-                uint result = depth < checkDepth.x - .001 ? 0 : 1;
-                return float4(result, result, result, result);
+                uint result = depth < checkDepth.x - _DistanceThreshold ? 0 : 1;
+                return float4(result, result, result, 1);
             }
 #else
             /// Dummy Implementation for non HDRP_ENABLED variants

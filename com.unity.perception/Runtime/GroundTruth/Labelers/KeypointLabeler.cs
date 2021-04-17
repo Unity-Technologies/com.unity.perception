@@ -50,6 +50,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// <see cref="KeypointObjectFilter"/>
         /// </summary>
         public KeypointObjectFilter objectFilter;
+        /// <summary>
+        /// The max distance a keypoint can be from the front of an object before it is considered occluded
+        /// </summary>
+        public float distanceThreshold = 0.1f;
         // ReSharper restore MemberCanBePrivate.Global
 
         AnnotationDefinition m_AnnotationDefinition;
@@ -348,6 +352,7 @@ namespace UnityEngine.Perception.GroundTruth
             positionsPixeldata.Dispose();
             depthPixeldata.Dispose();
 
+            m_MaterialDepthCheck.SetFloat("_DistanceThreshold", distanceThreshold);
             m_MaterialDepthCheck.SetTexture("_Positions", keypointPositionsTexture);
             m_MaterialDepthCheck.SetTexture("_KeypointDepth", keypointDepthTexture);
             m_MaterialDepthCheck.SetTexture("_DepthTexture", depthTexture);
@@ -400,7 +405,7 @@ namespace UnityEngine.Perception.GroundTruth
             for (var i = 0; i < totalLength; i++)
             {
                 var value = data[i];
-                if (value.a == 0)
+                if (value.r == 0)
                 {
                     var keypoints = frameKeypointData.keypoints[i / frameKeypointData.pointsPerEntry];
                     var indexInObject = i % frameKeypointData.pointsPerEntry;

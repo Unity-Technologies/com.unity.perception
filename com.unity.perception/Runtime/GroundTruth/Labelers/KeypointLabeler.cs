@@ -4,6 +4,8 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using Unity.Simulation;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -52,6 +54,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         AnnotationDefinition m_AnnotationDefinition;
         Texture2D m_MissingTexture;
+        Material m_MaterialDepthCheck;
 
         struct FrameKeypointData
         {
@@ -98,6 +101,8 @@ namespace UnityEngine.Perception.GroundTruth
         public List<AnimationPoseConfig> animationPoseConfigs;
 
         private ComputeShader m_KeypointDepthTestShader;
+        private RenderTexture m_ResultsBuffer;
+        private RenderTextureReader<Color32> m_DepthCheckReader;
 
 
         /// <inheritdoc/>
@@ -119,6 +124,21 @@ namespace UnityEngine.Perception.GroundTruth
             m_CurrentFrame = 0;
             m_KeypointDepthTestShader = (ComputeShader) Resources.Load("KeypointDepthTest");
 
+            var depthCheckShader = Shader.Find("Perception/KeypointDepthCheck");
+
+            var shaderVariantCollection = new ShaderVariantCollection();
+            shaderVariantCollection.Add(
+                new ShaderVariantCollection.ShaderVariant(depthCheckShader, PassType.ScriptableRenderPipeline, "HDRP_ENABLED"));
+            shaderVariantCollection.WarmUp();
+            m_MaterialDepthCheck = new Material(depthCheckShader);
+            //TODO: URP support
+            m_MaterialDepthCheck.EnableKeyword("HDRP_ENABLED");
+            //TODO: Proper resizing
+            m_ResultsBuffer = new RenderTexture(1024, 1, 0, GraphicsFormat.R8G8B8A8_UNorm);
+            m_DepthCheckReader = new RenderTextureReader<Color32>(m_ResultsBuffer);
+
+            perceptionCamera.attachedCamera.depthTextureMode = DepthTextureMode.Depth;
+
             perceptionCamera.InstanceSegmentationImageReadback += OnInstanceSegmentationImageReadback;
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfoReadback;
         }
@@ -128,9 +148,9 @@ namespace UnityEngine.Perception.GroundTruth
             return lhs.r == rhs.r && lhs.g == rhs.g && lhs.b == rhs.b && lhs.a == rhs.a;
         }
 
-        bool PixelOnScreen(int x, int y, (int x, int y) dimensions)
+        bool PixelOnScreen(int2 pixelLocation, (int x, int y) dimensions)
         {
-            return x >= 0 && x < dimensions.x && y >= 0 && y < dimensions.y;
+            return pixelLocation.x >= 0 && pixelLocation.x < dimensions.x && pixelLocation.y >= 0 && pixelLocation.y < dimensions.y;
         }
 
         bool PixelsMatch(int x, int y, Color32 idColor, (int x, int y) dimensions, NativeArray<Color32> data)
@@ -143,7 +163,8 @@ namespace UnityEngine.Perception.GroundTruth
         static int s_PixelTolerance = 1;
 
         // Determine the state of a keypoint. A keypoint is considered visible (state = 2) if it is on screen and not occluded
-        // by another object. The way that we determine if a point is occluded is by checking the pixel location of the keypoint
+        // by itself or another object. Self-occlusion has already been checked, so the input keypoint may be state 2, 1, or 0.
+        // We determine if a point is occluded by other objects is by checking the pixel location of the keypoint
         // against the instance segmentation mask for the frame. The instance segmentation mask provides the instance id of the
         // visible object at a pixel location. Which means, if the keypoint does not match the visible pixel, then another
         // object is in front of the keypoint occluding it from view. An important note here is that the keypoint is an infintely small
@@ -155,29 +176,36 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (keypoint.state == 0) return 0;
 
-            var centerX = Mathf.FloorToInt(keypoint.x);
-            var centerY = Mathf.FloorToInt(keypoint.y);
+            var pixelLocation = PixelLocationFromScreenPoint(keypoint);
 
-            if (!PixelOnScreen(centerX, centerY, dimensions))
+            if (!PixelOnScreen(pixelLocation, dimensions))
                 return 0;
 
             var pixelMatched = false;
 
-            for (var y = centerY - s_PixelTolerance; y <= centerY + s_PixelTolerance; y++)
+            for (var y = pixelLocation.y - s_PixelTolerance; y <= pixelLocation.y + s_PixelTolerance; y++)
             {
-                for (var x = centerX - s_PixelTolerance; x <= centerX + s_PixelTolerance; x++)
+                for (var x = pixelLocation.x - s_PixelTolerance; x <= pixelLocation.x + s_PixelTolerance; x++)
                 {
-                    if (!PixelOnScreen(x, y, dimensions)) continue;
+                    if (!PixelOnScreen(new int2(x, y), dimensions)) continue;
 
                     pixelMatched = true;
                     if (PixelsMatch(x, y, instanceIdColor, dimensions, data))
                     {
-                        return 2;
+                        return keypoint.state;
                     }
                 }
             }
 
             return pixelMatched ? 1 : 0;
+        }
+
+        private static int2 PixelLocationFromScreenPoint(Keypoint keypoint)
+        {
+            var centerX = Mathf.FloorToInt(keypoint.x);
+            var centerY = Mathf.FloorToInt(keypoint.y);
+            int2 pixelLocation = new int2(centerX, centerY);
+            return pixelLocation;
         }
 
         void OnInstanceSegmentationImageReadback(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)
@@ -272,13 +300,11 @@ namespace UnityEngine.Perception.GroundTruth
 
             var annotation = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
             var keypointEntries = new List<KeypointEntry>();
-            var positions = new NativeList<float3>(512, Allocator.Persistent);
+            //uint4 so that we can fill a 4 channel texture with this data
+            var positions = new NativeList<uint4>(512, Allocator.Persistent);
 
             foreach (var label in LabelManager.singleton.registeredLabels)
                 ProcessLabel(label, keypointEntries, positions);
-
-            if (keypointEntries.Count != 0)
-                DoDepthCheck(scriptableRenderContext, keypointEntries, positions);
 
             m_FrameKeypointData[m_CurrentFrame] = new FrameKeypointData
             {
@@ -286,43 +312,95 @@ namespace UnityEngine.Perception.GroundTruth
                 keypoints = keypointEntries,
                 pointsPerEntry = activeTemplate.keypoints.Length
             };
+
+            if (keypointEntries.Count != 0)
+                DoDepthCheck(scriptableRenderContext, keypointEntries, positions);
+
+            positions.Dispose();
         }
 
-        private void DoDepthCheck(ScriptableRenderContext scriptableRenderContext, List<KeypointEntry> keypointEntries, NativeList<float3> positions)
+        private void DoDepthCheck(ScriptableRenderContext scriptableRenderContext, List<KeypointEntry> keypointEntries, NativeList<uint4> positions)
         {
             var keypointCount = keypointEntries.Count * activeTemplate.keypoints.Length;
 
-            var commandBuffer = CommandBufferPool.Get();
+            var commandBuffer = CommandBufferPool.Get("KeypointDepthCheck");
+
+            var keypointPositionsTexture = new Texture2D(keypointCount, 1, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
+            var keypointDepthTexture = new Texture2D(keypointCount, 1, GraphicsFormat.R16_SFloat, TextureCreationFlags.None);
+
+            var positionsPixeldata = new NativeArray<half>(positions.Length * 2, Allocator.Temp);
+            var depthPixeldata = new NativeArray<half>(positions.Length, Allocator.Temp);
             var depthTexture = Shader.GetGlobalTexture("_CameraDepthTexture");
-            commandBuffer.SetComputeTextureParam(m_KeypointDepthTestShader, 0, "DepthBuffer", depthTexture);
 
-            var positionSize = UnsafeUtility.SizeOf<float3>();
-            var keypointPositionsBuffer = new ComputeBuffer(keypointCount * positionSize, positionSize,
-                ComputeBufferType.Default, ComputeBufferMode.Dynamic);
-            keypointPositionsBuffer.SetData(positions.AsArray());
+            for (int i = 0; i < positions.Length; i++)
+            {
+                var pos = positions[i];
+                positionsPixeldata[i * 2] = new half(pos.x/* / (float)depthTexture.width*/);
+                positionsPixeldata[i * 2 + 1] = new half(pos.y/* / (float)depthTexture.height*/);
+                depthPixeldata[i] = new half(pos.z / 100.0f);
+            }
 
-            var resultsComputeBuffer =
-                new ComputeBuffer(keypointCount, 4, ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+            keypointPositionsTexture.SetPixelData(positionsPixeldata, 0);
+            keypointPositionsTexture.Apply();
+            keypointDepthTexture.SetPixelData(depthPixeldata, 0);
+            keypointDepthTexture.Apply();
 
-            commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "CheckPositions", keypointPositionsBuffer);
-            commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "CheckResults", resultsComputeBuffer);
-            commandBuffer.DispatchCompute(m_KeypointDepthTestShader, 0, keypointCount, 1, 1);
+            positionsPixeldata.Dispose();
+            depthPixeldata.Dispose();
 
-            var currentFrame = Time.frameCount;
-            commandBuffer.RequestAsyncReadback(resultsComputeBuffer, request => OnDepthCheckReadback(currentFrame, request));
+            m_MaterialDepthCheck.SetTexture("_Positions", keypointPositionsTexture);
+            m_MaterialDepthCheck.SetTexture("_KeypointDepth", keypointDepthTexture);
+            m_MaterialDepthCheck.SetTexture("_DepthTexture", depthTexture);
+
+            commandBuffer.Blit(null, m_ResultsBuffer, m_MaterialDepthCheck);
+
+
+            // var resultsComputeBuffer =
+            //     new ComputeBuffer(keypointCount, 4, ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+            // var depthTexture = Shader.GetGlobalTexture("_CameraDepthTexture");
+            // var positionSize = UnsafeUtility.SizeOf<float3>();
+            // commandBuffer.SetComputeTextureParam(m_KeypointDepthTestShader, 0, "DepthBuffer", depthTexture);
+            //
+            // var positionSize = UnsafeUtility.SizeOf<float3>();
+            // var keypointPositionsBuffer = new ComputeBuffer(keypointCount * positionSize, positionSize,
+            //     ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+            // keypointPositionsBuffer.SetData(positions.AsArray());
+            //
+            // var resultsComputeBuffer =
+            //     new ComputeBuffer(keypointCount, 4, ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+            //
+            // commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "CheckPositions", keypointPositionsBuffer);
+            // commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "CheckResults", resultsComputeBuffer);
+            // commandBuffer.DispatchCompute(m_KeypointDepthTestShader, 0, keypointCount, 1, 1);
+            //
+            // commandBuffer.RequestAsyncReadback(resultsComputeBuffer, request => OnDepthCheckReadback(currentFrame, request));
+
             scriptableRenderContext.ExecuteCommandBuffer(commandBuffer);
             scriptableRenderContext.Submit();
             CommandBufferPool.Release(commandBuffer);
+            m_DepthCheckReader.Capture(scriptableRenderContext, OnDepthCheckReadback);
+        }
+
+        private void OnDepthCheckReadback(int frame, NativeArray<Color32> data, RenderTexture renderTexture)
+        {
+            DoDepthCheckReadback(frame, data);
         }
 
         private void OnDepthCheckReadback(int frameCount, AsyncGPUReadbackRequest obj)
         {
-            var frameKeypointData = m_FrameKeypointData[frameCount];
             var data = obj.GetData<uint>();
-            for (var i = 0; i < data.Length; i++)
+            //DoDepthCheckReadback(frameCount, data);
+        }
+
+        private void DoDepthCheckReadback(int frameCount, NativeArray<Color32> data)
+        {
+            var frameKeypointData = m_FrameKeypointData[frameCount];
+            var totalLength = frameKeypointData.pointsPerEntry * frameKeypointData.keypoints.Count;
+            Debug.Assert(totalLength < data.Length);
+            for (var i = 0; i < totalLength; i++)
             {
                 var value = data[i];
-                if (value == 0)
+                if (value.a == 0)
                 {
                     var keypoints = frameKeypointData.keypoints[i / frameKeypointData.pointsPerEntry];
                     var indexInObject = i % frameKeypointData.pointsPerEntry;
@@ -331,6 +409,7 @@ namespace UnityEngine.Perception.GroundTruth
                     keypoints.keypoints[indexInObject] = keypoint;
                 }
             }
+
             frameKeypointData.isDepthCheckComplete = true;
             m_FrameKeypointData[frameCount] = frameKeypointData;
             ReportIfComplete(frameCount, frameKeypointData);
@@ -460,7 +539,7 @@ namespace UnityEngine.Perception.GroundTruth
             return false;
         }
 
-        void ProcessLabel(Labeling labeledEntity, List<KeypointEntry> keypointEntries, NativeList<float3> positions)
+        void ProcessLabel(Labeling labeledEntity, List<KeypointEntry> keypointEntries, NativeList<uint4> positions)
         {
             if (!idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
                 return;
@@ -517,7 +596,7 @@ namespace UnityEngine.Perception.GroundTruth
                 var listStart = positions.Length;
                 positions.Resize(positions.Length + activeTemplate.keypoints.Length, NativeArrayOptions.ClearMemory);
                 //grab the slice of the list for the current object to assign positions in
-                var positionsSlice = new NativeSlice<float3>(positions, listStart);
+                var positionsSlice = new NativeSlice<uint4>(positions, listStart);
 
                 // Go through all of the rig keypoints and get their location
                 for (var i = 0; i < activeTemplate.keypoints.Length; i++)
@@ -560,10 +639,10 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        private void InitKeypoint(Vector3 position, CachedData cachedData, NativeSlice<float3> positions, int idx)
+        private void InitKeypoint(Vector3 position, CachedData cachedData, NativeSlice<uint4> positions, int idx)
         {
             var loc = ConvertToScreenSpace(position);
-            positions[idx] = position;
+
             var keypoints = cachedData.keypoints.keypoints;
             keypoints[idx].index = idx;
             if (loc.z < 0)
@@ -578,6 +657,17 @@ namespace UnityEngine.Perception.GroundTruth
                 keypoints[idx].y = loc.y;
                 keypoints[idx].state = 2;
             }
+
+            //TODO: move this code
+            uint2 dimensions = new uint2((uint)perceptionCamera.attachedCamera.pixelWidth, (uint)perceptionCamera.attachedCamera.pixelHeight);
+            var pixelLocation = PixelLocationFromScreenPoint(keypoints[idx]);
+            if (pixelLocation.x < 0 || pixelLocation.y < 0)
+            {
+                pixelLocation = new int2(int.MaxValue, int.MaxValue);
+            }
+
+            //TODO: Fix up the z computation
+            positions[idx] = new uint4((uint)pixelLocation.x, (uint)pixelLocation.y, (uint)(loc.z * 100), 1);
         }
 
         string GetPose(Animator animator)

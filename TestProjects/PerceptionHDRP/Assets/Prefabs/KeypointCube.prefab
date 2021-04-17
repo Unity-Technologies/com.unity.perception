@@ -437,7 +437,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   labels:
-  - Crate
+  - Crate24
   useAutoLabeling: 0
   autoLabelingSchemeType: 
 --- !u!1 &3710685715225028277

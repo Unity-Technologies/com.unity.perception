@@ -1,0 +1,17 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+
+StructuredBuffer<float3> CheckPositions;
+Texture3D<float4> DepthBuffer;
+RWStructuredBuffer<uint> CheckResults;
+
+[numthreads(16,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float3 checkPosition = CheckPositions[id.x];
+    uint result = DepthBuffer[float3(checkPosition.x, checkPosition.y, 0)] < checkPosition.z - .001 ? 0 : 1;
+    CheckResults[id.x] = result;
+}

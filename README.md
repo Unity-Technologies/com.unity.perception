@@ -1,4 +1,4 @@
-<img src="com.unity.perception/Documentation~/images/unity-wide.png" align="middle" width="3000"/>
+<img src="com.unity.perception/Documentation~/images/unity-wide-whiteback.png" align="middle" width="3000"/>
 
 <img src="com.unity.perception/Documentation~/images/banner2.PNG" align="middle"/>
 

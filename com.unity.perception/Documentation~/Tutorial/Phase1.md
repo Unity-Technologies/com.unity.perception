@@ -124,25 +124,25 @@ If you hover your mouse pointer over each of the fields shown (e.g. `Simulation 
 
 As seen in the UI for `Perception Camera`, the list of `Camera Labelers` is currently empty. For each type of ground-truth you wish to generate along-side your captured frames (e.g. 2D bounding boxes around objects), you will need to add a corresponding `Camera Labeler` to this list. 
 
-To speed-up your workflow, the Perception package comes with five common labelers for object-detection tasks; however, if you are comfortable with code, you can also add your own custom labelers. The labelers that come with the Perception package cover **3D bounding boxes, 2D bounding boxes, object counts, object information (pixel counts and ids), and semantic segmentation images (each object rendered in a unique colour)**. We will use four of these in this tutorial.
+To speed-up your workflow, the Perception package comes with seven common Labelers for object-detection and human keypoint labeling tasks; however, if you are comfortable with code, you can also add your own custom Labelers. The Labelers that come with the Perception package cover **keypoint labeling, 3D bounding boxes, 2D bounding boxes, object counts, object information (pixel counts and ids), instance segmentation, and semantic segmentation**. We will use four of these in this tutorial.
 
 * **:green_circle: Action**: Click on the _**+**_ button at the bottom right corner of the empty labeler list and select `BoundingBox2DLabeler`.
 * **:green_circle: Action**: Repeat the above step to add `ObjectCountLabeler`, `RenderedObjectInfoLabeler`, `SemanticSegmentationLabeler`. 
 
-Once you add the labelers, the _**Inspector**_ view of the `Perception Camera` component will look like this:
+Once you add the Labelers, the _**Inspector**_ view of the `Perception Camera` component will look like this:
 
 <p align="center">
 <img src="Images/pc_labelers_added.png" width="400"/>
 </p>
 
 
-One of the useful features that comes with the `Perception Camera` component is the ability to display real-time visualizations of the labelers when your simulation is running. For instance, `BoundingBox2DLabeler` can display two-dimensional bounding boxes around the foreground objects that it tracks in real-time and `SemanticSegmentationLabeler` displays the semantic segmentation image overlaid on top of the camera's view. To enable this feature, make sure the `Show Labeler Visualizations` checkmark is enabled. 
+One of the useful features that comes with the `Perception Camera` component is the ability to display real-time visualizations of the Labelers when your simulation is running. For instance, `BoundingBox2DLabeler` can display two-dimensional bounding boxes around the foreground objects that it tracks in real-time and `SemanticSegmentationLabeler` displays the semantic segmentation image overlaid on top of the camera's view. To enable this feature, make sure the `Show Labeler Visualizations` checkmark is enabled. 
 
 ### <a name="step-4">Step 4: Specify Ground-Truth and Set Up Object Labels</a> 
 
-It is now time to tell each labeler added to the `Perception Camera` which objects it should label in the generated dataset. For instance, if your workflow is intended for generating frames and ground-truth for detecting chairs, your labelers would need to know that they should look for objects labeled "chair" within the scene. The chairs should in turn also be labeled "chair" in order to make them visible to the labelers. We will now learn how to set up these configurations.
+It is now time to tell each Labeler added to the `Perception Camera` which objects it should label in the generated dataset. For instance, if your workflow is intended for generating frames and ground-truth for detecting chairs, your Labelers would need to know that they should look for objects labeled "chair" within the scene. The chairs should in turn also be labeled "chair" in order to make them visible to the Labelers. We will now learn how to set up these configurations.
 
-You will notice each added labeler has a `Label Config` field. By adding a label configuration here you can instruct the labeler to look for certain labels within the scene and ignore the rest. To do that, we should first create label configurations.
+You will notice each added Labeler has a `Label Config` field. By adding a label configuration here you can instruct the Labeler to look for certain labels within the scene and ignore the rest. To do that, we should first create label configurations.
 
 * **:green_circle: Action**: In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Id Label Config**_.
 
@@ -158,9 +158,9 @@ The label configuration we have created (`TutorialIdLabelConfig`) is of type `Id
 
 * **:green_circle: Action**: In the _**Project**_ tab, right-click the `Assets` folder, then click _**Create -> Perception -> Semantic Segmentation Label Config**_. Name this asset `TutorialSemanticSegmentationLabelConfig`.
 
-Now that you have created your label configurations, we need to assign them to labelers that you previously added to your `Perception Camera` component. 
+Now that you have created your label configurations, we need to assign them to Labelers that you previously added to your `Perception Camera` component. 
 
-* **:green_circle: Action**: Select the `Main Camera` object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to the first three labelers. To do so, you can either drag and drop the former into the corresponding fields for each labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. Assign `TutorialSemanticSegmentationLabelConfig` to the fourth labeler. The `Perception Camera` component will now look like the image below:
+* **:green_circle: Action**: Select the `Main Camera` object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to the first three Labelers. To do so, you can either drag and drop the former into the corresponding fields for each Labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. Assign `TutorialSemanticSegmentationLabelConfig` to the fourth Labeler. The `Perception Camera` component will now look like the image below:
 
 <p align="center">
 <img src="Images/pclabelconfigsadded.png" width="400"/>
@@ -181,7 +181,7 @@ When you open the Prefab asset, you will see the object shown in the Scene tab a
 
 The Prefab contains a number of components, including a `Transform`, a `Mesh Filter`, a `Mesh Renderer` and a `Labeling` component (highlighted in the image above). While the first three of these are common Unity components, the fourth one is specific to the Perception package, and is used for assigning labels to objects. You can see here that the Prefab has one label already added, displayed in the list of `Added Labels`. The UI here provides a multitude of ways for you to assign labels to the object. You can either choose to have the asset automatically labeled (by enabling `Use Automatic Labeling`), or add labels manually. In case of automatic labeling, you can choose from a number of labeling schemes, e.g. the asset's name or folder name. If you go the manual route, you can type in labels, add labels from any of the label configurations included in the project, or add from lists of suggested labels based on the Prefab's name and path. 
 
-Note that each object can have multiple labels assigned, and thus appear as different objects to labelers with different label configurations. For instance, you may want your semantic segmentation labeler to detect all cream cartons as `dairy_product`, while your bounding box labeler still distinguishes between different types of dairy product. To achieve this, you can add a `dairy_product` label to all your dairy products, and then in your label configuration for semantic segmentation, only add the `dairy_product` label, and not any specific products or brand names.
+Note that each object can have multiple labels assigned, and thus appear as different objects to Labelers with different label configurations. For instance, you may want your semantic segmentation Labeler to detect all cream cartons as `dairy_product`, while your bounding box Labeler still distinguishes between different types of dairy product. To achieve this, you can add a `dairy_product` label to all your dairy products, and then in your label configuration for semantic segmentation, only add the `dairy_product` label, and not any specific products or brand names.
 
 For this tutorial, we have already prepared the foreground Prefabs for you and added the `Labeling` component to all of them. These Prefabs were based on 3D scans of the actual grocery items. If you are making your own Prefabs, you can easily add a `Labeling` component to them using the _**Add Component**_ button visible in the bottom right corner of the screenshot above.
 
@@ -215,7 +215,7 @@ Here, you can also open either of the configurations by clicking the _**Open**_ 
 <img src="Images/labelconfigs.png" width="800"/>
 </p>
 
-> :information_source: Since we used automatic labels here and added them to our configurations, we are confident that the labels in the configurations match the labels of our objects. In cases where you decide to add manual labels to objects and configurations, make sure you use the exact same labels, otherwise, the objects for which a matching label is not found in your configurations will not be detected by the labelers that are using those configurations.
+> :information_source: Since we used automatic labels here and added them to our configurations, we are confident that the labels in the configurations match the labels of our objects. In cases where you decide to add manual labels to objects and configurations, make sure you use the exact same labels, otherwise, the objects for which a matching label is not found in your configurations will not be detected by the Labelers that are using those configurations.
 
 Now that we have labelled all our foreground objects and setup our label configurations, let's briefly test things.
 
@@ -285,9 +285,9 @@ When the simulation starts running, Unity Editor will switch to the _**Game**_ t
 <img src="Images/first_run.png" width = "700"/>
 </p>
 
-In this view, you will also see the real-time visualizations we discussed before shown on top of the camera's view. In the top right corner of the window, you can see a visualization control panel, through which you can enable or disable visualizations for individual labelers. That said, we currently have no foreground objects in the Scene yet, so no bounding boxes or semantic segmentation overlays will be displayed.
+In this view, you will also see the real-time visualizations we discussed before shown on top of the camera's view. In the top right corner of the window, you can see a visualization control panel, through which you can enable or disable visualizations for individual Labelers. That said, we currently have no foreground objects in the Scene yet, so no bounding boxes or semantic segmentation overlays will be displayed.
 
-Note that disabling visualizations for a labeler does not affect your generated data. The annotations from all labelers that are active before running the simulation will continue to be recorded and will appear in the output data.
+Note that disabling visualizations for a Labeler does not affect your generated data. The annotations from all Labelers that are active before running the simulation will continue to be recorded and will appear in the output data.
 
 To generate data as fast as possible, the simulation utilizes asynchronous processing to churn through frames quickly, rearranging and randomizing the objects in each frame. To be able to check out individual frames and inspect the real-time visualizations, click on the pause button (next to play). You can also switch back to the Scene view to be able to inspect each object individually. For performance reasons, it is recommended to disable visualizations altogether (from the _**Inspector**_ view of `Perception Camera`) once you are ready to generate a large dataset.
 
@@ -386,10 +386,10 @@ In this folder, you will find a few types of data, depending on your `Perception
 - RGB images (raw camera output) (if the `Save Camera Output to Disk` check mark is enabled on `Perception Camera`)
 - Semantic segmentation images (if the `SemanticSegmentationLabeler` is added and active on `Perception Camera`)
 
-The output dataset includes a variety of information about different aspects of the active sensors in the Scene (currently only one), as well as the ground-truth generated by all active labelers. [This page](https://github.com/Unity-Technologies/com.unity.perception/blob/master/com.unity.perception/Documentation%7E/Schema/Synthetic_Dataset_Schema.md) provides a comprehensive explanation on the schema of this dataset. We strongly recommend having a look at the page once you have completed this tutorial.
+The output dataset includes a variety of information about different aspects of the active sensors in the Scene (currently only one), as well as the ground-truth generated by all active Labelers. [This page](https://github.com/Unity-Technologies/com.unity.perception/blob/master/com.unity.perception/Documentation%7E/Schema/Synthetic_Dataset_Schema.md) provides a comprehensive explanation on the schema of this dataset. We strongly recommend having a look at the page once you have completed this tutorial.
 
 * **:green_circle: Action**: To get a quick feel of how the data is stored, open the folder whose name starts with `Dataset`, then open the file named `captures_000.json`. This file contains the output from `BoundingBox2DLabeler`. The `captures` array contains the position and rotation of the sensor (camera), the position and rotation of the ego (sensor group, currently only one), and the annotations made by `BoundingBox2DLabeler` for all visible objects defined in its label configuration. For each visible object, the annotations include:
-* `label_id`: The numerical id assigned to this object's label in the labeler's label configuration
+* `label_id`: The numerical id assigned to this object's label in the Labeler's label configuration
 * `label_name`: The object's label, e.g. `candy_minipralines_lindt`
 * `instance_id`: Unique instance id of the object
 * `x` and `y`: Pixel coordinates of the top-left corner of the object's bounding box (measured from the top-left corner of the image)

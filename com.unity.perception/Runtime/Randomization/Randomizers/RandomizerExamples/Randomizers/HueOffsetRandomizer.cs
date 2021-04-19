@@ -15,8 +15,9 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
         static readonly int k_HueOffsetShaderProperty = Shader.PropertyToID("_HueOffset");
 
         /// <summary>
-        /// The range of hue offsets to assign to tagged objects
+        /// The range of random hue offsets to assign to target objects
         /// </summary>
+        [Tooltip("The range of random hue offsets to assign to target objects.")]
         public FloatParameter hueOffset = new FloatParameter { value = new UniformSampler(-180f, 180f) };
 
         /// <summary>

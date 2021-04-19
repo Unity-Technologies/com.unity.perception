@@ -200,11 +200,20 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 label_name = l.label,
                 pixel_value = l.color
-            }).ToArray();
+            });
+
+            if (labelConfig.skyColor != Color.black)
+            {
+                specs = specs.Append(new SemanticSegmentationSpec()
+                {
+                    label_name = "sky",
+                    pixel_value = labelConfig.skyColor
+                });
+            }
 
             m_SemanticSegmentationAnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition(
                 "semantic segmentation",
-                specs,
+                specs.ToArray(),
                 "pixel-wise semantic segmentation label",
                 "PNG",
                 id: Guid.Parse(annotationId));

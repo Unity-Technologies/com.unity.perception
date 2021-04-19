@@ -36,6 +36,11 @@
             "name": "com.unity.simulation.capture",
             "expression": "0.0.10-preview.16",
             "define": "SIMULATION_CAPTURE_0_0_10_PREVIEW_16_OR_NEWER"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "9.0",
+            "define": "HDRP_9_OR_NEWER"
         }
     ],
     "noEngineReferences": false

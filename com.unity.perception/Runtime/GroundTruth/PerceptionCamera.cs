@@ -533,10 +533,7 @@ namespace UnityEngine.Perception.GroundTruth
             // Ignore the subsequent calls.
             if (lastFrameCalledThisCallback == Time.frameCount)
                 return false;
-#if UNITY_EDITOR
-            if (UnityEditor.EditorApplication.isPaused)
-                return false;
-#endif
+
             return true;
         }
 

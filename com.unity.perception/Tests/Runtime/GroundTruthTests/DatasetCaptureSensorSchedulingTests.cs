@@ -299,6 +299,39 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
+        [TestCase(1, 0, 0, 1, 2, 3, ExpectedResult = (IEnumerator)null)]
+        [TestCase(10, 5, 50, 60, 70, 80, ExpectedResult = (IEnumerator)null)]
+        [TestCase(55, 0, 0, 55, 110, 165, ExpectedResult = (IEnumerator)null)]
+        [TestCase(235, 10, 2350, 2585, 2820, 3055, ExpectedResult = (IEnumerator)null)]
+        public IEnumerator SequenceTimeOfNextCapture_ReportsCorrectTime_VariedDeltaTimesAndStartFrames(float simulationDeltaTime, int firstCaptureFrame, float firstCaptureTime, float secondCaptureTime, float thirdCaptureTime, float fourthCaptureTime)
+        {
+            var ego = DatasetCapture.RegisterEgo("ego");
+            var sensorHandle = DatasetCapture.RegisterSensor(ego, "cam", "", firstCaptureFrame, CaptureTriggerMode.Scheduled, simulationDeltaTime, 0);
+
+            float[] sequenceTimesExpected =
+            {
+                firstCaptureTime,
+                secondCaptureTime,
+                thirdCaptureTime,
+                fourthCaptureTime
+            };
+
+            for (var i = 0; i < firstCaptureFrame; i++)
+            {
+                //render the non-captured frames before firstCaptureFrame
+                yield return null;
+            }
+
+            for (var i = 0; i < sequenceTimesExpected.Length; i++)
+            {
+                var sensorData = m_TestHelper.GetSensorData(sensorHandle);
+                var sequenceTimeActual = m_TestHelper.CallSequenceTimeOfNextCapture(sensorData);
+                Assert.AreEqual(sequenceTimesExpected[i], sequenceTimeActual, 0.0001f);
+                yield return null;
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SequenceTimeOfManualCapture_ReportsCorrectTime_ManualSensorDoesNotAffectTimings()
         {
             var ego = DatasetCapture.RegisterEgo("ego");

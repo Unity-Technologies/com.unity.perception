@@ -12,14 +12,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Known Issues
 
 ### Added
+Added support for 'step' button in editor.
 
 ### Changed
+Increased color variety in instance segmentation images
+
+The PoissonDiskSampling utility now samples a larger region of points to then crop to size of the intended region to prevent edge case bias.
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+Fixed keypoint labeling bug when visualizations are disabled.
+
+Fixed an issue where Simulation Delta Time values larger than 100 seconds (in Perception Camera) would cause incorrect capture scheduling behavior.
+
+## [0.8.0-preview.3] - 2021-03-24
+### Changed
+
+Expanded documentation on the Keypoint Labeler
+Updated Keypoint Labeler logic to only report keypoints for visible objects by default
+Increased color variety in instance segmentation images
+
+### Fixed
+
+Fixed compiler warnings in projects with HDRP on 2020.1 and later
+
+Fixed a bug in the Normal Sampler where it would return values less than the passed in minimum value, or greater than the passed in maximum value, for random values very close to 0 or 1 respectively.
+
 
 ## [0.8.0-preview.2] - 2021-03-15
 

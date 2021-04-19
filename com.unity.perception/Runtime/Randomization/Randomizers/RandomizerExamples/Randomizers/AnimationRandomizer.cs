@@ -20,6 +20,9 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
 
         void RandomizeAnimation(AnimationRandomizerTag tag)
         {
+            if (!tag.gameObject.activeInHierarchy)
+                return;
+
             var animator = tag.gameObject.GetComponent<Animator>();
             animator.applyRootMotion = tag.applyRootMotion;
 

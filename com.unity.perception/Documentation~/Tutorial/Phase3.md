@@ -51,8 +51,6 @@ If you have used Unity before, you might have set up multiple organizations for 
 
 The process of running a project on Unity Simulation involves building it for Linux and then uploading this build, along with a set of parameters, to Unity Simulation. The Perception package simplifies this process by including a dedicated _**Run in Unity Simulation**_ window that accepts a small number of required parameters and handles everything else automatically.
 
-For performance reasons, it is best to disable real-time visualizations before carrying on with the Unity Simulation run. 
-
 * **:green_circle: Action**: From the _**Inspector**_ view of `Perception Camera`, disable real-time visualizations.
 
 In order to make sure our builds are compatible with Unity Simulation, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_ (if not already set). We will also need to switch to _**Windowed**_ mode.
@@ -77,7 +75,7 @@ In order to make sure our builds are compatible with Unity Simulation, we need t
 <img src="Images/runinusim.png" width="600"/>
 </p>
 
-Here, you can also specify a name for the run, the number of Iterations the Scenario will execute for, and the number of _**Instances**_ (number of nodes the work will be distributed across) for the run. This window automatically picks the currently active Scene and Scenario to run in Unity Simulation.
+Here, you can specify a name for the run, the number of Iterations the Scenario will execute for, and the number of Instances (number of nodes the work will be distributed across) for the run. This window automatically picks the currently active Scene and Scenario to run in Unity Simulation.
 
 * **:green_circle: Action**: Name your run `FirstRun`, set the number of Iterations to `1000`, and Instances to `20`. 
 * **:green_circle: Action**: Click _**Build and Run**_.
@@ -86,7 +84,7 @@ Here, you can also specify a name for the run, the number of Iterations the Scen
 
 Your project will now be built and then uploaded to Unity Simulation and run. This may take a few minutes to complete, during which the editor may become frozen; this is normal behaviour.
 
-* **:green_circle: Action**: Once the operation is complete, you can find the **Execution ID** of this Unity Simulation run in the **Console** tab and the ***Run in Unity Simulation** Window: 
+* **:green_circle: Action**: Once the operation is complete, you can find the **Execution ID** of this Unity Simulation run in the **Console** tab and the ***Run in Unity Simulation*** Window: 
 
 <p align="center">
 <img src="Images/build_uploaded.png" width="600"/>
@@ -221,18 +219,18 @@ MacOS:
 <!--Windows:
 `USimCLI\windows\usim summarize run-execution <execution-id>`-->
 
-Here is an example output of this command, indicating that there is only one node, and that the node is still in progress:
+Here is an example output of this command, indicating that there are 20 nodes, and that they are all still in progress:
 
 ```
  state         count 
 ------------- -------
  Successes     0     
- In Progress   1     
+ In Progress   20     
  Failures      0     
  Not Run       0    
  ```
 
- At this point, we will need to wait until the execution is complete. Check your run with the above command periodically until you see a 1 for `Successes` and 0 for `In Progress`.
+ At this point, we will need to wait until the execution is complete. Check your run with the above command periodically until you see a 20 for `Successes` and 0 for `In Progress`.
  Given the relatively small size of our Scenario (1,000 Iterations), this should take less than 5 minutes.
 
  * **:green_circle: Action**: Use the `usim summarize run-execution <execution-id>` command periodically to check the progress of your run.
@@ -242,7 +240,7 @@ Here is an example output of this command, indicating that there is only one nod
  `USimCLI/mac/usim download manifest <execution-id>`
 
  The manifest is a `.csv` formatted file and will be downloaded to the same location from which you execute the above command, which is the `unity_simulation_bundle` folder.
- This file does **not**** include actual data, rather, it includes links to the generated data, including the JSON files, the logs, the images, and so on.
+ This file does **not** include actual data, rather, it includes links to the generated data, including the JSON files, the logs, the images, and so on.
  
  * **:green_circle: Action**: Open the manifest file to check it. Make sure there are links to various types of output and check a few of the links to see if they work.
 

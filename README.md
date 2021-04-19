@@ -1,10 +1,13 @@
-<img src="com.unity.perception/Documentation~/images/unity-wide.png" align="middle" width="3000"/>
+<img src="com.unity.perception/Documentation~/images/unity-wide-whiteback.png" align="middle" width="3000"/>
 
 <img src="com.unity.perception/Documentation~/images/banner2.PNG" align="middle"/>
 
 ![ReleaseBadge](https://badge-proxy.cds.internal.unity3d.com/5ab9a162-9dd0-4ba1-ba41-cf25378a927a)
 
 [![license badge](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
+
+<img src="https://img.shields.io/badge/unity-2019.4-green.svg?style=flat-square" alt="unity 2019.4">
+<img src="https://img.shields.io/badge/unity-2020.2-green.svg?style=flat-square" alt="unity 2020.2">
 
 > com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.
 
@@ -50,6 +53,12 @@ In-depth documentation on individual components of the package.
 
 The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how the Perception package could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
 
+
+### Robotics Object Pose Estimation Demo
+<img src="com.unity.perception/Documentation~/images/robotics_pose.png"/>
+
+The [Robotics Object Pose Estimation Demo & Tutorial](https://github.com/Unity-Technologies/Robotics-Object-Pose-Estimation) demonstrates pick-and-place with a robot arm in Unity. It includes using ROS with Unity, importing URDF models, collecting labeled training data using the Perception package, and training and deploying a deep learning model.
+
 ## Local development
 The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP.
 
@@ -64,11 +73,11 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 ## License
 * [License](com.unity.perception/LICENSE.md)
 
-## Support 
+## Community and Feedback
 
-For general questions or concerns please contact the Computer Vision team at computer-vision@unity3d.com.
+For setup problems or discussions about leveraging the Perception package in your project, please create a new thread on the [Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/) and make sure to include as much detail as possible. If you run into any other problems with the Perception package or have a specific feature request, please submit a [GitHub issue](https://github.com/Unity-Technologies/com.unity.perception/issues).
 
-For feedback, bugs, or other issues please file a GitHub issue and the Computer Vision team will investigate the issue as soon as possible.
+For any other questions or feedback, connect directly with the Computer Vision team at [computer-vision@unity3d.com](mailto:computer-vision@unity3d.com).
 
 ## Citation
 If you find this package useful, consider citing it using:

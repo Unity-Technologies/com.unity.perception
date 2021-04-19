@@ -33,9 +33,18 @@ namespace UnityEngine.Perception.GroundTruth
             targetDepthBuffer = TargetBuffer.Custom;
         }
 
-        protected sealed override void Execute(
-            ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+        //overrides obsolete member in HDRP on 2020.1+. Re-address when removing 2019.4 support or the API is dropped
+#if HDRP_9_OR_NEWER
+        protected override void Execute(CustomPassContext ctx)
         {
+            ScriptableRenderContext renderContext = ctx.renderContext;
+            var cmd = ctx.cmd;
+            var hdCamera = ctx.hdCamera;
+            var cullingResult = ctx.cullingResults;
+#else
+        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+        {
+#endif
             // CustomPasses are executed for each camera. We only want to run for the target camera
             if (hdCamera.camera != targetCamera)
                 return;

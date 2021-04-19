@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 Added support for 'step' button in editor.
+Added the character joint generation tool.
 
 ### Changed
 Increased color variety in instance segmentation images

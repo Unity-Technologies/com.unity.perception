@@ -196,7 +196,7 @@ namespace UnityEngine.Perception.Content
 
                     if (!foundRightEar)
                     {
-                        if (distEarRightY < 0.002 && distEarRightX < 0.001)
+                        if (distEarRightY < 0.01 && distEarRightX < 0.001)
                         {
                             earRightPos = pointEarRight;
                         }
@@ -204,7 +204,7 @@ namespace UnityEngine.Perception.Content
 
                     if (!foundLeftEar)
                     {
-                        if (distEarLeftY < 0.002 && distEarLeftX < 0.001)
+                        if (distEarLeftY < 0.001 && distEarLeftX < 0.001)
                         {
                             earLeftPos = pointEarLeft;
                         }

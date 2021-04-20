@@ -3,9 +3,8 @@
     Properties
     {
         _Positions("Positions", 2D) = "defaultTexture" {}
-        _KeypointDepth("KeypointDepth", 2D) = "defaultTexture" {}
+        _KeypointCheckDepth("KeypointCheckDepth", 2D) = "defaultTexture" {}
         _DepthTexture("Depth", 2DArray) = "defaultTexture" {}
-        _DistanceThreshold("Distance Threshold", float) = .1
     }
 
     HLSLINCLUDE
@@ -45,9 +44,7 @@
 
             Texture2D _Positions;
             SamplerState my_point_clamp_sampler;
-            Texture2D _KeypointDepth;
-
-            float _DistanceThreshold;
+            Texture2D _KeypointCheckDepth;
 
 #if HDRP_ENABLED
 
@@ -58,14 +55,14 @@
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
 
                 float4 checkPosition = _Positions.Load(float3(varyings.positionCS.xy, 0));
-                float4 checkDepth = _KeypointDepth.Load(float3(varyings.positionCS.xy, 0));
+                float4 checkDepth = _KeypointCheckDepth.Load(float3(varyings.positionCS.xy, 0));
 
                 float depth = LoadCameraDepth(float2(checkPosition.x, _ScreenSize.y - checkPosition.y));
                 depth = LinearEyeDepth(depth, _ZBufferParams);
                 // float depth = UNITY_SAMPLE_TEX2DARRAY(_DepthTexture, float3(checkPosition.xy, 0)).r; //SAMPLE_DEPTH_TEXTURE(_DepthTexture, checkPosition.xy);
                 //float depth_decoded = LinearEyeDepth(depth);
                 // float depth_decoded = Linear01Depth(depth);
-                uint result = depth < checkDepth.x - _DistanceThreshold ? 0 : 1;
+                uint result = depth > checkDepth.x ? 1 : 0;
                 return float4(result, result, result, 1);
             }
 #else

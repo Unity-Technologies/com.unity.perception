@@ -34,7 +34,7 @@ namespace GroundTruthTests
 #endif
         }
 
-        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<int, List<KeypointLabeler.KeypointEntry>> computeListener, RenderTexture renderTexture = null, KeypointObjectFilter keypointObjectFilter = KeypointObjectFilter.Visible)
+        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<int, List<KeypointLabeler.KeypointEntry>> computeListener, RenderTexture renderTexture = null, KeypointObjectFilter keypointObjectFilter = KeypointObjectFilter.Visible, float defaultSelfOcclusionDistance = 0.15f)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -55,6 +55,7 @@ namespace GroundTruthTests
             perceptionCamera.captureRgbImages = false;
             var keyPointLabeler = new KeypointLabeler(config, template);
             keyPointLabeler.objectFilter = keypointObjectFilter;
+            keyPointLabeler.distanceThreshold = defaultSelfOcclusionDistance;
             if (computeListener != null)
                 keyPointLabeler.KeypointsComputed += computeListener;
 
@@ -994,6 +995,102 @@ namespace GroundTruthTests
 
             Assert.AreEqual(args.expectedBottomRight.x, t.keypoints[3].x, k_Delta);
             Assert.AreEqual(args.expectedBottomRight.y, t.keypoints[3].y, k_Delta);
+        }
+
+        /* Tests to write
+         Point inside mesh < threshold is labeled properly (with multiple thresholds)
+         Point inside mesh > threshold is labeled properly (with multiple thresholds)
+         Point up against other occluding mesh
+         Points close to the far plane are labeled properly
+         Perspective and orthographic
+        */
+
+        public enum CheckDistanceType
+        {
+            Global,
+            JointLabel
+        }
+
+        public static IEnumerable<(Vector3 origin, float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded)>
+            Keypoint_InsideBox_RespectsThreshold_TestCases()
+        {
+            yield return (
+                Vector3.zero,
+                0.1f,
+                0.2f,
+                60f,
+                true);
+            yield return (
+                Vector3.zero,
+                0.2f,
+                0.005f,
+                60f,
+                false);
+            yield return (
+                Vector3.zero,
+                0.01f,
+                0.005f,
+                60f,
+                false);
+            yield return (
+                new Vector3(0, 0, 950),
+                0.01f,
+                0.005f,
+                1f,
+                false);
+            yield return (
+                new Vector3(0, 0, 950),
+                0.1f,
+                0.2f,
+                1f,
+                true);
+        }
+
+        [UnityTest]
+        public IEnumerator Keypoint_InsideBox_RespectsThreshold(
+            [ValueSource(nameof(Keypoint_InsideBox_RespectsThreshold_TestCases))]
+            (Vector3 origin, float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded) args,
+            [Values(CheckDistanceType.Global, CheckDistanceType.JointLabel)] CheckDistanceType checkDistanceType)
+        {
+            if (checkDistanceType == CheckDistanceType.JointLabel)
+                Assert.Inconclusive("Not yet implemented");
+
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var frameSize = 1024;
+            var texture = new RenderTexture(frameSize, frameSize, 16);
+            var defaultSelfOcclusionDistance =
+                checkDistanceType == CheckDistanceType.Global ? args.checkDistance : 0.15f;
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(data);
+            }, texture, defaultSelfOcclusionDistance: defaultSelfOcclusionDistance);
+            var camComponent = cam.GetComponent<Camera>();
+            camComponent.fieldOfView = args.cameraFieldOfView;
+
+            // camComponent.orthographic = true;
+            // camComponent.orthographicSize = .5f;
+
+            var cube = TestHelper.CreateLabeledCube(scale: 1f, x: args.origin.x, y: args.origin.y, z: args.origin.z);
+            SetupCubeJoint(cube, template, "Center", 0f, 0f, -.5f + args.pointDistance);
+
+            cube.SetActive(true);
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+            AddTestObjectForCleanup(cube);
+
+            // while (true)
+             yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+            texture.Release();
+
+            var testCase = incoming.Last();
+            Assert.AreEqual(1, testCase.Count);
+            var t = testCase.First();
+            Assert.AreEqual(args.expectOccluded ? 1 : 2, t.keypoints[8].state);
         }
     }
 }

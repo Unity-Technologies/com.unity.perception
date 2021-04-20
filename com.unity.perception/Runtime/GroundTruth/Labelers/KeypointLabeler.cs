@@ -53,7 +53,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The max distance a keypoint can be from the front of an object before it is considered occluded
         /// </summary>
-        public float distanceThreshold = 0.1f;
+        public float distanceThreshold = 0.15f;
         // ReSharper restore MemberCanBePrivate.Global
 
         AnnotationDefinition m_AnnotationDefinition;
@@ -304,8 +304,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             var annotation = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
             var keypointEntries = new List<KeypointEntry>();
-            //uint4 so that we can fill a 4 channel texture with this data
-            var positions = new NativeList<uint4>(512, Allocator.Persistent);
+            var positions = new NativeList<float3>(512, Allocator.Persistent);
 
             foreach (var label in LabelManager.singleton.registeredLabels)
                 ProcessLabel(label, keypointEntries, positions);
@@ -323,14 +322,14 @@ namespace UnityEngine.Perception.GroundTruth
             positions.Dispose();
         }
 
-        private void DoDepthCheck(ScriptableRenderContext scriptableRenderContext, List<KeypointEntry> keypointEntries, NativeList<uint4> positions)
+        private void DoDepthCheck(ScriptableRenderContext scriptableRenderContext, List<KeypointEntry> keypointEntries, NativeList<float3> positions)
         {
             var keypointCount = keypointEntries.Count * activeTemplate.keypoints.Length;
 
             var commandBuffer = CommandBufferPool.Get("KeypointDepthCheck");
 
             var keypointPositionsTexture = new Texture2D(keypointCount, 1, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
-            var keypointDepthTexture = new Texture2D(keypointCount, 1, GraphicsFormat.R16_SFloat, TextureCreationFlags.None);
+            var keypointCheckDepthTexture = new Texture2D(keypointCount, 1, GraphicsFormat.R16_SFloat, TextureCreationFlags.None);
 
             var positionsPixeldata = new NativeArray<half>(positions.Length * 2, Allocator.Temp);
             var depthPixeldata = new NativeArray<half>(positions.Length, Allocator.Temp);
@@ -339,22 +338,21 @@ namespace UnityEngine.Perception.GroundTruth
             for (int i = 0; i < positions.Length; i++)
             {
                 var pos = positions[i];
-                positionsPixeldata[i * 2] = new half(pos.x/* / (float)depthTexture.width*/);
-                positionsPixeldata[i * 2 + 1] = new half(pos.y/* / (float)depthTexture.height*/);
-                depthPixeldata[i] = new half(pos.z / 100.0f);
+                positionsPixeldata[i * 2] = new half(pos.x);
+                positionsPixeldata[i * 2 + 1] = new half(pos.y);
+                depthPixeldata[i] = new half(pos.z - this.distanceThreshold);
             }
 
             keypointPositionsTexture.SetPixelData(positionsPixeldata, 0);
             keypointPositionsTexture.Apply();
-            keypointDepthTexture.SetPixelData(depthPixeldata, 0);
-            keypointDepthTexture.Apply();
+            keypointCheckDepthTexture.SetPixelData(depthPixeldata, 0);
+            keypointCheckDepthTexture.Apply();
 
             positionsPixeldata.Dispose();
             depthPixeldata.Dispose();
 
-            m_MaterialDepthCheck.SetFloat("_DistanceThreshold", distanceThreshold);
             m_MaterialDepthCheck.SetTexture("_Positions", keypointPositionsTexture);
-            m_MaterialDepthCheck.SetTexture("_KeypointDepth", keypointDepthTexture);
+            m_MaterialDepthCheck.SetTexture("_KeypointCheckDepth", keypointCheckDepthTexture);
             m_MaterialDepthCheck.SetTexture("_DepthTexture", depthTexture);
 
             commandBuffer.Blit(null, m_ResultsBuffer, m_MaterialDepthCheck);
@@ -544,7 +542,7 @@ namespace UnityEngine.Perception.GroundTruth
             return false;
         }
 
-        void ProcessLabel(Labeling labeledEntity, List<KeypointEntry> keypointEntries, NativeList<uint4> positions)
+        void ProcessLabel(Labeling labeledEntity, List<KeypointEntry> keypointEntries, NativeList<float3> positions)
         {
             if (!idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
                 return;
@@ -601,7 +599,7 @@ namespace UnityEngine.Perception.GroundTruth
                 var listStart = positions.Length;
                 positions.Resize(positions.Length + activeTemplate.keypoints.Length, NativeArrayOptions.ClearMemory);
                 //grab the slice of the list for the current object to assign positions in
-                var positionsSlice = new NativeSlice<uint4>(positions, listStart);
+                var positionsSlice = new NativeSlice<float3>(positions, listStart);
 
                 // Go through all of the rig keypoints and get their location
                 for (var i = 0; i < activeTemplate.keypoints.Length; i++)
@@ -644,7 +642,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        private void InitKeypoint(Vector3 position, CachedData cachedData, NativeSlice<uint4> positions, int idx)
+        private void InitKeypoint(Vector3 position, CachedData cachedData, NativeSlice<float3> positions, int idx)
         {
             var loc = ConvertToScreenSpace(position);
 
@@ -671,8 +669,7 @@ namespace UnityEngine.Perception.GroundTruth
                 pixelLocation = new int2(int.MaxValue, int.MaxValue);
             }
 
-            //TODO: Fix up the z computation
-            positions[idx] = new uint4((uint)pixelLocation.x, (uint)pixelLocation.y, (uint)(loc.z * 100), 1);
+            positions[idx] = new float3((uint)pixelLocation.x, (uint)pixelLocation.y, loc.z);
         }
 
         string GetPose(Animator animator)

@@ -5,7 +5,6 @@ using MenuItem = UnityEditor.MenuItem;
 using UnityEngine;
 using static UnityEngine.Perception.Content.CharacterValidation;
 using System.Linq;
-using UnityEngine.Perception.GroundTruth;
 
 public class AssetValidation : EditorWindow
 {

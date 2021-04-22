@@ -30,10 +30,27 @@ namespace CharacterToolingTests
         [Test, TestCaseSource(typeof(AssetCollection), "GameObject")]
         public void CreateEarsNoseJoints(GameObject gameObject)
         {
-            var test = contentTests.CharacterCreateNose(gameObject, gameObject.GetComponentInChildren<Animator>(),
-                gameObject.GetComponentInChildren<SkinnedMeshRenderer>(), true);
+            var test = contentTests.CharacterCreateNose(gameObject, true);
 
             Assert.True(test, "Failed to create ear and nose joints");
+        }
+
+        [Test, TestCaseSource(typeof(AssetCollection), "GameObject")]
+        public void CharacterBones(GameObject gameObject)
+        {
+            var failedBones = new Dictionary<HumanBone, bool>();
+            var test = contentTests.CharacterRequiredBones(gameObject, out failedBones);
+
+            Assert.True(test, "Character is missing required bones");
+        }
+
+        [Test, TestCaseSource(typeof(AssetCollection), "GameObject")]
+        public void CharacterPoseData(GameObject gameObject)
+        {
+            var failedPose = new List<GameObject>();
+            var test = contentTests.CharacterPoseData(gameObject, out failedPose);
+
+            Assert.True(test, "Character is missing Pose Data");
         }
 
         public void AssetListCreation()

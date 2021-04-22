@@ -27,9 +27,22 @@ namespace UnityEngine.Perception.Content
             "RightFoot",
         };
 
-        public static Dictionary<HumanBone, bool> AvatarRequiredBones(Animator animator)
+        public static Dictionary<HumanBone, bool> AvatarRequiredBones(GameObject selection)
         {
             var result = new Dictionary<HumanBone, bool>();
+
+            selection = (GameObject)PrefabUtility.InstantiatePrefab(selection);
+            var animator = selection.GetComponentInChildren<Animator>();
+            var bone = new HumanBone();
+
+            if (animator == null)
+            {
+                Debug.LogWarning("Animator and/or the Skinned Mesh Renderer are missing or can't be found!");
+                result.Add(bone, false);
+                GameObject.DestroyImmediate(selection);
+                return result;
+            }
+
             var human = animator.avatar.humanDescription.human;
             var totalBones = 0;
 
@@ -39,8 +52,6 @@ namespace UnityEngine.Perception.Content
                 {
                     if(human[h].humanName == RequiredBones[b])
                     {
-                        var bone = new HumanBone();
-
                         if (human[h].boneName != null)
                         {
                             bone.boneName = human[h].boneName;
@@ -54,12 +65,22 @@ namespace UnityEngine.Perception.Content
                     }
                 }
             }
-
+            GameObject.DestroyImmediate(selection);
             return result;
         }
 
-        public static GameObject AvatarCreateNose (GameObject selection, Animator animator, SkinnedMeshRenderer skinnedMeshRenderer, bool drawRays = false)
+        public static GameObject AvatarCreateNose (GameObject selection, bool drawRays = false)
         {
+            selection = (GameObject)PrefabUtility.InstantiatePrefab(selection);
+            var animator = selection.GetComponentInChildren<Animator>();
+            var skinnedMeshRenderer = selection.GetComponentInChildren<SkinnedMeshRenderer>();
+
+            if (animator == null || skinnedMeshRenderer == null)
+            {
+                Debug.LogWarning("Animator and/or the Skinned Mesh Renderer are missing or can't be found!");
+                return new GameObject("Failed");
+            }
+
             var human = animator.avatar.humanDescription.human;
             var skeleton = animator.avatar.humanDescription.skeleton;
             var verticies = skinnedMeshRenderer.sharedMesh.vertices;
@@ -68,6 +89,7 @@ namespace UnityEngine.Perception.Content
             //Currently stage left and stage right 
             var leftEye = animator.GetBoneTransform(HumanBodyBones.RightEye);
             var rightEye = animator.GetBoneTransform(HumanBodyBones.LeftEye);
+
             var faceCenter = Vector3.zero;
             var earCenter = Vector3.zero;
             var nosePos = Vector3.zero;
@@ -93,6 +115,7 @@ namespace UnityEngine.Perception.Content
             if(leftEye == null || rightEye == null)
             {
                 Debug.LogWarning("Eye positions are null, unable to position nose joint!");
+                return new GameObject("Failed");
             }
             else
             {
@@ -260,12 +283,8 @@ namespace UnityEngine.Perception.Content
 
         public static GameObject CreateNewCharacterPrefab(GameObject selection, Vector3 nosePosition, Vector3 earRightPosition, Vector3 earLeftPosition)
         {
-            var root = (GameObject)PrefabUtility.InstantiatePrefab(selection);
-            if(root == null)
-                root = Object.Instantiate(selection);
-
             List<Transform> children = new List<Transform>();
-            root.GetComponentsInChildren(children);
+            selection.GetComponentsInChildren(children);
 
             foreach(var child in children)
             {
@@ -303,7 +322,7 @@ namespace UnityEngine.Perception.Content
                 }
             }
 
-            var model = PrefabUtility.SaveAsPrefabAsset(root, "Assets/" + root.name + ".prefab");
+            var model = PrefabUtility.SaveAsPrefabAsset(selection, "Assets/" + selection.name + ".prefab");
 
             return model;
         }

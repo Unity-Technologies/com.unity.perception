@@ -6,7 +6,7 @@ using UnityEngine;
 using static UnityEngine.Perception.Content.CharacterValidation;
 using System.Linq;
 
-public class AssetValidation : EditorWindow
+public class CharacterToolingUI : EditorWindow
 {
     private static string[] toolbarNames = null;
     private enum TestResults
@@ -20,37 +20,33 @@ public class AssetValidation : EditorWindow
     private TestResults testResults = new TestResults();
     private CharacterTooling contentTests = new CharacterTooling();
 
-    private int toolbarSelection = 0;
-
     private GameObject selection = null;
-    private Animator animator = null;
-    private SkinnedMeshRenderer skinnedMeshRenderer = null;
-
+    private int toolbarSelection = 0;
     private bool drawFaceRays = false;
 
     private void OnSelectionChange()
     {
-        UpdateSelection();
+        selection = Selection.activeGameObject;
     }
 
     private void OnInspectorUpdate()
     {
         Repaint();
-        UpdateSelection();
+        selection = Selection.activeGameObject;
     }
 
-    [MenuItem("Window/Character Tool")]
+    [MenuItem("Window/Perception Character Tool")]
     static void Init()
     {
-        toolbarNames = new string[] { "Character", "Validation" };
-        AssetValidation window = (AssetValidation)GetWindow(typeof(AssetValidation));
+        toolbarNames = new string[] { "Keypoints", "Validation" };
+        CharacterToolingUI window = (CharacterToolingUI)GetWindow(typeof(CharacterToolingUI));
         window.autoRepaintOnSceneChange = true;
         window.Show();
     }
 
     private void OnGUI()
     {
-        if (selection != null)
+        if (selection != null && selection.GetType() == typeof(GameObject))
         {
             EditorGUILayout.TextField("Selected Asset : ", selection.name);
 
@@ -62,20 +58,19 @@ public class AssetValidation : EditorWindow
             {
                 case 0:
                     GUILayout.Label("Character Tools", EditorStyles.whiteLargeLabel);
-
-                    drawFaceRays = GUILayout.Toggle(drawFaceRays, "Draw Face Rays");
-
+                    var test = false;
                     var failedBones = new Dictionary<HumanBone, bool>();
                     var failedPose = new List<GameObject>();
-                                       
+
+                    drawFaceRays = GUILayout.Toggle(drawFaceRays, "Draw Face Rays");
+                    GUILayout.Label(string.Format("Create Ears and Noise: {0}", test), EditorStyles.boldLabel);
 
 
                     if (GUILayout.Button("Create Nose and Ears", GUILayout.Width(160)))
                     {
                         testResults = TestResults.Running;
 
-                        var test = contentTests.CharacterCreateNose(selection, animator, skinnedMeshRenderer, drawFaceRays);
-                        
+                        test = contentTests.CharacterCreateNose(selection, drawFaceRays);
 
                         if (test)
                             testResults = TestResults.Pass;
@@ -90,6 +85,8 @@ public class AssetValidation : EditorWindow
                     GUILayout.Label("Character Validation", EditorStyles.whiteLargeLabel);
                     GUILayout.Label(string.Format("Validation for Character : {0}", testResults), EditorStyles.whiteLabel);
 
+                    var animator = selection.GetComponentInChildren<Animator>();
+
                     if (animator != null)
                     {
                         GUILayout.Label(string.Format("Character is Human: {0}", animator.avatar.isHuman), EditorStyles.boldLabel);
@@ -100,7 +97,7 @@ public class AssetValidation : EditorWindow
                     {
                         testResults = TestResults.Running;
 
-                        var test = contentTests.CharacterRequiredBones(animator, out failedBones);
+                        test = contentTests.CharacterRequiredBones(selection, out failedBones);
 
                         if (failedBones.Count > 0)
                         {
@@ -134,7 +131,7 @@ public class AssetValidation : EditorWindow
                     {
                         testResults = TestResults.Running;
 
-                        var test = contentTests.CharacterPoseData(selection, out failedPose);
+                        test = contentTests.CharacterPoseData(selection, out failedPose);
 
                         if (test)
                             testResults = TestResults.Pass;
@@ -144,16 +141,6 @@ public class AssetValidation : EditorWindow
 
                     break;
             }
-        }
-    }
-
-    private void UpdateSelection()
-    {
-        selection = Selection.activeGameObject;
-        if (selection != null)
-        {
-            animator = selection.GetComponentInChildren<Animator>();
-            skinnedMeshRenderer = selection.GetComponentInChildren<SkinnedMeshRenderer>();
         }
     }
 }

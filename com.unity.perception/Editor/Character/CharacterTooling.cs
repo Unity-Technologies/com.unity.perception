@@ -7,9 +7,9 @@ namespace UnityEngine.Perception.Content
 {
     public class CharacterTooling : MonoBehaviour
     {
-        public bool CharacterRequiredBones(Animator animator, out Dictionary<HumanBone, bool> failed)
+        public bool CharacterRequiredBones(GameObject selection, out Dictionary<HumanBone, bool> failed)
         {
-            var result = AvatarRequiredBones(animator);
+            var result = AvatarRequiredBones(selection);
             failed = new Dictionary<HumanBone, bool>();
 
             for (int i = 0; i < result.Count; i++)
@@ -69,9 +69,16 @@ namespace UnityEngine.Perception.Content
             return false;
         }
 
-        public bool CharacterCreateNose(GameObject selection, Animator animator, SkinnedMeshRenderer skinnedMeshRenderer, bool drawRays = false)
+        public bool CharacterCreateNose(GameObject selection, bool drawRays = false)
         {
-            var model = AvatarCreateNose(selection, animator, skinnedMeshRenderer, drawRays);
+            var model = AvatarCreateNose(selection, drawRays);
+
+            if(model.name.Contains("Failed"))
+            {
+                GameObject.DestroyImmediate(model);
+                return false;
+            }
+
             var jointLabels = model.GetComponentsInChildren<JointLabel>();
             var nose = false;
             var earRight = false;

@@ -332,7 +332,8 @@ namespace GroundTruthTests
             Assert.AreEqual(t.keypoints[5].y, t.keypoints[6].y);
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
-            for (var i = 0; i < 8; i++) Assert.AreEqual(2, t.keypoints[i].state);
+            for (var i = 0; i < 4; i++) Assert.AreEqual(2, t.keypoints[i].state);
+            for (var i = 4; i < 8; i++) Assert.AreEqual(1, t.keypoints[i].state);
             Assert.Zero(t.keypoints[8].state);
             Assert.Zero(t.keypoints[8].x);
             Assert.Zero(t.keypoints[8].y);
@@ -396,7 +397,8 @@ namespace GroundTruthTests
             Assert.AreEqual(t.keypoints[5].y, t.keypoints[6].y);
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
-            for (var i = 0; i < 8; i++) Assert.AreEqual(2, t.keypoints[i].state);
+            for (var i = 0; i < 4; i++) Assert.AreEqual(2, t.keypoints[i].state);
+            for (var i = 4; i < 8; i++) Assert.AreEqual(1, t.keypoints[i].state);
             Assert.Zero(t.keypoints[8].state);
             Assert.Zero(t.keypoints[8].x);
             Assert.Zero(t.keypoints[8].y);
@@ -468,7 +470,7 @@ namespace GroundTruthTests
             cam.GetComponent<PerceptionCamera>().showVisualizations = false;
 
             var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
-            SetupCubeJoint(cube, template, "Center", 0, 0, 0);
+            SetupCubeJoint(cube, template, "Center", 0, 0, -.5f);
 
             cube.SetActive(true);
             cam.SetActive(true);
@@ -503,7 +505,7 @@ namespace GroundTruthTests
             var testCase2 = incoming[1];
             Assert.AreEqual(1, testCase2.Count);
             var t2 = testCase2.First();
-            Assert.AreEqual(445, t2.keypoints[0].x, 1);
+            Assert.AreEqual(416, t2.keypoints[0].x, 1);
             Assert.AreEqual(768 / 2, t2.keypoints[0].y);
         }
 
@@ -609,7 +611,8 @@ namespace GroundTruthTests
             Assert.AreEqual(t.keypoints[5].y, t.keypoints[6].y);
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
-            for (var i = 0; i < 8; i++) Assert.AreEqual(2, t.keypoints[i].state);
+            for (var i = 0; i < 4; i++) Assert.AreEqual(2, t.keypoints[i].state);
+            for (var i = 4; i < 8; i++) Assert.AreEqual(1, t.keypoints[i].state);
             Assert.Zero(t.keypoints[8].state);
             Assert.Zero(t.keypoints[8].x);
             Assert.Zero(t.keypoints[8].y);
@@ -820,8 +823,8 @@ namespace GroundTruthTests
 
             Assert.AreEqual(2, t.keypoints[0].state);
             Assert.AreEqual(2, t.keypoints[1].state);
-            Assert.AreEqual(2, t.keypoints[4].state);
-            Assert.AreEqual(2, t.keypoints[5].state);
+            Assert.AreEqual(1, t.keypoints[4].state);
+            Assert.AreEqual(1, t.keypoints[5].state);
 
             Assert.AreEqual(1, t.keypoints[2].state);
             Assert.AreEqual(1, t.keypoints[3].state);
@@ -867,7 +870,7 @@ namespace GroundTruthTests
             var labeling = cube.AddComponent<Labeling>();
             labeling.labels.Add("label");
 
-            SetupCubeJoint(cube, template, "Center",0f, 0f, 0f);
+            SetupCubeJoint(cube, template, "Center",0f, 0f, -.5f);
 
             cube.SetActive(true);
             cam.SetActive(true);
@@ -898,18 +901,20 @@ namespace GroundTruthTests
             Assert.AreEqual(2, t.keypoints[8].state);
         }
 
-        static IEnumerable<(float scale, bool expectObject, int expectedState, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight)> Keypoint_OnBox_ReportsProperCoordinates_TestCases()
+        static IEnumerable<(float scale, bool expectObject, int expectedStateFront, int expectedStateBack, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight)> Keypoint_OnBox_ReportsProperCoordinates_TestCases()
         {
             yield return (
                 1,
                 true,
                 2,
+                1,
                 KeypointObjectFilter.Visible,
                 new Vector2(0, 0),
                 new Vector2(1023.99f, 1023.99f));
             yield return (
                 1.001f,
                 true,
+                0,
                 0,
                 KeypointObjectFilter.Visible,
                 new Vector2(0, 0),
@@ -918,12 +923,14 @@ namespace GroundTruthTests
                 1.2f,
                 true,
                 0,
+                0,
                 KeypointObjectFilter.Visible,
                 new Vector2(0, 0),
                 new Vector2(0, 0));
             yield return (
                 0f,
                 false,
+                1,
                 1,
                 KeypointObjectFilter.Visible,
                 new Vector2(512, 512),
@@ -932,6 +939,7 @@ namespace GroundTruthTests
                 0f,
                 true,
                 1,
+                1,
                 KeypointObjectFilter.VisibleAndOccluded,
                 new Vector2(512, 512),
                 new Vector2(512, 512));
@@ -939,7 +947,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_OnBox_ReportsProperCoordinates(
             [ValueSource(nameof(Keypoint_OnBox_ReportsProperCoordinates_TestCases))]
-            (float scale, bool expectObject, int expectedState, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight) args)
+            (float scale, bool expectObject, int expectedStateFront, int expectedStateBack, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight) args)
         {
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
@@ -963,6 +971,7 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(cam);
             AddTestObjectForCleanup(cube);
 
+            //for (int i = 0; i < 10000; i++)
             yield return null;
 
             //force all async readbacks to complete
@@ -983,7 +992,12 @@ namespace GroundTruthTests
             Assert.AreEqual(template.templateID.ToString(), t.template_guid);
             Assert.AreEqual(9, t.keypoints.Length);
 
-            CollectionAssert.AreEqual(Enumerable.Repeat(args.expectedState, 8), t.keypoints.Take(8).Select(k => k.state), "State mismatch");
+            CollectionAssert.AreEqual(Enumerable.Repeat(args.expectedStateFront, 4),
+                t.keypoints.Take(4).Select(k => k.state),
+                "State mismatch on front");
+            CollectionAssert.AreEqual(Enumerable.Repeat(args.expectedStateBack, 4),
+                t.keypoints.Skip(4).Take(4).Select(k => k.state),
+                "State mismatch on front");
             Assert.AreEqual(args.expectedTopLeft.x, t.keypoints[0].x, k_Delta);
             Assert.AreEqual(args.expectedBottomRight.y, t.keypoints[0].y, k_Delta);
 

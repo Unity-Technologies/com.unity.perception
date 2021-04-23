@@ -318,6 +318,12 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (keypointEntries.Count != 0)
                 DoDepthCheck(scriptableRenderContext, keypointEntries, positions);
+            else
+            {
+                var frameKeypointData = m_FrameKeypointData[m_CurrentFrame];
+                frameKeypointData.isDepthCheckComplete = true;
+                m_FrameKeypointData[m_CurrentFrame] = frameKeypointData;
+            }
 
             positions.Dispose();
         }
@@ -662,14 +668,13 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             //TODO: move this code
-            uint2 dimensions = new uint2((uint)perceptionCamera.attachedCamera.pixelWidth, (uint)perceptionCamera.attachedCamera.pixelHeight);
             var pixelLocation = PixelLocationFromScreenPoint(keypoints[idx]);
             if (pixelLocation.x < 0 || pixelLocation.y < 0)
             {
                 pixelLocation = new int2(int.MaxValue, int.MaxValue);
             }
 
-            positions[idx] = new float3((uint)pixelLocation.x, (uint)pixelLocation.y, loc.z);
+            positions[idx] = new float3(pixelLocation.x + .5f, pixelLocation.y + .5f, loc.z);
         }
 
         string GetPose(Animator animator)

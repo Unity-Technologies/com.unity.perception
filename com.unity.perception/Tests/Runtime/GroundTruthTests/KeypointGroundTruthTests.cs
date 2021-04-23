@@ -1011,14 +1011,6 @@ namespace GroundTruthTests
             Assert.AreEqual(args.expectedBottomRight.y, t.keypoints[3].y, k_Delta);
         }
 
-        /* Tests to write
-         Point inside mesh < threshold is labeled properly (with multiple thresholds)
-         Point inside mesh > threshold is labeled properly (with multiple thresholds)
-         Point up against other occluding mesh
-         Points close to the far plane are labeled properly
-         Perspective and orthographic
-        */
-
         public enum CheckDistanceType
         {
             Global,

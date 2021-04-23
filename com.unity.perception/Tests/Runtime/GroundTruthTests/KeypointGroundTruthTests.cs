@@ -1010,6 +1010,11 @@ namespace GroundTruthTests
             Global,
             JointLabel
         }
+        public enum ProjectionKind
+        {
+            Orthographic,
+            Projection
+        }
 
         public static IEnumerable<(Vector3 origin, float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded)>
             Keypoint_InsideBox_RespectsThreshold_TestCases()
@@ -1038,10 +1043,12 @@ namespace GroundTruthTests
                 0.005f,
                 1f,
                 false);
+            //larger value here for the occluded check due to lack of depth precision close to far plane.
+            //We choose to mark points not occluded when the point depth and geometry depth are the same in the depth buffer
             yield return (
                 new Vector3(0, 0, 950),
-                0.1f,
-                0.2f,
+                1f,
+                2f,
                 1f,
                 true);
         }
@@ -1050,7 +1057,8 @@ namespace GroundTruthTests
         public IEnumerator Keypoint_InsideBox_RespectsThreshold(
             [ValueSource(nameof(Keypoint_InsideBox_RespectsThreshold_TestCases))]
             (Vector3 origin, float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded) args,
-            [Values(CheckDistanceType.Global, CheckDistanceType.JointLabel)] CheckDistanceType checkDistanceType)
+            [Values(CheckDistanceType.Global, CheckDistanceType.JointLabel)] CheckDistanceType checkDistanceType,
+            [Values(ProjectionKind.Orthographic, ProjectionKind.Projection)] ProjectionKind projectionKind)
         {
             if (checkDistanceType == CheckDistanceType.JointLabel)
                 Assert.Inconclusive("Not yet implemented");
@@ -1068,8 +1076,11 @@ namespace GroundTruthTests
             var camComponent = cam.GetComponent<Camera>();
             camComponent.fieldOfView = args.cameraFieldOfView;
 
-            // camComponent.orthographic = true;
-            // camComponent.orthographicSize = .5f;
+            if (projectionKind == ProjectionKind.Orthographic)
+            {
+                camComponent.orthographic = true;
+                camComponent.orthographicSize = .5f;
+            }
 
             var cube = TestHelper.CreateLabeledCube(scale: 1f, x: args.origin.x, y: args.origin.y, z: args.origin.z);
             SetupCubeJoint(cube, template, "Center", 0f, 0f, -.5f + args.pointDistance);
@@ -1080,7 +1091,7 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(cam);
             AddTestObjectForCleanup(cube);
 
-            // while (true)
+            //for (int i = 0; i < 10000; i++)
              yield return null;
 
             //force all async readbacks to complete

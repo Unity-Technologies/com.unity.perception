@@ -58,11 +58,18 @@
                 float4 checkDepth = _KeypointCheckDepth.Load(float3(varyings.positionCS.xy, 0));
 
                 float depth = LoadCameraDepth(float2(checkPosition.x, _ScreenSize.y - checkPosition.y));
-                depth = LinearEyeDepth(depth, _ZBufferParams);
+                PositionInputs positionInputs = GetPositionInput(checkPosition, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                depth = positionInputs.linearDepth;
+
+                //encode and decode checkDepth to account for loss of precision with depth values close to far plane
+                float4 viewPos = mul(UNITY_MATRIX_I_VP, float4(positionInputs.positionWS.x, positionInputs.positionWS.y, checkDepth.x, 1.0));
+                float4 positionCheckWS = mul(UNITY_MATRIX_VP, viewPos);
+
+                //depth = LinearEyeDepth(depth, _ZBufferParams);
                 // float depth = UNITY_SAMPLE_TEX2DARRAY(_DepthTexture, float3(checkPosition.xy, 0)).r; //SAMPLE_DEPTH_TEXTURE(_DepthTexture, checkPosition.xy);
                 //float depth_decoded = LinearEyeDepth(depth);
                 // float depth_decoded = Linear01Depth(depth);
-                uint result = depth > checkDepth.x ? 1 : 0;
+                uint result = depth >= positionCheckWS.z ? 1 : 0;
                 return float4(result, result, result, 1);
             }
 #else

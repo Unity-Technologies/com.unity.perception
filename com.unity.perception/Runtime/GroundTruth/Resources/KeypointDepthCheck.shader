@@ -1,4 +1,4 @@
-﻿Shader "Perception/KeypointDepthCheck"
+﻿Shader "Perception/KeypointDepthCheckOld"
 {
     Properties
     {

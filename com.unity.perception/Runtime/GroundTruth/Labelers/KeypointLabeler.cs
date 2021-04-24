@@ -131,17 +131,29 @@ namespace UnityEngine.Perception.GroundTruth
             var depthCheckShader = Shader.Find("Perception/KeypointDepthCheck");
 
             var shaderVariantCollection = new ShaderVariantCollection();
-            shaderVariantCollection.Add(
-                new ShaderVariantCollection.ShaderVariant(depthCheckShader, PassType.ScriptableRenderPipeline, "HDRP_ENABLED"));
-            shaderVariantCollection.WarmUp();
             m_MaterialDepthCheck = new Material(depthCheckShader);
-            //TODO: URP support
-            m_MaterialDepthCheck.EnableKeyword("HDRP_ENABLED");
+            string keyword;
+            if (SRPSupport.GetCurrentPipelineRenderingType() == RenderingPipelineType.HDRP)
+                keyword = "HDRP_ENABLED";
+            else
+                keyword = "HDRP_DISABLED";
+
+            m_MaterialDepthCheck.EnableKeyword(keyword);
+
+            shaderVariantCollection.Add(
+                new ShaderVariantCollection.ShaderVariant(depthCheckShader, PassType.ScriptableRenderPipeline, keyword));
+            shaderVariantCollection.WarmUp();
+
             //TODO: Proper resizing
             m_ResultsBuffer = new RenderTexture(1024, 1, 0, GraphicsFormat.R8G8B8A8_UNorm);
             m_DepthCheckReader = new RenderTextureReader<Color32>(m_ResultsBuffer);
 
             perceptionCamera.attachedCamera.depthTextureMode = DepthTextureMode.Depth;
+#if URP_PRESENT
+            var cameraData = UnityEngine.Rendering.Universal.CameraExtensions.GetUniversalAdditionalCameraData(perceptionCamera.attachedCamera);
+            cameraData.requiresDepthOption = UnityEngine.Rendering.Universal.CameraOverrideOption.On;
+            cameraData.requiresDepthTexture = true;
+#endif
 
             perceptionCamera.InstanceSegmentationImageReadback += OnInstanceSegmentationImageReadback;
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfoReadback;
@@ -359,7 +371,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_MaterialDepthCheck.SetTexture("_Positions", keypointPositionsTexture);
             m_MaterialDepthCheck.SetTexture("_KeypointCheckDepth", keypointCheckDepthTexture);
-            m_MaterialDepthCheck.SetTexture("_DepthTexture", depthTexture);
+            m_MaterialDepthCheck.SetTexture("_CameraDepthTexture", depthTexture);
 
             commandBuffer.Blit(null, m_ResultsBuffer, m_MaterialDepthCheck);
 

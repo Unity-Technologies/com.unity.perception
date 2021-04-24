@@ -19,7 +19,6 @@
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDRenderPipeline" }
         Pass
         {
             Tags { "LightMode" = "SRP" }
@@ -33,6 +32,7 @@
             HLSLPROGRAM
 
             #pragma multi_compile HDRP_DISABLED HDRP_ENABLED
+            #pragma enable_d3d11_debug_symbols
             #pragma only_renderers d3d11 vulkan metal
             #pragma target 4.5
             #pragma vertex Vert
@@ -73,33 +73,49 @@
                 return float4(result, result, result, 1);
             }
 #else
-            /// Dummy Implementation for non HDRP_ENABLED variants
 
-            #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-            struct appdata
+            bool IsPerspectiveProjection()
             {
-                float4 vertex : POSITION;
-                float2 uv     : TEXCOORD0;
-            };
-
-            struct v2f
+                return unity_OrthoParams.w == 0;
+            }
+            float ViewSpaceDepth(float depth)
             {
-                float2 uv     : TEXCOORD0;
-                float4 vertex : SV_POSITION;
-            };
-
-            v2f Vert(appdata v)
-            {
-                v2f o;
-                o.uv     = float2(0, 0);
-                o.vertex = float4(0, 0, 0, 0);
-                return o;
+                if (IsPerspectiveProjection())
+                    return LinearEyeDepth(depth, _ZBufferParams);
+                else
+                    return _ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * (1 - depth);
             }
 
-            float4 FullScreenPass(v2f i) : SV_Target
+            float4 FullScreenPass(Varyings varyings) : SV_Target
             {
-                return float4(0, 0, 0, 1);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
+
+                float4 checkPosition = _Positions.Load(float3(varyings.positionCS.xy, 0));
+                float checkDepth = _KeypointCheckDepth.Load(float3(varyings.positionCS.xy, 0)).r;
+
+                float depth = LoadSceneDepth(float2(checkPosition.x, _ScreenParams.y - checkPosition.y));
+
+                depth = ViewSpaceDepth(depth);
+
+                //encode and decode checkDepth to account for loss of precision with depth values close to far plane
+                PositionInputs positionInputs = GetPositionInput(checkPosition, _ScreenParams.zw - float2(1, 1), depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                float4 viewPos = mul(UNITY_MATRIX_V, float4(positionInputs.positionWS.x, positionInputs.positionWS.y, checkDepth, 1.0));
+                float4 positionCheckWS = mul(UNITY_MATRIX_I_V, viewPos);
+                float depthCompare = positionCheckWS.z;
+
+                //float depthCompare = checkDepth;
+
+                //depth = LinearEyeDepth(depth, _ZBufferParams);
+                // float depth = UNITY_SAMPLE_TEX2DARRAY(_DepthTexture, float3(checkPosition.xy, 0)).r; //SAMPLE_DEPTH_TEXTURE(_DepthTexture, checkPosition.xy);
+                //float depth_decoded = LinearEyeDepth(depth);
+                // float depth_decoded = Linear01Depth(depth);
+                uint result = depth >= depthCompare ? 1 : 0;
+                return float4(result, result, result, 1);
             }
 #endif
             ENDHLSL

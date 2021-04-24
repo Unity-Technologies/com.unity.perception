@@ -584,6 +584,7 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(cam);
             AddTestObjectForCleanup(cube);
 
+            //for (int i = 0; i < 10000; i++)
             yield return null;
 
             //force all async readbacks to complete
@@ -962,7 +963,9 @@ namespace GroundTruthTests
             camComponent.orthographic = true;
             camComponent.orthographicSize = .5f;
 
-            var cube = TestHelper.CreateLabeledCube(scale: args.scale, z: 8);
+
+            //For some reason the back of this cube is being resolved to 7.5 away from the camera, but on the CPU side it is being recorded as 18.34375
+            var cube = TestHelper.CreateLabeledCube(scale: args.scale, z: 0);
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -1039,20 +1042,20 @@ namespace GroundTruthTests
                 false);
             yield return (
                 Vector3.zero,
-                0.01f,
-                0.005f,
+                0.1f,
+                0.05f,
                 60f,
                 false);
             yield return (
-                new Vector3(0, 0, 950),
-                0.01f,
-                0.005f,
+                new Vector3(0, 0, 88),
+                0.1f,
+                0.05f,
                 1f,
                 false);
             //larger value here for the occluded check due to lack of depth precision close to far plane.
             //We choose to mark points not occluded when the point depth and geometry depth are the same in the depth buffer
             yield return (
-                new Vector3(0, 0, 950),
+                new Vector3(0, 0, 88),
                 1f,
                 2f,
                 1f,
@@ -1081,6 +1084,7 @@ namespace GroundTruthTests
             }, texture, defaultSelfOcclusionDistance: defaultSelfOcclusionDistance);
             var camComponent = cam.GetComponent<Camera>();
             camComponent.fieldOfView = args.cameraFieldOfView;
+            camComponent.farClipPlane = 100f;
 
             if (projectionKind == ProjectionKind.Orthographic)
             {

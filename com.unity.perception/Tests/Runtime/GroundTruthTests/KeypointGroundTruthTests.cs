@@ -55,7 +55,7 @@ namespace GroundTruthTests
             perceptionCamera.captureRgbImages = false;
             var keyPointLabeler = new KeypointLabeler(config, template);
             keyPointLabeler.objectFilter = keypointObjectFilter;
-            keyPointLabeler.distanceThreshold = defaultSelfOcclusionDistance;
+            keyPointLabeler.selfOcclusionDistance = defaultSelfOcclusionDistance;
             if (computeListener != null)
                 keyPointLabeler.KeypointsComputed += computeListener;
 
@@ -257,26 +257,33 @@ namespace GroundTruthTests
             return cfg;
         }
 
-        static void SetupCubeJoint(GameObject cube, KeypointTemplate template, string label, float x, float y, float z)
+        static void SetupCubeJoint(GameObject cube, string label, float x, float y, float z, float? selfOcclusionDistance = null)
         {
             var joint = new GameObject();
             joint.transform.parent = cube.transform;
             joint.transform.localPosition = new Vector3(x, y, z);
             var jointLabel = joint.AddComponent<JointLabel>();
             jointLabel.labels.Add(label);
+            if (selfOcclusionDistance.HasValue)
+            {
+                jointLabel.selfOcclusionDistanceSource = SelfOcclusionDistanceSource.JointLabel;
+                jointLabel.selfOcclusionDistance = selfOcclusionDistance.Value;
+            }
+            else
+                jointLabel.selfOcclusionDistanceSource = SelfOcclusionDistanceSource.KeypointLabeler;
         }
 
         static void SetupCubeJoints(GameObject cube, KeypointTemplate template)
         {
             const float dim = 0.5f;
-            SetupCubeJoint(cube, template, "FrontLowerLeft", -dim, -dim, -dim);
-            SetupCubeJoint(cube, template, "FrontUpperLeft", -dim, dim, -dim);
-            SetupCubeJoint(cube, template, "FrontUpperRight", dim, dim, -dim);
-            SetupCubeJoint(cube, template, "FrontLowerRight", dim, -dim, -dim);
-            SetupCubeJoint(cube, template, "BackLowerLeft", -dim, -dim, dim);
-            SetupCubeJoint(cube, template, "BackUpperLeft", -dim, dim, dim);
-            SetupCubeJoint(cube, template, "BackUpperRight", dim, dim, dim);
-            SetupCubeJoint(cube, template, "BackLowerRight", dim, -dim, dim);
+            SetupCubeJoint(cube, "FrontLowerLeft", -dim, -dim, -dim);
+            SetupCubeJoint(cube, "FrontUpperLeft", -dim, dim, -dim);
+            SetupCubeJoint(cube, "FrontUpperRight", dim, dim, -dim);
+            SetupCubeJoint(cube, "FrontLowerRight", dim, -dim, -dim);
+            SetupCubeJoint(cube, "BackLowerLeft", -dim, -dim, dim);
+            SetupCubeJoint(cube, "BackUpperLeft", -dim, dim, dim);
+            SetupCubeJoint(cube, "BackUpperRight", dim, dim, dim);
+            SetupCubeJoint(cube, "BackLowerRight", dim, -dim, dim);
         }
 
         [UnityTest]
@@ -464,7 +471,7 @@ namespace GroundTruthTests
             cam.GetComponent<PerceptionCamera>().showVisualizations = false;
 
             var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
-            SetupCubeJoint(cube, template, "Center", 0, 0, -.5f);
+            SetupCubeJoint(cube, "Center", 0, 0, -.5f);
 
             cube.SetActive(true);
             cam.SetActive(true);
@@ -865,7 +872,7 @@ namespace GroundTruthTests
             var labeling = cube.AddComponent<Labeling>();
             labeling.labels.Add("label");
 
-            SetupCubeJoint(cube, template, "Center",0f, 0f, -.5f);
+            SetupCubeJoint(cube, "Center",0f, 0f, -.5f);
 
             cube.SetActive(true);
             cam.SetActive(true);
@@ -1063,19 +1070,16 @@ namespace GroundTruthTests
             [Values(CheckDistanceType.Global, CheckDistanceType.JointLabel)] CheckDistanceType checkDistanceType,
             [Values(ProjectionKind.Orthographic, ProjectionKind.Projection)] ProjectionKind projectionKind)
         {
-            if (checkDistanceType == CheckDistanceType.JointLabel)
-                Assert.Inconclusive("Not yet implemented");
-
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var frameSize = 1024;
             var texture = new RenderTexture(frameSize, frameSize, 16);
-            var defaultSelfOcclusionDistance =
-                checkDistanceType == CheckDistanceType.Global ? args.checkDistance : 0.15f;
+            var labelerSelfOcclusionDistance =
+                checkDistanceType == CheckDistanceType.Global ? args.checkDistance : 0.5f;
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
                 incoming.Add(data);
-            }, texture, defaultSelfOcclusionDistance: defaultSelfOcclusionDistance);
+            }, texture, defaultSelfOcclusionDistance: labelerSelfOcclusionDistance);
             var camComponent = cam.GetComponent<Camera>();
             camComponent.fieldOfView = args.cameraFieldOfView;
             camComponent.farClipPlane = 100f;
@@ -1087,7 +1091,8 @@ namespace GroundTruthTests
             }
 
             var cube = TestHelper.CreateLabeledCube(scale: 1f, x: args.origin.x, y: args.origin.y, z: args.origin.z);
-            SetupCubeJoint(cube, template, "Center", 0f, 0f, -.5f + args.pointDistance);
+            var localSelfOcclusionDistance = checkDistanceType == CheckDistanceType.JointLabel ? (float?)args.checkDistance : null;
+            SetupCubeJoint(cube, "Center", 0f, 0f, -.5f + args.pointDistance, localSelfOcclusionDistance);
 
             cube.SetActive(true);
             cam.SetActive(true);

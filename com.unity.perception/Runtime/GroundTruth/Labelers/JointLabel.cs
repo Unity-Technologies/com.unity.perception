@@ -5,6 +5,11 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
 {
+    public enum SelfOcclusionDistanceSource
+    {
+        JointLabel,
+        KeypointLabeler
+    }
     /// <summary>
     /// Label to designate a custom joint/keypoint. These are needed to add body
     /// parts to a humanoid model that are not contained in its <see cref="Animator"/> <see cref="Avatar"/>
@@ -38,7 +43,7 @@ namespace UnityEngine.Perception.GroundTruth
         [SerializeField]
         public List<string> labels = new List<string>();
 
-        public bool useLocalSelfOcclusionDistance = false;
+        public SelfOcclusionDistanceSource selfOcclusionDistanceSource = SelfOcclusionDistanceSource.JointLabel;
         public float selfOcclusionDistance = .15f;
 
         public void OnBeforeSerialize()

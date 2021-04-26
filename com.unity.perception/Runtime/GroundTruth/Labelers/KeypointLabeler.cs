@@ -21,6 +21,8 @@ namespace UnityEngine.Perception.GroundTruth
     [Serializable]
     public sealed class KeypointLabeler : CameraLabeler
     {
+        internal const float defaultSelfOcclusionDistance = 0.15f;
+
         /// <summary>
         /// The active keypoint template. Required to annotate keypoint data.
         /// </summary>
@@ -54,7 +56,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The max distance a keypoint can be from the front of an object before it is considered occluded
         /// </summary>
-        public float selfOcclusionDistance = 0.15f;
+        public float selfOcclusionDistance = defaultSelfOcclusionDistance;
         // ReSharper restore MemberCanBePrivate.Global
 
         AnnotationDefinition m_AnnotationDefinition;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -9,18 +10,15 @@ namespace UnityEngine.Perception.GroundTruth
     /// parts to a humanoid model that are not contained in its <see cref="Animator"/> <see cref="Avatar"/>
     /// </summary>
     [AddComponentMenu("Perception/Labeling/Joint Label")]
-    public class JointLabel : MonoBehaviour
+    [Serializable]
+    public class JointLabel : MonoBehaviour, ISerializationCallbackReceiver
     {
         /// <summary>
         /// Maps this joint to a joint in a <see cref="KeypointTemplate"/>
         /// </summary>
         [Serializable]
-        public class TemplateData
+        class TemplateData
         {
-            /// <summary>
-            /// The <see cref="KeypointTemplate"/> that defines this joint.
-            /// </summary>
-            public KeypointTemplate template;
             /// <summary>
             /// The name of the joint.
             /// </summary>
@@ -30,6 +28,34 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// List of all of the templates that this joint can be mapped to.
         /// </summary>
-        public List<TemplateData> templateInformation;
+        [SerializeField]
+        [HideInInspector]
+        private List<TemplateData> templateInformation;
+
+        /// <summary>
+        /// List of all of the templates that this joint can be mapped to.
+        /// </summary>
+        [SerializeField]
+        public List<string> labels = new List<string>();
+
+        public bool useLocalSelfOcclusionDistance = false;
+        public float selfOcclusionDistance = .15f;
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if (templateInformation != null)
+            {
+                foreach (var data in templateInformation)
+                {
+                    labels.Add(data.label);
+                }
+
+                templateInformation = null;
+            }
+        }
     }
 }

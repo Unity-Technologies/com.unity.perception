@@ -529,11 +529,11 @@ namespace UnityEngine.Perception.GroundTruth
         {
             index = -1;
 
-            foreach (var jointTemplate in joint.templateInformation.Where(jointTemplate => jointTemplate.template == template))
+            foreach (var label in joint.labels)
             {
                 for (var i = 0; i < template.keypoints.Length; i++)
                 {
-                    if (template.keypoints[i].label == jointTemplate.label)
+                    if (template.keypoints[i].label == label)
                     {
                         index = i;
                         return true;
@@ -546,18 +546,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         bool DoesTemplateContainJoint(JointLabel jointLabel)
         {
-            foreach (var template in jointLabel.templateInformation)
-            {
-                if (template.template == activeTemplate)
-                {
-                    if (activeTemplate.keypoints.Any(i => i.label == template.label))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return TryToGetTemplateIndexForJoint(activeTemplate, jointLabel, out _);
         }
 
         void ProcessLabel(Labeling labeledEntity, List<KeypointEntry> keypointEntries, NativeList<float3> positions)

@@ -263,13 +263,7 @@ namespace GroundTruthTests
             joint.transform.parent = cube.transform;
             joint.transform.localPosition = new Vector3(x, y, z);
             var jointLabel = joint.AddComponent<JointLabel>();
-            jointLabel.templateInformation = new List<JointLabel.TemplateData>();
-            var templateData = new JointLabel.TemplateData
-            {
-                template = template,
-                label = label
-            };
-            jointLabel.templateInformation.Add(templateData);
+            jointLabel.labels.Add(label);
         }
 
         static void SetupCubeJoints(GameObject cube, KeypointTemplate template)

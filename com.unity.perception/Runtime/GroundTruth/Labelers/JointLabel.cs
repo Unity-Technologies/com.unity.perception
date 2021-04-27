@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -76,24 +77,31 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 singlePerceptionCamera = FindObjectOfType<PerceptionCamera>();
             }
-            float occlusionDistance;
+
+            Mesh sphereMesh = null;
+#if UNITY_EDITOR
+            var defaultAssets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Library/unity default resources");
+            sphereMesh = (Mesh) defaultAssets.FirstOrDefault(a => a.name == "Sphere");
+
+#endif
+            Vector3 occlusionDistance;
             switch (selfOcclusionDistanceSource)
             {
                 case SelfOcclusionDistanceSource.JointLabel:
-                    occlusionDistance = selfOcclusionDistance;
+                    occlusionDistance = transform.lossyScale * selfOcclusionDistance;
                     break;
                 case SelfOcclusionDistanceSource.KeypointLabeler:
                     if (singlePerceptionCamera == null)
                     {
-                        occlusionDistance = KeypointLabeler.defaultSelfOcclusionDistance;
+                        occlusionDistance = Vector3.one * KeypointLabeler.defaultSelfOcclusionDistance;
                     }
                     else
                     {
                         var keypointLabeler = (KeypointLabeler) singlePerceptionCamera.labelers.FirstOrDefault(l => l is KeypointLabeler);
                         if (keypointLabeler == null)
-                            occlusionDistance = KeypointLabeler.defaultSelfOcclusionDistance;
+                            occlusionDistance = Vector3.one * KeypointLabeler.defaultSelfOcclusionDistance;
                         else
-                            occlusionDistance = keypointLabeler.selfOcclusionDistance;
+                            occlusionDistance = Vector3.one * keypointLabeler.selfOcclusionDistance;
                     }
                     break;
                 default:
@@ -101,7 +109,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             Gizmos.color = /*Color.green;*/new Color(1, 1, 1, .5f);
-            Gizmos.DrawWireSphere(transform.position, occlusionDistance);
+            Gizmos.DrawMesh(sphereMesh, 0, transform.position, transform.rotation, occlusionDistance * 2);
         }
     }
 }

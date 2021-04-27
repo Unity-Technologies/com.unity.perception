@@ -625,17 +625,33 @@ namespace UnityEngine.Perception.GroundTruth
                     }
                 }
 
+                var cameraPosition = perceptionCamera.transform.position;
+                var cameraforward = perceptionCamera.transform.forward;
+
                 // Go through all of the additional or override points defined by joint labels and get
                 // their locations
                 foreach (var (joint, idx) in cachedData.overrides)
                 {
                     float jointSelfOcclusionDistance;
+                    var jointTransform = joint.transform;
+                    var jointPosition = jointTransform.position;
                     if (joint.selfOcclusionDistanceSource == SelfOcclusionDistanceSource.JointLabel)
-                        jointSelfOcclusionDistance = joint.selfOcclusionDistance;
+                    {
+                        //apply the scale of the object to the normalized ray from the object to the camera to compute
+                        //the actual self-occlusion distance
+
+                        var depthOfJoint = Vector3.Dot(jointPosition - cameraPosition, cameraforward);
+                        var cameraEffectivePosition = jointPosition + (-cameraforward * depthOfJoint);
+
+                        var jointRelativeCameraPosition = jointTransform.InverseTransformPoint(cameraEffectivePosition);
+                        var jointRelativeCheckPosition = jointRelativeCameraPosition.normalized * joint.selfOcclusionDistance;
+                        var worldSpaceCheckVector = jointTransform.TransformVector(jointRelativeCheckPosition);
+                        jointSelfOcclusionDistance = worldSpaceCheckVector.magnitude;
+                    }
                     else
                         jointSelfOcclusionDistance = selfOcclusionDistance;
 
-                    InitKeypoint(joint.transform.position, cachedData, checkLocationsSlice, idx, jointSelfOcclusionDistance);
+                    InitKeypoint(jointPosition, cachedData, checkLocationsSlice, idx, jointSelfOcclusionDistance);
                 }
 
                 cachedData.keypoints.pose = "unset";

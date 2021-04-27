@@ -260,7 +260,7 @@ namespace GroundTruthTests
         static void SetupCubeJoint(GameObject cube, string label, float x, float y, float z, float? selfOcclusionDistance = null)
         {
             var joint = new GameObject();
-            joint.transform.parent = cube.transform;
+            joint.transform.SetParent(cube.transform, false);
             joint.transform.localPosition = new Vector3(x, y, z);
             var jointLabel = joint.AddComponent<JointLabel>();
             jointLabel.labels.Add(label);
@@ -1026,48 +1026,112 @@ namespace GroundTruthTests
             Projection
         }
 
-        public static IEnumerable<(Vector3 origin, float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded)>
+        public static IEnumerable<(CheckDistanceType checkDistanceType, Vector3 origin, Vector3 objectScale, Quaternion rotation,
+                float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded)>
             Keypoint_InsideBox_RespectsThreshold_TestCases()
         {
+            foreach (var checkDistanceType in new[] {CheckDistanceType.Global, CheckDistanceType.JointLabel})
+            {
+                yield return (
+                    checkDistanceType,
+                    Vector3.zero,
+                    Vector3.one,
+                    Quaternion.identity,
+                    0.1f,
+                    0.2f,
+                    60f,
+                    true);
+                yield return (
+                    checkDistanceType,
+                    Vector3.zero,
+                    Vector3.one,
+                    Quaternion.identity,
+                    0.2f,
+                    0.005f,
+                    60f,
+                    false);
+                yield return (
+                    checkDistanceType,
+                    Vector3.zero,
+                    Vector3.one,
+                    Quaternion.identity,
+                    0.1f,
+                    0.05f,
+                    60f,
+                    false);
+                yield return (
+                    checkDistanceType,
+                    new Vector3(0, 0, 88),
+                    Vector3.one,
+                    Quaternion.identity,
+                    0.1f,
+                    0.05f,
+                    1f,
+                    false);
+                //larger value here for the occluded check due to lack of depth precision close to far plane.
+                //We choose to mark points not occluded when the point depth and geometry depth are the same in the depth buffer
+                yield return (
+                    checkDistanceType,
+                    new Vector3(0, 0, 88),
+                    Vector3.one,
+                    Quaternion.identity,
+                    1f,
+                    2f,
+                    1f,
+                    true);
+            }
             yield return (
+                CheckDistanceType.Global,
                 Vector3.zero,
-                0.1f,
+                Vector3.one * .5f,
+                Quaternion.identity,
                 0.2f,
+                0.3f,
+                60f,
+                false);
+            yield return (
+                CheckDistanceType.Global,
+                Vector3.zero,
+                new Vector3(1f, 1f, .5f),
+                Quaternion.identity,
+                0.2f,
+                0.3f,
+                60f,
+                false);
+            yield return (
+                CheckDistanceType.JointLabel,
+                Vector3.zero,
+                new Vector3(1f, 1f, .5f),
+                Quaternion.identity,
+                0.2f,
+                0.3f,
                 60f,
                 true);
             yield return (
+                CheckDistanceType.JointLabel,
                 Vector3.zero,
+                Vector3.one * .5f,
+                Quaternion.identity,
                 0.2f,
-                0.005f,
+                0.3f,
                 60f,
-                false);
+                true);
             yield return (
+                CheckDistanceType.JointLabel,
                 Vector3.zero,
-                0.1f,
-                0.05f,
+                new Vector3(1f, 1f, .05f),
+                Quaternion.AngleAxis(45, Vector3.right),
+                0.2f,
+                0.21f,
                 60f,
-                false);
-            yield return (
-                new Vector3(0, 0, 88),
-                0.1f,
-                0.05f,
-                1f,
-                false);
-            //larger value here for the occluded check due to lack of depth precision close to far plane.
-            //We choose to mark points not occluded when the point depth and geometry depth are the same in the depth buffer
-            yield return (
-                new Vector3(0, 0, 88),
-                1f,
-                2f,
-                1f,
                 true);
         }
 
         [UnityTest]
         public IEnumerator Keypoint_InsideBox_RespectsThreshold(
             [ValueSource(nameof(Keypoint_InsideBox_RespectsThreshold_TestCases))]
-            (Vector3 origin, float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded) args,
-            [Values(CheckDistanceType.Global, CheckDistanceType.JointLabel)] CheckDistanceType checkDistanceType,
+            (CheckDistanceType checkDistanceType, Vector3 origin, Vector3 objectScale, Quaternion rotation,
+                float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded) args,
             [Values(ProjectionKind.Orthographic, ProjectionKind.Projection)] ProjectionKind projectionKind)
         {
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
@@ -1075,7 +1139,7 @@ namespace GroundTruthTests
             var frameSize = 1024;
             var texture = new RenderTexture(frameSize, frameSize, 16);
             var labelerSelfOcclusionDistance =
-                checkDistanceType == CheckDistanceType.Global ? args.checkDistance : 0.5f;
+                args.checkDistanceType == CheckDistanceType.Global ? args.checkDistance : 0.5f;
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
                 incoming.Add(data);
@@ -1091,8 +1155,89 @@ namespace GroundTruthTests
             }
 
             var cube = TestHelper.CreateLabeledCube(scale: 1f, x: args.origin.x, y: args.origin.y, z: args.origin.z);
-            var localSelfOcclusionDistance = checkDistanceType == CheckDistanceType.JointLabel ? (float?)args.checkDistance : null;
+            cube.transform.localScale = args.objectScale;
+            cube.transform.localRotation = args.rotation;
+            var localSelfOcclusionDistance = args.checkDistanceType == CheckDistanceType.JointLabel ? (float?)args.checkDistance : null;
             SetupCubeJoint(cube, "Center", 0f, 0f, -.5f + args.pointDistance, localSelfOcclusionDistance);
+
+            cube.SetActive(true);
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+            AddTestObjectForCleanup(cube);
+
+            for (int i = 0; i < 10000; i++)
+             yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+            texture.Release();
+
+            var testCase = incoming.Last();
+            Assert.AreEqual(1, testCase.Count);
+            var t = testCase.First();
+            Assert.AreEqual(args.expectOccluded ? 1 : 2, t.keypoints[8].state);
+        }
+
+
+        public static IEnumerable<(Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, bool expectOccluded)>
+            Keypoint_OnCorner_OfRotatedScaledBox_RespectsThreshold_TestCases()
+        {
+            yield return (
+                new Vector3(90f, 90f, 10f),
+                Quaternion.identity,
+                .11f,
+                new Vector3(-.4f, -.4f, -.4f),
+                false);
+            yield return (
+                new Vector3(90f, 90f, 1f),
+                Quaternion.identity,
+                .5f,
+                new Vector3(-.4f, -.4f, .4f),
+                true);
+            yield return (
+                new Vector3(90, 90, 9),
+                Quaternion.AngleAxis(90, Vector3.right),
+                .11f,
+                new Vector3(-.4f, -.4f, -.4f),
+                false);
+            yield return (
+                new Vector3(90, 90, 90),
+                Quaternion.AngleAxis(90, Vector3.right),
+                .11f,
+                new Vector3(-.4f, -.4f, -.4f),
+                false);
+            yield return (
+                new Vector3(90, 60, 90),
+                Quaternion.AngleAxis(45, Vector3.right),
+                .11f,
+                new Vector3(-.4f, -.4f, -.4f),
+                true);
+        }
+
+        [UnityTest]
+        public IEnumerator Keypoint_OnCorner_OfRotatedScaledBox_RespectsThreshold(
+            [ValueSource(nameof(Keypoint_OnCorner_OfRotatedScaledBox_RespectsThreshold_TestCases))]
+            (Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, bool expectOccluded) args)
+        {
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var frameSize = 1024;
+            var texture = new RenderTexture(frameSize, frameSize, 16);
+            var labelerSelfOcclusionDistance = 0.5f;
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(data);
+            }, texture, defaultSelfOcclusionDistance: labelerSelfOcclusionDistance);
+            var camComponent = cam.GetComponent<Camera>();
+            camComponent.orthographic = true;
+            camComponent.orthographicSize = 100f;
+            cam.transform.localPosition = new Vector3(0, 0, -95f);
+
+            var cube = TestHelper.CreateLabeledCube(scale: 1f);
+            cube.transform.localScale = args.objectScale;
+            cube.transform.localRotation = args.rotation;
+            SetupCubeJoint(cube, "Center", args.pointLocalPosition.x, args.pointLocalPosition.y, args.pointLocalPosition.z, args.checkDistance);
 
             cube.SetActive(true);
             cam.SetActive(true);

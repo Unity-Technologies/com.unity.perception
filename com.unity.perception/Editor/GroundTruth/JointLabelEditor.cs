@@ -5,6 +5,7 @@ using UnityEngine.Perception.GroundTruth;
 namespace UnityEditor.Perception.GroundTruth
 {
     [CustomEditor(typeof(JointLabel))]
+    [CanEditMultipleObjects]
     public class JointLabelEditor : Editor
     {
         public override void OnInspectorGUI()

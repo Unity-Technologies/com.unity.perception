@@ -17,12 +17,13 @@ public class CharacterToolingUI : EditorWindow
         Running
     }
 
-    private TestResults testResults = new TestResults();
-    private CharacterTooling contentTests = new CharacterTooling();
+    TestResults testResults = new TestResults();
+    CharacterTooling contentTests = new CharacterTooling();
 
-    private GameObject selection = null;
-    private int toolbarSelection = 0;
-    private bool drawFaceRays = false;
+    GameObject selection = null;
+    int toolbarSelection = 0;
+    bool drawFaceRays = false;
+    string savePath = string.Empty;
 
     private void OnSelectionChange()
     {
@@ -49,6 +50,7 @@ public class CharacterToolingUI : EditorWindow
         if (selection != null && selection.GetType() == typeof(GameObject))
         {
             EditorGUILayout.TextField("Selected Asset : ", selection.name);
+            savePath = EditorGUILayout.TextField("Prefab Save Location : ", savePath);
 
             GUILayout.BeginHorizontal();
             toolbarSelection = GUILayout.Toolbar(toolbarSelection, toolbarNames);
@@ -63,19 +65,18 @@ public class CharacterToolingUI : EditorWindow
                     var failedPose = new List<GameObject>();
 
                     drawFaceRays = GUILayout.Toggle(drawFaceRays, "Draw Face Rays");
-                    GUILayout.Label(string.Format("Create Ears and Noise: {0}", test), EditorStyles.boldLabel);
+                    GUILayout.Label(string.Format("Create Ears and Nose: {0}", test), EditorStyles.boldLabel);
 
 
                     if (GUILayout.Button("Create Nose and Ears", GUILayout.Width(160)))
                     {
                         testResults = TestResults.Running;
+                        if(savePath != string.Empty)
+                            test = contentTests.CharacterCreateNose(selection, drawFaceRays);
+                        else
+                            test = contentTests.CharacterCreateNose(selection, drawFaceRays, savePath);
 
-                        test = contentTests.CharacterCreateNose(selection, drawFaceRays);
-
-                        if (test)
-                            testResults = TestResults.Pass;
-                        if (!test)
-                            testResults = TestResults.Fail;
+                        testResults = test ? TestResults.Pass : TestResults.Fail;
                     }
 
                     break;
@@ -121,10 +122,7 @@ public class CharacterToolingUI : EditorWindow
                             GUILayout.Label(string.Format("Required Bones Present : {0}", TestResults.Pass), EditorStyles.whiteLabel);
                         }
 
-                        if (test)
-                            testResults = TestResults.Pass;
-                        if (!test)
-                            testResults = TestResults.Fail;
+                        testResults = test ? TestResults.Pass : TestResults.Fail;
                     }
 
                     if (GUILayout.Button("Validate Pose Data", GUILayout.Width(160)))
@@ -133,10 +131,7 @@ public class CharacterToolingUI : EditorWindow
 
                         test = contentTests.CharacterPoseData(selection, out failedPose);
 
-                        if (test)
-                            testResults = TestResults.Pass;
-                        if (!test)
-                            testResults = TestResults.Fail;
+                        testResults = test ? TestResults.Pass : TestResults.Fail;
                     }
 
                     break;

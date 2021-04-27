@@ -27,11 +27,16 @@ namespace UnityEngine.Perception.Content
             "RightFoot",
         };
 
+        /// <summary>
+        /// Checks the selected character fbx or prefab to make sure the required bones defined bu the strong [] RequiredBones
+        /// </summary>
+        /// <param name="selection">GameObject selected by the user in the editor</param>
+        /// <returns>Dictionary of the Human Bone and bool to track presence</returns>
         public static Dictionary<HumanBone, bool> AvatarRequiredBones(GameObject selection)
         {
             var result = new Dictionary<HumanBone, bool>();
-
             selection = (GameObject)PrefabUtility.InstantiatePrefab(selection);
+
             var animator = selection.GetComponentInChildren<Animator>();
             var bone = new HumanBone();
 
@@ -69,8 +74,22 @@ namespace UnityEngine.Perception.Content
             return result;
         }
 
-        public static GameObject AvatarCreateNose (GameObject selection, bool drawRays = false)
+        /// <summary>
+        /// Based on the selection of a fbx or prefab character will find the location of the nose, left ear, and right ear joints
+        /// based on eye and the center head locations. 
+        /// </summary>
+        /// <param name="selection"> fbx or prefab selection</param>
+        /// <param name="savePath">Path where the new created prefab will be saved too</param>
+        /// <param name="drawRays">Shows the rays on how the joint posiitons are found</param>
+        /// <returns></returns>
+        public static GameObject AvatarCreateNoseEars (GameObject selection, string savePath, bool drawRays = false)
         {
+            if (selection == null)
+            {
+                Debug.LogWarning("Selected Game Object is null or missing");
+                return new GameObject("Failed");
+            }
+
             selection = (GameObject)PrefabUtility.InstantiatePrefab(selection);
             var animator = selection.GetComponentInChildren<Animator>();
             var skinnedMeshRenderer = selection.GetComponentInChildren<SkinnedMeshRenderer>();
@@ -130,7 +149,7 @@ namespace UnityEngine.Perception.Content
             rayRightEye.origin = rightEye.position;
             rayRightEye.direction = directionRight * eyeDistance;
 
-            for (double i = 0; i < distanceCheck; i += 0.01)
+            for (var i = 0f; i < distanceCheck; i += 0.01f)
             {
                 var point = Convert.ToSingle(i);
                 var pointR = rayRightEye.GetPoint(point);
@@ -154,11 +173,10 @@ namespace UnityEngine.Perception.Content
             rayNoseBack.origin = faceCenter;
             rayNoseBack.direction = Vector3.back * distanceCheck;
 
-            for (double i = 0; i < distanceCheck; i += 0.01)
+            for (var i = 0f; i < distanceCheck; i += 0.01f)
             {
-                var point = Convert.ToSingle(i);
-                var pointH = rayHead.GetPoint(point);
-                var pointF = rayNoseBack.GetPoint(point);
+                var pointH = rayHead.GetPoint(i);
+                var pointF = rayNoseBack.GetPoint(i);
 
                 var distanceZ = Math.Abs(pointH.z - pointF.z);
 
@@ -170,10 +188,9 @@ namespace UnityEngine.Perception.Content
 
             for (int v = 0; v < verticies.Length; v++)
             {
-                for (double c = eyeDistance / 2; c < distanceCheck; c += 0.001)
+                for (var c = eyeDistance / 2; c < distanceCheck; c += 0.001f)
                 {
-                    var point = Convert.ToSingle(c);
-                    var pointNoseRay = noseRayFor.GetPoint(point);
+                    var pointNoseRay = noseRayFor.GetPoint(c);
                     var pointVert = verticies[v];
                     var distHeadZ = Math.Abs(pointNoseRay.z - pointVert.z);
                     var distHeadX = Math.Abs(pointNoseRay.x - pointVert.x);
@@ -181,7 +198,6 @@ namespace UnityEngine.Perception.Content
                     if (distHeadZ < 0.0001 && distHeadX < 0.001)
                     {
                         nosePos = pointNoseRay;
-                        Debug.Log("Found Nose: " + nosePos);
                     }
 
                     else if(nosePos == Vector3.zero)
@@ -189,7 +205,6 @@ namespace UnityEngine.Perception.Content
                         if (distHeadZ < 0.001 && distHeadX < 0.001)
                         {
                             nosePos = pointNoseRay;
-                            Debug.Log("Found Nose: " + nosePos);
                         }
                     }
                 }
@@ -204,11 +219,10 @@ namespace UnityEngine.Perception.Content
             
             for (int v = 0; v < verticies.Length; v++)
             {
-                for (double c = eyeDistance / 2; c < distanceCheck; c += 0.001)
+                for (var c = eyeDistance / 2; c < distanceCheck; c += 0.001f)
                 {
-                    var point = Convert.ToSingle(c);
-                    var pointEarRight = rayEarRight.GetPoint(point);
-                    var pointEarLeft = rayEarLeft.GetPoint(point);
+                    var pointEarRight = rayEarRight.GetPoint(c);
+                    var pointEarLeft = rayEarLeft.GetPoint(c);
                     var pointVert = verticies[v];
 
                     var distEarRightY = Math.Abs(pointEarRight.y - pointVert.y);
@@ -266,9 +280,21 @@ namespace UnityEngine.Perception.Content
                 DebugDrawRays(30f, distanceCheck, rightEye, leftEye, head, rayRightEye, rayLeftEye, faceCenter, earCenter);
             }
 
-            return CreateNewCharacterPrefab(selection, nosePos, earRightPos, earLeftPos);
+            return CreateNewCharacterPrefab(selection, nosePos, earRightPos, earLeftPos, savePath);
         }
 
+        /// <summary>
+        /// Drays the rays used to create the nose and ears 
+        /// </summary>
+        /// <param name="duration">Duration of the ray being drawn</param>
+        /// <param name="distanceCheck">How far the ray goes</param>
+        /// <param name="rightEye">transform of the right eye</param>
+        /// <param name="leftEye">transform of the left eye</param>
+        /// <param name="head">transform of the head</param>
+        /// <param name="rayRightEye">ray from the right eye transform</param>
+        /// <param name="rayLeftEye">ray from the left eye transform</param>
+        /// <param name="faceCenter">center of face found from the eyes</param>
+        /// <param name="earCenter">center of eyes found from the center of the head</param>
         public static void DebugDrawRays(float duration, float distanceCheck, Transform rightEye, Transform leftEye, Transform head,Ray rayRightEye, Ray rayLeftEye, Vector3 faceCenter, Vector3 earCenter)
         {
             Debug.DrawLine(rightEye.position, leftEye.position, Color.magenta, duration);
@@ -281,44 +307,54 @@ namespace UnityEngine.Perception.Content
             Debug.DrawRay(earCenter, Vector3.left, Color.green, duration);
         }
 
-        public static GameObject CreateNewCharacterPrefab(GameObject selection, Vector3 nosePosition, Vector3 earRightPosition, Vector3 earLeftPosition)
+        /// <summary>
+        /// Grabs the positions for the nose and ears then creates the joint, adds labels, parents the joints to the head, then saves the prefab
+        /// </summary>
+        /// <param name="selection">target character</param>
+        /// <param name="nosePosition">Vector 3 position</param>
+        /// <param name="earRightPosition">Vector 3 position</param>
+        /// <param name="earLeftPosition">Vector 3 position</param>
+        /// <param name="savePath">Save path for the creation of a new prefab</param>
+        /// <returns></returns>
+        public static GameObject CreateNewCharacterPrefab(GameObject selection, Vector3 nosePosition, Vector3 earRightPosition, Vector3 earLeftPosition, string savePath = "Assets/")
         {
-            List<Transform> children = new List<Transform>();
-            selection.GetComponentsInChildren(children);
+            var head = FindBodyPart("head", selection.transform);
 
-            foreach(var child in children)
+            if (savePath == string.Empty)
+                savePath = "Assets/";
+
+            var filePath = savePath + selection.name + ".prefab";
+
+            if (head != null)
             {
-                if (child.name == "head")
+                if (nosePosition != Vector3.zero)
                 {
-                    if (nosePosition != Vector3.zero)
-                    {
-                        var nose = new GameObject();
-                        nose.transform.position = nosePosition;
-                        nose.name = "nose";
-                        nose.transform.SetParent(child);
+                    var nose = new GameObject();
+                    nose.transform.position = nosePosition;
+                    nose.name = "nose";
+                    nose.transform.SetParent(head);
 
-                        AddJointLabel(nose);
-                    }
+                    AddJointLabel(nose);
+                }
 
-                    if (earRightPosition != Vector3.zero)
-                    {
-                        var earRight = new GameObject();
-                        earRight.transform.position = earRightPosition;
-                        earRight.name = "earRight";
-                        earRight.transform.SetParent(child);
+                if (earRightPosition != Vector3.zero)
+                {
+                    var earRight = new GameObject();
+                    earRight.transform.position = earRightPosition;
+                    earRight.name = "earRight";
+                    earRight.transform.SetParent(head);
 
-                        AddJointLabel(earRight);
-                    }
+                    AddJointLabel(earRight);
+                }
 
-                    if (earLeftPosition != Vector3.zero)
-                    {
-                        var earLeft = new GameObject();
-                        earLeft.transform.position = earLeftPosition;
-                        earLeft.name = "earLeft";
-                        earLeft.transform.SetParent(child);
+                if (earLeftPosition != Vector3.zero)
+                {
+                    var earLeft = new GameObject();
+                    earLeft.transform.position = earLeftPosition;
+                    earLeft.name = "earLeft";
+                    earLeft.transform.SetParent(head);
 
-                        AddJointLabel(earLeft);
-                    }
+                    AddJointLabel(earLeft);
                 }
             }
 
@@ -327,6 +363,25 @@ namespace UnityEngine.Perception.Content
             return model;
         }
 
+        private static Transform FindBodyPart(string name, Transform root)
+        {
+            var children = new List<Transform>();
+            root.GetComponentsInChildren(children);
+
+            foreach (var child in children)
+            {
+                if (child.name == name)
+                    return child;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Add a joint label and add the template data for the joint, uses base CocoKeypointTemplate in perception since the plan is to
+        /// remove the template from the template data
+        /// </summary>
+        /// <param name="gameObject">target cgameobject from the joint</param>
         private static void AddJointLabel(GameObject gameObject)
         {
             var jointLabel = gameObject.AddComponent<JointLabel>();

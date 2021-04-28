@@ -13,10 +13,10 @@ namespace UnityEditor.Perception.Randomization.PropertyDrawers
             var field = new UIntField
             {
                 label = property.displayName,
-                bindingPath = property.propertyPath,
                 value = (uint)property.longValue
             };
 
+            //Binding does not work on this custom UI Element field that we have created, so we need to use the change event
             field.RegisterValueChangedCallback(evt =>
             {
                 field.value = evt.newValue;
@@ -24,11 +24,10 @@ namespace UnityEditor.Perception.Randomization.PropertyDrawers
                 property.serializedObject.ApplyModifiedProperties();
             });
 
-            // Create a surrogate integer field to detect and pass along external change events on the UIntField.
-            // UIElements currently does not support default change detection on non-SerializedProperty supported types.
+            // Create a surrogate integer field to detect and pass along external change events (non UI event) on the underlying serialized property.
             var surrogateField = new IntegerField();
             field.Add(surrogateField);
-            surrogateField.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
+            surrogateField.style.display = DisplayStyle.Flex;
             surrogateField.bindingPath = property.propertyPath;
             surrogateField.RegisterValueChangedCallback(evt =>
             {

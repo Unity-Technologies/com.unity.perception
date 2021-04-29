@@ -78,7 +78,7 @@ performance_suites:
   - name: standalone
     display_name: standalone
     args: --suite=playmode --platform=
-    
+
 suites:
   - name: standalone
     display_name: standalone

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -11,10 +9,12 @@ using Unity.Simulation.Client;
 using UnityEditor.Build.Reporting;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using ZipUtility;
+using Random = System.Random;
 
 namespace UnityEditor.Perception.Randomization
 {
@@ -26,6 +26,7 @@ namespace UnityEditor.Perception.Randomization
         IntegerField m_InstanceCountField;
         TextField m_RunNameField;
         IntegerField m_TotalIterationsField;
+        UIntField m_RandomSeedField;
         ToolbarMenu m_SysParamMenu;
         int m_SysParamIndex;
         ObjectField m_ScenarioConfigField;
@@ -33,9 +34,8 @@ namespace UnityEditor.Perception.Randomization
         Label m_PrevRunNameLabel;
         Label m_ProjectIdLabel;
         Label m_PrevExecutionIdLabel;
+        Label m_PrevRandomSeedLabel;
         RunParameters m_RunParameters;
-
-        const string  m_SupportedGPUString = "NVIDIA";
 
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
@@ -95,6 +95,15 @@ namespace UnityEditor.Perception.Randomization
             m_RunNameField = root.Q<TextField>("run-name");
             m_TotalIterationsField = root.Q<IntegerField>("total-iterations");
             m_InstanceCountField = root.Q<IntegerField>("instance-count");
+            m_RandomSeedField = root.Q<UIntField>("random-seed");
+
+            var randomizeSeedButton = root.Q<Button>("randomize-seed");
+            randomizeSeedButton.clicked += () =>
+            {
+                var bytes = new byte[4];
+                new Random().NextBytes(bytes);
+                m_RandomSeedField.value = BitConverter.ToUInt32(bytes, 0);
+            };
 
             m_SysParamDefinitions = API.GetSysParams();
             m_SysParamMenu = root.Q<ToolbarMenu>("sys-param");
@@ -123,6 +132,7 @@ namespace UnityEditor.Perception.Randomization
             m_PrevRunNameLabel = root.Q<Label>("prev-run-name");
             m_ProjectIdLabel = root.Q<Label>("project-id");
             m_PrevExecutionIdLabel = root.Q<Label>("execution-id");
+            m_PrevRandomSeedLabel = root.Q<Label>("prev-random-seed");
 
             var copyExecutionIdButton = root.Q<Button>("copy-execution-id");
             copyExecutionIdButton.clicked += () =>
@@ -131,6 +141,10 @@ namespace UnityEditor.Perception.Randomization
             var copyProjectIdButton = root.Q<Button>("copy-project-id");
             copyProjectIdButton.clicked += () =>
                 EditorGUIUtility.systemCopyBuffer = CloudProjectSettings.projectId;
+
+            var copyPrevRandomSeedButton = root.Q<Button>("copy-prev-random-seed");
+            copyPrevRandomSeedButton.clicked += () =>
+                EditorGUIUtility.systemCopyBuffer = PlayerPrefs.GetString("SimWindow/prevRandomSeed");
 
             SetFieldsFromPlayerPreferences();
         }
@@ -141,10 +155,16 @@ namespace UnityEditor.Perception.Randomization
             m_TotalIterationsField.value = PlayerPrefs.GetInt("SimWindow/totalIterations");
             m_InstanceCountField.value = PlayerPrefs.GetInt("SimWindow/instanceCount");
             m_SysParamIndex = PlayerPrefs.GetInt("SimWindow/sysParamIndex");
+
+            var prevRandomSeed = PlayerPrefs.GetString("SimWindow/prevRandomSeed");
+            m_RandomSeedField.value = string.IsNullOrEmpty(prevRandomSeed)
+                ? SamplerUtility.largePrime : uint.Parse(prevRandomSeed);
+
             m_SysParamMenu.text = m_SysParamDefinitions[m_SysParamIndex].description;
             m_PrevRunNameLabel.text = $"Run Name: {PlayerPrefs.GetString("SimWindow/runName")}";
             m_ProjectIdLabel.text = $"Project ID: {CloudProjectSettings.projectId}";
             m_PrevExecutionIdLabel.text = $"Execution ID: {PlayerPrefs.GetString("SimWindow/prevExecutionId")}";
+            m_PrevRandomSeedLabel.text = $"Random Seed: {PlayerPrefs.GetString("SimWindow/prevRandomSeed")}";
         }
 
         static string IncrementRunName(string runName)
@@ -182,6 +202,7 @@ namespace UnityEditor.Perception.Randomization
                 runName = m_RunNameField.value,
                 totalIterations = m_TotalIterationsField.value,
                 instanceCount = m_InstanceCountField.value,
+                randomSeed = m_RandomSeedField.value,
                 sysParamIndex = m_SysParamIndex,
                 scenarioConfig = (TextAsset)m_ScenarioConfigField.value,
                 currentOpenScenePath = SceneManager.GetSceneAt(0).path,
@@ -265,6 +286,7 @@ namespace UnityEditor.Perception.Randomization
             var constants = configuration["constants"];
             constants["totalIterations"] = m_RunParameters.totalIterations;
             constants["instanceCount"] = m_RunParameters.instanceCount;
+            constants["randomSeed"] = m_RunParameters.randomSeed;
 
             var appParamName = $"{m_RunParameters.runName}";
             var appParamsString = JsonConvert.SerializeObject(configuration, Formatting.Indented);
@@ -331,6 +353,7 @@ namespace UnityEditor.Perception.Randomization
             PlayerPrefs.SetString("SimWindow/prevExecutionId", run.executionId);
             PlayerPrefs.SetInt("SimWindow/totalIterations", m_RunParameters.totalIterations);
             PlayerPrefs.SetInt("SimWindow/instanceCount", m_RunParameters.instanceCount);
+            PlayerPrefs.SetString("SimWindow/prevRandomSeed", m_RunParameters.randomSeed.ToString());
             PlayerPrefs.SetInt("SimWindow/sysParamIndex", m_RunParameters.sysParamIndex);
             PlayerPrefs.SetString("SimWindow/scenarioConfig",
                 m_RunParameters.scenarioConfig != null ? m_RunParameters.scenarioConfigAssetPath : string.Empty);
@@ -343,6 +366,7 @@ namespace UnityEditor.Perception.Randomization
             public string runName;
             public int totalIterations;
             public int instanceCount;
+            public uint randomSeed;
             public int sysParamIndex;
             public TextAsset scenarioConfig;
             public string currentOpenScenePath;

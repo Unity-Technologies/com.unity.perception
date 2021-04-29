@@ -62,7 +62,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
   agent:
     type: Unity::VM::GPU
     model: rtx2080
-    image: cds-ops/ubuntu-18.04-base:latest
+    image: cds-ops/ubuntu-18.04-base:stable
     flavor: b1.large
   variables:
     PATH: /root/.local/bin:/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin

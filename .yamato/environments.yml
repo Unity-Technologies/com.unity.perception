@@ -53,7 +53,7 @@ test_platforms:
     standalone-platform: StandaloneOSX
   - name: ubuntu
     type: Unity::VM
-    image: package-ci/ubuntu:latest
+    image: package-ci/ubuntu:stable
     flavor: b1.large
 
 performance_platforms:
@@ -71,14 +71,14 @@ performance_platforms:
     standalone-platform: StandaloneOSX
   - name: ubuntu
     type: Unity::VM
-    image: package-ci/ubuntu:latest
+    image: package-ci/ubuntu:stable
     flavor: b1.large
 
 performance_suites:
   - name: standalone
     display_name: standalone
     args: --suite=playmode --platform=
-    
+
 suites:
   - name: standalone
     display_name: standalone

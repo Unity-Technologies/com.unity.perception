@@ -31,8 +31,13 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 RenderTexture.active = m_Source;
 
-                if (m_CpuTexture == null)
+                if (m_CpuTexture == null || m_CpuTexture.width != m_Source.width || m_CpuTexture.height != m_Source.height)
+                {
+                    if (m_CpuTexture != null)
+                        m_CpuTexture.Resize(m_Source.width, m_Source.height);
+
                     m_CpuTexture = new Texture2D(m_Source.width, m_Source.height, m_Source.graphicsFormat, TextureCreationFlags.None);
+                }
 
                 m_CpuTexture.ReadPixels(new Rect(
                     Vector2.zero,
@@ -77,7 +82,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Shut down the reader, waiting for all requests to return.
         /// </summary>
-        public void Dispose()
+        public void Dispose() => Dispose(true);
+
+        /// <summary>
+        /// Shut down the reader, optionally waiting for all requests to return.
+        /// </summary>
+        /// <param name="waitForAllImages">Whether this should block on waiting for asynchronous readbacks</param>
+        public void Dispose(bool waitForAllImages)
         {
             WaitForAllImages();
             if (m_CpuTexture != null)

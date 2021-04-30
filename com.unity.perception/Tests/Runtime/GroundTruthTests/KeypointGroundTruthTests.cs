@@ -1166,7 +1166,7 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(cam);
             AddTestObjectForCleanup(cube);
 
-            for (int i = 0; i < 10000; i++)
+            //for (int i = 0; i < 10000; i++)
              yield return null;
 
             //force all async readbacks to complete
@@ -1256,6 +1256,58 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.AreEqual(args.expectOccluded ? 1 : 2, t.keypoints[8].state);
+        }
+
+        [UnityTest]
+        public IEnumerator ManyObjects_LabelsCorrectly()
+        {
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var frameSize = 1024;
+            var texture = new RenderTexture(frameSize, frameSize, 16);
+            var labelerSelfOcclusionDistance = 0.5f;
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(data);
+            }, texture, defaultSelfOcclusionDistance: labelerSelfOcclusionDistance);
+            var count = new Vector2Int(100, 100);
+
+            for (int x = 0; x < count.x; x++)
+            {
+                for (int y = 0; y < count.y; y++)
+                {
+                    var cube = TestHelper.CreateLabeledCube(scale: 1f / count.x - .01f, x: 1f / count.x * x * 2 - 1, y: 1f / count.y * y * 2 - 1);
+                    SetupCubeJoints(cube, template);
+                    cube.SetActive(true);
+                    AddTestObjectForCleanup(cube);
+                }
+            }
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+
+            //for (int i = 0; i < 10000; i++)
+            yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+            texture.Release();
+
+            var testCase = incoming.Last();
+            Assert.AreEqual(count.x * count.y, testCase.Count);
+            var idx = 0;
+            foreach (var entry in testCase)
+            {
+                Assert.AreEqual(9, entry.keypoints.Length);
+
+                CollectionAssert.AreEqual(Enumerable.Repeat(2, 4),
+                    entry.keypoints.Take(4).Select(k => k.state),
+                    $"State mismatch on front in entry {idx}");
+                CollectionAssert.AreEqual(Enumerable.Repeat(1, 4),
+                    entry.keypoints.Skip(4).Take(4).Select(k => k.state),
+                    $"State mismatch on back in entry {idx}");
+                idx++;
+            }
         }
     }
 }

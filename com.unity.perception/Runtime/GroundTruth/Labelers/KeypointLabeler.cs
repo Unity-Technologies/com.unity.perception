@@ -147,9 +147,7 @@ namespace UnityEngine.Perception.GroundTruth
                 new ShaderVariantCollection.ShaderVariant(depthCheckShader, PassType.ScriptableRenderPipeline, keyword));
             shaderVariantCollection.WarmUp();
 
-            //TODO: Proper resizing
-            m_ResultsBuffer = new RenderTexture(1024, 1, 0, GraphicsFormat.R8G8B8A8_UNorm);
-            m_DepthCheckReader = new RenderTextureReader<Color32>(m_ResultsBuffer);
+            SetupResultsBuffer(1024);
 
             perceptionCamera.attachedCamera.depthTextureMode = DepthTextureMode.Depth;
 #if URP_PRESENT
@@ -160,6 +158,21 @@ namespace UnityEngine.Perception.GroundTruth
 
             perceptionCamera.InstanceSegmentationImageReadback += OnInstanceSegmentationImageReadback;
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfoReadback;
+        }
+
+        private void SetupResultsBuffer(int size)
+        {
+            if (m_ResultsBuffer != null && m_ResultsBuffer.width >= size)
+                return;
+
+            if (m_ResultsBuffer != null)
+            {
+                m_ResultsBuffer.Release();
+                m_DepthCheckReader.Dispose(false);
+            }
+
+            m_ResultsBuffer = new RenderTexture(size, 1, 0, GraphicsFormat.R8G8B8A8_UNorm);
+            m_DepthCheckReader = new RenderTextureReader<Color32>(m_ResultsBuffer);
         }
 
         bool AreEqual(Color32 lhs, Color32 rhs)
@@ -376,28 +389,8 @@ namespace UnityEngine.Perception.GroundTruth
             m_MaterialDepthCheck.SetTexture("_KeypointCheckDepth", keypointCheckDepthTexture);
             m_MaterialDepthCheck.SetTexture("_CameraDepthTexture", depthTexture);
 
+            SetupResultsBuffer(checkLocations.Length);
             commandBuffer.Blit(null, m_ResultsBuffer, m_MaterialDepthCheck);
-
-
-            // var resultsComputeBuffer =
-            //     new ComputeBuffer(keypointCount, 4, ComputeBufferType.Default, ComputeBufferMode.Dynamic);
-            // var depthTexture = Shader.GetGlobalTexture("_CameraDepthTexture");
-            // var positionSize = UnsafeUtility.SizeOf<float3>();
-            // commandBuffer.SetComputeTextureParam(m_KeypointDepthTestShader, 0, "DepthBuffer", depthTexture);
-            //
-            // var positionSize = UnsafeUtility.SizeOf<float3>();
-            // var keypointPositionsBuffer = new ComputeBuffer(keypointCount * positionSize, positionSize,
-            //     ComputeBufferType.Default, ComputeBufferMode.Dynamic);
-            // keypointPositionsBuffer.SetData(positions.AsArray());
-            //
-            // var resultsComputeBuffer =
-            //     new ComputeBuffer(keypointCount, 4, ComputeBufferType.Default, ComputeBufferMode.Dynamic);
-            //
-            // commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "CheckPositions", keypointPositionsBuffer);
-            // commandBuffer.SetComputeBufferParam(m_KeypointDepthTestShader, 0, "CheckResults", resultsComputeBuffer);
-            // commandBuffer.DispatchCompute(m_KeypointDepthTestShader, 0, keypointCount, 1, 1);
-            //
-            // commandBuffer.RequestAsyncReadback(resultsComputeBuffer, request => OnDepthCheckReadback(currentFrame, request));
 
             scriptableRenderContext.ExecuteCommandBuffer(commandBuffer);
             scriptableRenderContext.Submit();

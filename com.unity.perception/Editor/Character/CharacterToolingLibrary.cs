@@ -35,7 +35,10 @@ namespace UnityEngine.Perception.Content
         public static Dictionary<HumanBone, bool> AvatarRequiredBones(GameObject selection)
         {
             var result = new Dictionary<HumanBone, bool>();
-            selection = (GameObject)PrefabUtility.InstantiatePrefab(selection);
+            var selectionInstance = (GameObject)PrefabUtility.InstantiatePrefab(selection);
+
+            if (selectionInstance != null)
+                selection = selectionInstance;
 
             var animator = selection.GetComponentInChildren<Animator>();
             var bone = new HumanBone();
@@ -90,7 +93,9 @@ namespace UnityEngine.Perception.Content
                 return new GameObject("Failed");
             }
 
-            selection = (GameObject)PrefabUtility.InstantiatePrefab(selection);
+            var selectionInstance = (GameObject)PrefabUtility.InstantiatePrefab(selection);
+            if (selectionInstance != null)
+                selection = selectionInstance;
             var animator = selection.GetComponentInChildren<Animator>();
             var skinnedMeshRenderer = selection.GetComponentInChildren<SkinnedMeshRenderer>();
 
@@ -128,9 +133,6 @@ namespace UnityEngine.Perception.Content
             var rayEarLeft = new Ray();
             var rayEarRight = new Ray();
 
-            var foundRightEar = false;
-            var foundLeftEar = false;
-
             if(leftEye == null || rightEye == null)
             {
                 Debug.LogWarning("Eye positions are null, unable to position nose joint!");
@@ -149,11 +151,11 @@ namespace UnityEngine.Perception.Content
             rayRightEye.origin = rightEye.position;
             rayRightEye.direction = directionRight * eyeDistance;
 
+            // Find the center of the face
             for (var i = 0f; i < distanceCheck; i += 0.01f)
             {
-                var point = Convert.ToSingle(i);
-                var pointR = rayRightEye.GetPoint(point);
-                var pointL = rayLeftEye.GetPoint(point);
+                var pointR = rayRightEye.GetPoint(i);
+                var pointL = rayLeftEye.GetPoint(i);
 
                 var distanceX = Math.Abs(pointR.x - pointL.x);
                 var distanceY = Math.Abs(pointR.y - pointL.y);
@@ -173,6 +175,7 @@ namespace UnityEngine.Perception.Content
             rayNoseBack.origin = faceCenter;
             rayNoseBack.direction = Vector3.back * distanceCheck;
 
+            // Find the ear center which can be used to go left and right to find the edge of the mesh for the ear
             for (var i = 0f; i < distanceCheck; i += 0.01f)
             {
                 var pointH = rayHead.GetPoint(i);
@@ -180,43 +183,38 @@ namespace UnityEngine.Perception.Content
 
                 var distanceZ = Math.Abs(pointH.z - pointF.z);
 
-                if (distanceZ < 0.01)
+                if (distanceZ < 0.01f)
                 {
                     earCenter = pointF;
                 }
             }
 
+            var points = new List<Vector3>();
+            // Find the position of the nose 
             for (int v = 0; v < verticies.Length; v++)
             {
                 for (var c = eyeDistance / 2; c < distanceCheck; c += 0.001f)
                 {
                     var pointNoseRay = noseRayFor.GetPoint(c);
                     var pointVert = verticies[v];
-                    var distHeadZ = Math.Abs(pointNoseRay.z - pointVert.z);
-                    var distHeadX = Math.Abs(pointNoseRay.x - pointVert.x);
+                    var def = 0.003f;
+                    var offset = pointVert - pointNoseRay;
+                    var len = offset.sqrMagnitude;
 
-                    if (distHeadZ < 0.0001 && distHeadX < 0.001)
+                    if(len < def * def || len < def)
                     {
                         nosePos = pointNoseRay;
                     }
-
-                    else if(nosePos == Vector3.zero)
-                    {
-                        if (distHeadZ < 0.001 && distHeadX < 0.001)
-                        {
-                            nosePos = pointNoseRay;
-                        }
-                    }
                 }
             }
-
-            
+                        
             rayEarRight.origin = earCenter;
             rayEarRight.direction = Vector3.right * distanceCheck;
             
             rayEarLeft.origin = earCenter;
             rayEarLeft.direction = Vector3.left * distanceCheck;
-            
+
+            // Find both the left and right ear from the ear center
             for (int v = 0; v < verticies.Length; v++)
             {
                 for (var c = eyeDistance / 2; c < distanceCheck; c += 0.001f)
@@ -224,39 +222,21 @@ namespace UnityEngine.Perception.Content
                     var pointEarRight = rayEarRight.GetPoint(c);
                     var pointEarLeft = rayEarLeft.GetPoint(c);
                     var pointVert = verticies[v];
+                    var def = 0.09f;
+                    var offsetR = pointVert - pointEarRight;
+                    // Need to fix the left offset because of negative numbers
+                    var offsetL = pointVert - pointEarLeft;
+                    var lenR = offsetR.sqrMagnitude;
+                    var lenL = offsetL.sqrMagnitude;
 
-                    var distEarRightY = Math.Abs(pointEarRight.y - pointVert.y);
-                    var distEarRightX = Math.Abs(pointEarRight.x - pointVert.x);
-
-                    var distEarLeftY = Math.Abs(pointEarLeft.y - pointVert.y);
-                    var distEarLeftX = Math.Abs(pointEarLeft.x - pointVert.x);
-
-                    if (distEarRightY < 0.001 && distEarRightX < 0.0001)
+                    if (lenR < def * def || lenR < def)
                     {
                         earRightPos = pointEarRight;
-                        foundRightEar = true;
                     }
 
-                    if (distEarLeftY < 0.001 && distEarLeftX < 0.0001)
+                    if (lenL < def * def || lenL < def)
                     {
                         earLeftPos = pointEarLeft;
-                        foundLeftEar = true;
-                    }
-
-                    if (!foundRightEar)
-                    {
-                        if (distEarRightY < 0.01 && distEarRightX < 0.001)
-                        {
-                            earRightPos = pointEarRight;
-                        }
-                    }
-
-                    if (!foundLeftEar)
-                    {
-                        if (distEarLeftY < 0.001 && distEarLeftX < 0.001)
-                        {
-                            earLeftPos = pointEarLeft;
-                        }
                     }
                 }
             }
@@ -358,19 +338,19 @@ namespace UnityEngine.Perception.Content
                 }
             }
 
-            var model = PrefabUtility.SaveAsPrefabAsset(selection, "Assets/" + selection.name + ".prefab");
+            var model = PrefabUtility.SaveAsPrefabAsset(selection, filePath);
 
             return model;
         }
 
-        private static Transform FindBodyPart(string name, Transform root)
+        static Transform FindBodyPart(string name, Transform root)
         {
             var children = new List<Transform>();
             root.GetComponentsInChildren(children);
 
             foreach (var child in children)
             {
-                if (child.name == name)
+                if (child.name == name || child.name.Contains("head"))
                     return child;
             }
 
@@ -382,7 +362,7 @@ namespace UnityEngine.Perception.Content
         /// remove the template from the template data
         /// </summary>
         /// <param name="gameObject">target cgameobject from the joint</param>
-        private static void AddJointLabel(GameObject gameObject)
+        static void AddJointLabel(GameObject gameObject)
         {
             var jointLabel = gameObject.AddComponent<JointLabel>();
             var data = new JointLabel.TemplateData();

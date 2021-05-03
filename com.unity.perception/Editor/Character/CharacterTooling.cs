@@ -80,13 +80,17 @@ namespace UnityEngine.Perception.Content
         {
             var model = AvatarCreateNoseEars(selection, savePath, drawRays);
 
-            if(model.name.Contains("Failed"))
+            if (model.name.Contains("Failed"))
             {
                 GameObject.DestroyImmediate(model);
                 return false;
             }
+            else return true;
+        }
 
-            var jointLabels = model.GetComponentsInChildren<JointLabel>();
+        public bool ValidateNoseAndEars(GameObject selection)
+        {
+            var jointLabels = selection.GetComponentsInChildren<JointLabel>();
             var nose = false;
             var earRight = false;
             var earLeft = false;
@@ -103,8 +107,7 @@ namespace UnityEngine.Perception.Content
 
             if (nose && earRight && earLeft)
                 return true;
-
-            return false;
+            else return false;
         }
     }
 }

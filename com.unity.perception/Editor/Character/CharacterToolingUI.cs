@@ -17,8 +17,8 @@ public class CharacterToolingUI : EditorWindow
         Running
     }
 
-    TestResults testResults = new TestResults();
-    CharacterTooling contentTests = new CharacterTooling();
+    TestResults m_testResults = new TestResults();
+    CharacterTooling m_contentTests = new CharacterTooling();
 
     GameObject selection = null;
     int toolbarSelection = 0;
@@ -60,23 +60,40 @@ public class CharacterToolingUI : EditorWindow
             {
                 case 0:
                     GUILayout.Label("Character Tools", EditorStyles.whiteLargeLabel);
-                    var test = false;
+                    var test = true;
+                    var status = "Unknown";
+                    var checkForJoints = m_contentTests.ValidateNoseAndEars(selection);
                     var failedBones = new Dictionary<HumanBone, bool>();
                     var failedPose = new List<GameObject>();
 
                     drawFaceRays = GUILayout.Toggle(drawFaceRays, "Draw Face Rays");
                     GUILayout.Label(string.Format("Create Ears and Nose: {0}", test), EditorStyles.boldLabel);
+                    GUILayout.Label(string.Format("Ears and Nose status: {0}", status), EditorStyles.boldLabel);
 
 
                     if (GUILayout.Button("Create Nose and Ears", GUILayout.Width(160)))
                     {
-                        testResults = TestResults.Running;
-                        if(savePath != string.Empty)
-                            test = contentTests.CharacterCreateNose(selection, drawFaceRays);
-                        else
-                            test = contentTests.CharacterCreateNose(selection, drawFaceRays, savePath);
+                        m_testResults = TestResults.Running;
+                      
+                        if (!checkForJoints)
+                        {
+                            if (savePath == string.Empty)
+                                test = m_contentTests.CharacterCreateNose(selection, drawFaceRays);
+                            else
+                                test = m_contentTests.CharacterCreateNose(selection, drawFaceRays, savePath);
 
-                        testResults = test ? TestResults.Pass : TestResults.Fail;
+                            m_testResults = test ? TestResults.Fail : TestResults.Pass;
+
+                            if (test)
+                                status = "Ear and Nose Joints have been created on the Asset";
+                            else if (!test)
+                                status = "Failed to create the Ear and Nose Joints";
+                        }
+                        else if(checkForJoints)
+                        {
+                            status = "Joints have already been created on this Asset";
+                        }
+                        Repaint();
                     }
 
                     break;
@@ -84,7 +101,7 @@ public class CharacterToolingUI : EditorWindow
                 case 1:
 
                     GUILayout.Label("Character Validation", EditorStyles.whiteLargeLabel);
-                    GUILayout.Label(string.Format("Validation for Character : {0}", testResults), EditorStyles.whiteLabel);
+                    GUILayout.Label(string.Format("Validation for Character : {0}", m_testResults), EditorStyles.whiteLabel);
 
                     var animator = selection.GetComponentInChildren<Animator>();
 
@@ -96,9 +113,9 @@ public class CharacterToolingUI : EditorWindow
 
                     if (GUILayout.Button("Validate Bones", GUILayout.Width(160)))
                     {
-                        testResults = TestResults.Running;
+                        m_testResults = TestResults.Running;
 
-                        test = contentTests.CharacterRequiredBones(selection, out failedBones);
+                        test = m_contentTests.CharacterRequiredBones(selection, out failedBones);
 
                         if (failedBones.Count > 0)
                         {
@@ -122,16 +139,16 @@ public class CharacterToolingUI : EditorWindow
                             GUILayout.Label(string.Format("Required Bones Present : {0}", TestResults.Pass), EditorStyles.whiteLabel);
                         }
 
-                        testResults = test ? TestResults.Pass : TestResults.Fail;
+                        m_testResults = test ? TestResults.Pass : TestResults.Fail;
                     }
 
                     if (GUILayout.Button("Validate Pose Data", GUILayout.Width(160)))
                     {
-                        testResults = TestResults.Running;
+                        m_testResults = TestResults.Running;
 
-                        test = contentTests.CharacterPoseData(selection, out failedPose);
+                        test = m_contentTests.CharacterPoseData(selection, out failedPose);
 
-                        testResults = test ? TestResults.Pass : TestResults.Fail;
+                        m_testResults = test ? TestResults.Pass : TestResults.Fail;
                     }
 
                     break;

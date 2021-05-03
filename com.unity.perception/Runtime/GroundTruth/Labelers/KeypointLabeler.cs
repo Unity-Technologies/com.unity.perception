@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
+using Unity.Profiling;
 using Unity.Simulation;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -22,6 +23,10 @@ namespace UnityEngine.Perception.GroundTruth
     public sealed class KeypointLabeler : CameraLabeler
     {
         internal const float defaultSelfOcclusionDistance = 0.15f;
+        const int k_MinTextureWidth = 4;
+
+        static ProfilerMarker k_OnEndRenderingMarker = new ProfilerMarker($"KeypointLabeler OnEndRendering");
+        static ProfilerMarker k_OnVisualizeMarker = new ProfilerMarker($"KeypointLabeler OnVisualize");
 
         /// <summary>
         /// The active keypoint template. Required to annotate keypoint data.
@@ -62,6 +67,8 @@ namespace UnityEngine.Perception.GroundTruth
         AnnotationDefinition m_AnnotationDefinition;
         Texture2D m_MissingTexture;
         Material m_MaterialDepthCheck;
+        Texture2D m_KeypointPositionsTexture;
+        Texture2D m_KeypointCheckDepthTexture;
 
         struct FrameKeypointData
         {
@@ -147,8 +154,6 @@ namespace UnityEngine.Perception.GroundTruth
                 new ShaderVariantCollection.ShaderVariant(depthCheckShader, PassType.ScriptableRenderPipeline, keyword));
             shaderVariantCollection.WarmUp();
 
-            SetupResultsBuffer(1024);
-
             perceptionCamera.attachedCamera.depthTextureMode = DepthTextureMode.Depth;
 #if URP_PRESENT
             var cameraData = UnityEngine.Rendering.Universal.CameraExtensions.GetUniversalAdditionalCameraData(perceptionCamera.attachedCamera);
@@ -160,18 +165,25 @@ namespace UnityEngine.Perception.GroundTruth
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfoReadback;
         }
 
-        private void SetupResultsBuffer(int size)
+        private void SetupDepthCheckBuffers(int size)
         {
-            if (m_ResultsBuffer != null && m_ResultsBuffer.width >= size)
+            var textureDimensions = TextureDimensions(size);
+            if (m_ResultsBuffer != null && textureDimensions.x * textureDimensions.y >= size)
                 return;
+
 
             if (m_ResultsBuffer != null)
             {
                 m_ResultsBuffer.Release();
                 m_DepthCheckReader.Dispose(false);
+                // Object.Destroy(m_KeypointPositionsTexture);
+                // Object.Destroy(m_KeypointCheckDepthTexture);
             }
 
-            m_ResultsBuffer = new RenderTexture(size, 1, 0, GraphicsFormat.R8G8B8A8_UNorm);
+            m_KeypointPositionsTexture = new Texture2D(textureDimensions.x, textureDimensions.y, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
+            m_KeypointCheckDepthTexture = new Texture2D(textureDimensions.x, textureDimensions.y, GraphicsFormat.R16_SFloat, TextureCreationFlags.None);
+
+            m_ResultsBuffer = new RenderTexture(textureDimensions.x, textureDimensions.y, 0, GraphicsFormat.R8G8B8A8_UNorm);
             m_DepthCheckReader = new RenderTextureReader<Color32>(m_ResultsBuffer);
         }
 
@@ -328,32 +340,35 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override void OnEndRendering(ScriptableRenderContext scriptableRenderContext)
         {
-            m_CurrentFrame = Time.frameCount;
-
-            var annotation = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
-            var keypointEntries = new List<KeypointEntry>();
-            var checkLocations = new NativeList<float3>(512, Allocator.Persistent);
-
-            foreach (var label in LabelManager.singleton.registeredLabels)
-                ProcessLabel(label, keypointEntries, checkLocations);
-
-            m_FrameKeypointData[m_CurrentFrame] = new FrameKeypointData
+            using (k_OnEndRenderingMarker.Auto())
             {
-                annotation = annotation,
-                keypoints = keypointEntries,
-                pointsPerEntry = activeTemplate.keypoints.Length
-            };
+                m_CurrentFrame = Time.frameCount;
 
-            if (keypointEntries.Count != 0)
-                DoDepthCheck(scriptableRenderContext, keypointEntries, checkLocations);
-            else
-            {
-                var frameKeypointData = m_FrameKeypointData[m_CurrentFrame];
-                frameKeypointData.isDepthCheckComplete = true;
-                m_FrameKeypointData[m_CurrentFrame] = frameKeypointData;
+                var annotation = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
+                var keypointEntries = new List<KeypointEntry>();
+                var checkLocations = new NativeList<float3>(512, Allocator.Persistent);
+
+                foreach (var label in LabelManager.singleton.registeredLabels)
+                    ProcessLabel(label, keypointEntries, checkLocations);
+
+                m_FrameKeypointData[m_CurrentFrame] = new FrameKeypointData
+                {
+                    annotation = annotation,
+                    keypoints = keypointEntries,
+                    pointsPerEntry = activeTemplate.keypoints.Length
+                };
+
+                if (keypointEntries.Count != 0)
+                    DoDepthCheck(scriptableRenderContext, keypointEntries, checkLocations);
+                else
+                {
+                    var frameKeypointData = m_FrameKeypointData[m_CurrentFrame];
+                    frameKeypointData.isDepthCheckComplete = true;
+                    m_FrameKeypointData[m_CurrentFrame] = frameKeypointData;
+                }
+
+                checkLocations.Dispose();
             }
-
-            checkLocations.Dispose();
         }
 
         private void DoDepthCheck(ScriptableRenderContext scriptableRenderContext, List<KeypointEntry> keypointEntries, NativeList<float3> checkLocations)
@@ -362,11 +377,13 @@ namespace UnityEngine.Perception.GroundTruth
 
             var commandBuffer = CommandBufferPool.Get("KeypointDepthCheck");
 
-            var keypointPositionsTexture = new Texture2D(keypointCount, 1, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
-            var keypointCheckDepthTexture = new Texture2D(keypointCount, 1, GraphicsFormat.R16_SFloat, TextureCreationFlags.None);
+            var textureDimensions = TextureDimensions(keypointCount);
 
-            var positionsPixeldata = new NativeArray<half>(checkLocations.Length * 2, Allocator.Temp);
-            var depthPixeldata = new NativeArray<half>(checkLocations.Length, Allocator.Temp);
+
+            SetupDepthCheckBuffers(checkLocations.Length);
+
+            var positionsPixeldata = new NativeArray<half>(textureDimensions.x * textureDimensions.y * 2, Allocator.Temp);
+            var depthPixeldata = new NativeArray<half>(textureDimensions.x * textureDimensions.y, Allocator.Temp);
             var depthTexture = Shader.GetGlobalTexture("_CameraDepthTexture");
 
             for (int i = 0; i < checkLocations.Length; i++)
@@ -377,25 +394,32 @@ namespace UnityEngine.Perception.GroundTruth
                 depthPixeldata[i] = new half(pos.z);
             }
 
-            keypointPositionsTexture.SetPixelData(positionsPixeldata, 0);
-            keypointPositionsTexture.Apply();
-            keypointCheckDepthTexture.SetPixelData(depthPixeldata, 0);
-            keypointCheckDepthTexture.Apply();
+            m_KeypointPositionsTexture.SetPixelData(positionsPixeldata, 0);
+            m_KeypointPositionsTexture.Apply();
+            m_KeypointCheckDepthTexture.SetPixelData(depthPixeldata, 0);
+            m_KeypointCheckDepthTexture.Apply();
 
             positionsPixeldata.Dispose();
             depthPixeldata.Dispose();
 
-            m_MaterialDepthCheck.SetTexture("_Positions", keypointPositionsTexture);
-            m_MaterialDepthCheck.SetTexture("_KeypointCheckDepth", keypointCheckDepthTexture);
+            m_MaterialDepthCheck.SetTexture("_Positions", m_KeypointPositionsTexture);
+            m_MaterialDepthCheck.SetTexture("_KeypointCheckDepth", m_KeypointCheckDepthTexture);
             m_MaterialDepthCheck.SetTexture("_CameraDepthTexture", depthTexture);
-
-            SetupResultsBuffer(checkLocations.Length);
             commandBuffer.Blit(null, m_ResultsBuffer, m_MaterialDepthCheck);
 
             scriptableRenderContext.ExecuteCommandBuffer(commandBuffer);
             scriptableRenderContext.Submit();
             CommandBufferPool.Release(commandBuffer);
             m_DepthCheckReader.Capture(scriptableRenderContext, OnDepthCheckReadback);
+        }
+
+        private static Vector2Int TextureDimensions(int keypointCount)
+        {
+            var width = Math.Max(k_MinTextureWidth, Mathf.NextPowerOfTwo((int)Math.Sqrt(keypointCount)));
+            var height = width;
+
+            var textureDimensions = new Vector2Int(width, height);
+            return textureDimensions;
         }
 
         private void OnDepthCheckReadback(int frame, NativeArray<Color32> data, RenderTexture renderTexture)
@@ -733,30 +757,32 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void OnVisualize()
         {
             if (m_KeypointEntriesToReport == null) return;
-
-            var jointTexture = activeTemplate.jointTexture;
-            if (jointTexture == null) jointTexture = m_MissingTexture;
-
-            var skeletonTexture = activeTemplate.skeletonTexture;
-            if (skeletonTexture == null) skeletonTexture = m_MissingTexture;
-
-            foreach (var entry in m_KeypointEntriesToReport)
+            using (k_OnVisualizeMarker.Auto())
             {
-                foreach (var bone in activeTemplate.skeleton)
-                {
-                    var joint1 = GetKeypointForJoint(entry, bone.joint1);
-                    var joint2 = GetKeypointForJoint(entry, bone.joint2);
+                var jointTexture = activeTemplate.jointTexture;
+                if (jointTexture == null) jointTexture = m_MissingTexture;
 
-                    if (joint1 != null && joint1.Value.state == 2 && joint2 != null && joint2.Value.state == 2)
+                var skeletonTexture = activeTemplate.skeletonTexture;
+                if (skeletonTexture == null) skeletonTexture = m_MissingTexture;
+
+                foreach (var entry in m_KeypointEntriesToReport)
+                {
+                    foreach (var bone in activeTemplate.skeleton)
                     {
-                        VisualizationHelper.DrawLine(joint1.Value.x, joint1.Value.y, joint2.Value.x, joint2.Value.y, bone.color, 8, skeletonTexture);
-                    }
-                }
+                        var joint1 = GetKeypointForJoint(entry, bone.joint1);
+                        var joint2 = GetKeypointForJoint(entry, bone.joint2);
 
-                foreach (var keypoint in entry.keypoints)
-                {
-                    if (keypoint.state == 2)
-                        VisualizationHelper.DrawPoint(keypoint.x, keypoint.y, activeTemplate.keypoints[keypoint.index].color, 8, jointTexture);
+                        if (joint1 != null && joint1.Value.state == 2 && joint2 != null && joint2.Value.state == 2)
+                        {
+                            VisualizationHelper.DrawLine(joint1.Value.x, joint1.Value.y, joint2.Value.x, joint2.Value.y, bone.color, 8, skeletonTexture);
+                        }
+                    }
+
+                    foreach (var keypoint in entry.keypoints)
+                    {
+                        if (keypoint.state == 2)
+                            VisualizationHelper.DrawPoint(keypoint.x, keypoint.y, activeTemplate.keypoints[keypoint.index].color, 8, jointTexture);
+                    }
                 }
             }
         }

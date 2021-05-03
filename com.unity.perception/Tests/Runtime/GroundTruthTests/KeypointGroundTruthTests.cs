@@ -273,17 +273,17 @@ namespace GroundTruthTests
                 jointLabel.selfOcclusionDistanceSource = SelfOcclusionDistanceSource.KeypointLabeler;
         }
 
-        static void SetupCubeJoints(GameObject cube, KeypointTemplate template)
+        static void SetupCubeJoints(GameObject cube, KeypointTemplate template, float? selfOcclusionDistance = null)
         {
             const float dim = 0.5f;
-            SetupCubeJoint(cube, "FrontLowerLeft", -dim, -dim, -dim);
-            SetupCubeJoint(cube, "FrontUpperLeft", -dim, dim, -dim);
-            SetupCubeJoint(cube, "FrontUpperRight", dim, dim, -dim);
-            SetupCubeJoint(cube, "FrontLowerRight", dim, -dim, -dim);
-            SetupCubeJoint(cube, "BackLowerLeft", -dim, -dim, dim);
-            SetupCubeJoint(cube, "BackUpperLeft", -dim, dim, dim);
-            SetupCubeJoint(cube, "BackUpperRight", dim, dim, dim);
-            SetupCubeJoint(cube, "BackLowerRight", dim, -dim, dim);
+            SetupCubeJoint(cube, "FrontLowerLeft", -dim, -dim, -dim, selfOcclusionDistance);
+            SetupCubeJoint(cube, "FrontUpperLeft", -dim, dim, -dim, selfOcclusionDistance);
+            SetupCubeJoint(cube, "FrontUpperRight", dim, dim, -dim, selfOcclusionDistance);
+            SetupCubeJoint(cube, "FrontLowerRight", dim, -dim, -dim, selfOcclusionDistance);
+            SetupCubeJoint(cube, "BackLowerLeft", -dim, -dim, dim, selfOcclusionDistance);
+            SetupCubeJoint(cube, "BackUpperLeft", -dim, dim, dim, selfOcclusionDistance);
+            SetupCubeJoint(cube, "BackUpperRight", dim, dim, dim, selfOcclusionDistance);
+            SetupCubeJoint(cube, "BackLowerRight", dim, -dim, dim, selfOcclusionDistance);
         }
 
         [UnityTest]
@@ -1270,14 +1270,19 @@ namespace GroundTruthTests
             {
                 incoming.Add(data);
             }, texture, defaultSelfOcclusionDistance: labelerSelfOcclusionDistance);
-            var count = new Vector2Int(100, 100);
+            var count = new Vector2Int(50, 50);
+
+            Rect placementRect = new Rect(-2, -2, 4, 4);
 
             for (int x = 0; x < count.x; x++)
             {
                 for (int y = 0; y < count.y; y++)
                 {
-                    var cube = TestHelper.CreateLabeledCube(scale: 1f / count.x - .01f, x: 1f / count.x * x * 2 - 1, y: 1f / count.y * y * 2 - 1);
-                    SetupCubeJoints(cube, template);
+                    var cube = TestHelper.CreateLabeledCube(
+                        scale: placementRect.width / count.x - .001f,
+                        x: placementRect.width / count.x * x + placementRect.xMin,
+                        y: placementRect.height / count.y * y  + placementRect.yMin);
+                    SetupCubeJoints(cube, template, .1f);
                     cube.SetActive(true);
                     AddTestObjectForCleanup(cube);
                 }

@@ -27,7 +27,7 @@ namespace UnityEditor.Perception.Randomization.PropertyDrawers
             // Create a surrogate integer field to detect and pass along external change events (non UI event) on the underlying serialized property.
             var surrogateField = new IntegerField();
             field.Add(surrogateField);
-            surrogateField.style.display = DisplayStyle.Flex;
+            surrogateField.style.display = DisplayStyle.None;
             surrogateField.bindingPath = property.propertyPath;
             surrogateField.RegisterValueChangedCallback(evt =>
             {

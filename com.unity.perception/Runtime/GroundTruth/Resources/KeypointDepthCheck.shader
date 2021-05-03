@@ -36,14 +36,23 @@
             #pragma vertex Vert
             #pragma fragment Frag
 
-#if HDRP_ENABLED
 
-
-            #pragma enable_d3d11_debug_symbols
+            static const float2 checkOffsets[9] = {
+                float2( 0,  0),
+                float2(-1, -1),
+                float2( 0, -1),
+                float2( 1, -1),
+                float2(-1,  0),
+                float2( 1,  0),
+                float2(-1,  1),
+                float2( 0,  1),
+                float2( 1,  1)};
 
             Texture2D _Positions;
-            SamplerState my_point_clamp_sampler;
             Texture2D _KeypointCheckDepth;
+
+#if HDRP_ENABLED
+            #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
 
@@ -51,10 +60,21 @@
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(varyings);
 
-                float4 checkPosition = _Positions.Load(float3(varyings.positionCS.xy, 0));
                 float checkDepth = _KeypointCheckDepth.Load(float3(varyings.positionCS.xy, 0)).r;
 
-                float depth = LoadCameraDepth(float2(checkPosition.x, _ScreenSize.y - checkPosition.y));
+                float2 checkPosition = _Positions.Load(float3(varyings.positionCS.xy, 0)).xy;
+                checkPosition = float2(checkPosition.x, _ScreenSize.y - checkPosition.y);
+
+                float2 checkPositionResolved;
+                float depth;
+                for (int i = 0; i < 9; i++)
+                {
+                    checkPositionResolved = checkPosition + checkOffsets[i];
+                    depth = LoadCameraDepth(checkPositionResolved);
+                    if (depth > 0)
+                        break;
+                }
+
                 PositionInputs positionInputs = GetPositionInput(checkPosition, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                 depth = positionInputs.linearDepth;
 
@@ -63,10 +83,6 @@
             }
 #else
             #include "UnityCG.cginc"
-
-            Texture2D _Positions;
-            SamplerState my_point_clamp_sampler;
-            Texture2D _KeypointCheckDepth;
 
             //copied from UnityInput.hlsl
             float4x4 _InvViewProjMatrix;
@@ -149,10 +165,21 @@
             }
             fixed4 Frag (v2f i) : SV_Target
             {
-                float4 checkPosition = _Positions.Load(float3(i.vertex.xy, 0));
                 float depthVSToCheck = _KeypointCheckDepth.Load(float3(i.vertex.xy, 0)).r;
 
-                float depth = LoadSceneDepth(float2(checkPosition.x, _ScreenParams.y - checkPosition.y));
+                float2 checkPosition = _Positions.Load(float3(i.vertex.xy, 0)).xy;
+                checkPosition = float2(checkPosition.x, _ScreenParams.y - checkPosition.y);
+
+                float2 checkPositionResolved;
+                float depth;
+                for (int i = 0; i < 9; i++)
+                {
+                    checkPositionResolved = checkPosition + checkOffsets[i];
+                    depth = LoadSceneDepth(checkPositionResolved);
+                    if (depth > 0)
+                        break;
+                }
+
                 float depthVSActual = ViewSpaceDepth(depth);
 
                 uint result = depthVSActual >= depthVSToCheck  ? 1 : 0;

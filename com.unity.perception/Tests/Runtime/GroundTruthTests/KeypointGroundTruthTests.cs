@@ -1295,7 +1295,7 @@ namespace GroundTruthTests
 
             AddTestObjectForCleanup(cam);
 
-            TestHelper.LoadAndStartRenderDocCapture();
+            //TestHelper.LoadAndStartRenderDocCapture();
             yield return null;
 
             PlaceObjects(new Rect(0, 0, 4, 4), 0, new Vector2Int(25, 25));
@@ -1306,7 +1306,7 @@ namespace GroundTruthTests
             DestroyTestObject(cam);
             texture.Release();
 
-            TestHelper.EndCaptureRenderDoc();
+            //TestHelper.EndCaptureRenderDoc();
 
             Assert.AreEqual(2, incoming.Count);
 

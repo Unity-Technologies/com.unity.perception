@@ -30,9 +30,14 @@ namespace CharacterToolingTests
         [Test, TestCaseSource(typeof(AssetCollection), "GameObject")]
         public void CreateEarsNoseJoints(GameObject gameObject)
         {
-            var test = contentTests.CharacterCreateNose(gameObject, true);
+            var model = contentTests.CharacterCreateNose(gameObject, true);
+            var validate = false;
+            if (model)
+                validate = contentTests.ValidateNoseAndEars(gameObject);
+            else if (!model)
+                Assert.Fail("Failed to create the Ear and Nose Joints");
 
-            Assert.True(test, "Failed to create ear and nose joints");
+            Assert.True(validate, "Failed to create ear and nose joints");
         }
 
         [Test, TestCaseSource(typeof(AssetCollection), "GameObject")]

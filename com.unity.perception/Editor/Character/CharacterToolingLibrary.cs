@@ -110,7 +110,7 @@ namespace UnityEngine.Perception.Content
             var verticies = skinnedMeshRenderer.sharedMesh.vertices;
 
             var head = animator.GetBoneTransform(HumanBodyBones.Head);
-            //Currently stage left and stage right 
+            //Currently stage left and stage right for the eyes
             var leftEye = animator.GetBoneTransform(HumanBodyBones.RightEye);
             var rightEye = animator.GetBoneTransform(HumanBodyBones.LeftEye);
 
@@ -140,6 +140,7 @@ namespace UnityEngine.Perception.Content
             }
             else
             {
+                // getting the angle direction from the start point of the eyes and the distance between the left and right eyes
                 eyeDistance = Vector3.Distance(leftEye.position, rightEye.position);
                 directionLeft = Quaternion.AngleAxis(-45, -leftEye.right) * -leftEye.up;
                 directionRight = Quaternion.AngleAxis(-45, rightEye.right) * -rightEye.up;
@@ -151,7 +152,8 @@ namespace UnityEngine.Perception.Content
             rayRightEye.origin = rightEye.position;
             rayRightEye.direction = directionRight * eyeDistance;
 
-            // Find the center of the face
+            // Find the center of the face by taking where the left and right eye rays drawn at 45 degrees intersect to find
+            // the average point of the nose
             for (var i = 0f; i < distanceCheck; i += 0.01f)
             {
                 var pointR = rayRightEye.GetPoint(i);
@@ -214,7 +216,7 @@ namespace UnityEngine.Perception.Content
             rayEarLeft.origin = earCenter;
             rayEarLeft.direction = Vector3.left * distanceCheck;
 
-            // Find both the left and right ear from the ear center
+            // Find both the left and right ear from the ear center in the right and left directions 
             for (int v = 0; v < verticies.Length; v++)
             {
                 for (var c = eyeDistance / 2; c < distanceCheck; c += 0.001f)
@@ -224,7 +226,7 @@ namespace UnityEngine.Perception.Content
                     var pointVert = verticies[v];
                     var def = 0.09f;
                     var offsetR = pointVert - pointEarRight;
-                    // Need to fix the left offset because of negative numbers
+                    // TODO: Need to fix the left offset because of negative numbers
                     var offsetL = pointVert - pointEarLeft;
                     var lenR = offsetR.sqrMagnitude;
                     var lenL = offsetL.sqrMagnitude;

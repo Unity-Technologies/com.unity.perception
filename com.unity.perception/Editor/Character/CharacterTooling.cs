@@ -32,7 +32,7 @@ namespace UnityEngine.Perception.Content
         }
 
         /// <summary>
-        /// Ensures there is pose data in the parent and child game objects of a character by checking for pos and rot
+        /// Ensures there is pose data in the parent and child game objects of a character by checking for position and rotation
         /// </summary>
         /// <param name="gameObject">Target character selected</param>
         /// <param name="failedGameObjects">List of game objects that don't have nay pose data</param>

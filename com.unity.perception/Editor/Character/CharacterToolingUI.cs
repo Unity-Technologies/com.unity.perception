@@ -23,7 +23,7 @@ public class CharacterToolingUI : EditorWindow
     GameObject selection = null;
     int toolbarSelection = 0;
     bool drawFaceRays = false;
-    string savePath = string.Empty;
+    string savePath = "Assets/";
 
     private void OnSelectionChange()
     {
@@ -77,7 +77,7 @@ public class CharacterToolingUI : EditorWindow
                       
                         if (!checkForJoints)
                         {
-                            if (savePath == string.Empty)
+                            if (savePath == "Assets/")
                                 test = m_contentTests.CharacterCreateNose(selection, drawFaceRays);
                             else
                                 test = m_contentTests.CharacterCreateNose(selection, drawFaceRays, savePath);

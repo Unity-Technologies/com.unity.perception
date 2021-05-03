@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.SceneManagement;
@@ -1268,40 +1269,51 @@ namespace GroundTruthTests
             var labelerSelfOcclusionDistance = 0.5f;
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(data);
+                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture, defaultSelfOcclusionDistance: labelerSelfOcclusionDistance);
-            var count = new Vector2Int(50, 50);
 
-            Rect placementRect = new Rect(-2, -2, 4, 4);
-
-            for (int x = 0; x < count.x; x++)
+            void PlaceObjects(Rect rect, float z, Vector2Int count)
             {
-                for (int y = 0; y < count.y; y++)
+                for (int x = 0; x < count.x; x++)
                 {
-                    var cube = TestHelper.CreateLabeledCube(
-                        scale: placementRect.width / count.x - .001f,
-                        x: placementRect.width / count.x * x + placementRect.xMin,
-                        y: placementRect.height / count.y * y  + placementRect.yMin);
-                    SetupCubeJoints(cube, template, .1f);
-                    cube.SetActive(true);
-                    AddTestObjectForCleanup(cube);
+                    for (int y = 0; y < count.y; y++)
+                    {
+                        var cube = TestHelper.CreateLabeledCube(
+                            scale: rect.width / count.x - .001f,
+                            x: rect.width / count.x * x + rect.xMin,
+                            y: rect.height / count.y * y + rect.yMin,
+                            z: z);
+                        SetupCubeJoints(cube, template, .1f);
+                        cube.SetActive(true);
+                        AddTestObjectForCleanup(cube);
+                    }
                 }
             }
+
+            PlaceObjects(new Rect(-2, -2, 2, 2), 0, new Vector2Int(10, 10));
             cam.SetActive(true);
 
             AddTestObjectForCleanup(cam);
 
-            //for (int i = 0; i < 10000; i++)
+            TestHelper.LoadAndStartRenderDocCapture();
+            yield return null;
+
+            PlaceObjects(new Rect(0, 0, 4, 4), 0, new Vector2Int(25, 25));
+
             yield return null;
 
             //force all async readbacks to complete
             DestroyTestObject(cam);
             texture.Release();
 
-            var testCase = incoming.Last();
-            Assert.AreEqual(count.x * count.y, testCase.Count);
+            TestHelper.EndCaptureRenderDoc();
+
+            Assert.AreEqual(2, incoming.Count);
+
+            Assert.AreEqual(10 * 10, incoming[0].Count);
+            Assert.AreEqual(10 * 10 + 25 * 25, incoming[1].Count);
             var idx = 0;
-            foreach (var entry in testCase)
+            foreach (var entry in incoming[0].Concat(incoming[1]))
             {
                 Assert.AreEqual(9, entry.keypoints.Length);
 

@@ -168,7 +168,9 @@ namespace UnityEngine.Perception.GroundTruth
         private void SetupDepthCheckBuffers(int size)
         {
             var textureDimensions = TextureDimensions(size);
-            if (m_ResultsBuffer != null && textureDimensions.x * textureDimensions.y >= size)
+            if (m_ResultsBuffer != null &&
+                textureDimensions.x == m_ResultsBuffer.width &&
+                textureDimensions.y == m_ResultsBuffer.height)
                 return;
 
 
@@ -415,7 +417,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         private static Vector2Int TextureDimensions(int keypointCount)
         {
-            var width = Math.Max(k_MinTextureWidth, Mathf.NextPowerOfTwo((int)Math.Sqrt(keypointCount)));
+            var width = Math.Max(k_MinTextureWidth, Mathf.NextPowerOfTwo((int)Math.Ceiling(Math.Sqrt(keypointCount))));
             var height = width;
 
             var textureDimensions = new Vector2Int(width, height);

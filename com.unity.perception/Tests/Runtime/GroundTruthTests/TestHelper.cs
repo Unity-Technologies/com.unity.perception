@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Unity.Collections;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth;
@@ -10,6 +11,10 @@ namespace GroundTruthTests
 {
     static class TestHelper
     {
+        #if UNITY_EDITOR
+        private static EditorWindow s_GameView;
+        #endif
+
         public static GameObject CreateLabeledPlane(float scale = 10, string label = "label")
         {
             GameObject planeObject;
@@ -46,17 +51,21 @@ namespace GroundTruthTests
             callback(data);
         }
 
-#if UNITY_EDITOR
-        public static void LoadAndStartRenderDocCapture(out UnityEditor.EditorWindow gameView)
+        [Conditional("UNITY_EDITOR")]
+        public static void LoadAndStartRenderDocCapture()
         {
             UnityEditorInternal.RenderDoc.Load();
             System.Reflection.Assembly assembly = typeof(UnityEditor.EditorWindow).Assembly;
             Type type = assembly.GetType("UnityEditor.GameView");
-            gameView = UnityEditor.EditorWindow.GetWindow(type);
-            UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(gameView);
+            s_GameView = UnityEditor.EditorWindow.GetWindow(type);
+            UnityEditorInternal.RenderDoc.BeginCaptureRenderDoc(s_GameView);
+        }
+        [Conditional("UNITY_EDITOR")]
+        public static void EndCaptureRenderDoc()
+        {
+            UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(s_GameView);
         }
 
-#endif
         public static string NormalizeJson(string json, bool normalizeFormatting = false)
         {
             if (normalizeFormatting)

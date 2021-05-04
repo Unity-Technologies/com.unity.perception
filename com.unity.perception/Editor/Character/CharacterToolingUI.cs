@@ -10,10 +10,10 @@ using UnityEngine.UI;
 
 public class CharacterToolingUI : EditorWindow
 {
-    private static string[] toolbarNames = null;
+    static string[] toolbarNames = null;
 
     CharacterTooling m_contentTests = new CharacterTooling();
-    public Object keypointTemplate;
+    Object keypointTemplate;
 
     GameObject selection = null;
     int toolbarSelection = 0;
@@ -22,12 +22,12 @@ public class CharacterToolingUI : EditorWindow
     string savePath = "Assets/";
     string status = "Unknown";
 
-    private void OnSelectionChange()
+    void OnSelectionChange()
     {
         selection = Selection.activeGameObject;
     }
 
-    private void OnInspectorUpdate()
+    void OnInspectorUpdate()
     {
         Repaint();
         selection = Selection.activeGameObject;
@@ -42,7 +42,7 @@ public class CharacterToolingUI : EditorWindow
         window.Show();
     }
 
-    private void OnGUI()
+    void OnGUI()
     {
         if (selection != null && selection.GetType() == typeof(GameObject))
         {

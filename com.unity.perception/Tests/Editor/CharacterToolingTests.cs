@@ -40,11 +40,11 @@ namespace CharacterToolingTests
                     template = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(o);
                 }
             }
-
-            var model = contentTests.CharacterCreateNose(gameObject, template, true);
+            var newModel = new GameObject();
+            var model = contentTests.CharacterCreateNose(gameObject, out newModel, template, true);
             var validate = false;
             if (model)
-                validate = contentTests.ValidateNoseAndEars(gameObject);
+                validate = contentTests.ValidateNoseAndEars(newModel);
             else if (!model)
                 Assert.Fail("Failed to create the Ear and Nose Joints");
 

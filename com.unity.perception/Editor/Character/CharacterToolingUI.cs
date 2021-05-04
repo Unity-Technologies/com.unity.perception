@@ -63,6 +63,7 @@ public class CharacterToolingUI : EditorWindow
                     var checkForJoints = m_contentTests.ValidateNoseAndEars(selection);
                     var failedBones = new Dictionary<HumanBone, bool>();
                     var failedPose = new List<GameObject>();
+                    var newModel = new GameObject();
 
                     if (checkForJoints)
                         status = "Joints already exist";
@@ -78,13 +79,15 @@ public class CharacterToolingUI : EditorWindow
                         if (!checkForJoints)
                         {
                             if (savePath == "Assets/")
-                                apiResult = m_contentTests.CharacterCreateNose(selection, keypointTemplate, drawFaceRays);
+                                apiResult = m_contentTests.CharacterCreateNose(selection, out newModel, keypointTemplate, drawFaceRays);
                             else
-                                apiResult = m_contentTests.CharacterCreateNose(selection, keypointTemplate, drawFaceRays, savePath);
+                                apiResult = m_contentTests.CharacterCreateNose(selection, out newModel, keypointTemplate, drawFaceRays, savePath);
 
-                            if (apiResult)
+                            var modelValidate = m_contentTests.ValidateNoseAndEars(newModel);
+
+                            if (modelValidate)
                                 status = "Ear and Nose joints created";
-                            else if (!apiResult)
+                            else if (!modelValidate)
                                 status = "Failed to create the Ear and Nose joints";
                         }
                         else if(checkForJoints)

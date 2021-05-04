@@ -76,9 +76,9 @@ namespace UnityEngine.Perception.Content
         /// <param name="drawRays"></param>
         /// <param name="savePath"></param>
         /// <returns></returns>
-        public bool CharacterCreateNose(GameObject selection, bool drawRays = false, string savePath = "Assets/")
+        public bool CharacterCreateNose(GameObject selection, Object keypointTemplate, bool drawRays = false, string savePath = "Assets/")
         {
-            var model = AvatarCreateNoseEars(selection, savePath, drawRays);
+            var model = AvatarCreateNoseEars(selection, keypointTemplate, savePath, drawRays);
 
             if (model.name.Contains("Failed"))
             {

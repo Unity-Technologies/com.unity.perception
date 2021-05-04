@@ -30,7 +30,18 @@ namespace CharacterToolingTests
         [Test, TestCaseSource(typeof(AssetCollection), "GameObject")]
         public void CreateEarsNoseJoints(GameObject gameObject)
         {
-            var model = contentTests.CharacterCreateNose(gameObject, true);
+            var exampleTemplate = AssetDatabase.GetAllAssetPaths().Where(o => o.EndsWith("CocoKeypointTemplate.asset", StringComparison.OrdinalIgnoreCase)).ToList();
+            var template = new UnityEngine.Object();
+
+            foreach (string o in exampleTemplate)
+            {
+                if (o.Contains("com.unity.perception"))
+                {
+                    template = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(o);
+                }
+            }
+
+            var model = contentTests.CharacterCreateNose(gameObject, template, true);
             var validate = false;
             if (model)
                 validate = contentTests.ValidateNoseAndEars(gameObject);

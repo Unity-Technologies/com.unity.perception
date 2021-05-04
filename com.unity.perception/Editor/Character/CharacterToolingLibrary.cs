@@ -85,7 +85,7 @@ namespace UnityEngine.Perception.Content
         /// <param name="savePath">Path where the new created prefab will be saved too</param>
         /// <param name="drawRays">Shows the rays on how the joint posiitons are found</param>
         /// <returns></returns>
-        public static GameObject AvatarCreateNoseEars (GameObject selection, string savePath, bool drawRays = false)
+        public static GameObject AvatarCreateNoseEars (GameObject selection, Object keypointTemplate, string savePath, bool drawRays = false)
         {
             if (selection == null)
             {
@@ -262,7 +262,7 @@ namespace UnityEngine.Perception.Content
                 DebugDrawRays(30f, distanceCheck, rightEye, leftEye, head, rayRightEye, rayLeftEye, faceCenter, earCenter);
             }
 
-            return CreateNewCharacterPrefab(selection, nosePos, earRightPos, earLeftPos, savePath);
+            return CreateNewCharacterPrefab(selection, nosePos, earRightPos, earLeftPos, keypointTemplate, savePath);
         }
 
         /// <summary>
@@ -298,7 +298,7 @@ namespace UnityEngine.Perception.Content
         /// <param name="earLeftPosition">Vector 3 position</param>
         /// <param name="savePath">Save path for the creation of a new prefab</param>
         /// <returns></returns>
-        public static GameObject CreateNewCharacterPrefab(GameObject selection, Vector3 nosePosition, Vector3 earRightPosition, Vector3 earLeftPosition, string savePath = "Assets/")
+        public static GameObject CreateNewCharacterPrefab(GameObject selection, Vector3 nosePosition, Vector3 earRightPosition, Vector3 earLeftPosition, Object keypointTemplate, string savePath = "Assets/")
         {
             var head = FindBodyPart("head", selection.transform);
 
@@ -316,7 +316,7 @@ namespace UnityEngine.Perception.Content
                     nose.name = "nose";
                     nose.transform.SetParent(head);
 
-                    AddJointLabel(nose);
+                    AddJointLabel(nose, keypointTemplate);
                 }
 
                 if (earRightPosition != Vector3.zero)
@@ -326,7 +326,7 @@ namespace UnityEngine.Perception.Content
                     earRight.name = "earRight";
                     earRight.transform.SetParent(head);
 
-                    AddJointLabel(earRight);
+                    AddJointLabel(earRight, keypointTemplate);
                 }
 
                 if (earLeftPosition != Vector3.zero)
@@ -336,7 +336,7 @@ namespace UnityEngine.Perception.Content
                     earLeft.name = "earLeft";
                     earLeft.transform.SetParent(head);
 
-                    AddJointLabel(earLeft);
+                    AddJointLabel(earLeft, keypointTemplate);
                 }
             }
 
@@ -363,23 +363,27 @@ namespace UnityEngine.Perception.Content
         /// Add a joint label and add the template data for the joint, uses base CocoKeypointTemplate in perception since the plan is to
         /// remove the template from the template data
         /// </summary>
-        /// <param name="gameObject">target cgameobject from the joint</param>
-        static void AddJointLabel(GameObject gameObject)
+        /// <param name="gameObject">target gameobject from the joint</param>
+        /// <param name="keypointTemplate">selected keypoint template from the UI, if blank it will grab the example CocoKeypointTemplate</param>
+        static void AddJointLabel(GameObject gameObject, Object keypointTemplate)
         {
             var jointLabel = gameObject.AddComponent<JointLabel>();
             var data = new JointLabel.TemplateData();
-            var asset = new Object();
-            var template = AssetDatabase.GetAllAssetPaths().Where(o => o.EndsWith("CocoKeypointTemplate.asset", StringComparison.OrdinalIgnoreCase)).ToList();
-            foreach (string o in template)
+            var exampleTemplate = AssetDatabase.GetAllAssetPaths().Where(o => o.EndsWith("CocoKeypointTemplate.asset", StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (keypointTemplate == null)
             {
-                if (o.Contains("com.unity.perception"))
+                foreach (string o in exampleTemplate)
                 {
-                    asset = AssetDatabase.LoadAssetAtPath<Object>(o);
+                    if (o.Contains("com.unity.perception"))
+                    {
+                        keypointTemplate = AssetDatabase.LoadAssetAtPath<Object>(o);
+                    }
                 }
             }
 
             data.label = gameObject.name;
-            data.template = (KeypointTemplate)asset;
+            data.template = (KeypointTemplate)keypointTemplate;
             jointLabel.templateInformation = new List<JointLabel.TemplateData>();
             jointLabel.templateInformation.Add(data);
         }

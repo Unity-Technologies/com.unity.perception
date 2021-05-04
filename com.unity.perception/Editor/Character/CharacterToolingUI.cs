@@ -5,25 +5,22 @@ using MenuItem = UnityEditor.MenuItem;
 using UnityEngine;
 using static UnityEngine.Perception.Content.CharacterValidation;
 using System.Linq;
+using UnityEngine.Perception.GroundTruth;
+using UnityEngine.UI;
 
 public class CharacterToolingUI : EditorWindow
 {
     private static string[] toolbarNames = null;
-    private enum TestResults
-    {
-        Inconclusive,
-        Pass,
-        Fail,
-        Running
-    }
 
-    TestResults m_testResults = new TestResults();
     CharacterTooling m_contentTests = new CharacterTooling();
+    public Object keypointTemplate;
 
     GameObject selection = null;
     int toolbarSelection = 0;
     bool drawFaceRays = false;
+    bool apiResult = false;
     string savePath = "Assets/";
+    string status = "Unknown";
 
     private void OnSelectionChange()
     {
@@ -51,6 +48,8 @@ public class CharacterToolingUI : EditorWindow
         {
             EditorGUILayout.TextField("Selected Asset : ", selection.name);
             savePath = EditorGUILayout.TextField("Prefab Save Location : ", savePath);
+            GUILayout.Label("Keypoint Template : ", EditorStyles.whiteLargeLabel);
+            keypointTemplate = EditorGUILayout.ObjectField(keypointTemplate, typeof(KeypointTemplate), true, GUILayout.MaxWidth(500));
 
             GUILayout.BeginHorizontal();
             toolbarSelection = GUILayout.Toolbar(toolbarSelection, toolbarNames);
@@ -60,40 +59,38 @@ public class CharacterToolingUI : EditorWindow
             {
                 case 0:
                     GUILayout.Label("Character Tools", EditorStyles.whiteLargeLabel);
-                    var test = true;
-                    var status = "Unknown";
+
                     var checkForJoints = m_contentTests.ValidateNoseAndEars(selection);
                     var failedBones = new Dictionary<HumanBone, bool>();
                     var failedPose = new List<GameObject>();
 
+                    if (checkForJoints)
+                        status = "Joints already exist";
+
                     drawFaceRays = GUILayout.Toggle(drawFaceRays, "Draw Face Rays");
-                    GUILayout.Label(string.Format("Create Ears and Nose: {0}", test), EditorStyles.boldLabel);
+                    GUILayout.Label(string.Format("Create Ears and Nose: {0}", apiResult), EditorStyles.boldLabel);
                     GUILayout.Label(string.Format("Ears and Nose status: {0}", status), EditorStyles.boldLabel);
 
 
                     if (GUILayout.Button("Create Nose and Ears", GUILayout.Width(160)))
                     {
-                        m_testResults = TestResults.Running;
                       
                         if (!checkForJoints)
                         {
                             if (savePath == "Assets/")
-                                test = m_contentTests.CharacterCreateNose(selection, drawFaceRays);
+                                apiResult = m_contentTests.CharacterCreateNose(selection, keypointTemplate, drawFaceRays);
                             else
-                                test = m_contentTests.CharacterCreateNose(selection, drawFaceRays, savePath);
+                                apiResult = m_contentTests.CharacterCreateNose(selection, keypointTemplate, drawFaceRays, savePath);
 
-                            m_testResults = test ? TestResults.Fail : TestResults.Pass;
-
-                            if (test)
-                                status = "Ear and Nose Joints have been created on the Asset";
-                            else if (!test)
-                                status = "Failed to create the Ear and Nose Joints";
+                            if (apiResult)
+                                status = "Ear and Nose joints created";
+                            else if (!apiResult)
+                                status = "Failed to create the Ear and Nose joints";
                         }
                         else if(checkForJoints)
                         {
                             status = "Joints have already been created on this Asset";
                         }
-                        Repaint();
                     }
 
                     break;
@@ -101,7 +98,7 @@ public class CharacterToolingUI : EditorWindow
                 case 1:
 
                     GUILayout.Label("Character Validation", EditorStyles.whiteLargeLabel);
-                    GUILayout.Label(string.Format("Validation for Character : {0}", m_testResults), EditorStyles.whiteLabel);
+                    GUILayout.Label(string.Format("Validation for Character : {0}", apiResult), EditorStyles.whiteLabel);
 
                     var animator = selection.GetComponentInChildren<Animator>();
 
@@ -113,9 +110,7 @@ public class CharacterToolingUI : EditorWindow
 
                     if (GUILayout.Button("Validate Bones", GUILayout.Width(160)))
                     {
-                        m_testResults = TestResults.Running;
-
-                        test = m_contentTests.CharacterRequiredBones(selection, out failedBones);
+                        apiResult = m_contentTests.CharacterRequiredBones(selection, out failedBones);
 
                         if (failedBones.Count > 0)
                         {
@@ -136,19 +131,14 @@ public class CharacterToolingUI : EditorWindow
                         }
                         else if (failedBones.Count == 0)
                         {
-                            GUILayout.Label(string.Format("Required Bones Present : {0}", TestResults.Pass), EditorStyles.whiteLabel);
+                            GUILayout.Label(string.Format("Required Bones Present : {0}", apiResult), EditorStyles.whiteLabel);
                         }
 
-                        m_testResults = test ? TestResults.Pass : TestResults.Fail;
                     }
 
                     if (GUILayout.Button("Validate Pose Data", GUILayout.Width(160)))
                     {
-                        m_testResults = TestResults.Running;
-
-                        test = m_contentTests.CharacterPoseData(selection, out failedPose);
-
-                        m_testResults = test ? TestResults.Pass : TestResults.Fail;
+                        apiResult = m_contentTests.CharacterPoseData(selection, out failedPose);
                     }
 
                     break;

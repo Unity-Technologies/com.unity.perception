@@ -63,7 +63,7 @@ public class CharacterToolingUI : EditorWindow
                     var checkForJoints = m_contentTests.ValidateNoseAndEars(selection);
                     var failedBones = new Dictionary<HumanBone, bool>();
                     var failedPose = new List<GameObject>();
-                    var newModel = new GameObject();
+                    GameObject newModel;
 
                     if (checkForJoints)
                         status = "Joints already exist";

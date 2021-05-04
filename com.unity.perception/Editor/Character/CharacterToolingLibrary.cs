@@ -192,7 +192,7 @@ namespace UnityEngine.Perception.Content
             }
 
             var points = new List<Vector3>();
-            // Find the position of the nose 
+            // Find the position of the nose using the nose ray from the starting point found by the eyes
             for (int v = 0; v < verticies.Length; v++)
             {
                 for (var c = eyeDistance / 2; c < distanceCheck; c += 0.001f)

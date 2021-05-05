@@ -16,6 +16,8 @@ Added support for 'step' button in editor.
 
 Added random seed field to the Run in Unity Simulation Window
 
+Added AssetSource class for loading assets from generic sources inside randomizers
+
 ### Changed
 Increased color variety in instance segmentation images
 

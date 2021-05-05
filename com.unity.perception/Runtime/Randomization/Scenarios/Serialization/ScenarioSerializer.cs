@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -31,9 +32,47 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         {
             return new JObject
             {
+                ["archetypes"] = SerializeArchetypes(scenario.randomizers),
                 ["constants"] = SerializeConstants(scenario.genericConstants),
                 ["randomizers"] = JObject.FromObject(SerializeScenarioToTemplate(scenario))
             };
+        }
+
+        static JArray SerializeArchetypes(IReadOnlyList<Randomizer> randomizers)
+        {
+            var archetypesObj = new JArray();
+            var archetypeLabels = new HashSet<string>();
+            foreach (var randomizer in randomizers)
+            {
+                var assetSourceFields = randomizer.GetType().GetFields();
+                foreach (var field in assetSourceFields)
+                {
+                    if (!IsSubclassOfRawGeneric(typeof(AssetSource<>), field.FieldType))
+                        continue;
+                    var assetSource = field.GetValue(randomizer);
+                    if (assetSource == null)
+                        continue;
+                    var archetypeField = assetSource.GetType().GetField(
+                        "m_ArchetypeBase", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var archetype = (ArchetypeBase)archetypeField.GetValue(assetSource);
+                    if (archetype == null || archetypeLabels.Contains(archetype.label))
+                        continue;
+                    archetypeLabels.Add(archetype.label);
+                }
+            }
+
+            var labelsList = archetypeLabels.ToList();
+            labelsList.Sort();
+            foreach (var label in labelsList)
+            {
+                var archetypeObj = new JObject
+                {
+                    new JProperty("name", label),
+                    new JProperty("description", string.Empty)
+                };
+                archetypesObj.Add(archetypeObj);
+            }
+            return archetypesObj;
         }
 
         static JObject SerializeConstants(ScenarioConstants constants)

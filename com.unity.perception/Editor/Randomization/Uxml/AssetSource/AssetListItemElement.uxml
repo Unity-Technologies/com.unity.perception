@@ -1,0 +1,7 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement class="parameter__categorical-option">
+        <Button name="remove" class="randomization__remove-item-button"/>
+        <Label name="index-label" text="[0]" style="min-width: 50px;"/>
+        <editor:ObjectField name="item" class="parameter__categorical-option-property-field"/>
+    </VisualElement>
+</UXML>

@@ -149,7 +149,7 @@ namespace UnityEditor.Perception.Randomization
                         "Add Options From Folder", Application.dataPath, string.Empty);
                     if (folderPath == string.Empty)
                         return;
-                    var categories = LoadAssetsFromFolder(folderPath, categoricalParameter.sampleType);
+                    var categories = AssetLoadingUtilities.LoadAssetsFromFolder(folderPath, categoricalParameter.sampleType);
 
                     var optionsIndex = optionsProperty.arraySize;
                     optionsProperty.arraySize += categories.Count;
@@ -228,18 +228,6 @@ namespace UnityEditor.Perception.Randomization
                 });
 
             m_PropertiesContainer.Add(template);
-        }
-
-        static List<Object> LoadAssetsFromFolder(string folderPath, Type assetType)
-        {
-            if (!folderPath.StartsWith(Application.dataPath))
-                throw new ApplicationException("Selected folder is not an asset folder in this project");
-            var assetsPath = "Assets" + folderPath.Remove(0, Application.dataPath.Length);
-            var assetIds = AssetDatabase.FindAssets($"t:{assetType.Name}", new[] { assetsPath });
-            var assets = new List<Object>();
-            foreach (var guid in assetIds)
-                assets.Add(AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(guid), assetType));
-            return assets;
         }
     }
 }

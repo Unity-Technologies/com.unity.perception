@@ -33,7 +33,7 @@ Continue reading for more details concerning the primary components driving rand
 
 <br>
 <p align="center">
-<img src="Images/randomization_uml.png" width="800"/>
+<img src="Images/randomization_uml.png" width="900"/>
   <br><i>Class diagram for the randomization framework included in the Perception package</i>
 </p>
 

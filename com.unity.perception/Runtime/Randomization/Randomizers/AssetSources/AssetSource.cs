@@ -44,48 +44,52 @@ namespace UnityEngine.Perception.Randomization
         }
 
         /// <summary>
-        /// Returns the asset loaded from the provided index
+        /// Returns the unprocessed asset loaded from the provided index
         /// </summary>
         /// <param name="index">The index of the asset to load</param>
         /// <returns>The asset loaded at the provided index</returns>
-        public T LoadAsset(int index)
+        public T LoadRawAsset(int index)
         {
             CheckIfInitialized();
             return assetSourceLocation.LoadAsset<T>(index);
         }
 
         /// <summary>
-        /// Returns all assets that can be loaded from this AssetSource
+        /// Returns all unprocessed assets that can be loaded from this AssetSource
         /// </summary>
         /// <returns>All assets that can be loaded from this AssetSource</returns>
-        public T[] LoadAllAssets()
+        public T[] LoadAllRawAssets()
         {
             var array = new T[Count];
             for (var i = 0; i < Count; i++)
-                array[i] = LoadAsset(i);
+            {
+                array[i] = LoadRawAsset(i);
+                archetype.Preprocess(array[i]);
+            }
             return array;
         }
 
         /// <summary>
-        /// Creates an instance of the asset loaded from the provided index
+        /// Creates an instance of the asset loaded from the provided index and preprocesses it using the archetype
+        /// assigned to this asset source
         /// </summary>
         /// <param name="index">The index of the asset to load</param>
         /// <returns>The instantiated instance</returns>
-        public T CreateInstance(int index)
+        public T CreateProcessedInstance(int index)
         {
             CheckIfInitialized();
-            return CreateInstance(LoadAsset(index));
+            return CreateProcessedInstance(LoadRawAsset(index));
         }
 
         /// <summary>
-        /// Instantiates and returns all assets that can be loaded from this asset source
+        /// Instantiates, preprocesses, and returns all assets that can be loaded from this asset source
         /// </summary>
         /// <returns>Instantiated instances from every loadable asset</returns>
-        public T[] CreateInstances()
+        public T[] CreateProcessedInstances()
         {
             var array = new T[Count];
             for (var i = 0; i < Count; i++)
-                array[i] = CreateInstance(i);
+                array[i] = CreateProcessedInstance(i);
             return array;
         }
 
@@ -100,13 +104,13 @@ namespace UnityEngine.Perception.Randomization
         }
 
         /// <summary>
-        /// Instantiates a uniformly random sampled asset from this AssetSource
+        /// Instantiates and preprocesses a uniformly random sampled asset from this AssetSource
         /// </summary>
         /// <returns>The generated random instance</returns>
         public T SampleInstance()
         {
             CheckIfInitialized();
-            return CreateInstance(SampleAsset());
+            return CreateProcessedInstance(SampleAsset());
         }
 
         /// <summary>
@@ -124,7 +128,7 @@ namespace UnityEngine.Perception.Randomization
                 Initialize();
         }
 
-        T CreateInstance(T asset)
+        T CreateProcessedInstance(T asset)
         {
             var instance = Object.Instantiate(asset);
             if (archetype != null)

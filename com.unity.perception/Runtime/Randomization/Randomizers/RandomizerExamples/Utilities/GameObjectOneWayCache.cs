@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
 {
@@ -13,6 +14,8 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
     {
         static ProfilerMarker s_ResetAllObjectsMarker = new ProfilerMarker("ResetAllObjects");
 
+        GameObject[] m_Prefabs;
+        UniformSampler m_Sampler = new UniformSampler();
         Transform m_CacheParent;
         Dictionary<int, int> m_InstanceIdToIndex;
         List<CachedObjectData>[] m_InstantiatedObjects;
@@ -31,6 +34,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         /// <param name="prefabs">The prefabs to cache</param>
         public GameObjectOneWayCache(Transform parent, GameObject[] prefabs)
         {
+            m_Prefabs = prefabs;
             m_CacheParent = parent;
             m_InstanceIdToIndex = new Dictionary<int, int>();
             m_InstantiatedObjects = new List<CachedObjectData>[prefabs.Length];
@@ -39,6 +43,11 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
             var index = 0;
             foreach (var prefab in prefabs)
             {
+                if (!IsPrefab(prefab))
+                {
+                    prefab.transform.parent = parent;
+                    prefab.SetActive(false);
+                }
                 var instanceId = prefab.GetInstanceID();
                 m_InstanceIdToIndex.Add(instanceId, index);
                 m_InstantiatedObjects[index] = new List<CachedObjectData>();
@@ -71,9 +80,33 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
 
             ++NumObjectsInCache;
             var newObject = Object.Instantiate(prefab, m_CacheParent);
+            newObject.SetActive(true);
             ++m_NumObjectsActive[index];
             m_InstantiatedObjects[index].Add(new CachedObjectData(newObject));
             return newObject;
+        }
+
+        /// <summary>
+        /// Retrieves an existing instance of the given prefab from the cache if available.
+        /// Otherwise, instantiate a new instance of the given prefab.
+        /// </summary>
+        /// <param name="index">The index of the prefab to instantiate</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public GameObject GetOrInstantiate(int index)
+        {
+            var prefab = m_Prefabs[index];
+            return GetOrInstantiate(prefab);
+        }
+
+        /// <summary>
+        /// Retrieves an existing instance of a random prefab from the cache if available.
+        /// Otherwise, instantiate a new instance of the random prefab.
+        /// </summary>
+        /// <returns></returns>
+        public GameObject GetOrInstantiateRandomPrefab()
+        {
+            return GetOrInstantiate(m_Prefabs[(int)(m_Sampler.Sample() * m_Prefabs.Length)]);
         }
 
         /// <summary>
@@ -96,6 +129,11 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                     }
                 }
             }
+        }
+
+        static bool IsPrefab(GameObject obj)
+        {
+            return obj.scene.rootCount == 0;
         }
 
         struct CachedObjectData

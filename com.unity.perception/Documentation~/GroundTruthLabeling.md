@@ -1,6 +1,6 @@
 # Ground Truth Generation
 
-The Perception package includes a set of Labelers which capture ground truth information along with each rendered frame. The built-in Labelers support a variety of common computer vision tasks, including 2D and 3D bounding boxes, instance and semantic segmentation, and keypoint labeling (labeled points on 3D objects). The package also includes extensible components for building new Labelers to support additional tasks. Labelers derive ground truth data from labels specified on the 3D assets present in the Scene.
+The Perception package includes a set of Labelers which capture ground truth information along with each captured frame. The built-in Labelers support a variety of common computer vision tasks, including 2D and 3D bounding boxes, instance and semantic segmentation, and keypoint labeling (labeled points on 3D objects). The package also includes extensible components for building new Labelers to support additional tasks. Labelers derive ground truth data from labels specified on the 3D assets present in the Scene.
 
 <p align="center">
 <img src="images/labeling_uml.png" width="800"/>

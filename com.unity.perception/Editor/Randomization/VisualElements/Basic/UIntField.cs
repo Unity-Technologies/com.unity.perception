@@ -8,7 +8,7 @@ namespace UnityEditor.UIElements
     /// <summary>
     ///     <para>Makes a text field for entering an unsigned integer.</para>
     /// </summary>
-    public class UIntField : TextValueField<uint>
+    class UIntField : TextValueField<uint>
     {
         /// <summary>
         ///     <para>USS class name of elements of this type.</para>

@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace Editor.Randomization.VisualElements.AssetSource
 {
-    public class AssetListElement : VisualElement
+    class AssetListElement : VisualElement
     {
         SerializedProperty m_Property;
         IList list => (IList)StaticData.GetManagedReferenceValue(m_Property);

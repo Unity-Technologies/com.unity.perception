@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using static UnityEngine.Perception.Content.CharacterValidation;
 using System.Linq;
 using UnityEngine.Perception.GroundTruth;
 
@@ -12,10 +11,10 @@ namespace UnityEngine.Perception.Content
         /// </summary>
         /// <param name="selection">target character selected</param>
         /// <param name="failed">Dictionary return if of Human Bones that tracks they are prsent or missing</param>
-        /// <returns></returns>
+        /// <returns>True if all 15 bones are present, otherwise false</returns>
         public bool CharacterRequiredBones(GameObject selection, out Dictionary<HumanBone, bool> failed)
         {
-            var result = AvatarRequiredBones(selection);
+            var result = CharacterValidation.AvatarRequiredBones(selection);
             failed = new Dictionary<HumanBone, bool>();
 
             for (int i = 0; i < result.Count; i++)
@@ -36,7 +35,7 @@ namespace UnityEngine.Perception.Content
         /// </summary>
         /// <param name="gameObject">Target character selected</param>
         /// <param name="failedGameObjects">List of game objects that don't have nay pose data</param>
-        /// <returns></returns>
+        /// <returns>The count of failed bones</returns>
         public bool CharacterPoseData(GameObject gameObject, out List<GameObject> failedGameObjects)
         {
             failedGameObjects = new List<GameObject>();
@@ -75,10 +74,10 @@ namespace UnityEngine.Perception.Content
         /// <param name="selection"></param>
         /// <param name="drawRays"></param>
         /// <param name="savePath"></param>
-        /// <returns></returns>
+        /// <returns>True if the model is created, false and a new game object named Failed if the model wasn't created</returns>
         public bool CharacterCreateNose(GameObject selection, out GameObject newModel,Object keypointTemplate, bool drawRays = false, string savePath = "Assets/")
         {
-            newModel = AvatarCreateNoseEars(selection, keypointTemplate, savePath, drawRays);
+            newModel = CharacterValidation.AvatarCreateNoseEars(selection, keypointTemplate, savePath, drawRays);
 
             if (newModel.name.Contains("Failed"))
             {
@@ -88,6 +87,11 @@ namespace UnityEngine.Perception.Content
             else return true;
         }
 
+        /// <summary>
+        /// Validates the model to ensure the nose, ear L & R are created 
+        /// </summary>
+        /// <param name="selection">Game Object selected by tge yser</param>
+        /// <returns>True if the nose, ear L & R was created, false if the joints are missing</returns>
         public bool ValidateNoseAndEars(GameObject selection)
         {
             var jointLabels = selection.GetComponentsInChildren<JointLabel>();
@@ -105,9 +109,7 @@ namespace UnityEngine.Perception.Content
                     earLeft = true;
             }
 
-            if (nose && earRight && earLeft)
-                return true;
-            else return false;
+            return nose && earRight && earLeft;
         }
     }
 }

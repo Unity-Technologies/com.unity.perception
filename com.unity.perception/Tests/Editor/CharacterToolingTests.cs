@@ -12,7 +12,7 @@ namespace CharacterToolingTests
     {
         public List<GameObject> selectionLists = new List<GameObject>();
         public List<string> assets = new List<string>();
-        private CharacterTooling contentTests = new CharacterTooling();
+        CharacterTooling contentTests = new CharacterTooling();
 
         [SetUp]
         public void Setup()

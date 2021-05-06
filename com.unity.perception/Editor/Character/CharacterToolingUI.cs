@@ -3,47 +3,45 @@ using UnityEditor;
 using UnityEngine.Perception.Content;
 using MenuItem = UnityEditor.MenuItem;
 using UnityEngine;
-using static UnityEngine.Perception.Content.CharacterValidation;
 using System.Linq;
 using UnityEngine.Perception.GroundTruth;
-using UnityEngine.UI;
 
 public class CharacterToolingUI : EditorWindow
 {
-    static string[] toolbarNames = null;
+    static string[] s_ToolbarNames = null;
 
-    CharacterTooling m_contentTests = new CharacterTooling();
-    UnityEngine.Object keypointTemplate;
+    CharacterTooling m_ContentTests = new CharacterTooling();
+    UnityEngine.Object m_KeypointTemplate;
 
-    GameObject selection = null;
-    int toolbarSelection = 0;
-    bool drawFaceRays = false;
-    bool apiResult = false;
-    bool checkJoints = false;
-    bool vaildCharacter = false;
-    string savePath = "Assets/";
-    string status = "Unknown";
+    GameObject m_Selection = null;
+    int m_ToolbarSelection = 0;
+    bool m_DrawFaceRays = false;
+    bool m_ApiResult = false;
+    bool m_CheckJoints = false;
+    bool m_VaildCharacter = false;
+    string m_SavePath = "Assets/";
+    string m_Status = "Unknown";
 
     void OnSelectionChange()
     {
-        selection = Selection.activeGameObject;
+        m_Selection = Selection.activeGameObject;
 
-        if(selection != null)
+        if(m_Selection != null)
         {
-            var head = FindBodyPart("head", selection.transform);
-            var leftEye = FindBodyPart("leftEye", selection.transform);
-            var rightEye = FindBodyPart("rightEye", selection.transform);
+            var head = CharacterValidation.FindBodyPart("head", m_Selection.transform);
+            var leftEye = CharacterValidation.FindBodyPart("leftEye", m_Selection.transform);
+            var rightEye = CharacterValidation.FindBodyPart("rightEye", m_Selection.transform);
 
             if (head != null || leftEye != null || rightEye != null)
             {
-                status = "Character ready to add joints";
-                vaildCharacter = true;
-                checkJoints = m_contentTests.ValidateNoseAndEars(selection);
+                m_Status = "Character ready to add joints";
+                m_VaildCharacter = true;
+                m_CheckJoints = m_ContentTests.ValidateNoseAndEars(m_Selection);
             }
             else
             {
-                status = "Missing either the head/left or right eye joint transforms!";
-                vaildCharacter = false;
+                m_Status = "Missing either the head/left or right eye joint transforms!";
+                m_VaildCharacter = false;
             }
         }
     }
@@ -51,13 +49,13 @@ public class CharacterToolingUI : EditorWindow
     void OnInspectorUpdate()
     {
         Repaint();
-        selection = Selection.activeGameObject;
+        m_Selection = Selection.activeGameObject;
     }
 
     [MenuItem("Window/Perception Character Tool")]
     static void Init()
     {
-        toolbarNames = new string[] { "Keypoints", "Validation" };
+        s_ToolbarNames = new string[] { "Keypoints", "Validation" };
         CharacterToolingUI window = (CharacterToolingUI)GetWindow(typeof(CharacterToolingUI));
         window.autoRepaintOnSceneChange = true;
         window.Show();
@@ -65,18 +63,18 @@ public class CharacterToolingUI : EditorWindow
 
     void OnGUI()
     {
-        if (selection != null && selection.GetType() == typeof(GameObject))
+        if (m_Selection != null && m_Selection.GetType() == typeof(GameObject))
         {
-            EditorGUILayout.TextField("Selected Character : ", selection.name);
-            savePath = EditorGUILayout.TextField("Prefab Save Location : ", savePath);
+            EditorGUILayout.TextField("Selected GameObject : ", m_Selection.name);
+            m_SavePath = EditorGUILayout.TextField("Prefab Save Location : ", m_SavePath);
             GUILayout.Label("Keypoint Template : ", EditorStyles.whiteLargeLabel);
-            keypointTemplate = EditorGUILayout.ObjectField(keypointTemplate, typeof(KeypointTemplate), true, GUILayout.MaxWidth(500));
+            m_KeypointTemplate = EditorGUILayout.ObjectField(m_KeypointTemplate, typeof(KeypointTemplate), true, GUILayout.MaxWidth(500));
 
             GUILayout.BeginHorizontal();
-            toolbarSelection = GUILayout.Toolbar(toolbarSelection, toolbarNames);
+            m_ToolbarSelection = GUILayout.Toolbar(m_ToolbarSelection, s_ToolbarNames);
             GUILayout.EndHorizontal();
 
-            switch (toolbarSelection)
+            switch (m_ToolbarSelection)
             {
                 case 0:
                     GUILayout.Label("Character Tools", EditorStyles.whiteLargeLabel);
@@ -86,31 +84,31 @@ public class CharacterToolingUI : EditorWindow
                     var failedPose = new List<GameObject>();
                     GameObject newModel;
 
-                    drawFaceRays = GUILayout.Toggle(drawFaceRays, "Draw Face Rays");
-                    GUILayout.Label(string.Format("Create Ears and Nose: {0}", apiResult), EditorStyles.boldLabel);
-                    GUILayout.Label(string.Format("Ears and Nose status: {0}", status), EditorStyles.boldLabel);
+                    m_DrawFaceRays = GUILayout.Toggle(m_DrawFaceRays, "Draw Face Rays");
+                    GUILayout.Label(string.Format("Create Ears and Nose: {0}", m_ApiResult), EditorStyles.boldLabel);
+                    GUILayout.Label(string.Format("Ears and Nose status: {0}", m_Status), EditorStyles.boldLabel);
 
-                    if (checkJoints)
+                    if (m_CheckJoints)
                     {
-                        status = "Joints already exist";
+                        m_Status = "Joints already exist";
 
                     }
-                    else if (!checkJoints && vaildCharacter)
+                    else if (!m_CheckJoints && m_VaildCharacter)
                     {
-                        status = "Joints don't exist";
+                        m_Status = "Joints don't exist";
                         if (GUILayout.Button("Create Nose and Ears", GUILayout.Width(160)))
                         {
-                            if (savePath == "Assets/")
-                                apiResult = m_contentTests.CharacterCreateNose(selection, out newModel, keypointTemplate, drawFaceRays);
+                            if (m_SavePath == "Assets/")
+                                m_ApiResult = m_ContentTests.CharacterCreateNose(m_Selection, out newModel, m_KeypointTemplate, m_DrawFaceRays);
                             else
-                                apiResult = m_contentTests.CharacterCreateNose(selection, out newModel, keypointTemplate, drawFaceRays, savePath);
+                                m_ApiResult = m_ContentTests.CharacterCreateNose(m_Selection, out newModel, m_KeypointTemplate, m_DrawFaceRays, m_SavePath);
 
-                            var modelValidate = m_contentTests.ValidateNoseAndEars(newModel);
+                            var modelValidate = m_ContentTests.ValidateNoseAndEars(newModel);
 
                             if (modelValidate)
-                                status = "Ear and Nose joints created";
+                                m_Status = "Ear and Nose joints created";
                             else if (!modelValidate)
-                                status = "Failed to create the Ear and Nose joints";
+                                m_Status = "Failed to create the Ear and Nose joints";
                         }
                     }
 
@@ -119,9 +117,9 @@ public class CharacterToolingUI : EditorWindow
                 case 1:
 
                     GUILayout.Label("Character Validation", EditorStyles.whiteLargeLabel);
-                    GUILayout.Label(string.Format("Validation for Character : {0}", apiResult), EditorStyles.whiteLabel);
+                    GUILayout.Label(string.Format("Validation for Character : {0}", m_ApiResult), EditorStyles.whiteLabel);
 
-                    var animator = selection.GetComponentInChildren<Animator>();
+                    var animator = m_Selection.GetComponentInChildren<Animator>();
 
                     if (animator != null)
                     {
@@ -131,11 +129,11 @@ public class CharacterToolingUI : EditorWindow
 
                     if (GUILayout.Button("Validate Bones", GUILayout.Width(160)))
                     {
-                        apiResult = m_contentTests.CharacterRequiredBones(selection, out failedBones);
+                        m_ApiResult = m_ContentTests.CharacterRequiredBones(m_Selection, out failedBones);
 
                         if (failedBones.Count > 0)
                         {
-                            for (int i = 0; i < RequiredBones.Length; i++)
+                            for (int i = 0; i < CharacterValidation.s_RequiredBones.Length; i++)
                             {
                                 for (int b = 0; b < failedBones.Count; b++)
                                 {
@@ -143,23 +141,23 @@ public class CharacterToolingUI : EditorWindow
                                     var boneKey = bone.Key;
                                     var boneValue = bone.Value;
 
-                                    if (RequiredBones[i] == boneKey.humanName)
+                                    if (CharacterValidation.s_RequiredBones[i] == boneKey.humanName)
                                     {
-                                        GUILayout.Label(string.Format("Bone {0}: {1}", RequiredBones[i], "Missing"), EditorStyles.boldLabel);
+                                        GUILayout.Label(string.Format("Bone {0}: {1}", CharacterValidation.s_RequiredBones[i], "Missing"), EditorStyles.boldLabel);
                                     }
                                 }
                             }
                         }
                         else if (failedBones.Count == 0)
                         {
-                            GUILayout.Label(string.Format("Required Bones Present : {0}", apiResult), EditorStyles.whiteLabel);
+                            GUILayout.Label(string.Format("Required Bones Present : {0}", m_ApiResult), EditorStyles.whiteLabel);
                         }
 
                     }
 
                     if (GUILayout.Button("Validate Pose Data", GUILayout.Width(160)))
                     {
-                        apiResult = m_contentTests.CharacterPoseData(selection, out failedPose);
+                        m_ApiResult = m_ContentTests.CharacterPoseData(m_Selection, out failedPose);
                     }
 
                     break;
@@ -167,7 +165,7 @@ public class CharacterToolingUI : EditorWindow
         }
         else
         {
-            GUILayout.Label("The selected assets is invalid, please select a different Game Object.", EditorStyles.boldLabel);
+            GUILayout.Label("The selected asset(s) is invalid, please select a Game Object.", EditorStyles.boldLabel);
         }
     }
 }

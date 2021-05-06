@@ -9,7 +9,7 @@ namespace UnityEngine.Perception.Content
 {
     public static class CharacterValidation
     {
-        public static string[] RequiredBones =
+        public static string[] s_RequiredBones =
         {
             "Head",
             "Hips",
@@ -26,11 +26,6 @@ namespace UnityEngine.Perception.Content
             "RightUpperLeg",
             "RightLowerLeg",
             "RightFoot",
-        };
-
-        public static string[] NeededBones =
-        {
-
         };
 
         /// <summary>
@@ -62,9 +57,9 @@ namespace UnityEngine.Perception.Content
 
             for(int h = 0; h < human.Length; h++)
             {
-                for (int b = 0; b < RequiredBones.Length; b++)
+                for (int b = 0; b < s_RequiredBones.Length; b++)
                 {
-                    if(human[h].humanName == RequiredBones[b])
+                    if(human[h].humanName == s_RequiredBones[b])
                     {
                         if (human[h].boneName != null)
                         {

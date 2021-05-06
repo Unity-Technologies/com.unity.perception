@@ -1089,7 +1089,7 @@ namespace GroundTruthTests
                 0.2f,
                 0.3f,
                 60f,
-                false);
+                true);
             yield return (
                 CheckDistanceType.Global,
                 Vector3.zero,
@@ -1098,7 +1098,7 @@ namespace GroundTruthTests
                 0.2f,
                 0.3f,
                 60f,
-                false);
+                true);
             yield return (
                 CheckDistanceType.JointLabel,
                 Vector3.zero,

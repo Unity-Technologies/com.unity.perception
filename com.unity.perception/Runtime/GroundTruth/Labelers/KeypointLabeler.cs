@@ -654,21 +654,26 @@ namespace UnityEngine.Perception.GroundTruth
                     float jointSelfOcclusionDistance;
                     var jointTransform = joint.transform;
                     var jointPosition = jointTransform.position;
-                    if (joint.selfOcclusionDistanceSource == SelfOcclusionDistanceSource.JointLabel)
+                    float resolvedSelfOcclusionDistance;
+                    switch (joint.selfOcclusionDistanceSource)
                     {
-                        //apply the scale of the object to the normalized ray from the object to the camera to compute
-                        //the actual self-occlusion distance
-
-                        var depthOfJoint = Vector3.Dot(jointPosition - cameraPosition, cameraforward);
-                        var cameraEffectivePosition = jointPosition + (-cameraforward * depthOfJoint);
-
-                        var jointRelativeCameraPosition = jointTransform.InverseTransformPoint(cameraEffectivePosition);
-                        var jointRelativeCheckPosition = jointRelativeCameraPosition.normalized * joint.selfOcclusionDistance;
-                        var worldSpaceCheckVector = jointTransform.TransformVector(jointRelativeCheckPosition);
-                        jointSelfOcclusionDistance = worldSpaceCheckVector.magnitude;
+                        case SelfOcclusionDistanceSource.JointLabel:
+                            resolvedSelfOcclusionDistance = joint.selfOcclusionDistance;
+                            break;
+                        case SelfOcclusionDistanceSource.KeypointLabeler:
+                            resolvedSelfOcclusionDistance = selfOcclusionDistance;
+                            break;
+                        default:
+                            throw new NotImplementedException("Invalid SelfOcclusionDistanceSource");
                     }
-                    else
-                        jointSelfOcclusionDistance = selfOcclusionDistance;
+
+                    var depthOfJoint = Vector3.Dot(jointPosition - cameraPosition, cameraforward);
+                    var cameraEffectivePosition = jointPosition - cameraforward * depthOfJoint;
+
+                    var jointRelativeCameraPosition = jointTransform.InverseTransformPoint(cameraEffectivePosition);
+                    var jointRelativeCheckPosition = jointRelativeCameraPosition.normalized * resolvedSelfOcclusionDistance;
+                    var worldSpaceCheckVector = jointTransform.TransformVector(jointRelativeCheckPosition);
+                    jointSelfOcclusionDistance = worldSpaceCheckVector.magnitude;
 
                     InitKeypoint(jointPosition, cachedData, checkLocationsSlice, idx, jointSelfOcclusionDistance);
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Windows;
 
 namespace UnityEngine.Perception.Content
 {
@@ -25,6 +26,11 @@ namespace UnityEngine.Perception.Content
             "RightUpperLeg",
             "RightLowerLeg",
             "RightFoot",
+        };
+
+        public static string[] NeededBones =
+        {
+
         };
 
         /// <summary>
@@ -302,8 +308,11 @@ namespace UnityEngine.Perception.Content
         {
             var head = FindBodyPart("head", selection.transform);
 
-            if (savePath == string.Empty)
+            if (savePath == string.Empty || !Directory.Exists(savePath))
+            {
                 savePath = "Assets/";
+                Debug.Log("Save file path didn't exist, defaulting to Assets folder in project!");
+            }
 
             var filePath = savePath + selection.name + ".prefab";
 
@@ -345,7 +354,7 @@ namespace UnityEngine.Perception.Content
             return model;
         }
 
-        static Transform FindBodyPart(string name, Transform root)
+        public static Transform FindBodyPart(string name, Transform root)
         {
             var children = new List<Transform>();
             root.GetComponentsInChildren(children);

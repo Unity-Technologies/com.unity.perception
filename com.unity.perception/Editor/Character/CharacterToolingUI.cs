@@ -13,18 +13,39 @@ public class CharacterToolingUI : EditorWindow
     static string[] toolbarNames = null;
 
     CharacterTooling m_contentTests = new CharacterTooling();
-    Object keypointTemplate;
+    UnityEngine.Object keypointTemplate;
 
     GameObject selection = null;
     int toolbarSelection = 0;
     bool drawFaceRays = false;
     bool apiResult = false;
+    bool checkJoints = false;
+    bool vaildCharacter = false;
     string savePath = "Assets/";
     string status = "Unknown";
 
     void OnSelectionChange()
     {
         selection = Selection.activeGameObject;
+
+        if(selection != null)
+        {
+            var head = FindBodyPart("head", selection.transform);
+            var leftEye = FindBodyPart("leftEye", selection.transform);
+            var rightEye = FindBodyPart("rightEye", selection.transform);
+
+            if (head != null || leftEye != null || rightEye != null)
+            {
+                status = "Character ready to add joints";
+                vaildCharacter = true;
+                checkJoints = m_contentTests.ValidateNoseAndEars(selection);
+            }
+            else
+            {
+                status = "Missing either the head/left or right eye joint transforms!";
+                vaildCharacter = false;
+            }
+        }
     }
 
     void OnInspectorUpdate()
@@ -46,7 +67,7 @@ public class CharacterToolingUI : EditorWindow
     {
         if (selection != null && selection.GetType() == typeof(GameObject))
         {
-            EditorGUILayout.TextField("Selected Asset : ", selection.name);
+            EditorGUILayout.TextField("Selected Character : ", selection.name);
             savePath = EditorGUILayout.TextField("Prefab Save Location : ", savePath);
             GUILayout.Label("Keypoint Template : ", EditorStyles.whiteLargeLabel);
             keypointTemplate = EditorGUILayout.ObjectField(keypointTemplate, typeof(KeypointTemplate), true, GUILayout.MaxWidth(500));
@@ -60,23 +81,24 @@ public class CharacterToolingUI : EditorWindow
                 case 0:
                     GUILayout.Label("Character Tools", EditorStyles.whiteLargeLabel);
 
-                    var checkForJoints = m_contentTests.ValidateNoseAndEars(selection);
+
                     var failedBones = new Dictionary<HumanBone, bool>();
                     var failedPose = new List<GameObject>();
                     GameObject newModel;
-
-                    if (checkForJoints)
-                        status = "Joints already exist";
 
                     drawFaceRays = GUILayout.Toggle(drawFaceRays, "Draw Face Rays");
                     GUILayout.Label(string.Format("Create Ears and Nose: {0}", apiResult), EditorStyles.boldLabel);
                     GUILayout.Label(string.Format("Ears and Nose status: {0}", status), EditorStyles.boldLabel);
 
-
-                    if (GUILayout.Button("Create Nose and Ears", GUILayout.Width(160)))
+                    if (checkJoints)
                     {
-                      
-                        if (!checkForJoints)
+                        status = "Joints already exist";
+
+                    }
+                    else if (!checkJoints && vaildCharacter)
+                    {
+                        status = "Joints don't exist";
+                        if (GUILayout.Button("Create Nose and Ears", GUILayout.Width(160)))
                         {
                             if (savePath == "Assets/")
                                 apiResult = m_contentTests.CharacterCreateNose(selection, out newModel, keypointTemplate, drawFaceRays);
@@ -89,10 +111,6 @@ public class CharacterToolingUI : EditorWindow
                                 status = "Ear and Nose joints created";
                             else if (!modelValidate)
                                 status = "Failed to create the Ear and Nose joints";
-                        }
-                        else if(checkForJoints)
-                        {
-                            status = "Joints have already been created on this Asset";
                         }
                     }
 
@@ -146,6 +164,10 @@ public class CharacterToolingUI : EditorWindow
 
                     break;
             }
+        }
+        else
+        {
+            GUILayout.Label("The selected assets is invalid, please select a different Game Object.", EditorStyles.boldLabel);
         }
     }
 }

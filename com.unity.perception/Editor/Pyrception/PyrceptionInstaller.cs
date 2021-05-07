@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -21,7 +22,8 @@ public class PyrceptionInstaller
     static void SetupPyrception()
     {
         string path = Application.dataPath.Replace("/Assets", "").Replace("/", "\\");
-        string pyrceptionPath = "C:\\Users\\leopoldo.zugasti\\Desktop\\DatasetInsights\\Pyrception\\pyrception-utils-dev";
+        string pyrceptionPath = Path.GetFullPath("Packages/com.unity.perception/Editor/Pyrception/pyrception-utils");
+        UnityEngine.Debug.Log(pyrceptionPath);
         string command =
             $"pip install virtualenv && " +
             $"cd {path} && " +

@@ -1,0 +1,21 @@
+publish-wheel:
+  name: "Publish Python Wheels to Local PyPi"
+  agent:
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-python3.8:stable
+    flavor: b1.large
+  commands:
+    - echo -n "username:" >> .pypirc
+    - echo -n " " >> .pypirc
+    - echo $IT_ARTIFACTORY_USER >> .pypirc
+    - echo -n "password:" >> .pypirc
+    - echo -n " " >> .pypirc
+    - echo $IT_ARTIFACTORY_PASSWORD >> .pypirc
+    - sudo cp .pypirc $HOME
+    - python3 setup.py sdist bdist_wheel upload -r local
+  dependencies:
+    - .yamato/test.yml#run-tests
+  triggers:
+    tags:
+      only:
+      - /v\d+\.\d+\.\d+(\.\d+)?/

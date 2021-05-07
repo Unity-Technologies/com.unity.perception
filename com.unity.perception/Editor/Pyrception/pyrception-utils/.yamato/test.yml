@@ -1,0 +1,26 @@
+run-tests:
+  name: "Per Commit pytests"
+  agent:
+    type: Unity::VM
+    image: cds-ops/ubuntu-18.04-python3.8:stable
+    flavor: b1.large
+  variables:
+    GOOGLE_APPLICATION_CREDENTIALS: gcloud-key.json
+  commands:
+    - mkdir test-results
+    - mkdir test-results/coverage
+    - mkdir test-results/pytest
+    - echo $GCR_CRED_JSON > gcloud-key.json
+    # The regular pip3 command is linked to Python 3.6 even though the default Python version for
+    # this VM is 3.8 *shrug*
+    - python3.8 -m pip install -r requirements.txt --index-url=https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+    - /home/bokken/.local/bin/coverage run -m pytest --html=test-results/pytest/report.html --self-contained-html
+    - /home/bokken/.local/bin/coverage html --dir=test-results/coverage --title=pyrception-utils
+  triggers:
+    branches:
+      only:
+        - "/.*/"
+  artifacts:
+    logs:
+      paths:
+        - "test-results/**/*"

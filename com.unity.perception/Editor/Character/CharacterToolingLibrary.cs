@@ -301,7 +301,7 @@ namespace UnityEngine.Perception.Content
         /// <returns></returns>
         public static GameObject CreateNewCharacterPrefab(GameObject selection, Vector3 nosePosition, Vector3 earRightPosition, Vector3 earLeftPosition, Object keypointTemplate, string savePath = "Assets/")
         {
-            var head = FindBodyPart("head", selection.transform);
+            var head = FindBodyPart(selection, HumanBodyBones.Head);
 
             if (savePath == string.Empty || !Directory.Exists(savePath))
             {
@@ -356,11 +356,22 @@ namespace UnityEngine.Perception.Content
 
             foreach (var child in children)
             {
-                if (child.name == name || child.name.Contains("head"))
+                if (child.name == name || child.name.Contains(name))
                     return child;
             }
 
             return null;
+        }
+
+        public static Transform FindBodyPart(GameObject selection, HumanBodyBones humanBone)
+        {
+            var animator = selection.GetComponentInChildren<Animator>();
+            var targetBone = animator.GetBoneTransform(humanBone);
+
+            if (targetBone != null)
+                return targetBone;
+            else
+                return selection.transform;
         }
 
         /// <summary>

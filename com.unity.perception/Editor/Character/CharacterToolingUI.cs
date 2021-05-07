@@ -11,7 +11,7 @@ public class CharacterToolingUI : EditorWindow
     static string[] s_ToolbarNames = null;
 
     CharacterTooling m_ContentTests = new CharacterTooling();
-    UnityEngine.Object m_KeypointTemplate;
+    Object m_KeypointTemplate;
 
     GameObject m_Selection = null;
     int m_ToolbarSelection = 0;
@@ -28,11 +28,11 @@ public class CharacterToolingUI : EditorWindow
 
         if(m_Selection != null)
         {
-            var head = CharacterValidation.FindBodyPart("head", m_Selection.transform);
-            var leftEye = CharacterValidation.FindBodyPart("leftEye", m_Selection.transform);
-            var rightEye = CharacterValidation.FindBodyPart("rightEye", m_Selection.transform);
+            var head = CharacterValidation.FindBodyPart(m_Selection, HumanBodyBones.Head);
+            var leftEye = CharacterValidation.FindBodyPart(m_Selection, HumanBodyBones.LeftEye);
+            var rightEye = CharacterValidation.FindBodyPart(m_Selection, HumanBodyBones.RightEye);
 
-            if (head != null || leftEye != null || rightEye != null)
+            if (head != m_Selection.transform || leftEye != m_Selection.transform || rightEye != m_Selection.transform)
             {
                 m_Status = "Character ready to add joints";
                 m_VaildCharacter = true;

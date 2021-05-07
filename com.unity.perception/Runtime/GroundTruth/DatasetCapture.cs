@@ -43,6 +43,11 @@ namespace UnityEngine.Perception.GroundTruth
             return ego;
         }
 
+        public static void AddMetadata(string key, object value)
+        {
+            SimulationState.AddMetadata(key, value);
+        }
+
         /// <summary>
         /// Register a new sensor under the given ego.
         /// </summary>

@@ -422,6 +422,8 @@ namespace UnityEngine.Perception.GroundTruth
                 inMatrix[2,0],inMatrix[2,1], inMatrix[2,2]);
         }
 
+        int m_CaptureCount = 0;
+
         void CaptureRgbData(Camera cam)
         {
             if (!captureRgbImages)
@@ -466,6 +468,10 @@ namespace UnityEngine.Perception.GroundTruth
 #else
             CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
 #endif
+            DatasetCapture.AddMetadata("image_width", attachedCamera.pixelWidth);
+            DatasetCapture.AddMetadata("image_height", attachedCamera.pixelHeight);
+            DatasetCapture.AddMetadata("dataset_size", ++m_CaptureCount);
+
             Profiler.EndSample();
         }
 

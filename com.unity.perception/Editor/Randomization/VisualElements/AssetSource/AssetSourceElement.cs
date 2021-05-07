@@ -17,6 +17,7 @@ namespace Editor.Randomization.VisualElements.AssetSource
         ToolbarMenu m_ArchetypeToolbarMenu;
         ToolbarMenu m_LocationToolbarMenu;
         VisualElement m_FieldsContainer;
+        TextElement m_LocationNotes;
         Type m_AssetType;
 
         ArchetypeBase archetype =>
@@ -32,9 +33,6 @@ namespace Editor.Randomization.VisualElements.AssetSource
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/AssetSource/AssetSourceElement.uxml");
             template.CloneTree(this);
-
-            if (assetSourceLocation == null)
-                CreateAssetSourceLocation(typeof(LocalAssetSourceLocation));
 
             var nameLabel = this.Q<Label>("name");
             nameLabel.text = property.displayName;
@@ -62,8 +60,8 @@ namespace Editor.Randomization.VisualElements.AssetSource
                     a => DropdownMenuAction.Status.Normal);
             }
 
+            m_LocationNotes = this.Q<TextElement>("location-notes");
             m_LocationToolbarMenu = this.Q<ToolbarMenu>("location-dropdown");
-            m_LocationToolbarMenu.text = GetDisplayName(assetSourceLocation.GetType());
             foreach (var type in StaticData.assetSourceLocationTypes)
             {
                 m_LocationToolbarMenu.menu.AppendAction(
@@ -71,15 +69,9 @@ namespace Editor.Randomization.VisualElements.AssetSource
                     a => ReplaceLocation(type),
                     a => DropdownMenuAction.Status.Normal);
             }
-
-            CreatePropertyFields();
-        }
-
-        void ReplaceLocation(Type type)
-        {
-            CreateAssetSourceLocation(type);
-            m_LocationToolbarMenu.text = GetDisplayName(type);
-            CreatePropertyFields();
+            if (assetSourceLocation == null)
+                CreateAssetSourceLocation(typeof(LocalAssetSourceLocation));
+            UpdateLocationUI(assetSourceLocation.GetType());
         }
 
         void ReplaceArchetype(Type type)
@@ -103,6 +95,28 @@ namespace Editor.Randomization.VisualElements.AssetSource
             var newLocation = (AssetSourceLocation)Activator.CreateInstance(type);
             m_LocationProperty.managedReferenceValue = newLocation;
             m_LocationProperty.serializedObject.ApplyModifiedProperties();
+        }
+
+        void ReplaceLocation(Type type)
+        {
+            CreateAssetSourceLocation(type);
+            UpdateLocationUI(type);
+        }
+
+        void UpdateLocationUI(Type type)
+        {
+            m_LocationToolbarMenu.text = GetDisplayName(type);
+            var notesAttribute = (AssetSourceLocationNotes)Attribute.GetCustomAttribute(type, typeof(AssetSourceLocationNotes));
+            if (notesAttribute != null)
+            {
+                m_LocationNotes.text = notesAttribute.notes;
+                m_LocationNotes.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.Flex);
+            }
+            else
+            {
+                m_LocationNotes.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
+            }
+            CreatePropertyFields();
         }
 
         void CreatePropertyFields()

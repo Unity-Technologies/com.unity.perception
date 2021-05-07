@@ -4,14 +4,23 @@
         <Label name="name" text="Field Name" class="unity-base-field__label"/>
         <VisualElement style="margin-left: 18px;">
             <VisualElement style="flex-direction: row; align-items: center;">
-                <Label text="Archetype" class="unity-base-field__label"/>
-                <editor:ToolbarMenu name="archetype-dropdown" text="Type" class="sampler__type-menu"/>
-            </VisualElement>
-            <VisualElement style="flex-direction: row; align-items: center;">
-                <Label text="Location" class="unity-base-field__label"/>
+                <Label
+                    text="Location"
+                    class="unity-base-field__label"
+                    tooltip="The asset source location to load assets from"/>
                 <editor:ToolbarMenu name="location-dropdown" text="Type" class="sampler__type-menu"/>
             </VisualElement>
-            <VisualElement name="fields-container" style="flex-grow: 1;"/>
+            <VisualElement style="margin-left: 18px;">
+                <VisualElement name="fields-container" style="flex-grow: 1;"/>
+                <TextElement name="location-notes" class="scenario__info-box"/>
+            </VisualElement>
+            <VisualElement style="flex-direction: row; align-items: center;">
+                <Label
+                    text="Archetype"
+                    class="unity-base-field__label"
+                    tooltip="Archetypes preprocess assets loaded from the selected asset source location"/>
+                <editor:ToolbarMenu name="archetype-dropdown" text="Type" class="sampler__type-menu"/>
+            </VisualElement>
         </VisualElement>
     </VisualElement>
 </UXML>

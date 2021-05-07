@@ -349,6 +349,12 @@ namespace UnityEngine.Perception.Content
             return model;
         }
 
+        /// <summary>
+        /// Finds that name of the bone Transform that matches the target string 
+        /// </summary>
+        /// <param name="name">Target name of the bone that we need to find</param>
+        /// <param name="root">Target selection transform</param>
+        /// <returns>Will return the target Human bone as a Transform, or returns null</returns>
         public static Transform FindBodyPart(string name, Transform root)
         {
             var children = new List<Transform>();
@@ -363,15 +369,45 @@ namespace UnityEngine.Perception.Content
             return null;
         }
 
+        /// <summary>
+        /// Finds that Human Bone in the Avatar of the animator of the character
+        /// </summary>
+        /// <param name="selection">Target Character that we need to find a part on</param>
+        /// <param name="humanBone">Target Human Body Bone</param>
+        /// <returns>Will return the target Human bone as a Transform, or returns null</returns>
         public static Transform FindBodyPart(GameObject selection, HumanBodyBones humanBone)
         {
             var animator = selection.GetComponentInChildren<Animator>();
-            var targetBone = animator.GetBoneTransform(humanBone);
+            if (animator != null)
+            {
+                var targetBone = animator.GetBoneTransform(humanBone);
 
-            if (targetBone != null)
-                return targetBone;
-            else
-                return selection.transform;
+                if (targetBone != null)
+                    return targetBone;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Will ensure the target game object's avatar has the target Human Bone
+        /// </summary>
+        /// <param name="selection">Target game object</param>
+        /// <param name="humanBone">Target human bone we are sreaching for in the avatar of the selected game object</param>
+        /// <returns>Return true if the bone was found, or false if the bone is missing</returns>
+        public static bool ValidateBodyPart(GameObject selection, HumanBodyBones humanBone)
+        {
+            var animator = selection.GetComponentInChildren<Animator>();
+
+            if (animator != null)
+            {
+                var targetBone = animator.GetBoneTransform(humanBone);
+
+                if (targetBone != null)
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>

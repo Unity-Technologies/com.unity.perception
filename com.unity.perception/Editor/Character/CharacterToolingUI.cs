@@ -28,11 +28,11 @@ public class CharacterToolingUI : EditorWindow
 
         if(m_Selection != null)
         {
-            var head = CharacterValidation.FindBodyPart(m_Selection, HumanBodyBones.Head);
-            var leftEye = CharacterValidation.FindBodyPart(m_Selection, HumanBodyBones.LeftEye);
-            var rightEye = CharacterValidation.FindBodyPart(m_Selection, HumanBodyBones.RightEye);
+            var head = CharacterValidation.ValidateBodyPart(m_Selection, HumanBodyBones.Head);
+            var leftEye = CharacterValidation.ValidateBodyPart(m_Selection, HumanBodyBones.LeftEye);
+            var rightEye = CharacterValidation.ValidateBodyPart(m_Selection, HumanBodyBones.RightEye);
 
-            if (head != m_Selection.transform || leftEye != m_Selection.transform || rightEye != m_Selection.transform)
+            if (head && leftEye && rightEye )
             {
                 m_Status = "Character ready to add joints";
                 m_VaildCharacter = true;

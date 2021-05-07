@@ -8,7 +8,7 @@ namespace UnityEngine.Perception.Randomization
     /// A basic <see cref="AssetSourceLocation"/> for loading local project assets
     /// </summary>
     [Serializable]
-    [DisplayName("Local")]
+    [DisplayName("Assets In Project")]
     public class LocalAssetSourceLocation : AssetSourceLocation
     {
         /// <summary>

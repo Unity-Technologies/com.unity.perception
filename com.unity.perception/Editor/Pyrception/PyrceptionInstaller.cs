@@ -23,30 +23,43 @@ public class PyrceptionInstaller
     {
         string path = Application.dataPath.Replace("/Assets", "").Replace("/", "\\");
         string pyrceptionPath = Path.GetFullPath("Packages/com.unity.perception/Editor/Pyrception/pyrception-utils");
-        UnityEngine.Debug.Log(pyrceptionPath);
-        string command =
-            $"pip install virtualenv && " +
-            $"cd {path} && " +
-            $"virtualenv DataInsightsEnv && " +
-            $"XCOPY /E/I/Y {pyrceptionPath} .\\DataInsightsEnv\\pyrception-util && " +
-            $".\\DataInsightsEnv\\Scripts\\activate && " +
-            $"cd .\\DataInsightsEnv\\pyrception-util && " +
-            $"pip --no-cache-dir install -e .";
 
+        int ExitCode = 0;
+        ExitCode = ExecuteCMD("pip install virtualenv");
+        if (ExitCode != 0) return;
+
+        ExitCode = ExecuteCMD($"virtualenv \"{path}\\DataInsightsEnv\"");
+        if (ExitCode != 0) return;
+
+        ExitCode = ExecuteCMD($"XCOPY /E/I/Y \"{pyrceptionPath}\" \"{path}\\DataInsightsEnv\\pyrception-util\"");
+        if (ExitCode != 0) return;
+
+        ExitCode = ExecuteCMD($"cd \"{path}\\DataInsightsEnv\\pyrception-util\"");
+        if (ExitCode != 0) return;
+
+        ExitCode = ExecuteCMD($"\"{path}\\DataInsightsEnv\\Scripts\\activate\" && cd {path} && cd .\\DataInsightsEnv\\pyrception-util\\ && pip --no-cache-dir install -e . && deactivate");
+        if (ExitCode != 0) return;
+    }
+
+    private static int ExecuteCMD(string command) {
         ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/c " + command);
-        info.CreateNoWindow = false;
-        info.UseShellExecute = true;
+        info.CreateNoWindow = true;
+        info.UseShellExecute = false;
+
         Process cmd = Process.Start(info);
         cmd.WaitForExit();
-        int ExitCode = cmd.ExitCode;
-        if(ExitCode == 0)
+
+        int ExitCode = 0;
+        ExitCode = cmd.ExitCode;
+        if (ExitCode != 0)
         {
-            UnityEngine.Debug.Log("Completed setup for Dataset Insights");
+            UnityEngine.Debug.LogError($"Error - {ExitCode} - Failed to execute: {command}");
         }
-        else
-        {
-            UnityEngine.Debug.LogError("Dataset Insights setup failed");
-        }
-        
+
+        return cmd.ExitCode;
+    }
+
+    private static void RevertChanges() {
+        return;
     }
 }

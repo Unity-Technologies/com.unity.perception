@@ -62,10 +62,7 @@ namespace UnityEngine.Perception.Randomization
         {
             var array = new T[Count];
             for (var i = 0; i < Count; i++)
-            {
                 array[i] = LoadRawAsset(i);
-                archetype.Preprocess(array[i]);
-            }
             return array;
         }
 

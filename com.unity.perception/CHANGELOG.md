@@ -18,6 +18,12 @@ Added random seed field to the Run in Unity Simulation Window
 
 ### Changed
 
+Increased color variety in instance segmentation images
+
+The PoissonDiskSampling utility now samples a larger region of points to then crop to size of the intended region to prevent edge case bias.
+
+Upgraded capture package dependency to 0.0.10-preview.22 to fix an issue with URP where post processing effects were not included when capturing images.
+
 ### Deprecated
 
 ### Removed

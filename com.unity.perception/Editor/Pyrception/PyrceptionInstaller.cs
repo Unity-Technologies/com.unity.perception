@@ -8,7 +8,7 @@ using UnityEngine.Perception.GroundTruth;
 public class PyrceptionInstaller : EditorWindow
 {  
 
-    [MenuItem("Window/General/Pyrception/Run")]
+    [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
         string path = Application.dataPath.Replace("/Assets", "");
@@ -26,7 +26,7 @@ public class PyrceptionInstaller : EditorWindow
         if (ExitCode != 0) return;
     }
 
-    [MenuItem("Window/General/Pyrception/Setup")]
+    [MenuItem("Window/Pyrception/Setup")]
     static void SetupPyrception()
     {
         int steps = 3;

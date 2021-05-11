@@ -77,7 +77,7 @@ public class PyrceptionInstaller : EditorWindow
         virtualenvPath = virtualenvPath.Replace("/", "\\");
         ExecuteCMD($"{virtualenvPath}\\virtualenv -p python3 \"{path}\\DataInsightsEnv\"", ref ExitCode);
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        ExecuteCMD($"{virtualenvPath}\\virtualenv -p python3 \"{path}/DataInsightsEnv\"", ref ExitCode);
+        ExecuteCMD($"{virtualenvPath}/virtualenv -p python3 \"{path}/DataInsightsEnv\"", ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();

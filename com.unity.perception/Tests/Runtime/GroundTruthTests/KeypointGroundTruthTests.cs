@@ -35,7 +35,7 @@ namespace GroundTruthTests
 #endif
         }
 
-        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<int, List<KeypointLabeler.KeypointEntry>> computeListener, RenderTexture renderTexture = null, KeypointObjectFilter keypointObjectFilter = KeypointObjectFilter.Visible, float defaultSelfOcclusionDistance = 0.15f)
+        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<int, List<KeypointLabeler.KeypointEntry>> computeListener, RenderTexture renderTexture = null, KeypointObjectFilter keypointObjectFilter = KeypointObjectFilter.Visible)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -56,7 +56,6 @@ namespace GroundTruthTests
             perceptionCamera.captureRgbImages = false;
             var keyPointLabeler = new KeypointLabeler(config, template);
             keyPointLabeler.objectFilter = keypointObjectFilter;
-            keyPointLabeler.selfOcclusionDistance = defaultSelfOcclusionDistance;
             if (computeListener != null)
                 keyPointLabeler.KeypointsComputed += computeListener;
 
@@ -65,7 +64,7 @@ namespace GroundTruthTests
             return cameraObject;
         }
 
-        static KeypointTemplate CreateTestTemplate(Guid guid, string label)
+        static KeypointTemplate CreateTestTemplate(Guid guid, string label, float selfOcclusionDistance = 0.15f)
         {
             var keypoints = new[]
             {
@@ -73,55 +72,64 @@ namespace GroundTruthTests
                 {
                     label = "FrontLowerLeft",
                     associateToRig = false,
-                    color = Color.black
+                    color = Color.black,
+                    selfOcclusionDistance = selfOcclusionDistance
                 },
                 new KeypointDefinition
                 {
                     label = "FrontUpperLeft",
                     associateToRig = false,
-                    color = Color.black
+                    color = Color.black,
+                    selfOcclusionDistance = selfOcclusionDistance
                 },
                 new KeypointDefinition
                 {
                     label = "FrontUpperRight",
                     associateToRig = false,
-                    color = Color.black
+                    color = Color.black,
+                    selfOcclusionDistance = selfOcclusionDistance
                 },
                 new KeypointDefinition
                 {
                     label = "FrontLowerRight",
                     associateToRig = false,
-                    color = Color.black
+                    color = Color.black,
+                    selfOcclusionDistance = selfOcclusionDistance
                 },
                 new KeypointDefinition
                 {
                     label = "BackLowerLeft",
                     associateToRig = false,
-                    color = Color.black
+                    color = Color.black,
+                    selfOcclusionDistance = selfOcclusionDistance
                 },
                 new KeypointDefinition
                 {
                     label = "BackUpperLeft",
                     associateToRig = false,
-                    color = Color.black
+                    color = Color.black,
+                    selfOcclusionDistance = selfOcclusionDistance
                 },
                 new KeypointDefinition
                 {
                     label = "BackUpperRight",
                     associateToRig = false,
-                    color = Color.black
+                    color = Color.black,
+                    selfOcclusionDistance = selfOcclusionDistance
                 },
                 new KeypointDefinition
                 {
                     label = "BackLowerRight",
                     associateToRig = false,
-                    color = Color.black
+                    color = Color.black,
+                    selfOcclusionDistance = selfOcclusionDistance
                 },
                 new KeypointDefinition
                 {
                     label = "Center",
                     associateToRig = false,
-                    color = Color.black
+                    color = Color.black,
+                    selfOcclusionDistance = selfOcclusionDistance
                 }
             };
 
@@ -267,11 +275,11 @@ namespace GroundTruthTests
             jointLabel.labels.Add(label);
             if (selfOcclusionDistance.HasValue)
             {
-                jointLabel.selfOcclusionDistanceSource = SelfOcclusionDistanceSource.JointLabel;
+                jointLabel.overrideSelfOcclusionDistance = true;
                 jointLabel.selfOcclusionDistance = selfOcclusionDistance.Value;
             }
             else
-                jointLabel.selfOcclusionDistanceSource = SelfOcclusionDistanceSource.KeypointLabeler;
+                jointLabel.overrideSelfOcclusionDistance = false;
         }
 
         static void SetupCubeJoints(GameObject cube, KeypointTemplate template, float? selfOcclusionDistance = null)
@@ -1136,15 +1144,15 @@ namespace GroundTruthTests
             [Values(ProjectionKind.Orthographic, ProjectionKind.Projection)] ProjectionKind projectionKind)
         {
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
-            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
-            var frameSize = 1024;
-            var texture = new RenderTexture(frameSize, frameSize, 16);
             var labelerSelfOcclusionDistance =
                 args.checkDistanceType == CheckDistanceType.Global ? args.checkDistance : 0.5f;
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate", selfOcclusionDistance: labelerSelfOcclusionDistance);
+            var frameSize = 1024;
+            var texture = new RenderTexture(frameSize, frameSize, 16);
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
                 incoming.Add(data);
-            }, texture, defaultSelfOcclusionDistance: labelerSelfOcclusionDistance);
+            }, texture);
             var camComponent = cam.GetComponent<Camera>();
             camComponent.fieldOfView = args.cameraFieldOfView;
             camComponent.farClipPlane = 100f;
@@ -1222,14 +1230,14 @@ namespace GroundTruthTests
             (Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, bool expectOccluded) args)
         {
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
-            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var labelerSelfOcclusionDistance = 0.5f;
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate", labelerSelfOcclusionDistance);
             var frameSize = 1024;
             var texture = new RenderTexture(frameSize, frameSize, 16);
-            var labelerSelfOcclusionDistance = 0.5f;
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
                 incoming.Add(data);
-            }, texture, defaultSelfOcclusionDistance: labelerSelfOcclusionDistance);
+            }, texture);
             var camComponent = cam.GetComponent<Camera>();
             camComponent.orthographic = true;
             camComponent.orthographicSize = 100f;
@@ -1263,14 +1271,14 @@ namespace GroundTruthTests
         public IEnumerator ManyObjects_LabelsCorrectly()
         {
             var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
-            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var labelerSelfOcclusionDistance = 0.5f;
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate", selfOcclusionDistance: labelerSelfOcclusionDistance);
             var frameSize = 1024;
             var texture = new RenderTexture(frameSize, frameSize, 16);
-            var labelerSelfOcclusionDistance = 0.5f;
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
                 incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
-            }, texture, defaultSelfOcclusionDistance: labelerSelfOcclusionDistance);
+            }, texture);
 
             void PlaceObjects(Rect rect, float z, Vector2Int count)
             {

@@ -22,7 +22,6 @@ namespace UnityEngine.Perception.GroundTruth
     [Serializable]
     public sealed class KeypointLabeler : CameraLabeler
     {
-        internal const float defaultSelfOcclusionDistance = 0.15f;
         // Smaller texture sizes produce assertion failures in the engine
         const int k_MinTextureWidth = 8;
 
@@ -59,10 +58,6 @@ namespace UnityEngine.Perception.GroundTruth
         /// <see cref="KeypointObjectFilter"/>
         /// </summary>
         public KeypointObjectFilter objectFilter;
-        /// <summary>
-        /// The max distance a keypoint can be from the front of an object before it is considered occluded
-        /// </summary>
-        public float selfOcclusionDistance = defaultSelfOcclusionDistance;
         // ReSharper restore MemberCanBePrivate.Global
 
         AnnotationDefinition m_AnnotationDefinition;
@@ -644,7 +639,7 @@ namespace UnityEngine.Perception.GroundTruth
                         if (bone != null)
                         {
                             var bonePosition = bone.position;
-                            var jointSelfOcclusionDistance = JointSelfOcclusionDistance(bone, bonePosition, cameraPosition, cameraforward, this.selfOcclusionDistance);
+                            var jointSelfOcclusionDistance = JointSelfOcclusionDistance(bone, bonePosition, cameraPosition, cameraforward, pt.selfOcclusionDistance);
                             InitKeypoint(bonePosition, cachedData, checkLocationsSlice, i, jointSelfOcclusionDistance);
                         }
                     }
@@ -652,25 +647,19 @@ namespace UnityEngine.Perception.GroundTruth
 
                 // Go through all of the additional or override points defined by joint labels and get
                 // their locations
-                foreach (var (joint, idx) in cachedData.overrides)
+                foreach (var (joint, templateIdx) in cachedData.overrides)
                 {
                     var jointTransform = joint.transform;
                     var jointPosition = jointTransform.position;
                     float resolvedSelfOcclusionDistance;
-                    switch (joint.selfOcclusionDistanceSource)
-                    {
-                        case SelfOcclusionDistanceSource.JointLabel:
-                            resolvedSelfOcclusionDistance = joint.selfOcclusionDistance;
-                            break;
-                        case SelfOcclusionDistanceSource.KeypointLabeler:
-                            resolvedSelfOcclusionDistance = selfOcclusionDistance;
-                            break;
-                        default:
-                            throw new NotImplementedException("Invalid SelfOcclusionDistanceSource");
-                    }
+                    if (joint.overrideSelfOcclusionDistance)
+                        resolvedSelfOcclusionDistance = joint.selfOcclusionDistance;
+                    else
+                        resolvedSelfOcclusionDistance = activeTemplate.keypoints[templateIdx].selfOcclusionDistance;
+
                     var jointSelfOcclusionDistance = JointSelfOcclusionDistance(joint.transform, jointPosition, cameraPosition, cameraforward, resolvedSelfOcclusionDistance);
 
-                    InitKeypoint(jointPosition, cachedData, checkLocationsSlice, idx, jointSelfOcclusionDistance);
+                    InitKeypoint(jointPosition, cachedData, checkLocationsSlice, templateIdx, jointSelfOcclusionDistance);
                 }
 
                 cachedData.keypoints.pose = "unset";

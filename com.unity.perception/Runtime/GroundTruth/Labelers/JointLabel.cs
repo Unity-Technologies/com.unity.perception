@@ -47,14 +47,26 @@ namespace UnityEngine.Perception.GroundTruth
         [SerializeField]
         public List<string> labels = new List<string>();
 
-        public SelfOcclusionDistanceSource selfOcclusionDistanceSource = SelfOcclusionDistanceSource.JointLabel;
+        /// <summary>
+        /// Whether <see cref="selfOcclusionDistance"/> should be used instead of the one specified in the <see cref="KeypointTemplate"/>.
+        /// </summary>
+        public bool overrideSelfOcclusionDistance = false;
+        /// <summary>
+        /// Whether <see cref="selfOcclusionDistance"/> should be used instead of the one specified in the <see cref="KeypointTemplate"/>.
+        /// </summary>
         public float selfOcclusionDistance = .15f;
 
-        public void OnBeforeSerialize()
+        /// <summary>
+        /// Internal method for serialization.
+        /// </summary>
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
         }
 
-        public void OnAfterDeserialize()
+        /// <summary>
+        /// Internal method for serialization.
+        /// </summary>
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             if (templateInformation != null)
             {
@@ -71,7 +83,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             Gizmos.DrawIcon(transform.position, "Packages/com.unity.perception/Editor/Icons/Keypoint.png", false);
         }
-        
+
         private void OnDrawGizmosSelected()
         {
             if (singlePerceptionCamera == null)
@@ -86,27 +98,40 @@ namespace UnityEngine.Perception.GroundTruth
 
 #endif
             float occlusionDistance;
-            switch (selfOcclusionDistanceSource)
+            if (this.overrideSelfOcclusionDistance)
             {
-                case SelfOcclusionDistanceSource.JointLabel:
-                    occlusionDistance = selfOcclusionDistance;
-                    break;
-                case SelfOcclusionDistanceSource.KeypointLabeler:
-                    if (singlePerceptionCamera == null)
-                    {
-                        occlusionDistance = KeypointLabeler.defaultSelfOcclusionDistance;
-                    }
+                occlusionDistance = selfOcclusionDistance;
+            }
+            else
+            {
+                if (singlePerceptionCamera == null)
+                {
+                    occlusionDistance = KeypointDefinition.defaultSelfOcclusionDistance;
+                }
+                else
+                {
+                    var keypointLabeler = (KeypointLabeler) singlePerceptionCamera.labelers.FirstOrDefault(l => l is KeypointLabeler);
+                    var template = keypointLabeler?.activeTemplate;
+                    if (template == null)
+                        occlusionDistance = KeypointDefinition.defaultSelfOcclusionDistance;
                     else
                     {
-                        var keypointLabeler = (KeypointLabeler) singlePerceptionCamera.labelers.FirstOrDefault(l => l is KeypointLabeler);
-                        if (keypointLabeler == null)
-                            occlusionDistance = KeypointLabeler.defaultSelfOcclusionDistance;
+                        KeypointDefinition matchingKeypoint = null;
+                        foreach (var k in template.keypoints)
+                        {
+                            if (this.labels.Contains(k.label))
+                            {
+                                matchingKeypoint = k;
+                                break;
+                            }
+                        }
+
+                        if (matchingKeypoint == null)
+                            occlusionDistance = KeypointDefinition.defaultSelfOcclusionDistance;
                         else
-                            occlusionDistance = keypointLabeler.selfOcclusionDistance;
+                            occlusionDistance = matchingKeypoint.selfOcclusionDistance;
                     }
-                    break;
-                default:
-                    throw new InvalidOperationException("Invalid SelfOcclusionDistanceSource");
+                }
             }
 
             var occlusionDistanceScale = transform.lossyScale * occlusionDistance;

@@ -85,7 +85,6 @@ public class CharacterToolingUI : EditorWindow
                     GameObject newModel;
 
                     m_DrawFaceRays = GUILayout.Toggle(m_DrawFaceRays, "Draw Face Rays");
-                    GUILayout.Label(string.Format("Create Ears and Nose: {0}", m_ApiResult), EditorStyles.boldLabel);
                     GUILayout.Label(string.Format("Ears and Nose status: {0}", m_Status), EditorStyles.boldLabel);
 
                     if (m_CheckJoints)
@@ -115,17 +114,15 @@ public class CharacterToolingUI : EditorWindow
                     break;
 
                 case 1:
-
-                    GUILayout.Label("Character Validation", EditorStyles.whiteLargeLabel);
-                    GUILayout.Label(string.Format("Validation for Character : {0}", m_ApiResult), EditorStyles.whiteLabel);
-
                     var animator = m_Selection.GetComponentInChildren<Animator>();
-
+                    GUILayout.Label("Character Validation", EditorStyles.whiteLargeLabel);
                     if (animator != null)
                     {
-                        GUILayout.Label(string.Format("Character is Human: {0}", animator.avatar.isHuman), EditorStyles.boldLabel);
-                        GUILayout.Label(string.Format("Character is Valid: {0}", animator.avatar.isValid), EditorStyles.boldLabel);
+                        GUILayout.Label(string.Format("Character has Human Avatar: {0}", animator.avatar.isHuman), EditorStyles.boldLabel);
+                        GUILayout.Label(string.Format("Character has Valid Avatar: {0}", animator.avatar.isValid), EditorStyles.boldLabel);
                     }
+
+                    GUILayout.Label(string.Format("Validation for Character : {0}", m_ApiResult), EditorStyles.whiteLabel);
 
                     if (GUILayout.Button("Validate Bones", GUILayout.Width(160)))
                     {

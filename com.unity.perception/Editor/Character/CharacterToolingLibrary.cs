@@ -192,7 +192,7 @@ namespace UnityEngine.Perception.Content
                 }
             }
 
-            var points = new List<Vector3>();
+            var allPos = new Dictionary<Vector3, float>();
             // Find the position of the nose using the nose ray from the starting point found by the eyes
             for (int v = 0; v < verticies.Length; v++)
             {
@@ -200,13 +200,16 @@ namespace UnityEngine.Perception.Content
                 {
                     var pointNoseRay = noseRayFor.GetPoint(c);
                     var pointVert = verticies[v];
-                    var def = 0.003f;
+                    var def = 0.005f;
                     var offset = pointVert - pointNoseRay;
                     var len = offset.sqrMagnitude;
+                    
 
-                    if(len < def * def || len < def)
+                    if(len < def * def)
                     {
                         nosePos = pointNoseRay;
+                        if(!allPos.ContainsKey(pointNoseRay))
+                            allPos.Add(pointNoseRay, len);
                     }
                 }
             }

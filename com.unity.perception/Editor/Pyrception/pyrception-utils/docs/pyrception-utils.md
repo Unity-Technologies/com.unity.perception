@@ -93,7 +93,8 @@ The image index
 
 <a name="pyrception_utils.preview.draw_image_with_boxes"></a>
 #### draw\_image\_with\_boxes
-
+<a name="pyrception_utils.preview.draw_image_with_boxes"></a>
+#### draw\_image\_with\_boxes
 ```python
 draw_image_with_boxes(image: Image, classes: Dict, labels: List, boxes: List[List], colors: Dict, header: str, description: str)
 ```

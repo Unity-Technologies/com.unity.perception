@@ -69,8 +69,10 @@ def draw_image_with_boxes(
     """
     image_draw = ImageDraw(image)
     # draw bounding boxes
-    font = ImageFont.truetype("C:\Windows\Fonts\Arial.ttf", 15)
+    font = ImageFont.truetype("C:\\Windows\\Fonts\\Arial.ttf", 15)
+    st.text("There are " + str(len(classes)) + " classes")
     for label, box in zip(labels, boxes):
+        label = label - 1
         class_name = classes[label]
         image_draw.rectangle(box, outline=colors[class_name], width=2)
         image_draw.text(
@@ -112,6 +114,9 @@ def preview_dataset(base_dataset_dir: str):
             os.path.join(base_dataset_dir, dataset_name)
         )
         classes = dataset.classes
+        st.sidebar.selectbox(
+            "hello", classes
+        )
         image_index = frame_selector_ui(dataset)
         image, target = dataset[image_index]
         labels = target["labels"]

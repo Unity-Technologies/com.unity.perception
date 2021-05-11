@@ -38,6 +38,14 @@ public class PyrceptionInstaller : EditorWindow
     {
         int steps = 3;
 
+        //Check pip install
+        int ExitCode = 0;
+        ExitCode = ExecuteCMD("pip3");
+        if(ExitCode != 0)
+        {
+            UnityEngine.Debug.LogError("pip3 and python >= 3 must be installed.");
+        }
+
         string path = Application.dataPath.Replace("/Assets", "");
 #if UNITY_EDITOR_WIN
         path = path.Replace("/", "\\");
@@ -45,7 +53,7 @@ public class PyrceptionInstaller : EditorWindow
         string pyrceptionPath = Path.GetFullPath("Packages/com.unity.perception/Editor/Pyrception/pyrception-utils").Replace("\\","/");
 
         EditorUtility.DisplayProgressBar("Setting up Pyrception", "Installing virtualenv...", 0 / steps);
-        int ExitCode = 0;
+        ExitCode = 0;
         ExitCode = ExecuteCMD("pip3 install virtualenv");
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
@@ -54,7 +62,7 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.DisplayProgressBar("Setting up Pyrception", "Setting up virtualenv instance...", 1f / steps);
 
 #if UNITY_EDITOR_WIN
-        ExitCode = ExecuteCMD($"virtualenv \"{path}\\DataInsightsEnv\"");
+        ExitCode = ExecuteCMD($"virtualenv -p python3 \"{path}\\DataInsightsEnv\"");
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         ExitCode = ExecuteCMD($"virtualenv -p python3 \"{path}/DataInsightsEnv\"");
 #endif
@@ -78,9 +86,9 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.DisplayProgressBar("Setting up Pyrception", "Installing pyrception utils...", 2.5f / steps);
 
 #if UNITY_EDITOR_WIN
-        ExitCode = ExecuteCMD($"\"{path}\\DataInsightsEnv\\Scripts\\activate\" && cd \"{path}\\DataInsightsEnv\\pyrception-util\" && pip --no-cache-dir install -e . && deactivate");
+        ExitCode = ExecuteCMD($"\"{path}\\DataInsightsEnv\\Scripts\\activate\" && cd \"{path}\\DataInsightsEnv\\pyrception-util\" && pip3 --no-cache-dir install -e . && deactivate");
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        ExitCode = ExecuteCMD($"source \"{path}/DataInsightsEnv/Scripts/activate\"; cd \"{path}/DataInsightsEnv/pyrception-util\"; pip --no-cache-dir install -e .; deactivate");
+        ExitCode = ExecuteCMD($"source \"{path}/DataInsightsEnv/Scripts/activate\"; cd \"{path}/DataInsightsEnv/pyrception-util\"; pip3 --no-cache-dir install -e .; deactivate");
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();

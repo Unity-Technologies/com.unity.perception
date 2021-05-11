@@ -64,7 +64,13 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.DisplayProgressBar("Setting up Pyrception", "Setting up virtualenv instance...", 1f / steps);
 
         //get virtualenv actual location
-        string virtualenvPath = ExecuteCMD("pip3 show virtualenv | findstr Location:", ref ExitCode, redirectOutput: true);
+        string virtualenvPath = ExecuteCMD("pip3 show virtualenv | " +
+#if UNITY_EDITOR_WIN
+            "findstr" +
+#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+            "grep" +
+#endif
+            " Location:", ref ExitCode, redirectOutput: true);
         virtualenvPath = virtualenvPath.Replace("Location: ", "").Trim();
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();

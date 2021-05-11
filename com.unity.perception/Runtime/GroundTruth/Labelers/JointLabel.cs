@@ -71,6 +71,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             Gizmos.DrawIcon(transform.position, "Packages/com.unity.perception/Editor/Icons/Keypoint.png", false);
         }
+        
         private void OnDrawGizmosSelected()
         {
             if (singlePerceptionCamera == null)
@@ -84,32 +85,33 @@ namespace UnityEngine.Perception.GroundTruth
             sphereMesh = (Mesh) defaultAssets.FirstOrDefault(a => a.name == "Sphere");
 
 #endif
-            Vector3 occlusionDistance;
+            float occlusionDistance;
             switch (selfOcclusionDistanceSource)
             {
                 case SelfOcclusionDistanceSource.JointLabel:
-                    occlusionDistance = transform.lossyScale * selfOcclusionDistance;
+                    occlusionDistance = selfOcclusionDistance;
                     break;
                 case SelfOcclusionDistanceSource.KeypointLabeler:
                     if (singlePerceptionCamera == null)
                     {
-                        occlusionDistance = Vector3.one * KeypointLabeler.defaultSelfOcclusionDistance;
+                        occlusionDistance = KeypointLabeler.defaultSelfOcclusionDistance;
                     }
                     else
                     {
                         var keypointLabeler = (KeypointLabeler) singlePerceptionCamera.labelers.FirstOrDefault(l => l is KeypointLabeler);
                         if (keypointLabeler == null)
-                            occlusionDistance = Vector3.one * KeypointLabeler.defaultSelfOcclusionDistance;
+                            occlusionDistance = KeypointLabeler.defaultSelfOcclusionDistance;
                         else
-                            occlusionDistance = Vector3.one * keypointLabeler.selfOcclusionDistance;
+                            occlusionDistance = keypointLabeler.selfOcclusionDistance;
                     }
                     break;
                 default:
                     throw new InvalidOperationException("Invalid SelfOcclusionDistanceSource");
             }
 
-            Gizmos.color = /*Color.green;*/new Color(1, 1, 1, .5f);
-            Gizmos.DrawMesh(sphereMesh, 0, transform.position, transform.rotation, occlusionDistance * 2);
+            var occlusionDistanceScale = transform.lossyScale * occlusionDistance;
+            Gizmos.color = new Color(1, 1, 1, .25f);
+            Gizmos.DrawMesh(sphereMesh, 0, transform.position, transform.rotation, occlusionDistanceScale * 2);
         }
     }
 }

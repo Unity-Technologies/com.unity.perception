@@ -71,18 +71,19 @@ public class PyrceptionInstaller : EditorWindow
             "grep" +
 #endif
             " Location:", ref ExitCode, redirectOutput: true);
-        virtualenvPath = virtualenvPath.Replace("Location: ", "").Trim();
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
             return;
         }
-        virtualenvPath += "/../Scripts";
+        
+        virtualenvPath = virtualenvPath.Replace("Location: ", "").Trim();
 
 
 #if UNITY_EDITOR_WIN
-        virtualenvPath = virtualenvPath.Replace("/", "\\");
-        ExecuteCMD($"{virtualenvPath}\\virtualenv -p python3 \"{path}\\DataInsightsEnv\"", ref ExitCode);
+        virtualenvPath += "\\..\\Scripts";
+        ExecuteCMD($"{virtualenvPath}\\virtualenv.exe -p python3 \"{path}\\DataInsightsEnv\"", ref ExitCode);
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+        virtualenvPath += "/../bin";
         ExecuteCMD($"{virtualenvPath}/virtualenv -p python3 \"{path}/DataInsightsEnv\"", ref ExitCode);
 #endif
         if (ExitCode != 0) {
@@ -107,7 +108,7 @@ public class PyrceptionInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
         ExecuteCMD($"\"{path}\\DataInsightsEnv\\Scripts\\activate\" && cd \"{path}\\DataInsightsEnv\\pyrception-util\" && pip3 --no-cache-dir install -e . && deactivate", ref ExitCode);
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        ExecuteCMD($"source \"{path}/DataInsightsEnv/Scripts/activate\"; cd \"{path}/DataInsightsEnv/pyrception-util\"; pip3 --no-cache-dir install -e .; deactivate", ref ExitCode);
+        ExecuteCMD($"source \"{path}/DataInsightsEnv/bin/activate\"; cd \"{path}/DataInsightsEnv/pyrception-util\"; pip3 --no-cache-dir install -e .; deactivate", ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();

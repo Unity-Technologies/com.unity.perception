@@ -23,7 +23,8 @@ namespace UnityEngine.Perception.GroundTruth
     public sealed class KeypointLabeler : CameraLabeler
     {
         internal const float defaultSelfOcclusionDistance = 0.15f;
-        const int k_MinTextureWidth = 4;
+        // Smaller texture sizes produce assertion failures in the engine
+        const int k_MinTextureWidth = 8;
 
         static ProfilerMarker k_OnEndRenderingMarker = new ProfilerMarker($"KeypointLabeler OnEndRendering");
         static ProfilerMarker k_OnVisualizeMarker = new ProfilerMarker($"KeypointLabeler OnVisualize");
@@ -630,6 +631,9 @@ namespace UnityEngine.Perception.GroundTruth
                 //grab the slice of the list for the current object to assign positions in
                 var checkLocationsSlice = new NativeSlice<float3>(checkLocations, listStart);
 
+                var cameraPosition = perceptionCamera.transform.position;
+                var cameraforward = perceptionCamera.transform.forward;
+
                 // Go through all of the rig keypoints and get their location
                 for (var i = 0; i < activeTemplate.keypoints.Length; i++)
                 {
@@ -639,19 +643,17 @@ namespace UnityEngine.Perception.GroundTruth
                         var bone = animator.GetBoneTransform(pt.rigLabel);
                         if (bone != null)
                         {
-                            InitKeypoint(bone.position, cachedData, checkLocationsSlice, i, this.selfOcclusionDistance);
+                            var bonePosition = bone.position;
+                            var jointSelfOcclusionDistance = JointSelfOcclusionDistance(bone, bonePosition, cameraPosition, cameraforward, this.selfOcclusionDistance);
+                            InitKeypoint(bonePosition, cachedData, checkLocationsSlice, i, jointSelfOcclusionDistance);
                         }
                     }
                 }
-
-                var cameraPosition = perceptionCamera.transform.position;
-                var cameraforward = perceptionCamera.transform.forward;
 
                 // Go through all of the additional or override points defined by joint labels and get
                 // their locations
                 foreach (var (joint, idx) in cachedData.overrides)
                 {
-                    float jointSelfOcclusionDistance;
                     var jointTransform = joint.transform;
                     var jointPosition = jointTransform.position;
                     float resolvedSelfOcclusionDistance;
@@ -666,14 +668,7 @@ namespace UnityEngine.Perception.GroundTruth
                         default:
                             throw new NotImplementedException("Invalid SelfOcclusionDistanceSource");
                     }
-
-                    var depthOfJoint = Vector3.Dot(jointPosition - cameraPosition, cameraforward);
-                    var cameraEffectivePosition = jointPosition - cameraforward * depthOfJoint;
-
-                    var jointRelativeCameraPosition = jointTransform.InverseTransformPoint(cameraEffectivePosition);
-                    var jointRelativeCheckPosition = jointRelativeCameraPosition.normalized * resolvedSelfOcclusionDistance;
-                    var worldSpaceCheckVector = jointTransform.TransformVector(jointRelativeCheckPosition);
-                    jointSelfOcclusionDistance = worldSpaceCheckVector.magnitude;
+                    var jointSelfOcclusionDistance = JointSelfOcclusionDistance(joint.transform, jointPosition, cameraPosition, cameraforward, resolvedSelfOcclusionDistance);
 
                     InitKeypoint(jointPosition, cachedData, checkLocationsSlice, idx, jointSelfOcclusionDistance);
                 }
@@ -696,6 +691,18 @@ namespace UnityEngine.Perception.GroundTruth
                 };
                 keypointEntries.Add(keypointEntry);
             }
+        }
+
+        private float JointSelfOcclusionDistance(Transform transform, Vector3 jointPosition, Vector3 cameraPosition,
+            Vector3 cameraforward, float configuredSelfOcclusionDistance)
+        {
+            var depthOfJoint = Vector3.Dot(jointPosition - cameraPosition, cameraforward);
+            var cameraEffectivePosition = jointPosition - cameraforward * depthOfJoint;
+
+            var jointRelativeCameraPosition = transform.InverseTransformPoint(cameraEffectivePosition);
+            var jointRelativeCheckPosition = jointRelativeCameraPosition.normalized * configuredSelfOcclusionDistance;
+            var worldSpaceCheckVector = transform.TransformVector(jointRelativeCheckPosition);
+            return worldSpaceCheckVector.magnitude;
         }
 
         private void InitKeypoint(Vector3 position, CachedData cachedData, NativeSlice<float3> checkLocations, int idx,

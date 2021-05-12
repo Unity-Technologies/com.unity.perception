@@ -56,13 +56,19 @@ public class PyrceptionInstaller : EditorWindow
 
         EditorUtility.DisplayProgressBar("Setting up Pyrception", "Installing virtualenv...", 0 / steps);
         ExitCode = 0;
-        ExecuteCMD("pip3 install virtualenv", ref ExitCode);
+#if UNITY_EDITOR_WIN
+        ExecuteCMD($"pip3 install virtualenv", ref ExitCode);
+#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+        ExecuteCMD($"pip3 install --target=\"{path}/virtualenvDI\" virtualenv", ref ExitCode); //(maybe add --no-user)
+#endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
             return;
         }
         EditorUtility.DisplayProgressBar("Setting up Pyrception", "Setting up virtualenv instance...", 1f / steps);
 
+        //get virtualenv actual location
+        /*
         //get virtualenv actual location
         string virtualenvPath = ExecuteCMD("pip3 show virtualenv | " +
 #if UNITY_EDITOR_WIN
@@ -85,6 +91,21 @@ public class PyrceptionInstaller : EditorWindow
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         virtualenvPath += "/../bin";
         ExecuteCMD($"{virtualenvPath}/virtualenv -p python3 \"{path}/DataInsightsEnv\"", ref ExitCode);
+#endif
+        if (ExitCode != 0) {
+            EditorUtility.ClearProgressBar();
+            return;
+        }
+         */
+#if (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+        string virtualenvPath = path+"/virtualenvDI/bin/";
+#endif
+
+
+#if UNITY_EDITOR_WIN
+        ExecuteCMD($"virtualenv -p python3 \"{path}\\DataInsightsEnv\"", ref ExitCode);
+#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+        ExecuteCMD("export PYTHONPATH=\"${PYTHONPATH}:"+$"{path}/virtualenvDI\";"+$"\"{virtualenvPath}/virtualenv\" -p python3 \"{path}/DataInsightsEnv\"", ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();

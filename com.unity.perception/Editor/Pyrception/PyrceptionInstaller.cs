@@ -21,7 +21,7 @@ public class PyrceptionInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
         command = $"cd {path}\\DataInsightsEnv\\Scripts\\ && activate && pyrception-utils.exe preview --data=\"{PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey)}/..\"";
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        command = $"cd {path}/DataInsightsEnv/bin; activate; ./pyrception-utils preview \"--data={PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey)}/..\"";
+        command = $"cd {path}/DataInsightsEnv/bin; activate; ./pyrception-utils preview --data=\"{PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey)}/..\"";
 #endif
         int ExitCode = 0;
         ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);

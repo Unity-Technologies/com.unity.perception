@@ -145,4 +145,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("data", type=str)
     args = parser.parse_args()
+    print("\n")
+    print("The path is: " + args.data)
     preview_app(args)

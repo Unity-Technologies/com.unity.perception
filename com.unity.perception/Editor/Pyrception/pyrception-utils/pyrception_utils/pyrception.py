@@ -92,6 +92,7 @@ def glob_list(data_root: str, pattern: str) -> List:
     :return: Returns an string iterator containing the paths to the matching files.
     :rtype: Iterator[str]
     """
+
     path = pathlib.Path(data_root)
     file_list = []
     for file_path in sorted(path.glob(pattern), key=file_number):

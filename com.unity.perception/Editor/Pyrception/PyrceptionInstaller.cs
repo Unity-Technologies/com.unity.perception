@@ -13,24 +13,25 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
-        if(currentProcess != null)
+        /*if(currentProcess != null)
         {
             currentProcess.Kill();
             currentProcess = null;
             UnityEngine.Debug.Log("Current Process was set to null");
-        }
+        }*/
 
         string path = Application.dataPath.Replace("/Assets", "");
         string pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
 #if UNITY_EDITOR_WIN
         path = path.Replace("/", "\\");
+        pathToData = pathToData.Replace("/", "\\");
 #endif
         string command = "";
 
 #if UNITY_EDITOR_WIN
-        command = $"cd {path}\\DataInsightsEnv\\Scripts\\ && activate && pyrception-utils.exe preview --data=\"{pathToData}\"/..\"";
+        command = $"cd \"{path}\\DataInsightsEnv\\Scripts\\\" && activate && cd \"{pathToData}\\..\"  && \"{path}\\DataInsightsEnv\\Scripts\\pyrception-utils.exe\" preview --data=\".\"";
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        command = $"cd {path}/DataInsightsEnv/bin; activate; ./pyrception-utils preview --data=\"{pathToData}/..\"";
+        command = $"cd \"{path}/DataInsightsEnv/bin\"; activate; cd \"{pathToData}/..\" ; \"{path}/DataInsightsEnv/bin/pyrception-utils\" preview --data=\".\"";
 #endif
         int ExitCode = 0;
         ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);

@@ -1,5 +1,6 @@
 import argparse
 import os
+import pathlib
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -67,10 +68,12 @@ def draw_image_with_boxes(
     :param description: Image description
     :type str:
     """
+    image = image.copy()
     image_draw = ImageDraw(image)
     # draw bounding boxes
-    font = ImageFont.truetype("C:\\Windows\\Fonts\\Arial.ttf", 15)
-    st.text("There are " + str(len(classes)) + " classes")
+    path_to_font = pathlib.Path(__file__).parent.absolute()
+    font = ImageFont.truetype(f"{path_to_font}/NairiNormal-m509.ttf", 15)
+
     for label, box in zip(labels, boxes):
         label = label - 1
         class_name = classes[label]
@@ -83,6 +86,64 @@ def draw_image_with_boxes(
     st.image(image, use_column_width=True)
 
 
+def draw_image_with_semantic_segmentation(
+    image: Image,
+    height: int,
+    width: int,
+    segmentation: Image,
+    header: str,
+    description: str,
+):
+    """
+    Draws an image in streamlit with labels and bounding boxes.
+
+    :param image: the PIL image
+    :type PIL:
+    :param height: height of the image
+    :type int:
+    :param width: width of the image
+    :type int:
+    :param segmentation: Segmentation Image
+    :type PIL:
+    :param header: Image header
+    :type str:
+    :param description: Image description
+    :type str:
+    """
+    # image_draw = ImageDraw(segmentation)
+    image = image.copy()
+    (seg_r, seg_g, seg_b) = segmentation.getpixel((0, 0))
+
+    st.sidebar.markdown('# Segmentation color intensity')
+    color_intensity = st.sidebar.slider('color intensity (%)', 0, 100, 65);
+    alpha = color_intensity / 100;
+
+    for x in range(0, width - 1):
+        for y in range(0, height - 1):
+            (seg_r, seg_g, seg_b) = segmentation.getpixel((x, y))
+            (r, g, b) = image.getpixel((x, y))
+            # if it isn't a black pixel in the segmentation image then highlight it with the segmentation color
+            if seg_r != 0 or seg_g != 0 or seg_b != 0:
+                image.putpixel((x, y),
+                               (int((1 - alpha) * r + alpha * seg_r),
+                                int((1 - alpha) * g + alpha * seg_g),
+                                int((1 - alpha) * b + alpha * seg_b)))
+
+    st.subheader(header)
+    st.markdown(description)
+    st.image(image, use_column_width=True)
+
+def display_count(
+    header: str,
+    description: str,
+):
+    """
+    :param header: Image header
+    :type str:
+    :param description: Image description
+    :type str:
+    """
+    return
 @st.cache(show_spinner=True, allow_output_mutation=True)
 def load_perception_dataset(path: str) -> Tuple:
     """
@@ -118,11 +179,14 @@ def preview_dataset(base_dataset_dir: str):
             "hello", classes
         )
         image_index = frame_selector_ui(dataset)
-        image, target = dataset[image_index]
+        image, segmentation, target = dataset[image_index]
         labels = target["labels"]
         boxes = target["boxes"]
         draw_image_with_boxes(
-            image, classes, labels, boxes, colors, "Synthetic Image Preview", ""
+            image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
+        )
+        draw_image_with_semantic_segmentation(
+            image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
         )
 
 
@@ -145,6 +209,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("data", type=str)
     args = parser.parse_args()
-    print("\n")
-    print("The path is: " + args.data)
     preview_app(args)

@@ -221,6 +221,9 @@ class PyrceptionDataset:
             image = Image.open(
                 os.path.join(self.metadata.data_dir, self.data[sub_index]["filename"])
             ).convert("RGB")
+            segmentation = Image.open(
+                os.path.join(self.metadata.data_dir, self.data[sub_index]["annotations"][1]["filename"])
+            ).convert("RGB")
         except IndexError:
             print(self.data)
             raise IndexError(f"Index is :{index} Subindex is:{sub_index}")
@@ -242,7 +245,7 @@ class PyrceptionDataset:
         # RGB<uuid>/rgb_<image_id>.png
         image_id = self.data[sub_index]["filename"][44:-4]
         target = {"image_id": image_id, "labels": labels, "boxes": boxes}
-        return image, target
+        return image, segmentation, target
 
     def __len__(self) -> int:
         """

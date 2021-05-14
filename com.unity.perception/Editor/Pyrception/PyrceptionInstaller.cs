@@ -25,6 +25,9 @@ public class PyrceptionInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
         path = path.Replace("/", "\\");
         pathToData = pathToData.Replace("/", "\\");
+#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+        path = path.Replace(" ", "\\ ");
+        pathToData = pathToData.Replace(" ", "\\ ");
 #endif
         string command = "";
 

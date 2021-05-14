@@ -31,7 +31,7 @@ public class PyrceptionInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
         command = $"cd \"{path}\\DataInsightsEnv\\Scripts\\\" && activate && cd \"{pathToData}\\..\" && \"{path}\\DataInsightsEnv\\Scripts\\pyrception-utils.exe\" preview --data=\".\"";
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        command = $"cd \"{path}/DataInsightsEnv/bin\"; activate; cd \"{pathToData}/..\" ; \"{path}/DataInsightsEnv/bin/pyrception-utils\" preview --data=\".\"";
+        command = $"cd \"{path}/DataInsightsEnv/bin\"; source activate; cd \"{pathToData}/..\" ; \"{path}/DataInsightsEnv/bin/pyrception-utils\" preview --data=\".\"";
 #endif
         int ExitCode = 0;
         ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);

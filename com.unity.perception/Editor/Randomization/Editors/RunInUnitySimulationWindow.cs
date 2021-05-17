@@ -20,6 +20,8 @@ namespace UnityEditor.Perception.Randomization
 {
     class RunInUnitySimulationWindow : EditorWindow
     {
+        private const string m_SupportedGPUString = "Tesla";
+
         string m_BuildDirectory;
         string m_BuildZipPath;
         SysParamDefinition[] m_SysParamDefinitions;

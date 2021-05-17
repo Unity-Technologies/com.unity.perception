@@ -17,14 +17,14 @@ namespace UnityEditor.Perception.Randomization
         internal static Type[] randomizerTypes;
         internal static Type[] samplerTypes;
         internal static Type[] assetSourceLocationTypes;
-        internal static Type[] archetypeTypes;
+        internal static Type[] assetRoleTypes;
 
         static StaticData()
         {
             randomizerTypes = GetConstructableDerivedTypes<Randomizer>();
             samplerTypes = GetConstructableDerivedTypes<ISampler>();
             assetSourceLocationTypes = GetConstructableDerivedTypes<AssetSourceLocation>();
-            archetypeTypes = GetConstructableDerivedTypes<ArchetypeBase>();
+            assetRoleTypes = GetConstructableDerivedTypes<AssetRoleBase>();
         }
 
         static Type[] GetConstructableDerivedTypes<T>()

@@ -12,23 +12,23 @@ namespace Editor.Randomization.VisualElements.AssetSource
 {
     class AssetSourceElement : VisualElement
     {
-        SerializedProperty m_ArchetypeProperty;
+        SerializedProperty m_AssetRoleProperty;
         SerializedProperty m_LocationProperty;
-        ToolbarMenu m_ArchetypeToolbarMenu;
+        ToolbarMenu m_AssetRoleToolbarMenu;
         ToolbarMenu m_LocationToolbarMenu;
         VisualElement m_FieldsContainer;
         TextElement m_LocationNotes;
         Type m_AssetType;
 
-        ArchetypeBase archetype =>
-            (ArchetypeBase)StaticData.GetManagedReferenceValue(m_ArchetypeProperty);
+        AssetRoleBase assetRole =>
+            (AssetRoleBase)StaticData.GetManagedReferenceValue(m_AssetRoleProperty);
         AssetSourceLocation assetSourceLocation =>
             (AssetSourceLocation)StaticData.GetManagedReferenceValue(m_LocationProperty);
 
         public AssetSourceElement(SerializedProperty property, FieldInfo fieldInfo)
         {
             m_AssetType = fieldInfo.FieldType.GetGenericArguments()[0];
-            m_ArchetypeProperty = property.FindPropertyRelative("m_ArchetypeBase");
+            m_AssetRoleProperty = property.FindPropertyRelative("m_AssetRoleBase");
             m_LocationProperty = property.FindPropertyRelative(nameof(AssetSource<GameObject>.assetSourceLocation));
             var template = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/AssetSource/AssetSourceElement.uxml");
@@ -39,24 +39,24 @@ namespace Editor.Randomization.VisualElements.AssetSource
 
             m_FieldsContainer = this.Q<VisualElement>("fields-container");
 
-            m_ArchetypeToolbarMenu = this.Q<ToolbarMenu>("archetype-dropdown");
-            var storedArchetype = archetype;
-            m_ArchetypeToolbarMenu.text = storedArchetype != null
-                ? GetArchetypeDisplayName(archetype.GetType()) : "None";
+            m_AssetRoleToolbarMenu = this.Q<ToolbarMenu>("asset-role-dropdown");
+            var storedAssetRole = assetRole;
+            m_AssetRoleToolbarMenu.text = storedAssetRole != null
+                ? GetAssetRoleDisplayName(assetRole.GetType()) : "None";
 
             // ReSharper disable once PossibleNullReferenceException
-            var baseType = fieldInfo.FieldType.GetProperty("archetype").PropertyType;
-            m_ArchetypeToolbarMenu.menu.AppendAction(
+            var baseType = fieldInfo.FieldType.GetProperty("assetRole").PropertyType;
+            m_AssetRoleToolbarMenu.menu.AppendAction(
                 "None",
-                a => ReplaceArchetype(null),
+                a => ReplaceAssetRole(null),
                 a => DropdownMenuAction.Status.Normal);
-            foreach (var type in StaticData.archetypeTypes)
+            foreach (var type in StaticData.assetRoleTypes)
             {
                 if (!type.IsSubclassOf(baseType))
                     continue;
-                m_ArchetypeToolbarMenu.menu.AppendAction(
-                    GetArchetypeDisplayName(type),
-                    a => ReplaceArchetype(type),
+                m_AssetRoleToolbarMenu.menu.AppendAction(
+                    GetAssetRoleDisplayName(type),
+                    a => ReplaceAssetRole(type),
                     a => DropdownMenuAction.Status.Normal);
             }
 
@@ -74,20 +74,20 @@ namespace Editor.Randomization.VisualElements.AssetSource
             UpdateLocationUI(assetSourceLocation.GetType());
         }
 
-        void ReplaceArchetype(Type type)
+        void ReplaceAssetRole(Type type)
         {
             if (type == null)
             {
-                m_ArchetypeToolbarMenu.text = "None";
-                m_ArchetypeProperty.managedReferenceValue = null;
+                m_AssetRoleToolbarMenu.text = "None";
+                m_AssetRoleProperty.managedReferenceValue = null;
             }
             else
             {
-                m_ArchetypeToolbarMenu.text = GetDisplayName(type);
-                var newArchetype = (ArchetypeBase)Activator.CreateInstance(type);
-                m_ArchetypeProperty.managedReferenceValue = newArchetype;
+                m_AssetRoleToolbarMenu.text = GetDisplayName(type);
+                var newAssetRole = (AssetRoleBase)Activator.CreateInstance(type);
+                m_AssetRoleProperty.managedReferenceValue = newAssetRole;
             }
-            m_ArchetypeProperty.serializedObject.ApplyModifiedProperties();
+            m_AssetRoleProperty.serializedObject.ApplyModifiedProperties();
         }
 
         void CreateAssetSourceLocation(Type type)
@@ -135,9 +135,9 @@ namespace Editor.Randomization.VisualElements.AssetSource
             return attribute != null ? attribute.DisplayName : type.Name;
         }
 
-        static string GetArchetypeDisplayName(Type type)
+        static string GetAssetRoleDisplayName(Type type)
         {
-            return type.Name.Replace("Archetype", string.Empty);
+            return type.Name.Replace("AssetRole", string.Empty);
         }
     }
 }

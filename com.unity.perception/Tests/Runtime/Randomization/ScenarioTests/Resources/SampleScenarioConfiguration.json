@@ -1,5 +1,4 @@
 ﻿{
-  "archetypes": [],
   "constants": {
     "framesPerIteration": 1,
     "totalIterations": 100,

@@ -20,7 +20,7 @@ namespace UnityEngine.Perception.Randomization
         public override int count => assets.Count;
 
         /// <inheritdoc/>
-        public override void Initialize<T>(Archetype<T> archetype) { }
+        public override void Initialize<T>(AssetRole<T> assetRole) { }
 
         /// <inheritdoc/>
         public override void ReleaseAssets() { }

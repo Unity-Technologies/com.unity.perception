@@ -31,7 +31,7 @@ namespace UnityEngine.Perception.Randomization
         /// <summary>
         /// The number of assets available within this asset source
         /// </summary>
-        public int Count => assetSourceLocation.Count;
+        public int count => assetSourceLocation.count;
 
         /// <summary>
         /// Execute setup steps for this AssetSource. It is often unnecessary to call this API directly since all other
@@ -54,7 +54,7 @@ namespace UnityEngine.Perception.Randomization
         public T LoadRawAsset(int index)
         {
             CheckIfInitialized();
-            if (Count == 0)
+            if (count == 0)
                 return null;
             return assetSourceLocation.LoadAsset<T>(index);
         }
@@ -66,8 +66,8 @@ namespace UnityEngine.Perception.Randomization
         public T[] LoadAllRawAssets()
         {
             CheckIfInitialized();
-            var array = new T[Count];
-            for (var i = 0; i < Count; i++)
+            var array = new T[count];
+            for (var i = 0; i < count; i++)
                 array[i] = LoadRawAsset(i);
             return array;
         }
@@ -91,8 +91,8 @@ namespace UnityEngine.Perception.Randomization
         public T[] CreateProcessedInstances()
         {
             CheckIfInitialized();
-            var array = new T[Count];
-            for (var i = 0; i < Count; i++)
+            var array = new T[count];
+            for (var i = 0; i < count; i++)
                 array[i] = CreateProcessedInstance(i);
             return array;
         }

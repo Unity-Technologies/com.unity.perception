@@ -10,7 +10,7 @@ namespace UnityEngine.Perception.Randomization
         /// <summary>
         /// The number of assets available at this location
         /// </summary>
-        public abstract int Count { get; }
+        public abstract int count { get; }
 
         /// <summary>
         /// Execute setup steps before accessing assets at this location

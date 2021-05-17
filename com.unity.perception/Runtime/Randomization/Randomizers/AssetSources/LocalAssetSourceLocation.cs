@@ -17,7 +17,7 @@ namespace UnityEngine.Perception.Randomization
         [SerializeField] public List<Object> assets;
 
         /// <inheritdoc/>
-        public override int Count => assets.Count;
+        public override int count => assets.Count;
 
         /// <inheritdoc/>
         public override void Initialize<T>(Archetype<T> archetype) { }

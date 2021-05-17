@@ -103,6 +103,27 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         protected virtual void Cleanup() {}
 
+        /// <summary>
+        /// Initializes labeler with the target perception camera
+        /// </summary>
+        /// <param name="camera">The target perception camera</param>
+        public void Init(PerceptionCamera camera)
+        {
+            try
+            {
+                perceptionCamera = camera;
+                sensorHandle = camera.SensorHandle;
+                Setup();
+                isInitialized = true;
+                m_ShowVisualizations = supportsVisualization && perceptionCamera.showVisualizations;
+            }
+            catch (Exception)
+            {
+                enabled = false;
+                throw;
+            }
+        }
+
         internal void InternalSetup() => Setup();
 
         internal bool InternalVisualizationEnabled
@@ -160,24 +181,6 @@ namespace UnityEngine.Perception.GroundTruth
         internal void Visualize()
         {
             if (visualizationEnabled) OnVisualize();
-        }
-
-        internal void Init(PerceptionCamera newPerceptionCamera)
-        {
-            try
-            {
-                this.perceptionCamera = newPerceptionCamera;
-                sensorHandle = newPerceptionCamera.SensorHandle;
-                Setup();
-                isInitialized = true;
-
-                m_ShowVisualizations = supportsVisualization && perceptionCamera.showVisualizations;
-            }
-            catch (Exception)
-            {
-                this.enabled = false;
-                throw;
-            }
         }
     }
 }

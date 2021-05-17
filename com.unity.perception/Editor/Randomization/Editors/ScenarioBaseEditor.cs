@@ -90,6 +90,8 @@ namespace UnityEditor.Perception.Randomization
                         m_HasConstantsField = true;
                         UIElementsEditorUtilities.CreatePropertyFields(iterator.Copy(), m_ConstantsListVisualContainer);
                         break;
+                    case "configuration":
+                        break;
                     default:
                     {
                         foundProperties = true;

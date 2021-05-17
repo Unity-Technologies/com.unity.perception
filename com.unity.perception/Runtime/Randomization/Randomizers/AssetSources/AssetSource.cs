@@ -18,7 +18,6 @@ namespace UnityEngine.Perception.Randomization
         [SerializeReference] public AssetSourceLocation assetSourceLocation = new LocalAssetSourceLocation();
 
         bool m_Initialized;
-        UniformSampler m_Sampler = new UniformSampler();
 
         /// <summary>
         /// The archetype used to preprocess assets from this source
@@ -35,12 +34,16 @@ namespace UnityEngine.Perception.Randomization
         public int Count => assetSourceLocation.Count;
 
         /// <summary>
-        /// Execute setup steps for this AssetSource
+        /// Execute setup steps for this AssetSource. It is often unnecessary to call this API directly since all other
+        /// relevant APIs in this class will Initialize() this AssetSource if it hasn't been already.
         /// </summary>
         public void Initialize()
         {
-            assetSourceLocation.Initialize(archetype);
-            m_Initialized = true;
+            if (!m_Initialized)
+            {
+                assetSourceLocation.Initialize(archetype);
+                m_Initialized = true;
+            }
         }
 
         /// <summary>
@@ -51,6 +54,8 @@ namespace UnityEngine.Perception.Randomization
         public T LoadRawAsset(int index)
         {
             CheckIfInitialized();
+            if (Count == 0)
+                return null;
             return assetSourceLocation.LoadAsset<T>(index);
         }
 
@@ -60,6 +65,7 @@ namespace UnityEngine.Perception.Randomization
         /// <returns>All assets that can be loaded from this AssetSource</returns>
         public T[] LoadAllRawAssets()
         {
+            CheckIfInitialized();
             var array = new T[Count];
             for (var i = 0; i < Count; i++)
                 array[i] = LoadRawAsset(i);
@@ -84,33 +90,11 @@ namespace UnityEngine.Perception.Randomization
         /// <returns>Instantiated instances from every loadable asset</returns>
         public T[] CreateProcessedInstances()
         {
+            CheckIfInitialized();
             var array = new T[Count];
             for (var i = 0; i < Count; i++)
                 array[i] = CreateProcessedInstance(i);
             return array;
-        }
-
-        /// <summary>
-        /// Returns a uniformly random sampled asset from this AssetSource
-        /// </summary>
-        /// <returns>The randomly sampled asset</returns>
-        public T SampleAsset()
-        {
-            CheckIfInitialized();
-            if (Count == 0)
-                return null;
-
-            return assetSourceLocation.LoadAsset<T>((int)(m_Sampler.Sample() * Count));
-        }
-
-        /// <summary>
-        /// Instantiates and preprocesses a uniformly random sampled asset from this AssetSource
-        /// </summary>
-        /// <returns>The generated random instance</returns>
-        public T SampleInstance()
-        {
-            CheckIfInitialized();
-            return CreateProcessedInstance(SampleAsset());
         }
 
         /// <summary>

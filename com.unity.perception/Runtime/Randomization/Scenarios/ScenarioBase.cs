@@ -40,12 +40,12 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <summary>
         /// The list of randomizers managed by this scenario
         /// </summary>
-        [HideInInspector, SerializeReference] List<Randomizer> m_Randomizers = new List<Randomizer>();
+        [SerializeReference] List<Randomizer> m_Randomizers = new List<Randomizer>();
 
         /// <summary>
         /// An external text asset that is loaded when the scenario starts to configure scenario settings
         /// </summary>
-        [HideInInspector] public TextAsset configuration;
+        public TextAsset configuration;
 
         /// <summary>
         /// Enumerates over all enabled randomizers

@@ -97,6 +97,9 @@ namespace UnityEngine.Perception.Randomization
         public T SampleAsset()
         {
             CheckIfInitialized();
+            if (Count == 0)
+                return null;
+
             return assetSourceLocation.LoadAsset<T>((int)(m_Sampler.Sample() * Count));
         }
 
@@ -127,6 +130,9 @@ namespace UnityEngine.Perception.Randomization
 
         T CreateProcessedInstance(T asset)
         {
+            if (asset == null)
+                return null;
+
             var instance = Object.Instantiate(asset);
             if (archetype != null)
                 archetype.Preprocess(instance);

@@ -29,6 +29,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <inheritdoc/>
         protected sealed override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 
+        /// <inheritdoc/>
         protected override void LoadConfigurationAsset()
         {
             if (Configuration.Instance.IsSimulationRunningInCloud())

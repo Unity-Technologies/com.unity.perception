@@ -129,6 +129,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             ScenarioSerializer.SerializeToFile(this, filePath);
         }
 
+        /// <summary>
+        /// Loads a scenario configuration from a file located at the given file path
+        /// </summary>
+        /// <param name="filePath">The file path of the scenario configuration file</param>
+        /// <exception cref="FileNotFoundException"></exception>
         public void LoadConfigurationFromFile(string filePath)
         {
             if (!File.Exists(filePath))

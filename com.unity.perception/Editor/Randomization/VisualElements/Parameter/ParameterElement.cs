@@ -62,7 +62,7 @@ namespace UnityEditor.Perception.Randomization
 
             var listView = template.Q<ListView>("options");
             listView.itemsSource = probabilities;
-            listView.itemHeight = 22;
+            listView.itemHeight = 44;
             listView.selectionType = SelectionType.None;
             listView.style.flexGrow = 1.0f;
             listView.style.height = new StyleLength(listView.itemHeight * 4);

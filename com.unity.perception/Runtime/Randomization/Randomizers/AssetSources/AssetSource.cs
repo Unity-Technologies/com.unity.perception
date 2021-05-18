@@ -10,7 +10,7 @@ namespace UnityEngine.Perception.Randomization
     [Serializable]
     public sealed class AssetSource<T> where T : Object
     {
-        [SerializeReference] ArchetypeBase m_ArchetypeBase;
+        [SerializeReference] AssetRoleBase m_AssetRoleBase;
 
         /// <summary>
         /// The location to load assets from
@@ -21,26 +21,30 @@ namespace UnityEngine.Perception.Randomization
         UniformSampler m_Sampler = new UniformSampler();
 
         /// <summary>
-        /// The archetype used to preprocess assets from this source
+        /// The asset role used to preprocess assets from this source
         /// </summary>
-        public Archetype<T> archetype
+        public AssetRole<T> assetRole
         {
-            get => (Archetype<T>)m_ArchetypeBase;
-            set => m_ArchetypeBase = value;
+            get => (AssetRole<T>)m_AssetRoleBase;
+            set => m_AssetRoleBase = value;
         }
 
         /// <summary>
         /// The number of assets available within this asset source
         /// </summary>
-        public int Count => assetSourceLocation.Count;
+        public int count => assetSourceLocation.count;
 
         /// <summary>
-        /// Execute setup steps for this AssetSource
+        /// Execute setup steps for this AssetSource. It is often unnecessary to call this API directly since all other
+        /// relevant APIs in this class will Initialize() this AssetSource if it hasn't been already.
         /// </summary>
         public void Initialize()
         {
-            assetSourceLocation.Initialize(archetype);
-            m_Initialized = true;
+            if (!m_Initialized)
+            {
+                assetSourceLocation.Initialize(assetRole);
+                m_Initialized = true;
+            }
         }
 
         /// <summary>
@@ -60,14 +64,15 @@ namespace UnityEngine.Perception.Randomization
         /// <returns>All assets that can be loaded from this AssetSource</returns>
         public T[] LoadAllRawAssets()
         {
-            var array = new T[Count];
-            for (var i = 0; i < Count; i++)
+            CheckIfInitialized();
+            var array = new T[count];
+            for (var i = 0; i < count; i++)
                 array[i] = LoadRawAsset(i);
             return array;
         }
 
         /// <summary>
-        /// Creates an instance of the asset loaded from the provided index and preprocesses it using the archetype
+        /// Creates an instance of the asset loaded from the provided index and preprocesses it using the asset role
         /// assigned to this asset source
         /// </summary>
         /// <param name="index">The index of the asset to load</param>
@@ -84,8 +89,9 @@ namespace UnityEngine.Perception.Randomization
         /// <returns>Instantiated instances from every loadable asset</returns>
         public T[] CreateProcessedInstances()
         {
-            var array = new T[Count];
-            for (var i = 0; i < Count; i++)
+            CheckIfInitialized();
+            var array = new T[count];
+            for (var i = 0; i < count; i++)
                 array[i] = CreateProcessedInstance(i);
             return array;
         }
@@ -97,10 +103,7 @@ namespace UnityEngine.Perception.Randomization
         public T SampleAsset()
         {
             CheckIfInitialized();
-            if (Count == 0)
-                return null;
-
-            return assetSourceLocation.LoadAsset<T>((int)(m_Sampler.Sample() * Count));
+            return assetSourceLocation.LoadAsset<T>((int)(m_Sampler.Sample() * count));
         }
 
         /// <summary>
@@ -134,8 +137,8 @@ namespace UnityEngine.Perception.Randomization
                 return null;
 
             var instance = Object.Instantiate(asset);
-            if (archetype != null)
-                archetype.Preprocess(instance);
+            if (assetRole != null)
+                assetRole.Preprocess(instance);
             return instance;
         }
     }

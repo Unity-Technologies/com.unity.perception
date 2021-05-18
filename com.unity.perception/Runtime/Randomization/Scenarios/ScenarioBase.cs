@@ -43,6 +43,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         [SerializeReference] List<Randomizer> m_Randomizers = new List<Randomizer>();
 
         /// <summary>
+        /// An external text asset that is loaded when the scenario starts to configure scenario settings
+        /// </summary>
+        public TextAsset configuration;
+
+        /// <summary>
         /// Enumerates over all enabled randomizers
         /// </summary>
         public IEnumerable<Randomizer> activeRandomizers
@@ -125,38 +130,23 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         /// <summary>
-        /// Overwrites this scenario's randomizer settings and scenario constants from a JSON serialized configuration
+        /// Loads a scenario configuration from a file located at the given file path
         /// </summary>
-        /// <param name="json">The JSON string to deserialize</param>
-        public virtual void DeserializeFromJson(string json)
+        /// <param name="filePath">The file path of the scenario configuration file</param>
+        /// <exception cref="FileNotFoundException"></exception>
+        public void LoadConfigurationFromFile(string filePath)
         {
-            ScenarioSerializer.Deserialize(this, json);
-        }
-
-        /// <summary>
-        /// Overwrites this scenario's randomizer settings and scenario constants using a configuration file located at
-        /// the provided file path
-        /// </summary>
-        /// <param name="configFilePath">The file path to the configuration file to deserialize</param>
-        public virtual void DeserializeFromFile(string configFilePath)
-        {
-            if (string.IsNullOrEmpty(configFilePath))
-                throw new ArgumentException($"{nameof(configFilePath)} is null or empty");
-            if (!File.Exists(configFilePath))
-                throw new ArgumentException($"No configuration file found at {configFilePath}");
-
-            var jsonText = File.ReadAllText(configFilePath);
-            DeserializeFromJson(jsonText);
-#if !UNITY_EDITOR
-            Debug.Log($"Deserialized scenario configuration from {Path.GetFullPath(configFilePath)}");
-#endif
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException($"No configuration file found at {filePath}");
+            var jsonText = File.ReadAllText(filePath);
+            configuration = new TextAsset(jsonText);
         }
 
         /// <summary>
         /// Deserialize scenario settings from a file passed through a command line argument
         /// </summary>
         /// <param name="commandLineArg">The command line argument to look for</param>
-        protected virtual void DeserializeFromCommandLine(string commandLineArg="--scenario-config-file")
+        protected void LoadConfigurationFromCommandLine(string commandLineArg="--scenario-config-file")
         {
             var args = Environment.GetCommandLineArgs();
             var filePath = string.Empty;
@@ -175,13 +165,24 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 return;
             }
 
-            try { DeserializeFromFile(filePath); }
-            catch (Exception exception)
-            {
-                Debug.LogException(exception);
-                Debug.LogError("An exception was caught while attempting to parse a " +
-                    $"scenario configuration file at {filePath}. Cleaning up and exiting simulation.");
-            }
+            LoadConfigurationFromFile(filePath);
+        }
+
+        /// <summary>
+        /// Loads and stores a JSON scenario settings configuration file before the scenario starts
+        /// </summary>
+        protected virtual void LoadConfigurationAsset()
+        {
+            LoadConfigurationFromCommandLine();
+        }
+
+        /// <summary>
+        /// Overwrites this scenario's randomizer settings and scenario constants from a JSON serialized configuration
+        /// </summary>
+        public virtual void DeserializeConfiguration()
+        {
+            if (configuration != null)
+                ScenarioSerializer.Deserialize(this, configuration.text);
         }
 
         /// <summary>
@@ -198,17 +199,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// OnAwake is called when this scenario MonoBehaviour is created or instantiated
         /// </summary>
         protected virtual void OnAwake() { }
-
-        /// <summary>
-        /// OnConfigurationImport is called before OnStart in the same frame. This method by default loads a scenario
-        /// settings from a file before the scenario begins.
-        /// </summary>
-        protected virtual void OnConfigurationImport()
-        {
-#if !UNITY_EDITOR
-            DeserializeFromCommandLine();
-#endif
-        }
 
         /// <summary>
         /// OnStart is called when the scenario first begins playing
@@ -301,7 +291,10 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 case State.Initializing:
                     if (isScenarioReadyToStart)
                     {
-                        OnConfigurationImport();
+#if !UNITY_EDITOR
+                        LoadConfigurationAsset();
+#endif
+                        DeserializeConfiguration();
                         state = State.Playing;
                         OnStart();
                         foreach (var randomizer in m_Randomizers)

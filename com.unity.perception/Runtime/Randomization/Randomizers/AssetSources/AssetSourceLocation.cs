@@ -10,14 +10,14 @@ namespace UnityEngine.Perception.Randomization
         /// <summary>
         /// The number of assets available at this location
         /// </summary>
-        public abstract int Count { get; }
+        public abstract int count { get; }
 
         /// <summary>
         /// Execute setup steps before accessing assets at this location
         /// </summary>
-        /// <param name="archetype">The archetype that will be used to preprocess assets from this location</param>
+        /// <param name="assetRole">The asset role that will be used to preprocess assets from this location</param>
         /// <typeparam name="T">The type of assets that will be loaded from this location</typeparam>
-        public abstract void Initialize<T>(Archetype<T> archetype) where T : Object;
+        public abstract void Initialize<T>(AssetRole<T> assetRole) where T : Object;
 
         /// <summary>
         /// Unload all assets loaded from this location

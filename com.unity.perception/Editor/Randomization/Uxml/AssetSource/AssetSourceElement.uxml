@@ -16,10 +16,10 @@
             </VisualElement>
             <VisualElement style="flex-direction: row; align-items: center;">
                 <Label
-                    text="Archetype"
+                    text="Asset Role"
                     class="unity-base-field__label"
-                    tooltip="Archetypes preprocess assets loaded from the selected asset source location"/>
-                <editor:ToolbarMenu name="archetype-dropdown" text="Type" class="sampler__type-menu"/>
+                    tooltip="Asset Roles preprocess assets loaded from the selected asset source location"/>
+                <editor:ToolbarMenu name="asset-role-dropdown" text="Type" class="sampler__type-menu"/>
             </VisualElement>
         </VisualElement>
     </VisualElement>

@@ -148,7 +148,6 @@ namespace UnityEditor.Perception.GroundTruth
                         Debug.Log($"Chose path: {path}");
                         PlayerPrefs.SetString(SimulationState.userBaseDirectoryKey, path);
                         PlayerPrefs.SetString(SimulationState.latestOutputDirectoryKey, path);
-                        perceptionCamera.baseDirectory = path;
                     }
                 }
                 if (GUILayout.Button("Show Folder"))

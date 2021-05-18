@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -139,6 +140,17 @@ namespace UnityEditor.Perception.GroundTruth
                 GUILayout.BeginVertical("TextArea");
                 EditorGUILayout.HelpBox(dir, MessageType.None);
                 GUILayout.BeginHorizontal();
+                if (GUILayout.Button("Choose Base Folder"))
+                {
+                    var path = EditorUtility.OpenFolderPanel("Choose Base Folder", "", "");
+                    if (path.Length != 0)
+                    {
+                        Debug.Log($"Chose path: {path}");
+                        PlayerPrefs.SetString(SimulationState.userBaseDirectoryKey, path);
+                        PlayerPrefs.SetString(SimulationState.latestOutputDirectoryKey, path);
+                        perceptionCamera.baseDirectory = path;
+                    }
+                }
                 if (GUILayout.Button("Show Folder"))
                 {
                     EditorUtility.RevealInFinder(dir);

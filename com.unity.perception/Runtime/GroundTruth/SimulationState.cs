@@ -47,6 +47,7 @@ namespace UnityEngine.Perception.GroundTruth
         float m_LastTimeScale;
         readonly string m_OutputDirectoryName;
         string m_OutputDirectoryPath;
+        public const string userBaseDirectoryKey = "userBaseDirectory";
         public const string latestOutputDirectoryKey = "latestOutputDirectory";
 
         public bool IsRunning { get; private set; }
@@ -70,7 +71,22 @@ namespace UnityEngine.Perception.GroundTruth
         public SimulationState(string outputDirectory)
         {
             m_OutputDirectoryName = outputDirectory;
-            PlayerPrefs.SetString(latestOutputDirectoryKey, Manager.Instance.GetDirectoryFor());
+            var basePath = PlayerPrefs.GetString(userBaseDirectoryKey, string.Empty);
+
+            if (basePath != string.Empty)
+            {
+                if (Directory.Exists(basePath))
+                {
+                    Configuration.localPersistentDataPath = basePath;
+                }
+                else
+                {
+                    Debug.LogWarning($"Passed in directory to store simulation artifacts: {basePath}, does not exist. Using default directory {Configuration.localPersistentDataPath} instead.");
+                    basePath = Configuration.localPersistentDataPath;
+                }
+            }
+
+            PlayerPrefs.SetString(latestOutputDirectoryKey, Manager.Instance.GetDirectoryFor("", basePath));
             IsRunning = true;
         }
 

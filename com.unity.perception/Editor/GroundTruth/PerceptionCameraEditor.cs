@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -18,7 +17,7 @@ namespace UnityEditor.Perception.GroundTruth
         PerceptionCamera perceptionCamera => ((PerceptionCamera)this.target);
 
         string m_PreviousOutputDir;
-        bool showPatchChangedLabel = false;
+        bool m_ShowPatchChangedLabel;
 
         public void OnEnable()
         {
@@ -167,11 +166,11 @@ namespace UnityEditor.Perception.GroundTruth
                 {
                     Debug.Log($"Chose path: {path}");
                     PlayerPrefs.SetString(SimulationState.userBaseDirectoryKey, path);
-                    showPatchChangedLabel = true;
+                    m_ShowPatchChangedLabel = true;
                 }
             }
 
-            if (showPatchChangedLabel)
+            if (m_ShowPatchChangedLabel)
             {
                 if (m_PreviousOutputDir == dir)
                 {
@@ -183,7 +182,7 @@ namespace UnityEditor.Perception.GroundTruth
                 }
                 else
                 {
-                    showPatchChangedLabel = false;
+                    m_ShowPatchChangedLabel = false;
                 }
             }
 

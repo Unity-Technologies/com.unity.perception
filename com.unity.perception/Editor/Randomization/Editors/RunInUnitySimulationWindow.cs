@@ -238,8 +238,6 @@ namespace UnityEditor.Perception.Randomization
                 throw new NotSupportedException("Invalid instance count specified");
             if (m_RunParameters.totalIterations <= 0)
                 throw new NotSupportedException("Invalid total iteration count specified");
-            if (string.IsNullOrEmpty(m_RunParameters.currentOpenScenePath))
-                throw new MissingFieldException("Invalid scene path");
             if (m_RunParameters.currentScenario == null)
                 throw new MissingFieldException(
                     "There is not a Unity Simulation compatible scenario present in the scene");
@@ -258,9 +256,15 @@ namespace UnityEditor.Perception.Randomization
             var projectBuildDirectory = $"{m_BuildDirectory}/{m_RunParameters.runName}";
             if (!Directory.Exists(projectBuildDirectory))
                 Directory.CreateDirectory(projectBuildDirectory);
+            List<string> scenes = new List<string>();
+            foreach(var scene in EditorBuildSettings.scenes)
+            {
+                if(scene.enabled)
+                    scenes.Add(scene.path);
+            }
             var buildPlayerOptions = new BuildPlayerOptions
             {
-                scenes = new[] { m_RunParameters.currentOpenScenePath },
+                scenes = scenes.ToArray(),
                 locationPathName = Path.Combine(projectBuildDirectory, $"{m_RunParameters.runName}.x86_64"),
 #if PLATFORM_CLOUD_RENDERING
                 target = BuildTarget.CloudRendering,

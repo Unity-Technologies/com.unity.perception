@@ -17,6 +17,9 @@ namespace UnityEditor.Perception.GroundTruth
 
         PerceptionCamera perceptionCamera => ((PerceptionCamera)this.target);
 
+        string m_PreviousOutputDir;
+        bool showPatchChangedLabel = false;
+
         public void OnEnable()
         {
             m_LabelersList = new ReorderableList(this.serializedObject, labelersProperty, true, true, true, true);
@@ -134,22 +137,15 @@ namespace UnityEditor.Perception.GroundTruth
             }
 
             var dir = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey, string.Empty);
+            m_PreviousOutputDir = dir;
             if (dir != string.Empty)
             {
-                EditorGUILayout.LabelField("Latest Output Folder");
+                EditorGUILayout.LabelField("Latest Dataset");
                 GUILayout.BeginVertical("TextArea");
                 EditorGUILayout.HelpBox(dir, MessageType.None);
+
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Choose Base Folder"))
-                {
-                    var path = EditorUtility.OpenFolderPanel("Choose Base Folder", "", "");
-                    if (path.Length != 0)
-                    {
-                        Debug.Log($"Chose path: {path}");
-                        PlayerPrefs.SetString(SimulationState.userBaseDirectoryKey, path);
-                        PlayerPrefs.SetString(SimulationState.latestOutputDirectoryKey, path);
-                    }
-                }
+
                 if (GUILayout.Button("Show Folder"))
                 {
                     EditorUtility.RevealInFinder(dir);
@@ -161,6 +157,36 @@ namespace UnityEditor.Perception.GroundTruth
                 GUILayout.EndHorizontal();
                 GUILayout.EndVertical();
             }
+
+            GUILayout.Space(10);
+
+            if (GUILayout.Button("Choose Output Folder"))
+            {
+                var path = EditorUtility.OpenFolderPanel("Choose Output Folder", "", "");
+                if (path.Length != 0)
+                {
+                    Debug.Log($"Chose path: {path}");
+                    PlayerPrefs.SetString(SimulationState.userBaseDirectoryKey, path);
+                    showPatchChangedLabel = true;
+                }
+            }
+
+            if (showPatchChangedLabel)
+            {
+                if (m_PreviousOutputDir == dir)
+                {
+                    var s = new GUIStyle(EditorStyles.textField);
+                    s.normal.textColor = Color.green;
+                    s.wordWrap = true;
+                    EditorGUILayout.LabelField("Output folder changed to: ");
+                    EditorGUILayout.LabelField($"{PlayerPrefs.GetString(SimulationState.userBaseDirectoryKey)}", s);
+                }
+                else
+                {
+                    showPatchChangedLabel = false;
+                }
+            }
+
 
             if (EditorSettings.asyncShaderCompilation)
             {

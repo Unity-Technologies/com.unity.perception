@@ -34,7 +34,7 @@ public class PyrceptionInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
         command = $"cd \"{path}\\DataInsightsEnv\\Scripts\\\" && activate && cd \"{pathToData}\\..\" && \"{path}\\DataInsightsEnv\\Scripts\\pyrception-utils.exe\" preview --data=\".\"";
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        command = $"cd \"{path}/DataInsightsEnv/bin\"; source activate; cd \"{pathToData}/..\" ; \"{path}/DataInsightsEnv/bin/pyrception-utils\" preview --data=\".\"";
+        command = $"cd \"{path}/DataInsightsEnv/bin\";source activate;cd \"{pathToData}/..\";\"{path}/DataInsightsEnv/bin/pyrception-utils\" preview --data=\".\"";
 #endif
         int ExitCode = 0;
         ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
@@ -65,10 +65,16 @@ public class PyrceptionInstaller : EditorWindow
 
         //==============================SETUP PATHS======================================
         string path = Application.dataPath.Replace("/Assets", "");
+        string pyrceptionPath = Path.GetFullPath("Packages/com.unity.perception/Editor/Pyrception/pyrception-utils").Replace("\\","/");
+
 #if UNITY_EDITOR_WIN
         path = path.Replace("/", "\\");
+        pyrceptionPath = pyrceptionPath.Replace("/", "\\");
+#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+        path = path.Replace(" ", "\\ ");
+        pyrceptionPath = pyrceptionPath.Replace(" ", "\\ ");
 #endif
-        string pyrceptionPath = Path.GetFullPath("Packages/com.unity.perception/Editor/Pyrception/pyrception-utils").Replace("\\","/");
+
 
         //==============================INSTALL VIRTUALENV======================================
         EditorUtility.DisplayProgressBar("Setting up Pyrception", "Installing virtualenv...", 0 / steps);

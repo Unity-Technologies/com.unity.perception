@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import streamlit as st
+import PIL
 from PIL import ImageFont
 from PIL.Image import Image
 from PIL.ImageDraw import ImageDraw
@@ -111,11 +112,36 @@ def draw_image_with_semantic_segmentation(
     :type str:
     """
     # image_draw = ImageDraw(segmentation)
-    image = image.copy()
-    (seg_r, seg_g, seg_b) = segmentation.getpixel((0, 0))
+    rgba = np.array(segmentation.copy().convert("RGBA"))
+    r,g,b,a = rgba.T
+    black_areas = (r == 0) & (b == 0) & (g == 0) & (a == 255)
+    other_areas = (r != 0) | (b != 0) | (g != 0)
+    rgba[...,0:4][black_areas.T] = (0,0,0,0)
+    rgba[...,-1][other_areas.T] = int(0.6 * 255)
 
-    st.sidebar.markdown('# Segmentation color intensity')
-    color_intensity = st.sidebar.slider('color intensity (%)', 0, 100, 65);
+    foreground = PIL.Image.fromarray(rgba)
+    image = image.copy()
+    image.paste(foreground,(0,0),foreground)
+    
+    st.subheader(header)
+    st.markdown(description)
+    st.image(image, use_column_width=True)
+
+def draw_image_stacked(
+    image: Image,
+    classes: Dict,
+    labels: List,
+    boxes: List[List],
+    colors: Dict,
+    header: str,
+    description: str,
+    height: int,
+    width: int,
+    segmentation: Image,
+
+):
+    image = image.copy()
+    color_intensity = st.sidebar.slider('color intensity 2 (%)', 0, 100, 65);
     alpha = color_intensity / 100;
 
     for x in range(0, width - 1):
@@ -129,9 +155,23 @@ def draw_image_with_semantic_segmentation(
                                 int((1 - alpha) * g + alpha * seg_g),
                                 int((1 - alpha) * b + alpha * seg_b)))
 
+    image_draw = ImageDraw(image)
+    # draw bounding boxes
+    path_to_font = pathlib.Path(__file__).parent.absolute()
+    font = ImageFont.truetype(f"{path_to_font}/NairiNormal-m509.ttf", 15)
+
+    for label, box in zip(labels, boxes):
+        label = label - 1
+        class_name = classes[label]
+        image_draw.rectangle(box, outline=colors[class_name], width=2)
+        image_draw.text(
+            (box[0], box[1]), class_name, font=font, fill=colors[class_name]
+        )
+
     st.subheader(header)
     st.markdown(description)
     st.image(image, use_column_width=True)
+
 
 def display_count(
     header: str,
@@ -182,9 +222,15 @@ def preview_dataset(base_dataset_dir: str):
         image, segmentation, target = dataset[image_index]
         labels = target["labels"]
         boxes = target["boxes"]
-        draw_image_with_boxes(
-            image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
-        )
+
+        #st.image(image, use_column_width=True)
+
+        #draw_image_stacked(
+        #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", "", dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation
+        #)
+        #draw_image_with_boxes(
+        #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
+        #)
         draw_image_with_semantic_segmentation(
             image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
         )

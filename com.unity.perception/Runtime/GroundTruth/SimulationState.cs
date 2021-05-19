@@ -49,6 +49,7 @@ namespace UnityEngine.Perception.GroundTruth
         string m_OutputDirectoryPath;
         public const string userBaseDirectoryKey = "userBaseDirectory";
         public const string latestOutputDirectoryKey = "latestOutputDirectory";
+        public const string defaultOutputBaseDirectory = "defaultOutputBaseDirectory";
 
         public bool IsRunning { get; private set; }
 
@@ -87,6 +88,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             PlayerPrefs.SetString(latestOutputDirectoryKey, Manager.Instance.GetDirectoryFor("", basePath));
+            PlayerPrefs.SetString(defaultOutputBaseDirectory, Configuration.Instance.GetStorageBasePath());
             IsRunning = true;
         }
 

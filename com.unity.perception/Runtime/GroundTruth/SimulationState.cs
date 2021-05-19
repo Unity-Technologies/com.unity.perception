@@ -71,6 +71,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         public SimulationState(string outputDirectory)
         {
+            PlayerPrefs.SetString(defaultOutputBaseDirectory, Configuration.Instance.GetStorageBasePath());
             m_OutputDirectoryName = outputDirectory;
             var basePath = PlayerPrefs.GetString(userBaseDirectoryKey, string.Empty);
 
@@ -88,7 +89,6 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             PlayerPrefs.SetString(latestOutputDirectoryKey, Manager.Instance.GetDirectoryFor("", basePath));
-            PlayerPrefs.SetString(defaultOutputBaseDirectory, Configuration.Instance.GetStorageBasePath());
             IsRunning = true;
         }
 

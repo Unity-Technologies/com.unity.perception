@@ -36,6 +36,7 @@ namespace UnityEditor.Perception.Randomization
         Label m_PrevExecutionIdLabel;
         Label m_PrevRandomSeedLabel;
         RunParameters m_RunParameters;
+        const string  k_SupportedGPUString = "NVIDIA";
 
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
@@ -189,7 +190,7 @@ namespace UnityEditor.Perception.Randomization
         async void RunInUnitySimulation()
         {
             #if PLATFORM_CLOUD_RENDERING
-            if (!m_SysParamDefinitions[m_SysParamIndex].description.Contains(m_SupportedGPUString))
+            if (!m_SysParamDefinitions[m_SysParamIndex].description.Contains(k_SupportedGPUString))
             {
                 EditorUtility.DisplayDialog("Unsupported Sysparam",
                     "The current selection of the Sysparam " + m_SysParamDefinitions[m_SysParamIndex].description +

@@ -32,7 +32,14 @@ namespace UnityEngine.Perception.Randomization
         /// <summary>
         /// The number of assets available within this asset source
         /// </summary>
-        public int count => assetSourceLocation.count;
+        public int count
+        {
+            get
+            {
+                CheckIfInitialized();
+                return assetSourceLocation.count;
+            }
+        }
 
         /// <summary>
         /// Execute setup steps for this AssetSource. It is often unnecessary to call this API directly since all other

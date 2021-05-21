@@ -82,10 +82,10 @@ def draw_image_with_boxes(
         image_draw.text(
             (box[0], box[1]), class_name, font=font, fill=colors[class_name]
         )
-    st.subheader(header)
-    st.markdown(description)
-    st.image(image, use_column_width=True)
-
+    #st.subheader(header)
+    #st.markdown(description)
+    #st.image(image, use_column_width=True)
+    return image
 
 def draw_image_with_semantic_segmentation(
     image: Image,
@@ -231,9 +231,10 @@ def preview_dataset(base_dataset_dir: str):
         image = draw_image_with_semantic_segmentation(
             image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
         )
-        draw_image_with_boxes(
+        image = draw_image_with_boxes(
             image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
         )
+        st.image(image, use_column_width=True)
 
 
 def preview_app(args):

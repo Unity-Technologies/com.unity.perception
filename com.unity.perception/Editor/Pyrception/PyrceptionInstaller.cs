@@ -192,7 +192,7 @@ public class PyrceptionInstaller : EditorWindow
         ExitCode = cmd.ExitCode;
         if (ExitCode != 0)
         {
-            UnityEngine.Debug.LogError($"Error - {ExitCode} - Failed to execute: {command} - {/*cmd.StandardError.ReadToEnd()*/output}");
+            UnityEngine.Debug.LogError($"Error - {ExitCode} - Failed to execute: {command} - {cmd.StandardError.ReadToEnd()}");
         }
 
         cmd.Close();

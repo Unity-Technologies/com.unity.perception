@@ -21,9 +21,11 @@ public class PyrceptionInstaller : EditorWindow
         }*/
 
         string path = Application.dataPath.Replace("/Assets", "");
+        string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts");
         string pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
 #if UNITY_EDITOR_WIN
         path = path.Replace("/", "\\");
+        packagesPath = packagesPath.Replace("/", "\\");
         pathToData = pathToData.Replace("/", "\\");
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         path = path.Replace(" ", "\\ ");
@@ -32,9 +34,11 @@ public class PyrceptionInstaller : EditorWindow
         string command = "";
 
 #if UNITY_EDITOR_WIN
-        command = $"cd \"{path}\\DataInsightsEnv\\Scripts\\\" && activate && cd \"{pathToData}\\..\" && \"{path}\\DataInsightsEnv\\Scripts\\pyrception-utils.exe\" preview --data=\".\"";
+        //command = $"cd \"{path}\\DataInsightsEnv\\Scripts\\\" && activate && cd \"{pathToData}\\..\" && \"{path}\\DataInsightsEnv\\Scripts\\pyrception-utils.exe\" preview --data=\".\"";
+        command = $"cd \"{pathToData}\\..\" && \"{packagesPath}\\pyrception-utils.exe\" preview --data=\".\"";
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        command = $"cd \"{path}/DataInsightsEnv/bin\";source activate;cd \"{pathToData}/..\";\"{path}/DataInsightsEnv/bin/pyrception-utils\" preview --data=\".\"";
+        //command = $"cd \"{path}/DataInsightsEnv/bin\";source activate;cd \"{pathToData}/..\";\"{path}/DataInsightsEnv/bin/pyrception-utils\" preview --data=\".\"";
+        command = $"cd \"{pathToData}\\..\" && \"{packagesPath}\\pyrception-utils\" preview --data=\".\"";
 #endif
         int ExitCode = 0;
         ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
@@ -56,34 +60,41 @@ public class PyrceptionInstaller : EditorWindow
 
         //==============================CHECK PIP3 IS INSTALLED======================================
         int ExitCode = 0;
-        ExecuteCMD("pip3", ref ExitCode);
+        /*ExecuteCMD("pip3", ref ExitCode);
         if(ExitCode != 0)
         {
-            UnityEngine.Debug.LogError("Python >= 3 and pip3 must be installed.");
+            UnityEngine.Debug.LogError("Python >= 3 and pip3 must be installed and available on PATH.");
             return;
-        }
+        }*/
 
         //==============================SETUP PATHS======================================
         string path = Application.dataPath.Replace("/Assets", "");
+#if UNITY_EDITOR_WIN
+        string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts");
+#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+        string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
+#endif
         string pyrceptionPath = Path.GetFullPath("Packages/com.unity.perception/Editor/Pyrception/pyrception-utils").Replace("\\","/");
 
 #if UNITY_EDITOR_WIN
         path = path.Replace("/", "\\");
         pyrceptionPath = pyrceptionPath.Replace("/", "\\");
+        packagesPath = packagesPath.Replace("/", "\\");
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         path = path.Replace(" ", "\\ ");
         pyrceptionPath = pyrceptionPath.Replace(" ", "\\ ");
+        packagesPath = packagesPath.Replace(" ", "\\ ");
 #endif
 
 
         //==============================INSTALL VIRTUALENV======================================
-        EditorUtility.DisplayProgressBar("Setting up Pyrception", "Installing virtualenv...", 0 / steps);
+        //EditorUtility.DisplayProgressBar("Setting up Pyrception", "Installing virtualenv...", 0 / steps);
         
         ExitCode = 0;
 #if UNITY_EDITOR_WIN
-        ExecuteCMD($"pip3 install virtualenv", ref ExitCode);
+        //ExecuteCMD($"\"{packagesPath}\\pip3.bat\" install virtualenv", ref ExitCode);
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        ExecuteCMD($"pip3 install --target=\"{path}/virtualenvDI\" virtualenv", ref ExitCode); //(maybe add --no-user)
+        //ExecuteCMD($"pip3 install --target=\"{path}/virtualenvDI\" virtualenv", ref ExitCode); //(maybe add --no-user)
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
@@ -91,12 +102,12 @@ public class PyrceptionInstaller : EditorWindow
         }
 
         //==============================CREATE VIRTUALENV NAMED DataInsightsEnv======================================
-        EditorUtility.DisplayProgressBar("Setting up Pyrception", "Setting up virtualenv instance...", 1f / steps);
+        //EditorUtility.DisplayProgressBar("Setting up Pyrception", "Setting up virtualenv instance...", 1f / steps);
 #if UNITY_EDITOR_WIN
-        ExecuteCMD($"virtualenv -p python3 \"{path}\\DataInsightsEnv\"", ref ExitCode);
+        //ExecuteCMD($"\"{packagesPath}\\virtualenv.exe\" -p python3 \"{path}\\DataInsightsEnv\"", ref ExitCode);
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         string virtualenvPath = path+"/virtualenvDI/bin/";
-        ExecuteCMD("export PYTHONPATH=\"${PYTHONPATH}:"+$"{path}/virtualenvDI\";"+$"\"{virtualenvPath}/virtualenv\" -p python3 \"{path}/DataInsightsEnv\"", ref ExitCode);
+        //ExecuteCMD("export PYTHONPATH=\"${PYTHONPATH}:"+$"{path}/virtualenvDI\";"+$"\"{virtualenvPath}/virtualenv\" -p python3 \"{path}/DataInsightsEnv\"", ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
@@ -104,12 +115,14 @@ public class PyrceptionInstaller : EditorWindow
         }
 
         //==============================COPY ALL PYRCEPTION FILES FOR INSTALLATION======================================
-        EditorUtility.DisplayProgressBar("Setting up Pyrception", "Getting pyrception files...", 2f / steps);
+        EditorUtility.DisplayProgressBar("Setting up Pyrception", "Getting pyrception files...", 1.5f / steps);
 
 #if UNITY_EDITOR_WIN
-        ExecuteCMD($"XCOPY /E/I/Y \"{pyrceptionPath}\" \"{path}\\DataInsightsEnv\\pyrception-util\"", ref ExitCode);
+        //ExecuteCMD($"XCOPY /E/I/Y \"{pyrceptionPath}\" \"{path}\\DataInsightsEnv\\pyrception-util\"", ref ExitCode);
+        ExecuteCMD($"XCOPY /E/I/Y \"{pyrceptionPath}\" \"{packagesPath}\\..\\pyrception-util\"", ref ExitCode);
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        ExecuteCMD($"\\cp -r \"{pyrceptionPath}\" \"{path}/DataInsightsEnv/pyrception-util\"", ref ExitCode);
+        //ExecuteCMD($"\\cp -r \"{pyrceptionPath}\" \"{path}/DataInsightsEnv/pyrception-util\"", ref ExitCode);
+        ExecuteCMD($"\\cp -r \"{pyrceptionPath}\" \"{packagesPath}\\..\\pyrception-util\"", ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
@@ -120,9 +133,12 @@ public class PyrceptionInstaller : EditorWindow
 
         //==============================INSTALL PYRCEPTION IN THE VIRTUALENV======================================
 #if UNITY_EDITOR_WIN
-        ExecuteCMD($"\"{path}\\DataInsightsEnv\\Scripts\\activate\" && cd \"{path}\\DataInsightsEnv\\pyrception-util\" && pip3 --no-cache-dir install -e . && deactivate", ref ExitCode);
+        //ExecuteCMD($"\"{path}\\DataInsightsEnv\\Scripts\\activate\" && cd \"{path}\\DataInsightsEnv\\pyrception-util\" && \"{packagesPath}\"\\pip3 --no-cache-dir install -e . && deactivate", ref ExitCode);
+        ExecuteCMD($"cd \"{packagesPath}\\..\\pyrception-util\" && \"{packagesPath}\"\\pip3.bat install --no-warn-script-location --no-cache-dir -e .", ref ExitCode);
+      
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        ExecuteCMD($"source \"{path}/DataInsightsEnv/bin/activate\"; cd \"{path}/DataInsightsEnv/pyrception-util\"; pip3 --no-cache-dir install -e .; deactivate", ref ExitCode);
+        //ExecuteCMD($"source \"{path}/DataInsightsEnv/bin/activate\"; cd \"{path}/DataInsightsEnv/pyrception-util\"; pip3 --no-cache-dir install -e .; deactivate", ref ExitCode);
+        ExecuteCMD($"cd \"{packagesPath}\\..\\pyrception-util\"; \"{packagesPath}\"\\pip3 --no-warn-script-location --no-cache-dir install -e ., ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
@@ -157,7 +173,7 @@ public class PyrceptionInstaller : EditorWindow
         info.CreateNoWindow = !displayWindow;
         info.UseShellExecute = !waitForExit;
         info.RedirectStandardOutput = redirectOutput && waitForExit;
-        info.RedirectStandardError = true && waitForExit;
+        info.RedirectStandardError = waitForExit;
 
         Process cmd = Process.Start(info);
         
@@ -176,7 +192,7 @@ public class PyrceptionInstaller : EditorWindow
         ExitCode = cmd.ExitCode;
         if (ExitCode != 0)
         {
-            UnityEngine.Debug.LogError($"Error - {ExitCode} - Failed to execute: {command} - {cmd.StandardError.ReadToEnd()}");
+            UnityEngine.Debug.LogError($"Error - {ExitCode} - Failed to execute: {command} - {/*cmd.StandardError.ReadToEnd()*/output}");
         }
 
         cmd.Close();

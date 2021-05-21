@@ -122,10 +122,7 @@ def draw_image_with_semantic_segmentation(
     foreground = PIL.Image.fromarray(rgba)
     image = image.copy()
     image.paste(foreground,(0,0),foreground)
-    
-    st.subheader(header)
-    st.markdown(description)
-    st.image(image, use_column_width=True)
+    return image
 
 def draw_image_stacked(
     image: Image,
@@ -231,8 +228,11 @@ def preview_dataset(base_dataset_dir: str):
         #draw_image_with_boxes(
         #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
         #)
-        draw_image_with_semantic_segmentation(
+        image = draw_image_with_semantic_segmentation(
             image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
+        )
+        draw_image_with_boxes(
+            image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
         )
 
 

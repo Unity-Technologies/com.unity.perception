@@ -59,7 +59,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public double min;
         public double max;
         public double mean;
-        public double standardDeviation;
+        public double stddev;
     }
 
     class ConstantSampler : ISamplerOption

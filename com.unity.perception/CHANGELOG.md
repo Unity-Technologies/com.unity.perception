@@ -23,6 +23,8 @@ The PoissonDiskSampling utility now samples a larger region of points to then cr
 
 Upgraded capture package dependency to 0.0.10-preview.22 to fix an issue with URP where post processing effects were not included when capturing images.
 
+Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scneario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.
+
 ### Deprecated
 
 ### Removed

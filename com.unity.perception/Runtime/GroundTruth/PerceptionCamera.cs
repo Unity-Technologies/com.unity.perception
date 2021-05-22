@@ -462,7 +462,7 @@ namespace UnityEngine.Perception.GroundTruth
             };
 
 #if SIMULATION_CAPTURE_0_0_10_PREVIEW_16_OR_NEWER
-            CaptureCamera.Capture(cam, colorFunctor, forceFlip: ForceFlip.None);
+            CaptureCamera.Capture(cam, colorFunctor, forceFlip: ForceFlip.All);
 #else
             CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
 #endif

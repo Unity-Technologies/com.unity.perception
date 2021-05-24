@@ -14,7 +14,7 @@ namespace UnityEngine.Perception.Randomization
         /// <summary>
         /// The list of local assets available from this source
         /// </summary>
-        [SerializeField] public List<Object> assets;
+        public List<Object> assets = new List<Object>();
 
         /// <inheritdoc/>
         public override int count => assets.Count;

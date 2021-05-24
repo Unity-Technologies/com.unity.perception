@@ -73,7 +73,6 @@ namespace Editor.Randomization.VisualElements.AssetSource
                 {
                     var optionProperty = m_Property.GetArrayElementAtIndex(optionsIndex + i);
                     optionProperty.objectReferenceValue = assets[i];
-                    m_Property.GetArrayElementAtIndex(i).floatValue = 0;
                 }
 
                 m_Property.serializedObject.ApplyModifiedProperties();

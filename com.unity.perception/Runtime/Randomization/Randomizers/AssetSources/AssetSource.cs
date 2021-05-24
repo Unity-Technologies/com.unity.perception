@@ -110,7 +110,7 @@ namespace UnityEngine.Perception.Randomization
         public T SampleAsset()
         {
             CheckIfInitialized();
-            return assetSourceLocation.LoadAsset<T>((int)(m_Sampler.Sample() * count));
+            return count == 0 ? null : assetSourceLocation.LoadAsset<T>((int)(m_Sampler.Sample() * count));
         }
 
         /// <summary>

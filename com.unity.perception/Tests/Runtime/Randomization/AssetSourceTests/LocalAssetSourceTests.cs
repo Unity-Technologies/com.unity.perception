@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization;
+using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
 
 namespace RandomizationTests.AssetSourceTests
 {
@@ -16,7 +17,7 @@ namespace RandomizationTests.AssetSourceTests
 
             public override void Preprocess(GameObject asset)
             {
-                throw new System.NotImplementedException();
+                asset.AddComponent<RotationRandomizerTag>();
             }
         }
 
@@ -24,13 +25,7 @@ namespace RandomizationTests.AssetSourceTests
         {
             public AssetSource<GameObject> gameObjectSource = new AssetSource<GameObject>
             {
-                assetRole = null,
-                assetSourceLocation = new LocalAssetSourceLocation()
-            };
-
-            public AssetSource<Material> materialSource = new AssetSource<Material>
-            {
-                assetRole = null,
+                assetRole = new TestAssetRole(),
                 assetSourceLocation = new LocalAssetSourceLocation()
             };
         }
@@ -46,6 +41,22 @@ namespace RandomizationTests.AssetSourceTests
         public void TearDown()
         {
             Object.DestroyImmediate(m_TestObject);
+        }
+
+        [Test]
+        public void GetZeroCountWithoutThrowingException()
+        {
+            Assert.DoesNotThrow(() =>
+            {
+                var count = m_Behaviour.gameObjectSource.count;
+            });
+        }
+
+        [Test]
+        public void SampleFromEmptySourceReturnsNull()
+        {
+            Assert.IsNull(m_Behaviour.gameObjectSource.SampleAsset());
+            Assert.IsNull(m_Behaviour.gameObjectSource.SampleInstance());
         }
     }
 }

@@ -39,6 +39,12 @@ namespace UnityEditor.Perception.Randomization
         Label m_PrevRandomSeedLabel;
         RunParameters m_RunParameters;
 
+        EnumField m_BuildTypeMenu;
+        VisualElement m_BuildSelectControls;
+        TextField m_BuildPathField;
+        TextField m_SelectedBuildPathTextField;
+        TextField m_BuildIdField;
+
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
         {
@@ -86,6 +92,13 @@ namespace UnityEditor.Perception.Randomization
             {
                 CreateRunInUnitySimulationUI();
             }
+        }
+
+        enum BuildIdKind
+        {
+            BuildPlayer,
+            ExistingBuildID,
+            ExistingBuildZip
         }
 
         void CreateRunInUnitySimulationUI()
@@ -148,7 +161,49 @@ namespace UnityEditor.Perception.Randomization
             copyPrevRandomSeedButton.clicked += () =>
                 EditorGUIUtility.systemCopyBuffer = PlayerPrefs.GetString("SimWindow/prevRandomSeed");
 
+
+            m_BuildTypeMenu = root.Q<EnumField>("build-type-menu");
+            m_BuildTypeMenu.Init(BuildIdKind.BuildPlayer);
+            m_BuildTypeMenu.RegisterValueChangedCallback(evt => { UpdateBuildIdElements((BuildIdKind) evt.newValue); });
+
+            m_BuildSelectControls = root.Q<VisualElement>("build-select-controls");
+
+            m_SelectedBuildPathTextField = root.Q<TextField>("selected-build-path");
+            m_SelectedBuildPathTextField.isReadOnly = true;
+
+            m_BuildIdField = root.Q<TextField>("build-id");
+
+            UpdateBuildIdElements((BuildIdKind) m_BuildTypeMenu.value);
+
+            var selectBuildButton = root.Q<Button>("select-build-file-button");
+            selectBuildButton.clicked += () =>
+            {
+                var path = EditorUtility.OpenFilePanel("Select build ZIP file", "", "zip");
+                if (path.Length != 0)
+                {
+                    m_SelectedBuildPathTextField.value = path;
+                }
+            };
             SetFieldsFromPlayerPreferences();
+        }
+
+        private void UpdateBuildIdElements(BuildIdKind buildIdKind)
+        {
+            switch (buildIdKind)
+            {
+                case BuildIdKind.ExistingBuildID:
+                    m_BuildSelectControls.SetEnabled(false);
+                    m_BuildIdField.SetEnabled(true);
+                    break;
+                case BuildIdKind.ExistingBuildZip:
+                    m_BuildSelectControls.SetEnabled(true);
+                    m_BuildIdField.SetEnabled(false);
+                    break;
+                case BuildIdKind.BuildPlayer:
+                    m_BuildSelectControls.SetEnabled(false);
+                    m_BuildIdField.SetEnabled(false);
+                    break;
+            }
         }
 
         void SetFieldsFromPlayerPreferences()
@@ -218,16 +273,66 @@ namespace UnityEditor.Perception.Randomization
                 null);
             try
             {
+                m_RunButton.SetEnabled(false);
+
+                // Upload build
+                var cancellationTokenSource = new CancellationTokenSource();
+                var token = cancellationTokenSource.Token;
+
                 ValidateSettings();
-                CreateLinuxBuildAndZip();
-                await StartUnitySimulationRun(runGuid);
+                string buildId = null;
+                var buildIdKind = (BuildIdKind)m_BuildTypeMenu.value;
+                switch (buildIdKind)
+                {
+                    case BuildIdKind.BuildPlayer:
+                        CreateLinuxBuildAndZip();
+                        buildId = await UploadBuild(cancellationTokenSource, token);
+                        break;
+                    case BuildIdKind.ExistingBuildZip:
+                        m_BuildZipPath = m_BuildPathField.value;
+                        buildId = await UploadBuild(cancellationTokenSource, token);
+                        break;
+                    case BuildIdKind.ExistingBuildID:
+                        buildId = m_BuildIdField.value;
+                        break;
+                }
+                if (buildId == null)
+                    return;
+
+                await StartUnitySimulationRun(runGuid, buildId);
             }
             catch (Exception e)
             {
-                EditorUtility.ClearProgressBar();
                 PerceptionEditorAnalytics.ReportRunInUnitySimulationFailed(runGuid, e.Message);
                 throw;
             }
+            finally
+            {
+                m_RunButton.SetEnabled(true);
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        private async Task<string> UploadBuild(CancellationTokenSource cancellationTokenSource, CancellationToken token)
+        {
+            var buildId = await API.UploadBuildAsync(
+                m_RunParameters.runName,
+                m_BuildZipPath,
+                null, null,
+                cancellationTokenSource,
+                progress =>
+                {
+                    EditorUtility.DisplayProgressBar(
+                        "Unity Simulation Run", "Uploading build...", progress * 0.90f);
+                });
+            if (token.IsCancellationRequested)
+            {
+                Debug.Log("The build upload process has been cancelled. Aborting Unity Simulation launch.");
+                EditorUtility.ClearProgressBar();
+                return null;
+            }
+
+            return buildId;
         }
 
         void ValidateSettings()
@@ -249,6 +354,18 @@ namespace UnityEditor.Perception.Randomization
                 Path.GetExtension(m_RunParameters.scenarioConfigAssetPath) != ".json")
                 throw new NotSupportedException(
                     "Scenario configuration must be a JSON text asset");
+
+            if (((BuildIdKind)m_BuildTypeMenu.value) == BuildIdKind.ExistingBuildZip &&
+                  !File.Exists(m_SelectedBuildPathTextField.value))
+            {
+                throw new NotSupportedException(
+                    "Selected build path does not exist");
+            }
+            if (((BuildIdKind)m_BuildTypeMenu.value) == BuildIdKind.ExistingBuildID &&
+                String.IsNullOrEmpty(m_BuildIdField.value))
+            {
+                throw new NotSupportedException("Empty Build ID");
+            }
         }
 
         void CreateLinuxBuildAndZip()
@@ -306,30 +423,8 @@ namespace UnityEditor.Perception.Randomization
             return appParamIds;
         }
 
-        async Task StartUnitySimulationRun(Guid runGuid)
+        async Task StartUnitySimulationRun(Guid runGuid, string buildId)
         {
-            m_RunButton.SetEnabled(false);
-
-            // Upload build
-            var cancellationTokenSource = new CancellationTokenSource();
-            var token = cancellationTokenSource.Token;
-            var buildId = await API.UploadBuildAsync(
-                m_RunParameters.runName,
-                m_BuildZipPath,
-                null, null,
-                cancellationTokenSource,
-                progress =>
-                {
-                    EditorUtility.DisplayProgressBar(
-                        "Unity Simulation Run", "Uploading build...", progress * 0.90f);
-                });
-            if (token.IsCancellationRequested)
-            {
-                Debug.Log("The build upload process has been cancelled. Aborting Unity Simulation launch.");
-                EditorUtility.ClearProgressBar();
-                return;
-            }
-
             // Generate and upload app-params
             EditorUtility.DisplayProgressBar("Unity Simulation Run", "Uploading app-params...", 0.90f);
             var appParams = UploadAppParam();
@@ -350,8 +445,6 @@ namespace UnityEditor.Perception.Randomization
             run.Execute();
 
             // Cleanup
-            m_RunButton.SetEnabled(true);
-            EditorUtility.ClearProgressBar();
             PerceptionEditorAnalytics.ReportRunInUnitySimulationSucceeded(runGuid, run.executionId);
 
             // Set new Player Preferences

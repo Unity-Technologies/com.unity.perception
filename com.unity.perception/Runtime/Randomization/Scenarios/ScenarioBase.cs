@@ -262,6 +262,10 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         void Awake()
         {
             activeScenario = this;
+#if !UNITY_EDITOR
+            LoadConfigurationAsset();
+#endif
+            DeserializeConfiguration();
             OnAwake();
             foreach (var randomizer in m_Randomizers)
                 randomizer.Awake();
@@ -291,10 +295,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 case State.Initializing:
                     if (isScenarioReadyToStart)
                     {
-#if !UNITY_EDITOR
-                        LoadConfigurationAsset();
-#endif
-                        DeserializeConfiguration();
                         state = State.Playing;
                         OnStart();
                         foreach (var randomizer in m_Randomizers)

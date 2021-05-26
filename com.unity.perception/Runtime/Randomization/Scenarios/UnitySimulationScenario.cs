@@ -38,7 +38,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 LoadConfigurationFromFile(filePath);
             }
             else
+            {
                 base.LoadConfigurationAsset();
+            }
         }
 
         /// <inheritdoc/>

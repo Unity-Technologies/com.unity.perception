@@ -175,9 +175,17 @@ namespace UnityEngine.Perception.Randomization.Parameters
         public T Sample()
         {
             var randomValue = m_Sampler.Sample();
-            return uniform
-                ? m_Categories[(int)(randomValue * m_Categories.Count)]
-                : m_Categories[BinarySearch(randomValue)];
+            if (uniform)
+            {
+                var index = (int)(randomValue * m_Categories.Count);
+                if (index == m_Categories.Count)
+                {
+                    index--;
+                }
+
+                return m_Categories[index];
+            }
+            return m_Categories[BinarySearch(randomValue)];
         }
 
         /// <summary>

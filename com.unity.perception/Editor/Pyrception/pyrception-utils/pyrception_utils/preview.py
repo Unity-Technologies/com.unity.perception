@@ -11,6 +11,25 @@ from PIL.Image import Image
 from PIL.ImageDraw import ImageDraw
 from pyrception_utils import PyrceptionDataset
 
+st.set_page_config(layout="wide")
+
+#--------------------------------Custom component-----------------------------------------------------------------------
+
+import streamlit.components.v1 as components
+
+root_dir = os.path.dirname(os.path.abspath(__file__))
+build_dir = os.path.join(root_dir, "slider/build")
+
+_discrete_slider = components.declare_component(
+    "discrete_slider",
+    path=build_dir
+)
+
+
+def discrete_slider(greeting, name, key,default=0):
+    return _discrete_slider(greeting=greeting, name=name, default=default, key=key)
+
+#-------------------------------------END-------------------------------------------------------------------------------
 
 def list_datasets(path) -> List:
     """
@@ -203,22 +222,25 @@ def preview_dataset(base_dataset_dir: str):
     :param base_dataset_dir: The directory that contains the perceptions datasets.
     :type str:
     """
-    st.markdown("# Synthetic Dataset Preview\n ## Unity Technologies ")
+    #st.markdown("# Synthetic Dataset Preview\n ## Unity Technologies ")
     dataset_name = st.sidebar.selectbox(
         "Please select a dataset...", list_datasets(base_dataset_dir)
     )
+
+    num_rows = 5
+    num_cols = 3
     if dataset_name is not None:
         colors, dataset = load_perception_dataset(
             os.path.join(base_dataset_dir, dataset_name)
         )
-        classes = dataset.classes
-        st.sidebar.selectbox(
-            "hello", classes
-        )
-        image_index = frame_selector_ui(dataset)
-        image, segmentation, target = dataset[image_index]
-        labels = target["labels"]
-        boxes = target["boxes"]
+        #classes = dataset.classes
+        #st.sidebar.selectbox(
+        #    "hello", classes
+        #)
+        #image_index = frame_selector_ui(dataset)
+        #image, segmentation, target = dataset[image_index]
+        #labels = target["labels"]
+        #boxes = target["boxes"]
 
         #st.image(image, use_column_width=True)
 
@@ -228,14 +250,66 @@ def preview_dataset(base_dataset_dir: str):
         #draw_image_with_boxes(
         #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
         #)
-        image = draw_image_with_semantic_segmentation(
-            image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
-        )
-        image = draw_image_with_boxes(
-            image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
-        )
-        st.image(image, use_column_width=True)
+        #image = draw_image_with_semantic_segmentation(
+        #    image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
+        #)
+        #image = draw_image_with_boxes(
+        #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
+        #)
 
+        grid_view(num_cols, num_rows, colors, dataset)
+
+
+def sidebar():
+    return None
+
+def navbar():
+    return None
+
+def grid_view(num_cols, num_rows, colors, dataset):
+    print("Now did I create the slider?")
+    count_of_clicks = discrete_slider("Hello", "Leopoldo", "123")
+    st.write("Return value: ", count_of_clicks)
+
+    inner_cols = st.beta_columns([0.1, 0.0001])
+    cols = st.beta_columns(num_cols)
+
+    semantic_segmentation = st.sidebar.checkbox("Semantic Segmentation", key="ss")
+    bounding_boxes_2d = st.sidebar.checkbox("Bounding Boxes", key="bb2d")
+
+    app_state = st.experimental_get_query_params()
+    if "start_at" in app_state:
+        start_at = int(app_state["start_at"][0])
+    else:
+        start_at = 0
+
+    if inner_cols[1].button('>'):
+        start_at = min(start_at + num_cols * num_rows, len(dataset)-(len(dataset) % (num_cols * num_rows)))
+    if inner_cols[0].button('<'):
+        start_at = max(0,start_at - num_cols * num_rows)
+
+    st.experimental_set_query_params(start_at=start_at)
+
+    for i in range(start_at, min(start_at + (num_cols * num_rows), len(dataset))):
+        classes = dataset.classes
+        image, segmentation, target = dataset[i]
+        labels = target["labels"]
+        boxes = target["boxes"]
+
+        if semantic_segmentation:
+            image = draw_image_with_semantic_segmentation(
+                image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
+            )
+        if bounding_boxes_2d:
+            image = draw_image_with_boxes(
+                image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
+            )
+        cols[i % num_cols].image(image, caption=str(i), use_column_width = True)
+
+
+
+def zoom(index):
+    return None
 
 def preview_app(args):
     """
@@ -252,8 +326,10 @@ def preview_app(args):
         raise ValueError("Please specify the path to the main dataset directory!")
 
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("data", type=str)
     args = parser.parse_args()
+
     preview_app(args)

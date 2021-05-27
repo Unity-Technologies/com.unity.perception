@@ -21,7 +21,11 @@ public class PyrceptionInstaller : EditorWindow
         }*/
 
         string path = Application.dataPath.Replace("/Assets", "");
+#if UNITY_EDITOR_WIN
+        string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts");
+#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
+#endif
         string pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
 #if UNITY_EDITOR_WIN
         path = path.Replace("/", "\\");

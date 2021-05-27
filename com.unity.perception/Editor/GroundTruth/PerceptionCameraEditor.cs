@@ -132,13 +132,21 @@ namespace UnityEditor.Perception.GroundTruth
                 m_LabelersList.DoLayoutList();
             }
 
+            var s = new GUIStyle(EditorStyles.textField);
+            s.wordWrap = true;
+            var defaultColor = s.normal.textColor;
+
             var dir = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey, string.Empty);
             if (dir != string.Empty)
             {
-                EditorGUILayout.LabelField("Latest Output Folder");
+                EditorGUILayout.LabelField("Latest Generated Dataset");
                 GUILayout.BeginVertical("TextArea");
-                EditorGUILayout.HelpBox(dir, MessageType.None);
+
+                s.normal.textColor = Color.green;
+                EditorGUILayout.LabelField(dir, s);
+
                 GUILayout.BeginHorizontal();
+
                 if (GUILayout.Button("Show Folder"))
                 {
                     EditorUtility.RevealInFinder(dir);
@@ -150,6 +158,37 @@ namespace UnityEditor.Perception.GroundTruth
                 GUILayout.EndHorizontal();
                 GUILayout.EndVertical();
             }
+
+            GUILayout.Space(10);
+
+            var userBaseDir = PlayerPrefs.GetString(SimulationState.userBaseDirectoryKey);
+            if (userBaseDir == string.Empty)
+            {
+                var folder = PlayerPrefs.GetString(SimulationState.defaultOutputBaseDirectory);
+                userBaseDir = folder != string.Empty ? folder : Application.persistentDataPath;
+            }
+
+            EditorGUILayout.LabelField("Output Base Folder");
+            GUILayout.BeginVertical("TextArea");
+
+            s.normal.textColor = defaultColor;
+            EditorGUILayout.LabelField(userBaseDir, s);
+
+            GUILayout.BeginHorizontal();
+
+            if (GUILayout.Button("Change Folder"))
+            {
+                var path = EditorUtility.OpenFolderPanel("Choose Output Folder", "", "");
+                if (path.Length != 0)
+                {
+                    Debug.Log($"Chose path: {path}");
+                    PlayerPrefs.SetString(SimulationState.userBaseDirectoryKey, path);
+                }
+            }
+
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+
 
             if (EditorSettings.asyncShaderCompilation)
             {

@@ -16,6 +16,8 @@ Added support for 'step' button in editor.
 
 Added random seed field to the Run in Unity Simulation Window
 
+User can now choose the base folder location to store their generated data.
+
 ### Changed
 Increased color variety in instance segmentation images
 

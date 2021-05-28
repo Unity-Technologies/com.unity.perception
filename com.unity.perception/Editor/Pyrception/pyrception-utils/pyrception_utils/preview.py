@@ -18,17 +18,36 @@ st.set_page_config(layout="wide")
 import streamlit.components.v1 as components
 
 root_dir = os.path.dirname(os.path.abspath(__file__))
-build_dir = os.path.join(root_dir, "slider/build")
+build_dir_slider = os.path.join(root_dir, "custom_components/slider/build")
+build_dir_page_selector = os.path.join(root_dir, "custom_components/pageselector/build")
+build_dir_go_to = os.path.join(root_dir, "custom_components/goto/build")
 
 _discrete_slider = components.declare_component(
     "discrete_slider",
-    path=build_dir
+    path=build_dir_slider
+)
+
+_page_selector = components.declare_component(
+    "page_selector",
+    path=build_dir_page_selector
+)
+
+_go_to = components.declare_component(
+    "go_to",
+    path=build_dir_go_to
 )
 
 
 def discrete_slider(greeting, name, key,default=0):
     return _discrete_slider(greeting=greeting, name=name, default=default, key=key)
 
+
+def page_selector(startAt, incrementAmt, key=0):
+    return _page_selector(startAt=startAt, incrementAmt=incrementAmt, key=key, default=0)
+
+
+def go_to(key=0):
+    return _go_to(key=key, default=0)
 #-------------------------------------END-------------------------------------------------------------------------------
 
 def list_datasets(path) -> List:
@@ -227,8 +246,8 @@ def preview_dataset(base_dataset_dir: str):
         "Please select a dataset...", list_datasets(base_dataset_dir)
     )
 
+
     num_rows = 5
-    num_cols = 3
     if dataset_name is not None:
         colors, dataset = load_perception_dataset(
             os.path.join(base_dataset_dir, dataset_name)
@@ -257,40 +276,51 @@ def preview_dataset(base_dataset_dir: str):
         #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
         #)
 
-        grid_view(num_cols, num_rows, colors, dataset)
+        grid_view(num_rows, colors, dataset)
 
 
 def sidebar():
     return None
 
+
 def navbar():
     return None
 
-def grid_view(num_cols, num_rows, colors, dataset):
-    print("Now did I create the slider?")
+
+def grid_view(num_rows, colors, dataset):
+    header = st.beta_columns(3)
+    num_cols = header[2].slider(label="Image per row: ", min_value=1, max_value=5, step=1, value=3)
+    with header[1]:
+        start_at_2 = page_selector(0,num_cols * num_rows)
+
+    with header[0]:
+        start_at_2 = go_to()
+
     count_of_clicks = discrete_slider("Hello", "Leopoldo", "123")
     st.write("Return value: ", count_of_clicks)
 
-    inner_cols = st.beta_columns([0.1, 0.0001])
+    #inner_cols = st.beta_columns([0.1, 0.0001])
     cols = st.beta_columns(num_cols)
 
     semantic_segmentation = st.sidebar.checkbox("Semantic Segmentation", key="ss")
     bounding_boxes_2d = st.sidebar.checkbox("Bounding Boxes", key="bb2d")
 
-    app_state = st.experimental_get_query_params()
-    if "start_at" in app_state:
-        start_at = int(app_state["start_at"][0])
-    else:
-        start_at = 0
+    #app_state = st.experimental_get_query_params()
+    #if "start_at" in app_state:
+    #    start_at = int(app_state["start_at"][0])
+    #else:
+    #    start_at = 0
 
-    if inner_cols[1].button('>'):
-        start_at = min(start_at + num_cols * num_rows, len(dataset)-(len(dataset) % (num_cols * num_rows)))
-    if inner_cols[0].button('<'):
-        start_at = max(0,start_at - num_cols * num_rows)
+    #if inner_cols[1].button('>'):
+    #    overflow_image_count = len(dataset) % (num_cols * num_rows)
+    #    overflow_image_count = (num_cols * num_rows) if overflow_image_count == 0 else overflow_image_count
+    #    start_at = min(start_at + num_cols * num_rows, len(dataset)-overflow_image_count)
+    #if inner_cols[0].button('<'):
+    #    start_at = max(0, start_at - num_cols * num_rows)
 
-    st.experimental_set_query_params(start_at=start_at)
+    #st.experimental_set_query_params(start_at=start_at)
 
-    for i in range(start_at, min(start_at + (num_cols * num_rows), len(dataset))):
+    for i in range(start_at_2, min(start_at_2 + (num_cols * num_rows), len(dataset))):
         classes = dataset.classes
         image, segmentation, target = dataset[i]
         labels = target["labels"]
@@ -304,7 +334,7 @@ def grid_view(num_cols, num_rows, colors, dataset):
             image = draw_image_with_boxes(
                 image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
             )
-        cols[i % num_cols].image(image, caption=str(i), use_column_width = True)
+        cols[(i - (start_at_2 % num_cols)) % num_cols].image(image, caption=str(i), use_column_width = True)
 
 
 

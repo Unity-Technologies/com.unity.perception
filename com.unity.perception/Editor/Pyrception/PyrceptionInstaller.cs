@@ -20,9 +20,9 @@ public class PyrceptionInstaller : EditorWindow
             UnityEngine.Debug.Log("Current Process was set to null");
         }*/
 
-        string path = Application.dataPath.Replace("/Assets", "");
+        string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
 #if UNITY_EDITOR_WIN
-        string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts");
+        string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
 #endif
@@ -32,8 +32,9 @@ public class PyrceptionInstaller : EditorWindow
         packagesPath = packagesPath.Replace("/", "\\");
         pathToData = pathToData.Replace("/", "\\");
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        path = path.Replace(" ", "\\ ");
-        pathToData = pathToData.Replace(" ", "\\ ");
+        //path = path.Replace(" ", "\\ ");
+        //packagesPath = packagesPath.Replace(" ", "\\ ");
+        //pathToData = pathToData.Replace(" ", "\\ ");
 #endif
         string command = "";
 
@@ -42,10 +43,10 @@ public class PyrceptionInstaller : EditorWindow
         command = $"cd \"{pathToData}\\..\" && \"{packagesPath}\\pyrception-utils.exe\" preview --data=\".\"";
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         //command = $"cd \"{path}/DataInsightsEnv/bin\";source activate;cd \"{pathToData}/..\";\"{path}/DataInsightsEnv/bin/pyrception-utils\" preview --data=\".\"";
-        command = $"cd {pathToData}/.. ; {packagesPath}/pyrception-utils preview --data=\".\"";
+        command = $"cd \'{packagesPath}\' ;./pyrception-utils preview --data=\'{pathToData}\'";
 #endif
         int ExitCode = 0;
-        ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
+        ExecuteCMD(command, ref ExitCode, waitForExit: true, displayWindow: true);
         if (ExitCode != 0)
             return;
         else
@@ -72,22 +73,19 @@ public class PyrceptionInstaller : EditorWindow
         }*/
 
         //==============================SETUP PATHS======================================
-        string path = Application.dataPath.Replace("/Assets", "");
 #if UNITY_EDITOR_WIN
-        string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts");
+        string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
+        string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
 #endif
         string pyrceptionPath = Path.GetFullPath("Packages/com.unity.perception/Editor/Pyrception/pyrception-utils").Replace("\\","/");
 
 #if UNITY_EDITOR_WIN
-        path = path.Replace("/", "\\");
         pyrceptionPath = pyrceptionPath.Replace("/", "\\");
         packagesPath = packagesPath.Replace("/", "\\");
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        path = path.Replace(" ", "\\ ");
-        pyrceptionPath = pyrceptionPath.Replace(" ", "\\ ");
-        packagesPath = packagesPath.Replace(" ", "\\ ");
+        //pyrceptionPath = pyrceptionPath.Replace(" ", "\\ ");
+        //packagesPath = packagesPath.Replace(" ", "\\ ");
 #endif
 
 
@@ -100,41 +98,45 @@ public class PyrceptionInstaller : EditorWindow
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         //ExecuteCMD($"pip3 install --target=\"{path}/virtualenvDI\" virtualenv", ref ExitCode); //(maybe add --no-user)
 #endif
-        if (ExitCode != 0) {
+        /*if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
             return;
-        }
+        }*/
 
         //==============================CREATE VIRTUALENV NAMED DataInsightsEnv======================================
         //EditorUtility.DisplayProgressBar("Setting up Pyrception", "Setting up virtualenv instance...", 1f / steps);
 #if UNITY_EDITOR_WIN
         //ExecuteCMD($"\"{packagesPath}\\virtualenv.exe\" -p python3 \"{path}\\DataInsightsEnv\"", ref ExitCode);
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
-        string virtualenvPath = path+"/virtualenvDI/bin/";
+        //string virtualenvPath = path+"/virtualenvDI/bin/";
         //ExecuteCMD("export PYTHONPATH=\"${PYTHONPATH}:"+$"{path}/virtualenvDI\";"+$"\"{virtualenvPath}/virtualenv\" -p python3 \"{path}/DataInsightsEnv\"", ref ExitCode);
 #endif
-        if (ExitCode != 0) {
+        /*if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
             return;
-        }
+        }*/
 
         //==============================COPY ALL PYRCEPTION FILES FOR INSTALLATION======================================
         EditorUtility.DisplayProgressBar("Setting up Pyrception", "Getting pyrception files...", 1.5f / steps);
 
 #if UNITY_EDITOR_WIN
         //ExecuteCMD($"XCOPY /E/I/Y \"{pyrceptionPath}\" \"{path}\\DataInsightsEnv\\pyrception-util\"", ref ExitCode);
-        ExecuteCMD($"XCOPY /E/I/Y \"{pyrceptionPath}\" \"{packagesPath}\\..\\pyrception-util\"", ref ExitCode);
+        //ExecuteCMD($"XCOPY /E/I/Y \"{pyrceptionPath}\" \"{packagesPath}\\..\\pyrception-util\"", ref ExitCode);
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         //ExecuteCMD($"\\cp -r \"{pyrceptionPath}\" \"{path}/DataInsightsEnv/pyrception-util\"", ref ExitCode);
-        ExecuteCMD($"\\cp -r \"{pyrceptionPath}\" \"{packagesPath}/../pyrception-util\"", ref ExitCode);
+        ExecuteCMD($"\\cp -r \'{pyrceptionPath}\' \'{packagesPath}/../pyrception-util\'", ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
             return;
         }
 
-        EditorUtility.DisplayProgressBar("Setting up Pyrception", "Installing pyrception utils...", 2.5f / steps);
+        /*UnityEngine.Debug.Log(pyrceptionPath);
+        UnityEngine.Debug.Log(packagesPath);
+        DirectoryCopy(pyrceptionPath, packagesPath);*/
 
+        EditorUtility.DisplayProgressBar("Setting up Pyrception", "Installing pyrception utils...", 2.5f / steps);
+        
         //==============================INSTALL PYRCEPTION IN THE VIRTUALENV======================================
 #if UNITY_EDITOR_WIN
         //ExecuteCMD($"\"{path}\\DataInsightsEnv\\Scripts\\activate\" && cd \"{path}\\DataInsightsEnv\\pyrception-util\" && \"{packagesPath}\"\\pip3 --no-cache-dir install -e . && deactivate", ref ExitCode);
@@ -142,7 +144,7 @@ public class PyrceptionInstaller : EditorWindow
 
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         //ExecuteCMD($"source \"{path}/DataInsightsEnv/bin/activate\"; cd \"{path}/DataInsightsEnv/pyrception-util\"; pip3 --no-cache-dir install -e .; deactivate", ref ExitCode);
-        ExecuteCMD($"cd \"{packagesPath}/../pyrception-util\"; \"{packagesPath}\"/pip3 --no-cache-dir install -e .", ref ExitCode);
+        ExecuteCMD($"cd \'{packagesPath}\'; ./pip3 install -e \'../pyrception-util/.\'", ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
@@ -164,6 +166,8 @@ public class PyrceptionInstaller : EditorWindow
         string shell = "";
         string argument = "";
         string output = "";
+
+        UnityEngine.Debug.Log(command);
 
 #if UNITY_EDITOR_WIN
         shell = "cmd.exe";
@@ -202,5 +206,69 @@ public class PyrceptionInstaller : EditorWindow
         cmd.Close();
 
         return output;
+    }
+
+    private static void DirectoryCopy(string sourceDirName, string destDirName, bool first = true)
+    {
+        bool copySubDirs = true;
+
+        // Get the subdirectories for the specified directory.
+        DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+        if (!dir.Exists)
+        {
+            throw new DirectoryNotFoundException(
+                "Source directory does not exist or could not be found: "
+                + sourceDirName);
+        }
+
+        DirectoryInfo[] dirs = dir.GetDirectories();
+
+        // If the destination directory doesn't exist, create it.
+        DirectoryInfo dirDest = new DirectoryInfo(destDirName);
+        if (dirDest.Exists && first)
+        {
+            DeleteDirectory(destDirName);
+        }
+
+        Directory.CreateDirectory(destDirName);
+
+        // Get the files in the directory and copy them to the new location.
+        FileInfo[] files = dir.GetFiles();
+        foreach (FileInfo file in files)
+        {
+            string tempPath = Path.Combine(destDirName, file.Name);
+            file.CopyTo(tempPath, false);
+            UnityEngine.Debug.Log("Copying " + file.Name + " to " + tempPath);
+        }
+
+        // If copying subdirectories, copy them and their contents to new location.
+        if (copySubDirs)
+        {
+            foreach (DirectoryInfo subdir in dirs)
+            {
+                string tempPath = Path.Combine(destDirName, subdir.Name);
+                DirectoryCopy(subdir.FullName, tempPath, false);
+            }
+        }
+    }
+
+    private static void DeleteDirectory(string target_dir)
+    {
+        string[] files = Directory.GetFiles(target_dir);
+        string[] dirs = Directory.GetDirectories(target_dir);
+
+        foreach (string file in files)
+        {
+            File.SetAttributes(file, FileAttributes.Normal);
+            File.Delete(file);
+        }
+
+        foreach (string dir in dirs)
+        {
+            DeleteDirectory(dir);
+        }
+
+        Directory.Delete(target_dir, false);
     }
 }

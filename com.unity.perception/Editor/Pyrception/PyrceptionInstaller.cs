@@ -86,7 +86,7 @@ public class PyrceptionInstaller : EditorWindow
         ExecuteCMD($"cd \"{packagesPath}\\..\\pyrception-util\" && \"{packagesPath}\"\\pip3.bat install --no-warn-script-location --no-cache-dir -e .", ref ExitCode);
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip install -e \'../pyrception-util/.\'", ref ExitCode);
-        ExecuteCMD($"\\cp -r \'{pyrceptionPath}\pyrception-utils.py\' \'{packagesPath}\pyrception-utils.py\', ref ExitCode);
+        ExecuteCMD($"\\cp -r \'{pyrceptionPath}/pyrception-utils.py\' \'{packagesPath}/pyrception-utils.py\'", ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();

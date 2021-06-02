@@ -99,7 +99,7 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.ClearProgressBar();
     }
 
-#if UNITY_EDITOR_OSX
+#if UNITY_EDITOR_OSX || true
     void OnDestroy()
     {
         KillProcess();
@@ -116,6 +116,17 @@ public class PyrceptionInstaller : EditorWindow
     }
 
 #endif
+
+    static void Quit()
+    {
+        KillProcess();
+    }
+
+    [RuntimeInitializeOnLoadMethod]
+    static void RunOnStart()
+    {
+        Application.quitting += Quit;
+    }
 
     /// <summary>
     /// Executes command in cmd or console depending on system

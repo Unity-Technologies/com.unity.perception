@@ -13,8 +13,9 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
+#if UNITY_EDITOR_OSX
         KillProcess();
-
+#endif
         string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
 #if UNITY_EDITOR_WIN
         string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
@@ -98,6 +99,7 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.ClearProgressBar();
     }
 
+#if UNITY_EDITOR_OX
     void OnDestroy()
     {
         KillProcess();
@@ -118,6 +120,8 @@ public class PyrceptionInstaller : EditorWindow
             currentProcessId = -1;
         }
     }
+
+#endif
 
     /// <summary>
     /// Executes command in cmd or console depending on system

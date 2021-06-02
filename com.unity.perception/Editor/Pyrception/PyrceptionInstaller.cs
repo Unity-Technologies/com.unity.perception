@@ -99,7 +99,7 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.ClearProgressBar();
     }
 
-#if UNITY_EDITOR_OX
+#if UNITY_EDITOR_OSX
     void OnDestroy()
     {
         KillProcess();
@@ -109,13 +109,7 @@ public class PyrceptionInstaller : EditorWindow
     {
         if (currentProcessId != -1)
         {
-            UnityEngine.Debug.Log($"Process is alive - {currentProcessId}");
-
             Process proc = Process.GetProcessById(currentProcessId + 1);
-            if (proc == null)
-            {
-                UnityEngine.Debug.Log("Could not find process");
-            }
             proc.Kill();
             currentProcessId = -1;
         }

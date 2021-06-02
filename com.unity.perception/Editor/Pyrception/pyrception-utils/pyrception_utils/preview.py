@@ -21,6 +21,7 @@ root_dir = os.path.dirname(os.path.abspath(__file__))
 build_dir_slider = os.path.join(root_dir, "custom_components/slider/build")
 build_dir_page_selector = os.path.join(root_dir, "custom_components/pageselector/build")
 build_dir_go_to = os.path.join(root_dir, "custom_components/goto/build")
+build_dir_item_selector = os.path.join(root_dir, "custom_components/itemselector/build")
 
 _discrete_slider = components.declare_component(
     "discrete_slider",
@@ -37,8 +38,13 @@ _go_to = components.declare_component(
     path=build_dir_go_to
 )
 
+_item_selector = components.declare_component(
+    "item_selector",
+    path=build_dir_item_selector
+)
 
-def discrete_slider(greeting, name, key,default=0):
+
+def discrete_slider(greeting, name, key, default=0):
     return _discrete_slider(greeting=greeting, name=name, default=default, key=key)
 
 
@@ -48,6 +54,10 @@ def page_selector(startAt, incrementAmt, key=0):
 
 def go_to(key=0):
     return _go_to(key=key, default=0)
+
+
+def item_selector(startAt, incrementAmt, datasetSize, key=0):
+    return _item_selector(startAt=startAt, incrementAmt=incrementAmt, datasetSize=datasetSize, key=key, default=0)
 #-------------------------------------END-------------------------------------------------------------------------------
 
 def list_datasets(path) -> List:
@@ -288,16 +298,10 @@ def navbar():
 
 
 def grid_view(num_rows, colors, dataset):
-    header = st.beta_columns(3)
-    num_cols = header[2].slider(label="Image per row: ", min_value=1, max_value=5, step=1, value=3)
-    with header[1]:
-        start_at_2 = page_selector(0,num_cols * num_rows)
-
+    header = st.beta_columns([2/3, 1/3])
+    num_cols = header[1].slider(label="Image per row: ", min_value=1, max_value=5, step=1, value=3)
     with header[0]:
-        start_at_2 = go_to()
-
-    count_of_clicks = discrete_slider("Hello", "Leopoldo", "123")
-    st.write("Return value: ", count_of_clicks)
+        start_at_2 = item_selector(0, num_cols * num_rows, len(dataset))
 
     #inner_cols = st.beta_columns([0.1, 0.0001])
     cols = st.beta_columns(num_cols)
@@ -319,7 +323,6 @@ def grid_view(num_rows, colors, dataset):
     #    start_at = max(0, start_at - num_cols * num_rows)
 
     #st.experimental_set_query_params(start_at=start_at)
-
     for i in range(start_at_2, min(start_at_2 + (num_cols * num_rows), len(dataset))):
         classes = dataset.classes
         image, segmentation, target = dataset[i]
@@ -334,7 +337,10 @@ def grid_view(num_rows, colors, dataset):
             image = draw_image_with_boxes(
                 image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
             )
-        cols[(i - (start_at_2 % num_cols)) % num_cols].image(image, caption=str(i), use_column_width = True)
+        container = cols[(i - (start_at_2 % num_cols)) % num_cols].beta_container()
+        container.image(image, caption=str(i), use_column_width=True)
+        if container.button(label="Expand image", key="exp"+str(i)):
+            container.write("IMAGE WAS CLICKED")
 
 
 
@@ -361,5 +367,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("data", type=str)
     args = parser.parse_args()
-
+    st.markdown('<style>button.css-9eqr5v{display: none}</style>', unsafe_allow_html=True)
     preview_app(args)

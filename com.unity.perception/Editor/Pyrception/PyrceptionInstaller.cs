@@ -13,18 +13,7 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
-        if (currentProcessId != -1)
-        {
-            UnityEngine.Debug.Log($"Process is alive - {currentProcessId}");
-         
-            Process proc = Process.GetProcessById(currentProcessId+1);
-            if(proc == null)
-            {
-                UnityEngine.Debug.Log("Could not find process");
-            }
-            proc.Kill();
-            currentProcessId = -1;
-        }
+        KillProcess();
 
         string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
 #if UNITY_EDITOR_WIN
@@ -87,6 +76,7 @@ public class PyrceptionInstaller : EditorWindow
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();
+
             return;
         }
 
@@ -106,6 +96,27 @@ public class PyrceptionInstaller : EditorWindow
         }
 
         EditorUtility.ClearProgressBar();
+    }
+
+    void OnDestroy()
+    {
+        KillProcess();
+    }
+
+    private static void KillProcess()
+    {
+        if (currentProcessId != -1)
+        {
+            UnityEngine.Debug.Log($"Process is alive - {currentProcessId}");
+
+            Process proc = Process.GetProcessById(currentProcessId + 1);
+            if (proc == null)
+            {
+                UnityEngine.Debug.Log("Could not find process");
+            }
+            proc.Kill();
+            currentProcessId = -1;
+        }
     }
 
     /// <summary>

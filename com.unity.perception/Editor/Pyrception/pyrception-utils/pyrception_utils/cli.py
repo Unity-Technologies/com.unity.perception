@@ -37,6 +37,7 @@ def preview(args):
 
 
 def main():
+    print('reached-main')
     args = cli.parse_args()
     if args.subcommand is None:
         cli.print_help()

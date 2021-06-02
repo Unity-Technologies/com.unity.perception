@@ -43,7 +43,7 @@ public class PyrceptionInstaller : EditorWindow
         command = $"cd \"{pathToData}\\..\" && \"{packagesPath}\\pyrception-utils.exe\" preview --data=\".\"";
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         //command = $"cd \"{path}/DataInsightsEnv/bin\";source activate;cd \"{pathToData}/..\";\"{path}/DataInsightsEnv/bin/pyrception-utils\" preview --data=\".\"";
-        command = $"cd \'{packagesPath}\' ;./pyrception-utils preview --data=\'{pathToData}\'";
+        command = $"cd \'{packagesPath}\' ;./python3.7 ./pyrception-utils.py preview --data=\'{pathToData}/..\'";
 #endif
         int ExitCode = 0;
         ExecuteCMD(command, ref ExitCode, waitForExit: true, displayWindow: true);
@@ -144,7 +144,7 @@ public class PyrceptionInstaller : EditorWindow
 
 #elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
         //ExecuteCMD($"source \"{path}/DataInsightsEnv/bin/activate\"; cd \"{path}/DataInsightsEnv/pyrception-util\"; pip3 --no-cache-dir install -e .; deactivate", ref ExitCode);
-        ExecuteCMD($"cd \'{packagesPath}\'; ./pip3 install -e \'../pyrception-util/.\'", ref ExitCode);
+        ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip install -e \'../pyrception-util/.\'", ref ExitCode);
 #endif
         if (ExitCode != 0) {
             EditorUtility.ClearProgressBar();

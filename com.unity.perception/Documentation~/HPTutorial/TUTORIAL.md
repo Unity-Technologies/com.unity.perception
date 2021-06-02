@@ -15,6 +15,9 @@ Steps included in this tutorial:
 * [Step 5: Add Joints to the Character and Customize Keypoint Templates](#step-5)
 * [Step 6: Randomize the Humanoid Character's Animations](#step-6)
 
+> :information_source: If you face any problems while following this tutorial, please create a post on the **[Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/)** or the **[GitHub issues](https://github.com/Unity-Technologies/com.unity.perception/issues)** page and include as much detail as possible.
+
+
 ### <a name="step-1">Step 1: Import `.fbx` Models and Animations</a> 
 
 This tutorial assumes that you have already created a Unity project, installed the Perception package, and set up a Scene with a `Perception Camera` inside. If this is not the case, please follow **steps 1 to 3** of [Phase 1 of the Perception Tutorial](../Tutorial/Phase1.md). 

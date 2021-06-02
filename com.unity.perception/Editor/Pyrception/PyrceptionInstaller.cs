@@ -5,14 +5,26 @@ using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 
 public class PyrceptionInstaller : EditorWindow
-{
-    private static Process currentProcess = null;
+{ 
+    private static int currentProcessId = -1;
     /// <summary>
     /// Runs pyrception instance in default browser
     /// </summary>
     [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
+        if (currentProcessId != -1)
+        {
+            UnityEngine.Debug.Log($"Process is alive - {currentProcessId}");
+         
+            Process proc = Process.GetProcessById(currentProcessId+1);
+            if(proc == null)
+            {
+                UnityEngine.Debug.Log("Could not find process");
+            }
+            proc.Kill();
+            currentProcessId = -1;
+        }
 
         string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
 #if UNITY_EDITOR_WIN
@@ -127,7 +139,7 @@ public class PyrceptionInstaller : EditorWindow
 
         if (!waitForExit)
         {
-            currentProcess = cmd;
+            currentProcessId = cmd.Id;
             return "";
         }
 

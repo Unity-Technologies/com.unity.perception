@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using UnityEditor;
@@ -117,24 +118,35 @@ public class PyrceptionInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
     private static bool RestartBrowser()
     {
+        currentProcessId = PlayerPrefs.HasKey("currentProcessId") ? PlayerPrefs.GetInt("currentProcessId") : -1;
         if (currentProcessId != -1)
         {
             try
             {
                 Process proc = Process.GetProcessById(currentProcessId + 1);
-                Process.Start("http://localhost:8501");
-                return true;
+                if (proc.HasExited)
+                {
+                    PlayerPrefs.SetInt("currentProcessId", -1);
+                    return false;
+                }
+                else
+                {  
+                    Process.Start("http://localhost:8501");
+                    return true;
+                }
             }
-            catch(System.Exception e)
+            catch (ArgumentException)
             {
-                currentProcessId = -1;
+                PlayerPrefs.SetInt("currentProcessId", -1);
                 return false;
             }
+            
         }
+        PlayerPrefs.SetInt("currentProcessId", -1);
         return false;
     }
 
-#elif UNITY_EDITOR_OSX || true
+#elif UNITY_EDITOR_OSX
 
     private static void KillProcess()
     {
@@ -180,8 +192,8 @@ public class PyrceptionInstaller : EditorWindow
         if (!waitForExit)
         {
 #if UNITY_EDITOR_WIN
-            if (currentProcessId == -1)
-                currentProcessId = cmd.Id;
+            if (!PlayerPrefs.HasKey("currentProcessId") || PlayerPrefs.GetInt("currentProcessId") == -1)
+                PlayerPrefs.SetInt("currentProcessId", cmd.Id);
 #elif UNITY_EDITOR_OSX 
             currentProcessId = cmd.Id;
 #endif

@@ -14,7 +14,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
     {
         static ProfilerMarker s_ResetAllObjectsMarker = new ProfilerMarker("ResetAllObjects");
 
-        GameObject[] m_Prefabs;
+        GameObject[] m_GameObjects;
         UniformSampler m_Sampler = new UniformSampler();
         Transform m_CacheParent;
         Dictionary<int, int> m_InstanceIdToIndex;
@@ -31,24 +31,28 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         /// Creates a new GameObjectOneWayCache
         /// </summary>
         /// <param name="parent">The parent object all cached instances will be parented under</param>
-        /// <param name="prefabs">The prefabs to cache</param>
-        public GameObjectOneWayCache(Transform parent, GameObject[] prefabs)
+        /// <param name="gameObjects">The gameObjects to cache</param>
+        public GameObjectOneWayCache(Transform parent, GameObject[] gameObjects)
         {
-            m_Prefabs = prefabs;
+            if (gameObjects.Length == 0)
+                throw new ArgumentException(
+                    "A non-empty array of GameObjects is required to initialize this GameObject cache");
+
+            m_GameObjects = gameObjects;
             m_CacheParent = parent;
             m_InstanceIdToIndex = new Dictionary<int, int>();
-            m_InstantiatedObjects = new List<CachedObjectData>[prefabs.Length];
-            m_NumObjectsActive = new int[prefabs.Length];
+            m_InstantiatedObjects = new List<CachedObjectData>[gameObjects.Length];
+            m_NumObjectsActive = new int[gameObjects.Length];
 
             var index = 0;
-            foreach (var prefab in prefabs)
+            foreach (var obj in gameObjects)
             {
-                if (!IsPrefab(prefab))
+                if (!IsPrefab(obj))
                 {
-                    prefab.transform.parent = parent;
-                    prefab.SetActive(false);
+                    obj.transform.parent = parent;
+                    obj.SetActive(false);
                 }
-                var instanceId = prefab.GetInstanceID();
+                var instanceId = obj.GetInstanceID();
                 m_InstanceIdToIndex.Add(instanceId, index);
                 m_InstantiatedObjects[index] = new List<CachedObjectData>();
                 m_NumObjectsActive[index] = 0;
@@ -57,16 +61,16 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         }
 
         /// <summary>
-        /// Retrieves an existing instance of the given prefab from the cache if available.
-        /// Otherwise, instantiate a new instance of the given prefab.
+        /// Retrieves an existing instance of the given gameObject from the cache if available.
+        /// Otherwise, instantiate a new instance of the given gameObject.
         /// </summary>
-        /// <param name="prefab"></param>
+        /// <param name="gameObject"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public GameObject GetOrInstantiate(GameObject prefab)
+        public GameObject GetOrInstantiate(GameObject gameObject)
         {
-            if (!m_InstanceIdToIndex.TryGetValue(prefab.GetInstanceID(), out var index))
-                throw new ArgumentException($"Prefab {prefab.name} (ID: {prefab.GetInstanceID()}) is not in cache.");
+            if (!m_InstanceIdToIndex.TryGetValue(gameObject.GetInstanceID(), out var index))
+                throw new ArgumentException($"GameObject {gameObject.name} (ID: {gameObject.GetInstanceID()}) is not in cache.");
 
             ++NumObjectsActive;
             if (m_NumObjectsActive[index] < m_InstantiatedObjects[index].Count)
@@ -79,7 +83,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
             }
 
             ++NumObjectsInCache;
-            var newObject = Object.Instantiate(prefab, m_CacheParent);
+            var newObject = Object.Instantiate(gameObject, m_CacheParent);
             newObject.SetActive(true);
             ++m_NumObjectsActive[index];
             m_InstantiatedObjects[index].Add(new CachedObjectData(newObject));
@@ -87,26 +91,26 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         }
 
         /// <summary>
-        /// Retrieves an existing instance of the given prefab from the cache if available.
-        /// Otherwise, instantiate a new instance of the given prefab.
+        /// Retrieves an existing instance of the given gameObject from the cache if available.
+        /// Otherwise, instantiate a new instance of the given gameObject.
         /// </summary>
-        /// <param name="index">The index of the prefab to instantiate</param>
+        /// <param name="index">The index of the gameObject to instantiate</param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public GameObject GetOrInstantiate(int index)
         {
-            var prefab = m_Prefabs[index];
-            return GetOrInstantiate(prefab);
+            var gameObject = m_GameObjects[index];
+            return GetOrInstantiate(gameObject);
         }
 
         /// <summary>
-        /// Retrieves an existing instance of a random prefab from the cache if available.
-        /// Otherwise, instantiate a new instance of the random prefab.
+        /// Retrieves an existing instance of a random gameObject from the cache if available.
+        /// Otherwise, instantiate a new instance of the random gameObject.
         /// </summary>
-        /// <returns></returns>
-        public GameObject GetOrInstantiateRandomPrefab()
+        /// <returns>A random cached GameObject</returns>
+        public GameObject GetOrInstantiateRandomObject()
         {
-            return GetOrInstantiate(m_Prefabs[(int)(m_Sampler.Sample() * m_Prefabs.Length)]);
+            return GetOrInstantiate(m_GameObjects[(int)(m_Sampler.Sample() * m_GameObjects.Length)]);
         }
 
         /// <summary>

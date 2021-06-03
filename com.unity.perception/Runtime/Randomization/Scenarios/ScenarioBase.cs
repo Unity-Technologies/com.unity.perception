@@ -267,7 +267,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 #endif
             DeserializeConfiguration();
             OnAwake();
-            foreach (var randomizer in m_Randomizers)
+            foreach (var randomizer in activeRandomizers)
                 randomizer.Awake();
             ValidateParameters();
         }
@@ -297,7 +297,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                     {
                         state = State.Playing;
                         OnStart();
-                        foreach (var randomizer in m_Randomizers)
+                        foreach (var randomizer in activeRandomizers)
                             randomizer.ScenarioStart();
                         IterationLoop();
                     }

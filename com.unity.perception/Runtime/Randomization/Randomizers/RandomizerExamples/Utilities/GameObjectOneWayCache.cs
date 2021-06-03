@@ -108,7 +108,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         /// Otherwise, instantiate a new instance of the random gameObject.
         /// </summary>
         /// <returns>A random cached GameObject</returns>
-        public GameObject GetOrInstantiateRandomObject()
+        public GameObject GetOrInstantiateRandomCachedObject()
         {
             return GetOrInstantiate(m_GameObjects[(int)(m_Sampler.Sample() * m_GameObjects.Length)]);
         }

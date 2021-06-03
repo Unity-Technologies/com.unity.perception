@@ -8,10 +8,6 @@ using UnityEngine.Perception.GroundTruth;
 public class PyrceptionInstaller : EditorWindow
 {
 
-#if UNITY_EDITOR_OSX || true
-    private static int currentProcessId = -1;
-#endif
-
     /// <summary>
     /// Runs pyrception instance in default browser
     /// </summary>
@@ -115,7 +111,8 @@ public class PyrceptionInstaller : EditorWindow
 
     private static bool RestartBrowser()
     {
-        currentProcessId = PlayerPrefs.HasKey("currentProcessId") ? PlayerPrefs.GetInt("currentProcessId") : -1;
+        int currentProcessId = PlayerPrefs.HasKey("currentProcessId") ? PlayerPrefs.GetInt("currentProcessId") : -1;
+
         if (currentProcessId != -1)
         {
             try
@@ -124,6 +121,7 @@ public class PyrceptionInstaller : EditorWindow
                 if (proc.HasExited)
                 {
                     PlayerPrefs.SetInt("currentProcessId", -1);
+                    PlayerPrefs.Save();
                     return false;
                 }
                 else
@@ -135,11 +133,13 @@ public class PyrceptionInstaller : EditorWindow
             catch (ArgumentException)
             {
                 PlayerPrefs.SetInt("currentProcessId", -1);
+                PlayerPrefs.Save();
                 return false;
             }
             
         }
         PlayerPrefs.SetInt("currentProcessId", -1);
+        PlayerPrefs.Save();
         return false;
     }
 
@@ -175,7 +175,10 @@ public class PyrceptionInstaller : EditorWindow
         if (!waitForExit)
         {
             if (!PlayerPrefs.HasKey("currentProcessId") || PlayerPrefs.GetInt("currentProcessId") == -1)
+            {
                 PlayerPrefs.SetInt("currentProcessId", cmd.Id);
+                PlayerPrefs.Save();
+            }
             return output;
         }
 

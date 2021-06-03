@@ -18,12 +18,9 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
-#if UNITY_EDITOR_WIN || true
         if (RestartBrowser())
             return;
-#elif UNITY_EDITOR_OSX
-        //KillProcess();
-#endif
+
         string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
 #if UNITY_EDITOR_WIN
         string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
@@ -47,11 +44,16 @@ public class PyrceptionInstaller : EditorWindow
         ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
         if (ExitCode != 0)
         {
-            return;
+            UnityEngine.Debug.LogError("Problem occured when launching pyrception-utils - Exit Code: " + ExitCode);
         }
         else
         {
             UnityEngine.Debug.Log("You can view a preview of your datasets at: <color=#00aaccff>http://localhost:8501</color>");
+            if (EditorUtility.DisplayDialog("Data Visualizer Launch",
+                "A browser window should open shortly, otherwise use the manual launch", "Manually Launch", "Close"))
+            {
+                Process.Start("http://localhost:8501");
+            }
         }
     }
 
@@ -141,20 +143,6 @@ public class PyrceptionInstaller : EditorWindow
         return false;
     }
 
-#if UNITY_EDITOR_OSX
-
-    private static void KillProcess()
-    {
-        if (currentProcessId != -1)
-        {
-            Process proc = Process.GetProcessById(currentProcessId + 1);
-            proc.Kill();
-            currentProcessId = -1;
-        }
-    }
-
-#endif
-
     /// <summary>
     /// Executes command in cmd or console depending on system
     /// </summary>
@@ -177,9 +165,9 @@ public class PyrceptionInstaller : EditorWindow
 #endif
         ProcessStartInfo info = new ProcessStartInfo(shell, argument);
 
-        info.CreateNoWindow = !displayWindow;
-        info.UseShellExecute = !waitForExit;
-        info.RedirectStandardOutput = redirectOutput && waitForExit;
+        info.CreateNoWindow = !displayWindow || true;
+        info.UseShellExecute = !waitForExit && false;
+        info.RedirectStandardOutput = redirectOutput && waitForExit && false;
         info.RedirectStandardError = waitForExit;
 
         Process cmd = Process.Start(info);

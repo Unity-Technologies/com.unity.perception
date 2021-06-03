@@ -18,11 +18,11 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
-#if UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN || true
         if (RestartBrowser())
             return;
 #elif UNITY_EDITOR_OSX
-        KillProcess();
+        //KillProcess();
 #endif
         string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
 #if UNITY_EDITOR_WIN
@@ -51,11 +51,7 @@ public class PyrceptionInstaller : EditorWindow
         }
         else
         {
-#if UNITY_EDITOR_WIN
-            UnityEngine.Debug.Log("Launching visualization tool...");
-#elif UNITY_EDITOR_OSX
             UnityEngine.Debug.Log("You can view a preview of your datasets at: <color=#00aaccff>http://localhost:8501</color>");
-#endif
         }
     }
 
@@ -191,12 +187,8 @@ public class PyrceptionInstaller : EditorWindow
 
         if (!waitForExit)
         {
-#if UNITY_EDITOR_WIN
             if (!PlayerPrefs.HasKey("currentProcessId") || PlayerPrefs.GetInt("currentProcessId") == -1)
                 PlayerPrefs.SetInt("currentProcessId", cmd.Id);
-#elif UNITY_EDITOR_OSX 
-            currentProcessId = cmd.Id;
-#endif
             return output;
         }
 

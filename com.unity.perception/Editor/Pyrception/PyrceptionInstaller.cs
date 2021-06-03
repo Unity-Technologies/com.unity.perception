@@ -5,15 +5,22 @@ using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 
 public class PyrceptionInstaller : EditorWindow
-{ 
+{
+
+#if UNITY_EDITOR_OSX || true
     private static int currentProcessId = -1;
+#endif
+
     /// <summary>
     /// Runs pyrception instance in default browser
     /// </summary>
     [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
-#if UNITY_EDITOR_OSX
+#if UNITY_EDITOR_WIN
+        if (RestartBrowser())
+            return;
+#elif UNITY_EDITOR_OSX
         KillProcess();
 #endif
         string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
@@ -38,9 +45,17 @@ public class PyrceptionInstaller : EditorWindow
         int ExitCode = 0;
         ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
         if (ExitCode != 0)
+        {
             return;
+        }
         else
+        {
+#if UNITY_EDITOR_WIN
+            UnityEngine.Debug.Log("Launching visualization tool...");
+#elif UNITY_EDITOR_OSX
             UnityEngine.Debug.Log("You can view a preview of your datasets at: <color=#00aaccff>http://localhost:8501</color>");
+#endif
+        }
     }
 
     /// <summary>
@@ -99,11 +114,27 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.ClearProgressBar();
     }
 
-#if UNITY_EDITOR_OSX || true
-    void OnDestroy()
+#if UNITY_EDITOR_WIN
+    private static bool RestartBrowser()
     {
-        KillProcess();
+        if (currentProcessId != -1)
+        {
+            try
+            {
+                Process proc = Process.GetProcessById(currentProcessId + 1);
+                Process.Start("http://localhost:8501");
+                return true;
+            }
+            catch(System.Exception e)
+            {
+                currentProcessId = -1;
+                return false;
+            }
+        }
+        return false;
     }
+
+#elif UNITY_EDITOR_OSX || true
 
     private static void KillProcess()
     {
@@ -116,17 +147,6 @@ public class PyrceptionInstaller : EditorWindow
     }
 
 #endif
-
-    static void Quit()
-    {
-        KillProcess();
-    }
-
-    [RuntimeInitializeOnLoadMethod]
-    static void RunOnStart()
-    {
-        Application.quitting += Quit;
-    }
 
     /// <summary>
     /// Executes command in cmd or console depending on system
@@ -159,8 +179,13 @@ public class PyrceptionInstaller : EditorWindow
 
         if (!waitForExit)
         {
+#if UNITY_EDITOR_WIN
+            if (currentProcessId == -1)
+                currentProcessId = cmd.Id;
+#elif UNITY_EDITOR_OSX 
             currentProcessId = cmd.Id;
-            return "";
+#endif
+            return output;
         }
 
 

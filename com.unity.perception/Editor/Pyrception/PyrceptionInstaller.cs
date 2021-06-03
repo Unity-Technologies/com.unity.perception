@@ -111,7 +111,6 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.ClearProgressBar();
     }
 
-#if UNITY_EDITOR_WIN
     private static bool RestartBrowser()
     {
         currentProcessId = PlayerPrefs.HasKey("currentProcessId") ? PlayerPrefs.GetInt("currentProcessId") : -1;
@@ -142,7 +141,7 @@ public class PyrceptionInstaller : EditorWindow
         return false;
     }
 
-#elif UNITY_EDITOR_OSX
+#if UNITY_EDITOR_OSX
 
     private static void KillProcess()
     {

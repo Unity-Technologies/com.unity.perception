@@ -448,11 +448,13 @@ namespace UnityEngine.Perception.GroundTruth
                 {
                     var dataColorBuffer = (byte[])r.data.colorBuffer;
 
+
                     byte[] encodedData;
                     using (s_EncodeAndSave.Auto())
                     {
                         encodedData = ImageConversion.EncodeArrayToPNG(
                             dataColorBuffer, GraphicsFormat.R8G8B8A8_UNorm, (uint)width, (uint)height);
+                        DatasetCapture.SimulationState.PutImage(dxRootPath, encodedData);
                     }
 
                     return !FileProducer.Write(captureFilename, encodedData)

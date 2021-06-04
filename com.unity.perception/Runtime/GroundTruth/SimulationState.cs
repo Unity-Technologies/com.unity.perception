@@ -34,6 +34,8 @@ namespace UnityEngine.Perception.GroundTruth
         List<PendingCapture> m_PendingCaptures = new List<PendingCapture>(k_MinPendingCapturesBeforeWrite + 10);
         List<PendingMetric> m_PendingMetrics = new List<PendingMetric>(k_MinPendingMetricsBeforeWrite + 10);
 
+        IDictionary<string, byte[]> m_captures = new Dictionary<string, byte[]>();
+
         int m_MetricsFileIndex;
         int m_NextMetricId = 1;
 
@@ -848,6 +850,11 @@ namespace UnityEngine.Perception.GroundTruth
             EnsureStepIncremented();
             var captureId = sensorHandle.IsNil ? Guid.Empty : GetOrCreatePendingCaptureForThisFrame(sensorHandle).Id;
             m_PendingMetrics.Add(new PendingMetric(metricDefinition, m_NextMetricId++, sensorHandle, captureId, annotation, m_SequenceId, AcquireStep(), values));
+        }
+
+        public void PutImage(string dxRootPath, byte[] dataColorBuffer)
+        {
+            m_captures[dxRootPath] = dataColorBuffer;
         }
     }
 }

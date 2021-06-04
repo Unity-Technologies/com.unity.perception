@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Unity.Simulation;
+using UnityEditor.VersionControl;
 
 // ReSharper disable NotAccessedField.Local
 // ReSharper disable CoVariantArrayConversion
@@ -25,36 +29,38 @@ namespace UnityEngine.Perception.GroundTruth
             var egoReference = new JObject();
             egoReference["version"] = DatasetCapture.SchemaVersion;
             egoReference["egos"] = new JArray(m_Egos.Select(e =>
-            {
-                var egoObj = new JObject();
-                egoObj["id"] = e.Id.ToString();
-                if (e.Description != null)
-                    egoObj["description"] = e.Description;
+                {
+                    var egoObj = new JObject();
+                    egoObj["id"] = e.Id.ToString();
+                    if (e.Description != null)
+                        egoObj["description"] = e.Description;
 
-                return egoObj;
-            }).ToArray());
+                    return egoObj;
+                })
+                .ToArray());
 
             WriteJObjectToFile(egoReference, "egos.json");
 
             var sensorReferenceDoc = new JObject();
             sensorReferenceDoc["version"] = DatasetCapture.SchemaVersion;
             sensorReferenceDoc["sensors"] = new JArray(m_Sensors.Select(kvp =>
-            {
-                var sensorReference = new JObject();
-                sensorReference["id"] = kvp.Key.Id.ToString();
-                sensorReference["ego_id"] = kvp.Value.egoHandle.Id.ToString();
-                sensorReference["modality"] = kvp.Value.modality;
-                if (kvp.Value.description != null)
-                    sensorReference["description"] = kvp.Value.description;
+                {
+                    var sensorReference = new JObject();
+                    sensorReference["id"]       = kvp.Key.Id.ToString();
+                    sensorReference["ego_id"]   = kvp.Value.egoHandle.Id.ToString();
+                    sensorReference["modality"] = kvp.Value.modality;
+                    if (kvp.Value.description != null)
+                        sensorReference["description"] = kvp.Value.description;
 
-                return sensorReference;
-            }).ToArray());
+                    return sensorReference;
+                })
+                .ToArray());
             WriteJObjectToFile(sensorReferenceDoc, "sensors.json");
 
             if (m_AdditionalInfoTypeData.Count > 0)
             {
                 var annotationDefinitionsJArray = new JArray();
-                var metricDefinitionsJArray = new JArray();
+                var metricDefinitionsJArray     = new JArray();
                 foreach (var typeInfo in m_AdditionalInfoTypeData)
                 {
                     var typeJObject = new JObject();
@@ -73,6 +79,7 @@ namespace UnityEngine.Perception.GroundTruth
                         {
                             specValues.Add(DatasetJsonUtility.ToJToken(value));
                         }
+
                         typeJObject.Add("spec", specValues);
                     }
 
@@ -105,6 +112,7 @@ namespace UnityEngine.Perception.GroundTruth
                     WriteJObjectToFile(metricDefinitionsJObject, "metric_definitions.json");
                 }
             }
+
             Debug.Log($"Dataset written to {Path.GetDirectoryName(OutputDirectory)}");
         }
 
@@ -129,6 +137,42 @@ namespace UnityEngine.Perception.GroundTruth
             m_WriteToDiskSampler.End();
         }
 
+        class AnnotatedFrame
+        {
+            public string Image       { get; set; }
+            public JToken Annotations { get; set; }
+        }
+
+        void WriteMessagePack(List<(PendingCapture, byte[])> frames)
+        {
+            foreach (var frame in frames)
+            {
+                using (var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost:5000/AnnotatedFrame"))
+                {
+                    // request.Headers.Add("Content-Type", "application/json");
+                    var f = new AnnotatedFrame
+                    {
+                        Image       = Convert.ToBase64String(frame.Item2),
+                        Annotations = JObjectFromPendingCapture(frame.Item1)
+                    };
+
+                    var data = JsonConvert.SerializeObject(f);
+                    var ba   = new ByteArrayContent(Encoding.UTF8.GetBytes(data));
+                    ba.Headers.ContentType = new MediaTypeWithQualityHeaderValue("application/json");
+                    // var bin = MessagePackSerializer.Serialize(f, MessagePackSerializerOptions.Standard);
+                    // var ba  = new ByteArrayContent(bin);
+
+                    request.Content = ba;
+                    var response = _httpClient.SendAsync(request);
+                    response.Wait();
+                    var result = response.Result.Content.ReadAsStringAsync();
+                    result.Wait();
+                }
+            }
+        }
+
+        private HttpClient _httpClient = new HttpClient();
+
         void WritePendingCaptures(bool flush = false, bool writeCapturesFromThisFrame = false)
         {
             if (!flush && m_PendingCaptures.Count < k_MinPendingCapturesBeforeWrite)
@@ -136,14 +180,23 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_SerializeCapturesSampler.Begin();
 
+            var caps                   = new List<(PendingCapture, byte[])>();
             var pendingCapturesToWrite = new List<PendingCapture>(m_PendingCaptures.Count);
-            var frameCountNow = Time.frameCount;
+            var frameCountNow          = Time.frameCount;
             for (var i = 0; i < m_PendingCaptures.Count; i++)
             {
                 var pendingCapture = m_PendingCaptures[i];
                 if ((writeCapturesFromThisFrame || pendingCapture.FrameCount < frameCountNow) &&
                     pendingCapture.Annotations.All(a => a.Item2.IsAssigned))
                 {
+                    var img = m_captures[pendingCapture.Path];
+                    if (img != null)
+                    {
+                        Debug.Log($"adding {pendingCapture.Path} image to caps");
+                        caps.Add((pendingCapture, img));
+                        m_captures.Remove(pendingCapture.Path);
+                    }
+
                     pendingCapturesToWrite.Add(pendingCapture);
                     m_PendingCaptures.RemoveAt(i);
                     i--; //decrement i because we removed an element
@@ -181,12 +234,13 @@ namespace UnityEngine.Perception.GroundTruth
             }
             else
             {
+                WriteMessagePack(caps);
                 var req = Manager.Instance.CreateRequest<AsyncRequest<WritePendingCaptureRequestData>>();
                 req.data = new WritePendingCaptureRequestData()
                 {
                     CaptureFileIndex = m_CaptureFileIndex,
-                    PendingCaptures = pendingCapturesToWrite,
-                    SimulationState = this
+                    PendingCaptures  = pendingCapturesToWrite,
+                    SimulationState  = this
                 };
                 req.Enqueue(r =>
                 {
@@ -203,7 +257,7 @@ namespace UnityEngine.Perception.GroundTruth
         struct WritePendingMetricRequestData
         {
             public List<PendingMetric> PendingMetrics;
-            public int MetricFileIndex;
+            public int                 MetricFileIndex;
         }
 
         void WritePendingMetrics(bool flush = false)
@@ -255,7 +309,7 @@ namespace UnityEngine.Perception.GroundTruth
                 req.data = new WritePendingMetricRequestData()
                 {
                     MetricFileIndex = m_MetricsFileIndex,
-                    PendingMetrics = pendingMetricsToWrite
+                    PendingMetrics  = pendingMetricsToWrite
                 };
                 req.Enqueue(r =>
                 {
@@ -272,12 +326,15 @@ namespace UnityEngine.Perception.GroundTruth
         static JObject JObjectFromPendingMetric(PendingMetric metric)
         {
             var jObject = new JObject();
-            jObject["capture_id"] = metric.CaptureId == Guid.Empty ? new JRaw("null") : new JValue(metric.CaptureId.ToString());
-            jObject["annotation_id"] = metric.Annotation.IsNil ? new JRaw("null") : new JValue(metric.Annotation.Id.ToString());
-            jObject["sequence_id"] = metric.SequenceId.ToString();
-            jObject["step"] = metric.Step;
+            jObject["capture_id"] = metric.CaptureId == Guid.Empty
+                ? new JRaw("null")
+                : new JValue(metric.CaptureId.ToString());
+            jObject["annotation_id"] =
+                metric.Annotation.IsNil ? new JRaw("null") : new JValue(metric.Annotation.Id.ToString());
+            jObject["sequence_id"]       = metric.SequenceId.ToString();
+            jObject["step"]              = metric.Step;
             jObject["metric_definition"] = metric.MetricDefinition.Id.ToString();
-            jObject["values"] = metric.Values;
+            jObject["values"]            = metric.Values;
             return jObject;
         }
 
@@ -287,35 +344,42 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         static JToken JObjectFromPendingCapture(PendingCapture pendingCapture)
         {
-            var sensorJObject = new JObject();//new SensorCaptureJson
+            var sensorJObject = new JObject(); //new SensorCaptureJson
             sensorJObject["sensor_id"] = pendingCapture.SensorHandle.Id.ToString();
-            sensorJObject["ego_id"] = pendingCapture.SensorData.egoHandle.Id.ToString();
-            sensorJObject["modality"] = pendingCapture.SensorData.modality;
-            sensorJObject["translation"] = DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.SensorPose.position);
-            sensorJObject["rotation"] = DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.SensorPose.rotation);
+            sensorJObject["ego_id"]    = pendingCapture.SensorData.egoHandle.Id.ToString();
+            sensorJObject["modality"]  = pendingCapture.SensorData.modality;
+            sensorJObject["translation"] =
+                DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.SensorPose.position);
+            sensorJObject["rotation"] =
+                DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.SensorPose.rotation);
 
             if (pendingCapture.AdditionalSensorValues != null)
             {
-                foreach (var(name, value) in pendingCapture.AdditionalSensorValues)
+                foreach (var (name, value) in pendingCapture.AdditionalSensorValues)
                     sensorJObject.Add(name, DatasetJsonUtility.ToJToken(value));
             }
 
             var egoCaptureJson = new JObject();
             egoCaptureJson["ego_id"] = pendingCapture.SensorData.egoHandle.Id.ToString();
-            egoCaptureJson["translation"] = DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoPose.position);
+            egoCaptureJson["translation"] =
+                DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoPose.position);
             egoCaptureJson["rotation"] = DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoPose.rotation);
-            egoCaptureJson["velocity"] = pendingCapture.SensorSpatialData.EgoVelocity.HasValue ? DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoVelocity.Value) : null;
-            egoCaptureJson["acceleration"] = pendingCapture.SensorSpatialData.EgoAcceleration.HasValue ? DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoAcceleration.Value) : null;
+            egoCaptureJson["velocity"] = pendingCapture.SensorSpatialData.EgoVelocity.HasValue
+                ? DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoVelocity.Value)
+                : null;
+            egoCaptureJson["acceleration"] = pendingCapture.SensorSpatialData.EgoAcceleration.HasValue
+                ? DatasetJsonUtility.ToJToken(pendingCapture.SensorSpatialData.EgoAcceleration.Value)
+                : null;
 
             var capture = new JObject();
-            capture["id"] = pendingCapture.Id.ToString();
+            capture["id"]          = pendingCapture.Id.ToString();
             capture["sequence_id"] = pendingCapture.SequenceId.ToString();
-            capture["step"] = pendingCapture.Step;
-            capture["timestamp"] = pendingCapture.Timestamp;
-            capture["sensor"] = sensorJObject;
-            capture["ego"] = egoCaptureJson;
-            capture["filename"] = pendingCapture.Path;
-            capture["format"] = GetFormatFromFilename(pendingCapture.Path);
+            capture["step"]        = pendingCapture.Step;
+            capture["timestamp"]   = pendingCapture.Timestamp;
+            capture["sensor"]      = sensorJObject;
+            capture["ego"]         = egoCaptureJson;
+            capture["filename"]    = pendingCapture.Path;
+            capture["format"]      = GetFormatFromFilename(pendingCapture.Path);
 
             if (pendingCapture.Annotations.Any())
                 capture["annotations"] = new JArray(pendingCapture.Annotations.Select(JObjectFromAnnotation).ToArray());
@@ -326,7 +390,7 @@ namespace UnityEngine.Perception.GroundTruth
         static JObject JObjectFromAnnotation((Annotation, AnnotationData) annotationInfo)
         {
             var annotationJObject = new JObject();
-            annotationJObject["id"] = annotationInfo.Item1.Id.ToString();
+            annotationJObject["id"]                    = annotationInfo.Item1.Id.ToString();
             annotationJObject["annotation_definition"] = annotationInfo.Item2.AnnotationDefinition.Id.ToString();
             if (annotationInfo.Item2.Path != null)
                 annotationJObject["filename"] = annotationInfo.Item2.Path;
@@ -340,8 +404,8 @@ namespace UnityEngine.Perception.GroundTruth
         struct WritePendingCaptureRequestData
         {
             public List<PendingCapture> PendingCaptures;
-            public int CaptureFileIndex;
-            public SimulationState SimulationState;
+            public int                  CaptureFileIndex;
+            public SimulationState      SimulationState;
         }
     }
 }

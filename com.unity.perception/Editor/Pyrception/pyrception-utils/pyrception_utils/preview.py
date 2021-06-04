@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import streamlit as st
+import SessionState
 import PIL
 from PIL import ImageFont
 from PIL.Image import Image
@@ -255,9 +256,12 @@ def preview_dataset(base_dataset_dir: str):
     dataset_name = st.sidebar.selectbox(
         "Please select a dataset...", list_datasets(base_dataset_dir)
     )
+    labelers = {}
+    labelers['semantic_segmentation'] = st.sidebar.checkbox("Semantic Segmentation", key="ss")
+    labelers['bounding_boxes_2d'] = st.sidebar.checkbox("Bounding Boxes", key="bb2d")
 
 
-    num_rows = 5
+
     if dataset_name is not None:
         colors, dataset = load_perception_dataset(
             os.path.join(base_dataset_dir, dataset_name)
@@ -286,7 +290,26 @@ def preview_dataset(base_dataset_dir: str):
         #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
         #)
 
-        grid_view(num_rows, colors, dataset)
+
+        session_state = SessionState.get(image='-1', start_at='0')
+        index = int(session_state.image)
+        if index >= 0:
+            zoom(index, colors, dataset, session_state, labelers)
+        else:
+            num_rows = 5
+            grid_view(num_rows, colors, dataset, session_state, labelers)
+        #valid_result = False
+        #app_state = st.experimental_get_query_params()
+        #if "image_zoom_in" in app_state:
+        #    index = int(app_state["image_zoom_in"][0])
+        #    if index >= 0:
+        #        valid_result = True
+        #        zoom(index, dataset)
+        #
+        #if not valid_result:
+        #    num_rows = 5
+        #    grid_view(num_rows, colors, dataset)
+
 
 
 def sidebar():
@@ -297,55 +320,62 @@ def navbar():
     return None
 
 
-def grid_view(num_rows, colors, dataset):
+def grid_view(num_rows, colors, dataset, session_state, labelers):
     header = st.beta_columns([2/3, 1/3])
     num_cols = header[1].slider(label="Image per row: ", min_value=1, max_value=5, step=1, value=3)
     with header[0]:
-        start_at_2 = item_selector(0, num_cols * num_rows, len(dataset))
+        start_at = item_selector(int(session_state.start_at), num_cols * num_rows, len(dataset))
+        session_state.start_at = start_at
 
-    #inner_cols = st.beta_columns([0.1, 0.0001])
     cols = st.beta_columns(num_cols)
 
-    semantic_segmentation = st.sidebar.checkbox("Semantic Segmentation", key="ss")
-    bounding_boxes_2d = st.sidebar.checkbox("Bounding Boxes", key="bb2d")
-
-    #app_state = st.experimental_get_query_params()
-    #if "start_at" in app_state:
-    #    start_at = int(app_state["start_at"][0])
-    #else:
-    #    start_at = 0
-
-    #if inner_cols[1].button('>'):
-    #    overflow_image_count = len(dataset) % (num_cols * num_rows)
-    #    overflow_image_count = (num_cols * num_rows) if overflow_image_count == 0 else overflow_image_count
-    #    start_at = min(start_at + num_cols * num_rows, len(dataset)-overflow_image_count)
-    #if inner_cols[0].button('<'):
-    #    start_at = max(0, start_at - num_cols * num_rows)
-
-    #st.experimental_set_query_params(start_at=start_at)
-    for i in range(start_at_2, min(start_at_2 + (num_cols * num_rows), len(dataset))):
+    for i in range(start_at, min(start_at + (num_cols * num_rows), len(dataset))):
         classes = dataset.classes
         image, segmentation, target = dataset[i]
         labels = target["labels"]
         boxes = target["boxes"]
 
-        if semantic_segmentation:
+        if labelers['semantic_segmentation']:
             image = draw_image_with_semantic_segmentation(
                 image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
             )
-        if bounding_boxes_2d:
+        if labelers['bounding_boxes_2d']:
             image = draw_image_with_boxes(
                 image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
             )
-        container = cols[(i - (start_at_2 % num_cols)) % num_cols].beta_container()
+        container = cols[(i - (start_at % num_cols)) % num_cols].beta_container()
+        container.write("Capture #" + str(i))
+        expand_image = container.button(label="Expand image", key="exp"+str(i))
         container.image(image, caption=str(i), use_column_width=True)
-        if container.button(label="Expand image", key="exp"+str(i)):
-            container.write("IMAGE WAS CLICKED")
+        if expand_image:
+            session_state.image = i
+            st.experimental_rerun()
 
 
+def zoom(index, colors, dataset, session_state, labelers):
+    if st.button('< Back to Grid view'):
+        session_state.image = -1
+        st.experimental_rerun()
 
-def zoom(index):
-    return None
+    classes = dataset.classes
+    image, segmentation, target = dataset[index]
+    labels = target["labels"]
+    boxes = target["boxes"]
+
+    if labelers['semantic_segmentation']:
+        image = draw_image_with_semantic_segmentation(
+            image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
+        )
+    if labelers['bounding_boxes_2d']:
+        image = draw_image_with_boxes(
+            image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
+        )
+
+    layout = st.beta_columns([0.8, 0.2])
+    layout[0].image(image, use_column_width=True)
+    layout[1].title("JSON metadata")
+    layout[1].write("-- display --")
+
 
 def preview_app(args):
     """

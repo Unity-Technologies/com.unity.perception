@@ -20,7 +20,7 @@ public class PyrceptionInstaller : EditorWindow
         string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
 #if UNITY_EDITOR_WIN
         string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
-#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+#elif UNITY_EDITOR_OSX
         string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
 #endif
         string pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
@@ -33,7 +33,7 @@ public class PyrceptionInstaller : EditorWindow
 
 #if UNITY_EDITOR_WIN
         command = $"cd \"{pathToData}\\..\" && \"{packagesPath}\\pyrception-utils.exe\" preview --data=\".\"";
-#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+#elif UNITY_EDITOR_OSX
         command = $"cd \'{packagesPath}\' ;./python3.7 ./pyrception-utils.py preview --data=\'{pathToData}/..\'";
 #endif
         int ExitCode = 0;
@@ -67,7 +67,7 @@ public class PyrceptionInstaller : EditorWindow
         //==============================SETUP PATHS======================================
 #if UNITY_EDITOR_WIN
         string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
-#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+#elif UNITY_EDITOR_OSX
         string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
 #endif
         string pyrceptionPath = Path.GetFullPath("Packages/com.unity.perception/Editor/Pyrception/pyrception-utils").Replace("\\","/");
@@ -82,7 +82,7 @@ public class PyrceptionInstaller : EditorWindow
 
 #if UNITY_EDITOR_WIN
         ExecuteCMD($"XCOPY /E/I/Y \"{pyrceptionPath}\" \"{packagesPath}\\..\\pyrception-util\"", ref ExitCode);
-#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+#elif UNITY_EDITOR_OSX
         ExecuteCMD($"\\cp -r \'{pyrceptionPath}\' \'{packagesPath}/../pyrception-util\'", ref ExitCode);
 #endif
         if (ExitCode != 0) {
@@ -97,7 +97,7 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.DisplayProgressBar("Setting up Pyrception", "Installing pyrception utils...", 2.5f / steps);
 #if UNITY_EDITOR_WIN
         ExecuteCMD($"cd \"{packagesPath}\\..\\pyrception-util\" && \"{packagesPath}\"\\pip3.bat install --no-warn-script-location --no-cache-dir -e .", ref ExitCode);
-#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+#elif UNITY_EDITOR_OSX
         ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip install -e \'../pyrception-util/.\'", ref ExitCode);
         ExecuteCMD($"\\cp -r \'{pyrceptionPath}/pyrception-utils.py\' \'{packagesPath}/pyrception-utils.py\'", ref ExitCode);
 #endif
@@ -159,7 +159,7 @@ public class PyrceptionInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
         shell = "cmd.exe";
         argument = $"/c \"{command}\"";
-#elif (UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX)
+#elif UNITY_EDITOR_OSX
         shell = "/bin/bash";
         argument = $"-c \"{command}\"";
 #endif

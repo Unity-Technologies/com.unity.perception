@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import pathlib
 from typing import Dict, List, Tuple
@@ -23,6 +24,9 @@ build_dir_slider = os.path.join(root_dir, "custom_components/slider/build")
 build_dir_page_selector = os.path.join(root_dir, "custom_components/pageselector/build")
 build_dir_go_to = os.path.join(root_dir, "custom_components/goto/build")
 build_dir_item_selector = os.path.join(root_dir, "custom_components/itemselector/build")
+build_dir_image_selector = os.path.join(root_dir, "custom_components/imageselector/build")
+build_dir_json_viewer = os.path.join(root_dir, "custom_components/jsonviewer/build")
+build_dir_item_selector_zoom = os.path.join(root_dir, "custom_components/itemselectorzoom/build")
 
 _discrete_slider = components.declare_component(
     "discrete_slider",
@@ -44,6 +48,21 @@ _item_selector = components.declare_component(
     path=build_dir_item_selector
 )
 
+_image_selector = components.declare_component(
+    "image_selector",
+    path=build_dir_image_selector
+)
+
+_json_viewer = components.declare_component(
+    "json_viewer",
+    path=build_dir_json_viewer
+)
+
+_item_selector_zoom = components.declare_component(
+    "item_selector_zoom",
+    path=build_dir_item_selector_zoom
+)
+
 
 def discrete_slider(greeting, name, key, default=0):
     return _discrete_slider(greeting=greeting, name=name, default=default, key=key)
@@ -58,7 +77,19 @@ def go_to(key=0):
 
 
 def item_selector(startAt, incrementAmt, datasetSize, key=0):
-    return _item_selector(startAt=startAt, incrementAmt=incrementAmt, datasetSize=datasetSize, key=key, default=0)
+    return _item_selector(startAt=startAt, incrementAmt=incrementAmt, datasetSize=datasetSize, key=key, default=startAt)
+
+
+def image_selector(index, key=0):
+    return _image_selector(index=index, key=key, default=index)
+
+
+def json_viewer(metadata, key=0):
+    return _json_viewer(jsonMetadata=metadata, key=key, default=0)
+
+
+def item_selector_zoom(index, datasetSize, key=0):
+    return _item_selector_zoom(index=index, datasetSize=datasetSize, key=key, default=index)
 #-------------------------------------END-------------------------------------------------------------------------------
 
 def list_datasets(path) -> List:
@@ -256,73 +287,29 @@ def preview_dataset(base_dataset_dir: str):
     dataset_name = st.sidebar.selectbox(
         "Please select a dataset...", list_datasets(base_dataset_dir)
     )
-    labelers = {}
-    labelers['semantic_segmentation'] = st.sidebar.checkbox("Semantic Segmentation", key="ss")
-    labelers['bounding_boxes_2d'] = st.sidebar.checkbox("Bounding Boxes", key="bb2d")
-
-
 
     if dataset_name is not None:
+        labelers = {'semantic_segmentation': st.sidebar.checkbox("Semantic Segmentation", key="ss"),
+                    'bounding_boxes_2d': st.sidebar.checkbox("Bounding Boxes", key="bb2d")}
+
         colors, dataset = load_perception_dataset(
             os.path.join(base_dataset_dir, dataset_name)
         )
-        #classes = dataset.classes
-        #st.sidebar.selectbox(
-        #    "hello", classes
-        #)
-        #image_index = frame_selector_ui(dataset)
-        #image, segmentation, target = dataset[image_index]
-        #labels = target["labels"]
-        #boxes = target["boxes"]
 
-        #st.image(image, use_column_width=True)
-
-        #draw_image_stacked(
-        #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", "", dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation
-        #)
-        #draw_image_with_boxes(
-        #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
-        #)
-        #image = draw_image_with_semantic_segmentation(
-        #    image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
-        #)
-        #image = draw_image_with_boxes(
-        #    image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
-        #)
-
-
-        session_state = SessionState.get(image='-1', start_at='0')
+        session_state = SessionState.get(image='-1', start_at='0', num_cols='3')
         index = int(session_state.image)
         if index >= 0:
-            zoom(index, colors, dataset, session_state, labelers)
+            dataset_path = os.path.join(base_dataset_dir, dataset_name)
+            zoom(index, colors, dataset, session_state, labelers, dataset_path)
         else:
             num_rows = 5
             grid_view(num_rows, colors, dataset, session_state, labelers)
-        #valid_result = False
-        #app_state = st.experimental_get_query_params()
-        #if "image_zoom_in" in app_state:
-        #    index = int(app_state["image_zoom_in"][0])
-        #    if index >= 0:
-        #        valid_result = True
-        #        zoom(index, dataset)
-        #
-        #if not valid_result:
-        #    num_rows = 5
-        #    grid_view(num_rows, colors, dataset)
-
-
-
-def sidebar():
-    return None
-
-
-def navbar():
-    return None
 
 
 def grid_view(num_rows, colors, dataset, session_state, labelers):
     header = st.beta_columns([2/3, 1/3])
-    num_cols = header[1].slider(label="Image per row: ", min_value=1, max_value=5, step=1, value=3)
+    num_cols = header[1].slider(label="Image per row: ", min_value=1, max_value=5, step=1, value=int(session_state.num_cols))
+    session_state.num_cols = num_cols
     with header[0]:
         start_at = item_selector(int(session_state.start_at), num_cols * num_rows, len(dataset))
         session_state.start_at = start_at
@@ -352,15 +339,23 @@ def grid_view(num_rows, colors, dataset, session_state, labelers):
             st.experimental_rerun()
 
 
-def zoom(index, colors, dataset, session_state, labelers):
-    if st.button('< Back to Grid view'):
-        session_state.image = -1
-        st.experimental_rerun()
-
+def zoom(index, colors, dataset, session_state, labelers, dataset_path):
     classes = dataset.classes
     image, segmentation, target = dataset[index]
     labels = target["labels"]
     boxes = target["boxes"]
+
+    header = st.beta_columns([0.2, 0.6, 0.2])
+
+    if header[0].button('< Back to Grid view'):
+        session_state.image = -1
+        st.experimental_rerun()
+
+    with header[1]:
+        new_index = item_selector_zoom(index, len(dataset))
+        if not new_index == index:
+            session_state.image = new_index
+            st.experimental_rerun()
 
     if labelers['semantic_segmentation']:
         image = draw_image_with_semantic_segmentation(
@@ -371,10 +366,23 @@ def zoom(index, colors, dataset, session_state, labelers):
             image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
         )
 
-    layout = st.beta_columns([0.8, 0.2])
+    layout = st.beta_columns([0.7, 0.3])
     layout[0].image(image, use_column_width=True)
     layout[1].title("JSON metadata")
-    layout[1].write("-- display --")
+
+    captures_dir = None
+    for directory in os.walk(dataset_path):
+        if "Dataset" in directory[0] and "." not in directory[0][1:]:
+            captures_dir = directory[0]
+            break
+
+    file_num = index // 150
+    postfix = ('000' + str(file_num))
+    postfix = postfix[len(postfix) - 3:]
+    path_to_captures = os.path.join(os.path.abspath(captures_dir), "captures_" + postfix + ".json")
+    with layout[1]:
+        json_file = json.load(open(path_to_captures, "r"))
+        json_viewer(json.dumps(json_file["captures"][index]))
 
 
 def preview_app(args):
@@ -398,4 +406,10 @@ if __name__ == "__main__":
     parser.add_argument("data", type=str)
     args = parser.parse_args()
     st.markdown('<style>button.css-9eqr5v{display: none}</style>', unsafe_allow_html=True)
+    #st.markdown('<script type="application/javascript"> function resizeIFrameToFitContent( iFrameme ) { iFrame.width  = '
+    #            'iFrame.contentWindow.document.body.scrollWidth;iFrame.height = '
+    #            'iFrame.contentWindow.document.body.scrollHeight;} window.addEventListener(\'DOMContentLoaded\', '
+    #            'function(e) { var iFrame = document.getElementById( \'iFrame1\' ); resizeIFrameToFitContent( iFrame '
+    #            '); var iframes = document.querySelectorAll("iframe"); for( var i = 0; i < iframes.length; i++) { '
+    #            'resizeIFrameToFitContent( iframes[i] );} } ); </script>', unsafe_allow_html=True)
     preview_app(args)

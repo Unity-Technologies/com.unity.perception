@@ -178,11 +178,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
             if (uniform)
             {
                 var index = (int)(randomValue * m_Categories.Count);
-                if (index == m_Categories.Count)
-                {
-                    index--;
-                }
-
+                index = index == m_Categories.Count ? index - 1 : index;
                 return m_Categories[index];
             }
             return m_Categories[BinarySearch(randomValue)];

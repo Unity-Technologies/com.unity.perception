@@ -14,6 +14,7 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
+        UnityEngine.Debug.Log(PlayerPrefs.GetInt("currentProcessId"));
         if (RestartBrowser())
             return;
 
@@ -165,8 +166,8 @@ public class PyrceptionInstaller : EditorWindow
 #endif
         ProcessStartInfo info = new ProcessStartInfo(shell, argument);
 
-        info.CreateNoWindow = !displayWindow || true;
-        info.UseShellExecute = !waitForExit && false;
+        info.CreateNoWindow = true;
+        info.UseShellExecute = false;
         info.RedirectStandardOutput = redirectOutput && waitForExit && false;
         info.RedirectStandardError = waitForExit;
 

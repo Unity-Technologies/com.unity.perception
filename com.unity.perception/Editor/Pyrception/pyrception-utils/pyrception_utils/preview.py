@@ -12,10 +12,13 @@ from PIL import ImageFont
 from PIL.Image import Image
 from PIL.ImageDraw import ImageDraw
 from pyrception_utils import PyrceptionDataset
+from pyquaternion import Quaternion
+from bbox import BBox3D
+from bbox3d_plot import add_single_bbox3d_on_image
 
 st.set_page_config(layout="wide")
 
-#--------------------------------Custom component-----------------------------------------------------------------------
+# --------------------------------Custom component-----------------------------------------------------------------------
 
 import streamlit.components.v1 as components
 
@@ -90,7 +93,9 @@ def json_viewer(metadata, key=0):
 
 def item_selector_zoom(index, datasetSize, key=0):
     return _item_selector_zoom(index=index, datasetSize=datasetSize, key=key, default=index)
-#-------------------------------------END-------------------------------------------------------------------------------
+
+
+# -------------------------------------END-------------------------------------------------------------------------------
 
 def list_datasets(path) -> List:
     """
@@ -162,12 +167,13 @@ def draw_image_with_boxes(
         image_draw.text(
             (box[0], box[1]), class_name, font=font, fill=colors[class_name]
         )
-    #st.subheader(header)
-    #st.markdown(description)
-    #st.image(image, use_column_width=True)
+    # st.subheader(header)
+    # st.markdown(description)
+    # st.image(image, use_column_width=True)
     return image
 
-def draw_image_with_semantic_segmentation(
+
+def draw_image_with_segmentation(
     image: Image,
     height: int,
     width: int,
@@ -193,74 +199,109 @@ def draw_image_with_semantic_segmentation(
     """
     # image_draw = ImageDraw(segmentation)
     rgba = np.array(segmentation.copy().convert("RGBA"))
-    r,g,b,a = rgba.T
+    r, g, b, a = rgba.T
     black_areas = (r == 0) & (b == 0) & (g == 0) & (a == 255)
     other_areas = (r != 0) | (b != 0) | (g != 0)
-    rgba[...,0:4][black_areas.T] = (0,0,0,0)
-    rgba[...,-1][other_areas.T] = int(0.6 * 255)
+    rgba[..., 0:4][black_areas.T] = (0, 0, 0, 0)
+    rgba[..., -1][other_areas.T] = int(0.6 * 255)
 
     foreground = PIL.Image.fromarray(rgba)
     image = image.copy()
-    image.paste(foreground,(0,0),foreground)
+    image.paste(foreground, (0, 0), foreground)
     return image
 
-def draw_image_stacked(
-    image: Image,
-    classes: Dict,
-    labels: List,
-    boxes: List[List],
-    colors: Dict,
-    header: str,
-    description: str,
-    height: int,
-    width: int,
-    segmentation: Image,
 
+def draw_image_with_keypoints(
+    image: Image,
+    keypoints,
+    dataset,
 ):
     image = image.copy()
-    color_intensity = st.sidebar.slider('color intensity 2 (%)', 0, 100, 65);
-    alpha = color_intensity / 100;
-
-    for x in range(0, width - 1):
-        for y in range(0, height - 1):
-            (seg_r, seg_g, seg_b) = segmentation.getpixel((x, y))
-            (r, g, b) = image.getpixel((x, y))
-            # if it isn't a black pixel in the segmentation image then highlight it with the segmentation color
-            if seg_r != 0 or seg_g != 0 or seg_b != 0:
-                image.putpixel((x, y),
-                               (int((1 - alpha) * r + alpha * seg_r),
-                                int((1 - alpha) * g + alpha * seg_g),
-                                int((1 - alpha) * b + alpha * seg_b)))
-
     image_draw = ImageDraw(image)
-    # draw bounding boxes
-    path_to_font = pathlib.Path(__file__).parent.absolute()
-    font = ImageFont.truetype(f"{path_to_font}/NairiNormal-m509.ttf", 15)
+    radius = int(dataset.metadata.image_size[0] * 5/500)
+    for i in range(len(keypoints)):
+        keypoint = keypoints[i]
+        if keypoint["state"] != 2:
+            continue
+        coordinates = (keypoint["x"]-radius, keypoint["y"]-radius, keypoint["x"]+radius, keypoint["y"]+radius)
+        color = dataset.metadata.annotations[dataset.metadata.available_annotations['keypoints']]["spec"][0]["key_points"][i]["color"]
+        image_draw.ellipse(coordinates, fill=(int(255*color["r"]), int(255*color["g"]), int(255*color["b"]), 255))
 
-    for label, box in zip(labels, boxes):
-        label = label - 1
-        class_name = classes[label]
-        image_draw.rectangle(box, outline=colors[class_name], width=2)
-        image_draw.text(
-            (box[0], box[1]), class_name, font=font, fill=colors[class_name]
+    skeleton = dataset.metadata.annotations[dataset.metadata.available_annotations['keypoints']]["spec"][0]["skeleton"]
+    for bone in skeleton:
+        if keypoints[bone["joint1"]]["state"] != 2 or keypoints[bone["joint1"]]["state"] != 2:
+            continue
+        joint1 = (keypoints[bone["joint1"]]["x"], keypoints[bone["joint1"]]["y"])
+        joint2 = (keypoints[bone["joint2"]]["x"], keypoints[bone["joint2"]]["y"])
+        r = bone["color"]["r"]
+        g = bone["color"]["g"]
+        b = bone["color"]["b"]
+        image_draw.line([joint1, joint2], fill=(int(255*r), int(255*g), int(255*b), 255), width=int(dataset.metadata.image_size[0] * 3/500))
+    return image
+
+def plot_bboxes3d(image, bboxes, projection, color, orthographic):
+    """ Plot an image with 3D bounding boxes
+
+    Currently this method should only be used for ground truth images, and
+    doesn't support predictions. If a list of colors is not provided as an
+    argument to this routine, the default color of green will be used.
+
+    Args:
+        image (PIL Image): a PIL image.
+        bboxes (list): a list of BBox3D objects
+        projection: The perspective projection of the camera which
+        captured the ground truth.
+        colors (list): a color list for boxes. Defaults to none. If
+        colors = None, it will default to coloring all boxes green.
+
+    Returns:
+        PIL image: a PIL image with bounding boxes drawn on it.
+    """
+    np_image = np.array(image)
+    img_height, img_width, _ = np_image.shape
+
+    for i, box in enumerate(bboxes):
+        add_single_bbox3d_on_image(np_image, box, projection, color, orthographic=orthographic)
+
+    return PIL.Image.fromarray(np_image)
+
+def read_bounding_box_3d(bounding_boxes_metadata):
+    bboxes = []
+
+    for b in bounding_boxes_metadata:
+        label_id = b['label_id']
+        translation = (b["translation"]["x"],b["translation"]["y"],b["translation"]["z"])
+        size = (b["size"]["x"], b["size"]["y"], b["size"]["z"])
+        rotation = b["rotation"]
+        rotation = Quaternion(
+            x=rotation["x"], y=rotation["y"], z=rotation["z"], w=rotation["w"]
         )
 
-    st.subheader(header)
-    st.markdown(description)
-    st.image(image, use_column_width=True)
+        #if label_mappings and label_id not in label_mappings:
+        #    continue
+        box = BBox3D(
+            translation=translation,
+            size=size,
+            label=label_id,
+            sample_token=0,
+            score=1,
+            rotation=rotation,
+        )
+        bboxes.append(box)
+
+    return bboxes
+
+def draw_image_with_box_3d(image, sensor, values, colors):
+    if 'camera_intrinsic' in sensor:
+        projection = np.array(sensor["camera_intrinsic"])
+    else:
+        projection = np.array([[1,0,0],[0,1,0],[0,0,1]])
+
+    boxes = read_bounding_box_3d(values)
+    img_with_boxes = plot_bboxes3d(image, boxes, projection, None, orthographic=(sensor["projection"]=="\"orthographic\""))
+    return img_with_boxes
 
 
-def display_count(
-    header: str,
-    description: str,
-):
-    """
-    :param header: Image header
-    :type str:
-    :param description: Image description
-    :type str:
-    """
-    return
 @st.cache(show_spinner=True, allow_output_mutation=True)
 def load_perception_dataset(path: str) -> Tuple:
     """
@@ -283,18 +324,35 @@ def preview_dataset(base_dataset_dir: str):
     :param base_dataset_dir: The directory that contains the perceptions datasets.
     :type str:
     """
-    #st.markdown("# Synthetic Dataset Preview\n ## Unity Technologies ")
+    # st.markdown("# Synthetic Dataset Preview\n ## Unity Technologies ")
     dataset_name = st.sidebar.selectbox(
         "Please select a dataset...", list_datasets(base_dataset_dir)
     )
 
     if dataset_name is not None:
-        labelers = {'semantic_segmentation': st.sidebar.checkbox("Semantic Segmentation", key="ss"),
-                    'bounding_boxes_2d': st.sidebar.checkbox("Bounding Boxes", key="bb2d")}
-
         colors, dataset = load_perception_dataset(
             os.path.join(base_dataset_dir, dataset_name)
         )
+
+        available_labelers = [a["name"] for a in dataset.metadata.annotations]
+        labelers = {}
+        if 'bounding box' in available_labelers:
+            labelers['bounding box'] = st.sidebar.checkbox("Bounding Boxes 2D", key="bb2d")
+        if 'bounding box 3D' in available_labelers:
+            labelers['bounding box 3D'] = st.sidebar.checkbox("Bounding Boxes 3D", key="bb2d")
+        if 'keypoints' in available_labelers:
+            labelers['keypoints'] = st.sidebar.checkbox("Key Points", key="kp")
+        if 'instance segmentation' in available_labelers and 'semantic segmentation' in available_labelers:
+            if st.sidebar.checkbox('Segmentation'):
+                selected_segmentation = st.sidebar.radio("Select the segmentation type:", ['Semantic Segmentation', 'Instance Segmentation'], index=0)
+                if selected_segmentation == 'Semantic Segmentation':
+                    labelers['semantic segmentation'] = True
+                elif selected_segmentation == 'Instance Segmentation':
+                    labelers['instance segmentation'] = True
+        elif 'semantic segmentation' in available_labelers:
+            labelers['semantic segmentation'] = st.sidebar.checkbox("Semantic Segmentation", key="ss")
+        elif 'instance segmentation' in available_labelers:
+            labelers['instance segmentation'] = st.sidebar.checkbox("Instance Segmentation", key="is")
 
         session_state = SessionState.get(image='-1', start_at='0', num_cols='3')
         index = int(session_state.image)
@@ -306,10 +364,53 @@ def preview_dataset(base_dataset_dir: str):
             grid_view(num_rows, colors, dataset, session_state, labelers)
 
 
+def get_image_with_labelers(image_and_labelers, dataset, colors, labelers_to_use):
+    classes = dataset.classes
+    image = image_and_labelers['image']
+    if 'semantic segmentation' in labelers_to_use and labelers_to_use['semantic segmentation']:
+        semantic = image_and_labelers["semantic segmentation"]
+        image = draw_image_with_segmentation(
+            image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], semantic,
+            "Semantic Segmentation Preview", ""
+        )
+
+    if 'instance segmentation' in labelers_to_use and labelers_to_use['instance segmentation']:
+        instance = image_and_labelers['instance segmentation']
+        image = draw_image_with_segmentation(
+            image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], instance,
+            "Semantic Segmentation Preview", ""
+        )
+
+    if 'bounding box' in labelers_to_use and labelers_to_use['bounding box']:
+        target = image_and_labelers["bounding box"]
+        labels = target["labels"]
+        boxes = target["boxes"]
+        image = draw_image_with_boxes(
+            image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
+        )
+
+    if 'keypoints' in labelers_to_use and labelers_to_use['keypoints']:
+        keypoints = image_and_labelers["keypoints"]
+        image = draw_image_with_keypoints(
+            image, keypoints, dataset
+        )
+
+    if 'bounding box 3D' in labelers_to_use and labelers_to_use['bounding box 3D']:
+        sensor, values = image_and_labelers['bounding box 3D']
+        image = draw_image_with_box_3d(image, sensor, values, colors)
+
+    return image
+
+
 def grid_view(num_rows, colors, dataset, session_state, labelers):
-    header = st.beta_columns([2/3, 1/3])
-    num_cols = header[1].slider(label="Image per row: ", min_value=1, max_value=5, step=1, value=int(session_state.num_cols))
-    session_state.num_cols = num_cols
+    header = st.beta_columns([2 / 3, 1 / 3])
+
+    num_cols = header[1].slider(label="Image per row: ", min_value=1, max_value=5, step=1,
+                                value=int(session_state.num_cols))
+    if not num_cols == session_state.num_cols:
+        session_state.num_cols = num_cols
+        st.experimental_rerun()
+
     with header[0]:
         start_at = item_selector(int(session_state.start_at), num_cols * num_rows, len(dataset))
         session_state.start_at = start_at
@@ -317,22 +418,11 @@ def grid_view(num_rows, colors, dataset, session_state, labelers):
     cols = st.beta_columns(num_cols)
 
     for i in range(start_at, min(start_at + (num_cols * num_rows), len(dataset))):
-        classes = dataset.classes
-        image, segmentation, target = dataset[i]
-        labels = target["labels"]
-        boxes = target["boxes"]
+        image = get_image_with_labelers(dataset[i], dataset, colors, labelers)
 
-        if labelers['semantic_segmentation']:
-            image = draw_image_with_semantic_segmentation(
-                image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
-            )
-        if labelers['bounding_boxes_2d']:
-            image = draw_image_with_boxes(
-                image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
-            )
         container = cols[(i - (start_at % num_cols)) % num_cols].beta_container()
         container.write("Capture #" + str(i))
-        expand_image = container.button(label="Expand image", key="exp"+str(i))
+        expand_image = container.button(label="Expand image", key="exp" + str(i))
         container.image(image, caption=str(i), use_column_width=True)
         if expand_image:
             session_state.image = i
@@ -340,11 +430,6 @@ def grid_view(num_rows, colors, dataset, session_state, labelers):
 
 
 def zoom(index, colors, dataset, session_state, labelers, dataset_path):
-    classes = dataset.classes
-    image, segmentation, target = dataset[index]
-    labels = target["labels"]
-    boxes = target["boxes"]
-
     header = st.beta_columns([0.2, 0.6, 0.2])
 
     if header[0].button('< Back to Grid view'):
@@ -357,14 +442,7 @@ def zoom(index, colors, dataset, session_state, labelers, dataset_path):
             session_state.image = new_index
             st.experimental_rerun()
 
-    if labelers['semantic_segmentation']:
-        image = draw_image_with_semantic_segmentation(
-            image, dataset.metadata.image_size[0], dataset.metadata.image_size[1], segmentation, "Semantic Segmentation Preview", ""
-        )
-    if labelers['bounding_boxes_2d']:
-        image = draw_image_with_boxes(
-            image, classes, labels, boxes, colors, "Bounding Boxes Preview", ""
-        )
+    image = get_image_with_labelers(dataset[index], dataset, colors, labelers)
 
     layout = st.beta_columns([0.7, 0.3])
     layout[0].image(image, use_column_width=True)
@@ -400,13 +478,12 @@ def preview_app(args):
         raise ValueError("Please specify the path to the main dataset directory!")
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("data", type=str)
     args = parser.parse_args()
     st.markdown('<style>button.css-9eqr5v{display: none}</style>', unsafe_allow_html=True)
-    #st.markdown('<script type="application/javascript"> function resizeIFrameToFitContent( iFrameme ) { iFrame.width  = '
+    # st.markdown('<script type="application/javascript"> function resizeIFrameToFitContent( iFrameme ) { iFrame.width  = '
     #            'iFrame.contentWindow.document.body.scrollWidth;iFrame.height = '
     #            'iFrame.contentWindow.document.body.scrollHeight;} window.addEventListener(\'DOMContentLoaded\', '
     #            'function(e) { var iFrame = document.getElementById( \'iFrame1\' ); resizeIFrameToFitContent( iFrame '

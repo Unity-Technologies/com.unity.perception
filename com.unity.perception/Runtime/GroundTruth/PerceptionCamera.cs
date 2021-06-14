@@ -434,6 +434,9 @@ namespace UnityEngine.Perception.GroundTruth
             // Record the camera's projection matrix
             SetPersistentSensorData("camera_intrinsic", ToProjectionMatrix3x3(cam.projectionMatrix));
 
+            // Record the camera's projection type (orthographic or perspective)
+            SetPersistentSensorData("projection", cam.orthographic ? "orthographic" : "perspective");
+
             var captureFilename = $"{Manager.Instance.GetDirectoryFor(rgbDirectory)}/{k_RgbFilePrefix}{Time.frameCount}.png";
             var dxRootPath = $"{rgbDirectory}/{k_RgbFilePrefix}{Time.frameCount}.png";
             SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(

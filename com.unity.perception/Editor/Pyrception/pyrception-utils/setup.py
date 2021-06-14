@@ -13,6 +13,8 @@ setup(
         "streamlit==0.75.0",
         "google-cloud-storage==1.19.0",
         "gcsfs==0.7.1",
+        "pyquaternion>=0.9.9",
+        "opencv-python>=4.5"
     ],
     entry_points={"console_scripts": ["pyrception-utils=pyrception_utils.cli:main"]},
 )

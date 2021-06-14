@@ -164,7 +164,8 @@ class PyrceptionDatasetMetadata:
         # Extract the class labels
         self.classes = []
         for label in self.annotations[0]["spec"]:
-            self.classes.append(label["label_name"])
+            if "label_name" in label:
+                self.classes.append(label["label_name"])
 
         # Set the number of classes
         self.num_classes = len(self.classes)
@@ -203,34 +204,87 @@ class PyrceptionDataset:
             )
         self.last_file_index = None
 
-    def __getitem__(self, index: int) -> Tuple:
+    def __getitem__(self, index: int) -> dict:
         """
         Iterator to get one frame at a time based on index.
 
         :param index: the index of the frame to retrieve
         :type int:
-        :return: Returns a tuple containing the image and target metadata as (image, target)
-        :rtype: Tuple
         """
 
         if index > self.metadata.length - 1:
             raise IndexError("Index of out bounds.")
 
         sub_index = self.__load_subset(index)
+
+        image_and_labelers = {}
+
         try:
+            # Image
             image = Image.open(
                 os.path.join(self.metadata.data_dir, self.data[sub_index]["filename"])
             ).convert("RGB")
-            segmentation = Image.open(
-                os.path.join(self.metadata.data_dir, self.data[sub_index]["annotations"][1]["filename"])
-            ).convert("RGB")
+            image_and_labelers["image"] = image
+
+            # Assumes that the order is the same for the annotations in metadata as in the captures_***.json file
+            annotations = {}
+            for i in range(len(self.metadata.annotations)):
+                a = self.metadata.annotations[i]
+                for j in range(len(self.data[sub_index]["annotations"])):
+                    if self.data[sub_index]["annotations"][j]["annotation_definition"] == a["id"]:
+                        annotations[a["name"]] = j
+                        break
+
+            self.metadata.available_annotations = annotations
+
+            # Bounding Boxes
+            if "bounding box" in annotations:
+                image_and_labelers["bounding box"] = self.get_bounding_boxes(sub_index, annotations["bounding box"])
+
+            # Bounding Boxes 3d
+            if "bounding box 3D" in annotations:
+                image_and_labelers["bounding box 3D"] = self.get_bounding_box_3d(sub_index, annotations["bounding box 3D"])
+
+            # Semantic Segmentation
+            if "semantic segmentation" in annotations:
+                image_and_labelers["semantic segmentation"] = self.get_segmentation(sub_index, annotations[
+                    "semantic segmentation"])
+
+            # Instance Segmentation
+            if "instance segmentation" in annotations:
+                image_and_labelers["instance segmentation"] = self.get_segmentation(sub_index, annotations[
+                    "instance segmentation"])
+
+            # Keypoints
+            if "keypoints" in annotations:
+                image_and_labelers["keypoints"] = self.get_keypoints(sub_index, annotations["keypoints"])
+
         except IndexError:
             print(self.data)
             raise IndexError(f"Index is :{index} Subindex is:{sub_index}")
+
+        return image_and_labelers
+
+    def get_keypoints(self, sub_index, ann_index):
+        image_ann = self.data[sub_index]
+        keypoints = image_ann["annotations"][ann_index]["values"][0]["keypoints"]
+        return keypoints
+
+    def get_segmentation(self, sub_index, ann_index):
+        return Image.open(
+            os.path.join(self.metadata.data_dir, self.data[sub_index]["annotations"][ann_index]["filename"])
+        ).convert("RGB")
+
+    def get_bounding_box_3d(self, sub_index, ann_index):
+        sensor = self.data[sub_index]["sensor"]
+        values = self.data[sub_index]["annotations"][ann_index]["values"]
+        return sensor, values
+
+    def get_bounding_boxes(self, sub_index, ann_index):
         image_ann = self.data[sub_index]
         boxes = []
         labels = []
-        for value in image_ann["annotations"][0]["values"]:
+        for value in image_ann["annotations"][ann_index]["values"]:
             box = [
                 value["x"],
                 value["y"],
@@ -244,8 +298,7 @@ class PyrceptionDataset:
         # assumes that the image id naming convention is
         # RGB<uuid>/rgb_<image_id>.png
         image_id = self.data[sub_index]["filename"][44:-4]
-        target = {"image_id": image_id, "labels": labels, "boxes": boxes}
-        return image, segmentation, target
+        return {"image_id": image_id, "labels": labels, "boxes": boxes}
 
     def __len__(self) -> int:
         """

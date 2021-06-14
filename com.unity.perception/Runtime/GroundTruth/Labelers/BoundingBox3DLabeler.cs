@@ -330,7 +330,7 @@ namespace UnityEngine.Perception.GroundTruth
                 var forward = box.rotation * Vector3.forward;
 
                 var s = box.size * 0.5f;
-                var bbl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x,-s.y, -s.z);
+                var bbl = CalculateRotatedPoint (cam, t,right, up, forward,-s.x,-s.y, -s.z);
                 var btl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x, s.y, -s.z);
                 var btr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, s.y, -s.z);
                 var bbr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, -s.y, -s.z);

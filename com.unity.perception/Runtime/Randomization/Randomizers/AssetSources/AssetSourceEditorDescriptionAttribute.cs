@@ -3,9 +3,9 @@
 namespace UnityEngine.Perception.Randomization
 {
     /// <summary>
-    /// Used to annotate an AssetSourceLocation with notes within the inspector UI
+    /// Used to annotate an AssetSourceLocation with description notes within the inspector UI
     /// </summary>
-    public class AssetSourceLocationNotes : Attribute
+    public class AssetSourceEditorDescriptionAttribute : Attribute
     {
         /// <summary>
         /// The text notes to display in the AssetSourceLocation's UI.
@@ -16,7 +16,7 @@ namespace UnityEngine.Perception.Randomization
         /// Constructs a new AssetSourceLocationNotes attribute
         /// </summary>
         /// <param name="notes">The text notes to display in the inspector</param>
-        public AssetSourceLocationNotes(string notes)
+        public AssetSourceEditorDescriptionAttribute(string notes)
         {
             this.notes = notes;
         }

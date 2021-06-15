@@ -106,7 +106,7 @@ namespace Editor.Randomization.VisualElements.AssetSource
         void UpdateLocationUI(Type type)
         {
             m_LocationToolbarMenu.text = GetDisplayName(type);
-            var notesAttribute = (AssetSourceLocationNotes)Attribute.GetCustomAttribute(type, typeof(AssetSourceLocationNotes));
+            var notesAttribute = (AssetSourceEditorDescriptionAttribute)Attribute.GetCustomAttribute(type, typeof(AssetSourceEditorDescriptionAttribute));
             if (notesAttribute != null)
             {
                 m_LocationNotes.text = notesAttribute.notes;

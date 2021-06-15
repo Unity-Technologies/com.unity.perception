@@ -67,7 +67,7 @@ namespace UnityEngine.Perception.GroundTruth
                 case double v:
                     return new JValue(v);
                 case string v:
-                    return new JValue($"\"{v}\"");
+                    return new JValue(v);
                 case uint v:
                     return new JValue(v);
             }

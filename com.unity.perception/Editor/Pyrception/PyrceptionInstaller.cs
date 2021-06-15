@@ -14,6 +14,8 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Run")]
     static void RunPyrception()
     {
+        UnityEngine.Debug.Log(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
+
         UnityEngine.Debug.Log(PlayerPrefs.GetInt("currentProcessId"));
         if (RestartBrowser())
             return;

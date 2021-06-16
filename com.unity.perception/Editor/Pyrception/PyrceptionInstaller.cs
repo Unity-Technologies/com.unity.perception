@@ -12,7 +12,26 @@ using UnityEngine.Perception.GroundTruth;
 public class PyrceptionInstaller : EditorWindow
 {
 
-    private static string fileNameStreamlitInstances= "streamlit_instances.csv";
+    private static readonly string _filename_streamlit_instances = "streamlit_instances.csv";
+    private static string pathToStreamlitInstances
+    {
+        get
+        {
+#if UNITY_EDITOR_WIN
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _filename_streamlit_instances);
+#elif UNITY_EDITOR_OSX
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), _filename_streamlit_instances);
+#endif
+        }
+    }
+    private static readonly string nameOfPyrceptionProcess
+#if UNITY_EDITOR_WIN
+        = "pyrception";
+#elif UNITY_EDITOR_OSX
+        = "bash";
+#else
+        = "";
+#endif
 
     /// <summary>
     /// Runs pyrception instance in default browser
@@ -158,6 +177,8 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Run")]
     private static void RunPyrception()
     {
+        
+
         string project = Application.dataPath;
         (int pythonPID, int port, int pyrceptionPID) = ReadEntry(project);
         if(pythonPID != -1 && ProcessAlive(pythonPID, port, pyrceptionPID))
@@ -168,6 +189,7 @@ public class PyrceptionInstaller : EditorWindow
         {
             DeleteEntry(project); 
             Process[] before = Process.GetProcesses();
+
             int errorCode = LaunchPyrception();
             if(errorCode == -1)
             {
@@ -181,7 +203,7 @@ public class PyrceptionInstaller : EditorWindow
             {
                 Thread.Sleep(1000);
                 after = Process.GetProcesses();
-                newPyrceptionPID = GetNewProcessID(before, after, "pyrception");
+                newPyrceptionPID = GetNewProcessID(before, after, nameOfPyrceptionProcess);
             }
 
             int newPythonPID = -1;
@@ -198,11 +220,13 @@ public class PyrceptionInstaller : EditorWindow
                 Thread.Sleep(1000);
                 newPort = GetPortForPID(newPythonPID);
             }
+
             WriteEntry(project, newPythonPID, newPort, newPyrceptionPID);
 
             if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
                 $"The visualizer tool should open shortly in your default browser at http://localhost:{newPort}.\n\nIf this is not the case after a few seconds you may open it manually",
-                "Manually Open"))
+                "Manually Open",
+                "Cancel"))
             {
                 LaunchBrowser(newPort);
             }
@@ -212,7 +236,7 @@ public class PyrceptionInstaller : EditorWindow
 
     private static (int pythonPID, int port, int pyrceptionPID) ReadEntry(string project)
     {
-        string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),fileNameStreamlitInstances);
+        string path = pathToStreamlitInstances;
         if (!File.Exists(path))
             return (-1,-1,-1);
         using (StreamReader sr = File.OpenText(path))
@@ -232,7 +256,7 @@ public class PyrceptionInstaller : EditorWindow
 
     private static void WriteEntry(string project, int pythonId, int port, int pyrceptionId)
     {
-        string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),fileNameStreamlitInstances);
+        string path = pathToStreamlitInstances;
         using (StreamWriter sw = File.AppendText(path))
         {
             sw.WriteLine($"{project},{pythonId},{port},{pyrceptionId}");
@@ -241,7 +265,7 @@ public class PyrceptionInstaller : EditorWindow
 
     private static void DeleteEntry(string project)
     {
-        string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),fileNameStreamlitInstances);
+        string path = pathToStreamlitInstances;
         if (!File.Exists(path))
             return;
         List<string> entries = new List<string>(File.ReadAllLines(path));
@@ -260,21 +284,26 @@ public class PyrceptionInstaller : EditorWindow
         foreach(Process p in after)
         {
             bool isNew = true;
-            if (p.ProcessName.ToLower().Contains(name))
+            // try/catch to skip any process that may not exist anymore
+            try
             {
-                foreach(Process q in before)
+                if (p.ProcessName.ToLower().Contains(name))
                 {
-                    if(p.Id == q.Id)
+                    foreach (Process q in before)
                     {
-                        isNew = false;
-                        break;
+                        if (p.Id == q.Id)
+                        {
+                            isNew = false;
+                            break;
+                        }
+                    }
+                    if (isNew)
+                    {
+                        return p.Id;
                     }
                 }
-                if (isNew)
-                {
-                    return p.Id;
-                }
             }
+            catch { }
         }
         return -1;
     }
@@ -283,6 +312,7 @@ public class PyrceptionInstaller : EditorWindow
     {
         foreach(ProcessPort p in ProcessPorts.ProcessPortMap)
         {
+            //UnityEngine.Debug.Log($"PID: {p.ProcessId} PORT: {p.PortNumber}");
             if(p.ProcessId == PID)
             {
                 return p.PortNumber;
@@ -302,7 +332,7 @@ public class PyrceptionInstaller : EditorWindow
             checkProcessName(pythonPID, "python") &&
             ProcessListensToPort(pythonPID, port) &&
             PIDExists(pyrceptionPID) &&
-            checkProcessName(pyrceptionPID, "pyrception");
+            checkProcessName(pyrceptionPID, nameOfPyrceptionProcess);
     }
 
     private static bool PIDExists(int PID)
@@ -371,8 +401,13 @@ public class PyrceptionInstaller : EditorWindow
                 {
 
                     ProcessStartInfo StartInfo = new ProcessStartInfo();
+#if UNITY_EDITOR_WIN
                     StartInfo.FileName = "netstat.exe";
                     StartInfo.Arguments = "-a -n -o";
+#elif UNITY_EDITOR_OSX
+                    StartInfo.FileName = "netstat";
+                    StartInfo.Arguments = "-v -a";
+#endif
                     StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                     StartInfo.UseShellExecute = false;
                     StartInfo.RedirectStandardInput = true;
@@ -381,6 +416,7 @@ public class PyrceptionInstaller : EditorWindow
 
                     Proc.StartInfo = StartInfo;
                     Proc.Start();
+                    Proc.WaitForExit();
 
                     StreamReader StandardOutput = Proc.StandardOutput;
                     StreamReader StandardError = Proc.StandardError;
@@ -390,14 +426,20 @@ public class PyrceptionInstaller : EditorWindow
 
                     if (NetStatExitStatus != "0")
                     {
-                        Console.WriteLine("NetStat command failed.   This may require elevated permissions.");
+                        UnityEngine.Debug.LogError("NetStat command failed.   This may require elevated permissions.");
                     }
 
-                    string[] NetStatRows = Regex.Split(NetStatContent, "\r\n");
+                    string[] NetStatRows = null;
+#if UNITY_EDITOR_WIN
+                    NetStatRows = Regex.Split(NetStatContent, "\r\n");
+#elif UNITY_EDITOR_OSX
+                    NetStatRows = Regex.Split(NetStatContent, "\n");
+#endif
 
                     foreach (string NetStatRow in NetStatRows)
                     {
                         string[] Tokens = Regex.Split(NetStatRow, "\\s+");
+#if UNITY_EDITOR_WIN
                         if (Tokens.Length > 4 && (Tokens[1].Equals("UDP") || Tokens[1].Equals("TCP")))
                         {
                             string IpAddress = Regex.Replace(Tokens[2], @"\[(.*?)\]", "1.1.1.1");
@@ -412,24 +454,43 @@ public class PyrceptionInstaller : EditorWindow
                             }
                             catch
                             {
-                                Console.WriteLine("Could not convert the following NetStat row to a Process to Port mapping.");
-                                Console.WriteLine(NetStatRow);
+                                UnityEngine.Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
+                                UnityEngine.Debug.LogError(NetStatRow);
                             }
                         }
                         else
                         {
                             if (!NetStatRow.Trim().StartsWith("Proto") && !NetStatRow.Trim().StartsWith("Active") && !String.IsNullOrWhiteSpace(NetStatRow))
                             {
-                                Console.WriteLine("Unrecognized NetStat row to a Process to Port mapping.");
-                                Console.WriteLine(NetStatRow);
+                                UnityEngine.Debug.LogError("Unrecognized NetStat row to a Process to Port mapping.");
+                                UnityEngine.Debug.LogError(NetStatRow);
                             }
                         }
+#elif UNITY_EDITOR_OSX
+                        if (Tokens.Length == 12 && Tokens[0].Equals("tcp4") & (Tokens[3].Contains("localhost") || Tokens[3].Contains("*.")))
+                        {
+                            try
+                            {
+                                ProcessPorts.Add(new ProcessPort(
+                                    GetProcessName(Convert.ToInt32(Tokens[8])),
+                                    Convert.ToInt32(Tokens[8]),
+                                    "tcp4",
+                                    Convert.ToInt32(Tokens[3].Split('.')[1])
+                                ));
+                            }
+                            catch
+                            {
+                                UnityEngine.Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
+                                UnityEngine.Debug.LogError(NetStatRow);
+                            }
+                        }
+#endif
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                UnityEngine.Debug.LogError(ex.Message);
             }
             return ProcessPorts;
         }

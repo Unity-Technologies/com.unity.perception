@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -8,18 +12,13 @@ using UnityEngine.Perception.GroundTruth;
 public class PyrceptionInstaller : EditorWindow
 {
 
+    private static string fileNameStreamlitInstances= "streamlit_instances.csv";
+
     /// <summary>
     /// Runs pyrception instance in default browser
     /// </summary>
-    [MenuItem("Window/Pyrception/Run")]
-    static void RunPyrception()
+    static int LaunchPyrception()
     {
-        UnityEngine.Debug.Log(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
-
-        UnityEngine.Debug.Log(PlayerPrefs.GetInt("currentProcessId"));
-        if (RestartBrowser())
-            return;
-
         string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
 #if UNITY_EDITOR_WIN
         string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
@@ -40,20 +39,13 @@ public class PyrceptionInstaller : EditorWindow
         command = $"cd \'{packagesPath}\' ;./python3.7 ./pyrception-utils.py preview --data=\'{pathToData}/..\'";
 #endif
         int ExitCode = 0;
-        ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
+        int PID = ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
         if (ExitCode != 0)
         {
             UnityEngine.Debug.LogError("Problem occured when launching pyrception-utils - Exit Code: " + ExitCode);
+            return -1;
         }
-        else
-        {
-            UnityEngine.Debug.Log("You can view a preview of your datasets at: <color=#00aaccff>http://localhost:8501</color>");
-            if (EditorUtility.DisplayDialog("Data Visualizer Launch",
-                "A browser window should open shortly, otherwise use the manual launch", "Manually Launch", "Close"))
-            {
-                Process.Start("http://localhost:8501");
-            }
-        }
+        return PID;
     }
 
     /// <summary>
@@ -112,40 +104,6 @@ public class PyrceptionInstaller : EditorWindow
         EditorUtility.ClearProgressBar();
     }
 
-    private static bool RestartBrowser()
-    {
-        int currentProcessId = PlayerPrefs.HasKey("currentProcessId") ? PlayerPrefs.GetInt("currentProcessId") : -1;
-
-        if (currentProcessId != -1)
-        {
-            try
-            {
-                Process proc = Process.GetProcessById(currentProcessId + 1);
-                if (proc.HasExited)
-                {
-                    PlayerPrefs.SetInt("currentProcessId", -1);
-                    PlayerPrefs.Save();
-                    return false;
-                }
-                else
-                {  
-                    Process.Start("http://localhost:8501");
-                    return true;
-                }
-            }
-            catch (ArgumentException)
-            {
-                PlayerPrefs.SetInt("currentProcessId", -1);
-                PlayerPrefs.Save();
-                return false;
-            }
-            
-        }
-        PlayerPrefs.SetInt("currentProcessId", -1);
-        PlayerPrefs.Save();
-        return false;
-    }
-
     /// <summary>
     /// Executes command in cmd or console depending on system
     /// </summary>
@@ -153,7 +111,7 @@ public class PyrceptionInstaller : EditorWindow
     /// <param name="waitForExit">Should it wait for exit before returning to the editor (i.e. is it not async?)</param>
     /// <param name="displayWindow">Should the command window be displayed</param>
     /// <returns></returns>
-    private static string ExecuteCMD(string command, ref int ExitCode, bool waitForExit = true, bool displayWindow = false, bool redirectOutput = false)
+    private static int ExecuteCMD(string command, ref int ExitCode, bool waitForExit = true, bool displayWindow = false, bool redirectOutput = false)
     {
         string shell = "";
         string argument = "";
@@ -170,19 +128,14 @@ public class PyrceptionInstaller : EditorWindow
 
         info.CreateNoWindow = true;
         info.UseShellExecute = false;
-        info.RedirectStandardOutput = redirectOutput && waitForExit && false;
+        info.RedirectStandardOutput = false;
         info.RedirectStandardError = waitForExit;
 
         Process cmd = Process.Start(info);
 
         if (!waitForExit)
         {
-            if (!PlayerPrefs.HasKey("currentProcessId") || PlayerPrefs.GetInt("currentProcessId") == -1)
-            {
-                PlayerPrefs.SetInt("currentProcessId", cmd.Id);
-                PlayerPrefs.Save();
-            }
-            return output;
+            return cmd.Id;
         }
 
 
@@ -199,70 +152,354 @@ public class PyrceptionInstaller : EditorWindow
 
         cmd.Close();
 
-        return output;
+        return -1;
+    }
+    
+    [MenuItem("Window/Pyrception/Run")]
+    private static void RunPyrception()
+    {
+        string project = Application.dataPath;
+        (int pythonPID, int port, int pyrceptionPID) = ReadEntry(project);
+        if(pythonPID != -1 && ProcessAlive(pythonPID, port, pyrceptionPID))
+        {
+            LaunchBrowser(port);            
+        }
+        else
+        {
+            DeleteEntry(project); 
+            Process[] before = Process.GetProcesses();
+            int errorCode = LaunchPyrception();
+            if(errorCode == -1)
+            {
+                UnityEngine.Debug.LogError("Could not launch visualizer tool");
+                return;
+            }
+            Process[] after = null;
+
+            int newPyrceptionPID = -1;
+            while(newPyrceptionPID == -1)
+            {
+                Thread.Sleep(1000);
+                after = Process.GetProcesses();
+                newPyrceptionPID = GetNewProcessID(before, after, "pyrception");
+            }
+
+            int newPythonPID = -1;
+            while(newPythonPID == -1)
+            {
+                Thread.Sleep(1000);
+                after = Process.GetProcesses();
+                newPythonPID = GetNewProcessID(before, after, "python");
+            }
+            
+            int newPort = -1;
+            while(newPort == -1)
+            {
+                Thread.Sleep(1000);
+                newPort = GetPortForPID(newPythonPID);
+            }
+            WriteEntry(project, newPythonPID, newPort, newPyrceptionPID);
+
+            if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
+                $"The visualizer tool should open shortly in your default browser at http://localhost:{newPort}.\n\nIf this is not the case after a few seconds you may open it manually",
+                "Manually Open"))
+            {
+                LaunchBrowser(newPort);
+            }
+            
+        }
     }
 
-    private static void DirectoryCopy(string sourceDirName, string destDirName, bool first = true)
+    private static (int pythonPID, int port, int pyrceptionPID) ReadEntry(string project)
     {
-        bool copySubDirs = true;
-
-        // Get the subdirectories for the specified directory.
-        DirectoryInfo dir = new DirectoryInfo(sourceDirName);
-
-        if (!dir.Exists)
+        string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),fileNameStreamlitInstances);
+        if (!File.Exists(path))
+            return (-1,-1,-1);
+        using (StreamReader sr = File.OpenText(path))
         {
-            throw new DirectoryNotFoundException(
-                "Source directory does not exist or could not be found: "
-                + sourceDirName);
-        }
-
-        DirectoryInfo[] dirs = dir.GetDirectories();
-
-        // If the destination directory doesn't exist, create it.
-        DirectoryInfo dirDest = new DirectoryInfo(destDirName);
-        if (dirDest.Exists && first)
-        {
-            DeleteDirectory(destDirName);
-        }
-
-        Directory.CreateDirectory(destDirName);
-
-        // Get the files in the directory and copy them to the new location.
-        FileInfo[] files = dir.GetFiles();
-        foreach (FileInfo file in files)
-        {
-            string tempPath = Path.Combine(destDirName, file.Name);
-            file.CopyTo(tempPath, false);
-            UnityEngine.Debug.Log("Copying " + file.Name + " to " + tempPath);
-        }
-
-        // If copying subdirectories, copy them and their contents to new location.
-        if (copySubDirs)
-        {
-            foreach (DirectoryInfo subdir in dirs)
+            string line;
+            while ((line = sr.ReadLine()) != null)
             {
-                string tempPath = Path.Combine(destDirName, subdir.Name);
-                DirectoryCopy(subdir.FullName, tempPath, false);
+                string[] entry = line.TrimEnd().Split(',');
+                if(entry[0] == project)
+                {
+                    return (int.Parse(entry[1]) -1, int.Parse(entry[2]), int.Parse(entry[3]) -1);
+                }
+            }
+        }
+        return (-1,-1,-1);
+    }
+
+    private static void WriteEntry(string project, int pythonId, int port, int pyrceptionId)
+    {
+        string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),fileNameStreamlitInstances);
+        using (StreamWriter sw = File.AppendText(path))
+        {
+            sw.WriteLine($"{project},{pythonId},{port},{pyrceptionId}");
+        }
+    }
+
+    private static void DeleteEntry(string project)
+    {
+        string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),fileNameStreamlitInstances);
+        if (!File.Exists(path))
+            return;
+        List<string> entries = new List<string>(File.ReadAllLines(path));
+        entries = entries.FindAll(x => !x.StartsWith(project));
+        using(StreamWriter sw = File.CreateText(path))
+        {
+            foreach(string entry in entries)
+            {
+                sw.WriteLine(entry.TrimEnd());
             }
         }
     }
 
-    private static void DeleteDirectory(string target_dir)
+    private static int GetNewProcessID(Process[] before, Process[] after, string name)
     {
-        string[] files = Directory.GetFiles(target_dir);
-        string[] dirs = Directory.GetDirectories(target_dir);
-
-        foreach (string file in files)
+        foreach(Process p in after)
         {
-            File.SetAttributes(file, FileAttributes.Normal);
-            File.Delete(file);
+            bool isNew = true;
+            if (p.ProcessName.ToLower().Contains(name))
+            {
+                foreach(Process q in before)
+                {
+                    if(p.Id == q.Id)
+                    {
+                        isNew = false;
+                        break;
+                    }
+                }
+                if (isNew)
+                {
+                    return p.Id;
+                }
+            }
+        }
+        return -1;
+    }
+
+    private static int GetPortForPID(int PID)
+    {
+        foreach(ProcessPort p in ProcessPorts.ProcessPortMap)
+        {
+            if(p.ProcessId == PID)
+            {
+                return p.PortNumber;
+            }
+        }
+        return -1;
+    }
+
+    private static void LaunchBrowser(int port)
+    {
+        Process.Start($"http://localhost:{port}");
+    }
+
+    private static bool ProcessAlive(int pythonPID, int port, int pyrceptionPID)
+    {
+        return PIDExists(pythonPID) &&
+            checkProcessName(pythonPID, "python") &&
+            ProcessListensToPort(pythonPID, port) &&
+            PIDExists(pyrceptionPID) &&
+            checkProcessName(pyrceptionPID, "pyrception");
+    }
+
+    private static bool PIDExists(int PID)
+    {
+         try
+         {
+            Process proc = Process.GetProcessById(PID + 1);
+            if (proc.HasExited)
+            {
+                return false;
+            }
+            else
+            {  
+                return true;
+            }
+         }
+         catch (ArgumentException)
+         {
+            return false;
+         }
+    }
+
+    private static bool checkProcessName(int PID, string name)
+    {
+        Process proc = Process.GetProcessById(PID + 1);
+        return proc.ProcessName.ToLower().Contains(name);
+    }
+
+    private static bool ProcessListensToPort(int PID, int port)
+    {
+        List<ProcessPort> processes = ProcessPorts.ProcessPortMap.FindAll(
+            x => x.ProcessId == PID + 1 && x.PortNumber == port
+        );
+        return processes.Count >= 1;
+    }
+
+    /// <summary>
+    /// Static class that returns the list of processes and the ports those processes use.
+    /// </summary>
+    private static class ProcessPorts
+    {
+        /// <summary>
+        /// A list of ProcesesPorts that contain the mapping of processes and the ports that the process uses.
+        /// </summary>
+        public static List<ProcessPort> ProcessPortMap
+        {
+            get
+            {
+                return GetNetStatPorts();
+            }
         }
 
-        foreach (string dir in dirs)
+
+        /// <summary>
+        /// This method distills the output from netstat -a -n -o into a list of ProcessPorts that provide a mapping between
+        /// the process (name and id) and the ports that the process is using.
+        /// </summary>
+        /// <returns></returns>
+        private static List<ProcessPort> GetNetStatPorts()
         {
-            DeleteDirectory(dir);
+            List<ProcessPort> ProcessPorts = new List<ProcessPort>();
+
+            try
+            {
+                using (Process Proc = new Process())
+                {
+
+                    ProcessStartInfo StartInfo = new ProcessStartInfo();
+                    StartInfo.FileName = "netstat.exe";
+                    StartInfo.Arguments = "-a -n -o";
+                    StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    StartInfo.UseShellExecute = false;
+                    StartInfo.RedirectStandardInput = true;
+                    StartInfo.RedirectStandardOutput = true;
+                    StartInfo.RedirectStandardError = true;
+
+                    Proc.StartInfo = StartInfo;
+                    Proc.Start();
+
+                    StreamReader StandardOutput = Proc.StandardOutput;
+                    StreamReader StandardError = Proc.StandardError;
+
+                    string NetStatContent = StandardOutput.ReadToEnd() + StandardError.ReadToEnd();
+                    string NetStatExitStatus = Proc.ExitCode.ToString();
+
+                    if (NetStatExitStatus != "0")
+                    {
+                        Console.WriteLine("NetStat command failed.   This may require elevated permissions.");
+                    }
+
+                    string[] NetStatRows = Regex.Split(NetStatContent, "\r\n");
+
+                    foreach (string NetStatRow in NetStatRows)
+                    {
+                        string[] Tokens = Regex.Split(NetStatRow, "\\s+");
+                        if (Tokens.Length > 4 && (Tokens[1].Equals("UDP") || Tokens[1].Equals("TCP")))
+                        {
+                            string IpAddress = Regex.Replace(Tokens[2], @"\[(.*?)\]", "1.1.1.1");
+                            try
+                            {
+                                ProcessPorts.Add(new ProcessPort(
+                                    Tokens[1] == "UDP" ? GetProcessName(Convert.ToInt16(Tokens[4])) : GetProcessName(Convert.ToInt32(Tokens[5])),
+                                    Tokens[1] == "UDP" ? Convert.ToInt32(Tokens[4]) : Convert.ToInt32(Tokens[5]),
+                                    IpAddress.Contains("1.1.1.1") ? String.Format("{0}v6", Tokens[1]) : String.Format("{0}v4", Tokens[1]),
+                                    Convert.ToInt32(IpAddress.Split(':')[1])
+                                ));
+                            }
+                            catch
+                            {
+                                Console.WriteLine("Could not convert the following NetStat row to a Process to Port mapping.");
+                                Console.WriteLine(NetStatRow);
+                            }
+                        }
+                        else
+                        {
+                            if (!NetStatRow.Trim().StartsWith("Proto") && !NetStatRow.Trim().StartsWith("Active") && !String.IsNullOrWhiteSpace(NetStatRow))
+                            {
+                                Console.WriteLine("Unrecognized NetStat row to a Process to Port mapping.");
+                                Console.WriteLine(NetStatRow);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return ProcessPorts;
         }
 
-        Directory.Delete(target_dir, false);
+        /// <summary>
+        /// Private method that handles pulling the process name (if one exists) from the process id.
+        /// </summary>
+        /// <param name="ProcessId"></param>
+        /// <returns></returns>
+        private static string GetProcessName(int ProcessId)
+        {
+            string procName = "UNKNOWN";
+
+            try
+            {
+                procName = Process.GetProcessById(ProcessId).ProcessName;
+            }
+            catch { }
+
+            return procName;
+        }
+    }
+
+    /// <summary>
+    /// A mapping for processes to ports and ports to processes that are being used in the system.
+    /// </summary>
+    private class ProcessPort
+    {
+        private string _ProcessName = String.Empty;
+        private int _ProcessId = 0;
+        private string _Protocol = String.Empty;
+        private int _PortNumber = 0;
+
+        /// <summary>
+        /// Internal constructor to initialize the mapping of process to port.
+        /// </summary>
+        /// <param name="ProcessName">Name of process to be </param>
+        /// <param name="ProcessId"></param>
+        /// <param name="Protocol"></param>
+        /// <param name="PortNumber"></param>
+        internal ProcessPort (string ProcessName, int ProcessId, string Protocol, int PortNumber)
+        {
+            _ProcessName = ProcessName;
+            _ProcessId = ProcessId;
+            _Protocol = Protocol;
+            _PortNumber = PortNumber;
+        }
+
+        public string ProcessPortDescription
+        {
+            get
+            {
+                return String.Format("{0} ({1} port {2} pid {3})", _ProcessName, _Protocol, _PortNumber, _ProcessId);
+            }
+        }
+        public string ProcessName
+        {
+            get { return _ProcessName; }
+        }
+        public int ProcessId
+        {
+            get { return _ProcessId; }
+        }
+        public string Protocol
+        {
+            get { return _Protocol; }
+        }
+        public int PortNumber
+        {
+            get { return _PortNumber; }
+        }
     }
 }

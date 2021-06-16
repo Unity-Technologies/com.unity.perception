@@ -298,7 +298,7 @@ def draw_image_with_box_3d(image, sensor, values, colors):
         projection = np.array([[1,0,0],[0,1,0],[0,0,1]])
 
     boxes = read_bounding_box_3d(values)
-    img_with_boxes = plot_bboxes3d(image, boxes, projection, None, orthographic=(sensor["projection"]=="\"orthographic\""))
+    img_with_boxes = plot_bboxes3d(image, boxes, projection, None, orthographic=(sensor["projection"] == "orthographic"))
     return img_with_boxes
 
 

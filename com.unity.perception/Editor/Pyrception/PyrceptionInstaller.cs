@@ -12,6 +12,8 @@ using UnityEngine.Perception.GroundTruth;
 public class PyrceptionInstaller : EditorWindow
 {
 
+    //This files stores entries as ProjectDataPath,PythonPID,Port,PyrceptionPID
+    //It keeps a record of the instances of pyrception opened so that we don't open a new one everytime
     private static readonly string _filename_streamlit_instances = "streamlit_instances.csv";
     private static string pathToStreamlitInstances
     {
@@ -33,39 +35,7 @@ public class PyrceptionInstaller : EditorWindow
         = "";
 #endif
 
-    /// <summary>
-    /// Runs pyrception instance in default browser
-    /// </summary>
-    static int LaunchPyrception()
-    {
-        string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
-#if UNITY_EDITOR_WIN
-        string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
-#elif UNITY_EDITOR_OSX
-        string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
-#endif
-        string pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
-#if UNITY_EDITOR_WIN
-        path = path.Replace("/", "\\");
-        packagesPath = packagesPath.Replace("/", "\\");
-        pathToData = pathToData.Replace("/", "\\");
-#endif
-        string command = "";
-
-#if UNITY_EDITOR_WIN
-        command = $"cd \"{pathToData}\\..\" && \"{packagesPath}\\pyrception-utils.exe\" preview --data=\".\"";
-#elif UNITY_EDITOR_OSX
-        command = $"cd \'{packagesPath}\' ;./python3.7 ./pyrception-utils.py preview --data=\'{pathToData}/..\'";
-#endif
-        int ExitCode = 0;
-        int PID = ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
-        if (ExitCode != 0)
-        {
-            UnityEngine.Debug.LogError("Problem occured when launching pyrception-utils - Exit Code: " + ExitCode);
-            return -1;
-        }
-        return PID;
-    }
+    
 
     /// <summary>
     /// Install pyrception (Assumes python3 and pip3 are already installed)
@@ -173,18 +143,24 @@ public class PyrceptionInstaller : EditorWindow
 
         return -1;
     }
-    
+    /// <summary>
+    /// If an instance is already running for this project it opens the browser at the correct port
+    /// If no instance is found it launches a new process
+    /// </summary>
     [MenuItem("Window/Pyrception/Run")]
     private static void RunPyrception()
     {
-        
-
+        //The dataPath is used as a unique identifier for the project
         string project = Application.dataPath;
+
         (int pythonPID, int port, int pyrceptionPID) = ReadEntry(project);
+
+        //If there is a python instance for this project AND it is alive then just run browser
         if(pythonPID != -1 && ProcessAlive(pythonPID, port, pyrceptionPID))
         {
             LaunchBrowser(port);            
         }
+        //Otherwise delete any previous entry for this project and launch a new process
         else
         {
             DeleteEntry(project); 
@@ -198,6 +174,7 @@ public class PyrceptionInstaller : EditorWindow
             }
             Process[] after = null;
 
+            //Poll for new processes until the pyrception process is launched
             int newPyrceptionPID = -1;
             while(newPyrceptionPID == -1)
             {
@@ -206,6 +183,7 @@ public class PyrceptionInstaller : EditorWindow
                 newPyrceptionPID = GetNewProcessID(before, after, nameOfPyrceptionProcess);
             }
 
+            //Poll for new processes until the streamlit python script is launched
             int newPythonPID = -1;
             while(newPythonPID == -1)
             {
@@ -213,7 +191,8 @@ public class PyrceptionInstaller : EditorWindow
                 after = Process.GetProcesses();
                 newPythonPID = GetNewProcessID(before, after, "python");
             }
-            
+
+            //Poll until the python script starts using the port
             int newPort = -1;
             while(newPort == -1)
             {
@@ -221,8 +200,11 @@ public class PyrceptionInstaller : EditorWindow
                 newPort = GetPortForPID(newPythonPID);
             }
 
+            //Save this into the streamlit_instances.csv file
             WriteEntry(project, newPythonPID, newPort, newPyrceptionPID);
 
+            //When launching the process it will try to open a new tab in the default browser, however if a tab for it already exists it will not
+            //For convinience if the user wants to force a new one to open they can press on "manually open"
             if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
                 $"The visualizer tool should open shortly in your default browser at http://localhost:{newPort}.\n\nIf this is not the case after a few seconds you may open it manually",
                 "Manually Open",
@@ -232,6 +214,40 @@ public class PyrceptionInstaller : EditorWindow
             }
             
         }
+    }
+
+    /// <summary>
+    /// Runs pyrception instance (streamlit) from the python for unity install
+    /// </summary>
+    static int LaunchPyrception()
+    {
+        string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
+#if UNITY_EDITOR_WIN
+        string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
+#elif UNITY_EDITOR_OSX
+        string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
+#endif
+        string pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
+#if UNITY_EDITOR_WIN
+        path = path.Replace("/", "\\");
+        packagesPath = packagesPath.Replace("/", "\\");
+        pathToData = pathToData.Replace("/", "\\");
+#endif
+        string command = "";
+
+#if UNITY_EDITOR_WIN
+        command = $"cd \"{pathToData}\\..\" && \"{packagesPath}\\pyrception-utils.exe\" preview --data=\".\"";
+#elif UNITY_EDITOR_OSX
+        command = $"cd \'{packagesPath}\' ;./python3.7 ./pyrception-utils.py preview --data=\'{pathToData}/..\'";
+#endif
+        int ExitCode = 0;
+        int PID = ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
+        if (ExitCode != 0)
+        {
+            UnityEngine.Debug.LogError("Problem occured when launching pyrception-utils - Exit Code: " + ExitCode);
+            return -1;
+        }
+        return PID;
     }
 
     private static (int pythonPID, int port, int pyrceptionPID) ReadEntry(string project)
@@ -247,6 +263,7 @@ public class PyrceptionInstaller : EditorWindow
                 string[] entry = line.TrimEnd().Split(',');
                 if(entry[0] == project)
                 {
+                    //The -1 on ports is because the System.Diagnosis.Process API starts at 0 where as the PID in Windows and Mac start at 1
                     return (int.Parse(entry[1]) -1, int.Parse(entry[2]), int.Parse(entry[3]) -1);
                 }
             }
@@ -279,6 +296,14 @@ public class PyrceptionInstaller : EditorWindow
         }
     }
 
+    /// <summary>
+    /// Finds the process id of the first process that is different between the before and after array
+    /// and that contains name
+    /// </summary>
+    /// <param name="before"></param>
+    /// <param name="after"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
     private static int GetNewProcessID(Process[] before, Process[] after, string name)
     {
         foreach(Process p in after)
@@ -308,6 +333,11 @@ public class PyrceptionInstaller : EditorWindow
         return -1;
     }
 
+    /// <summary>
+    /// Finds which port the process PID is using
+    /// </summary>
+    /// <param name="PID"></param>
+    /// <returns></returns>
     private static int GetPortForPID(int PID)
     {
         foreach(ProcessPort p in ProcessPorts.ProcessPortMap)
@@ -321,11 +351,22 @@ public class PyrceptionInstaller : EditorWindow
         return -1;
     }
 
+    /// <summary>
+    /// Launches browser at localhost:port
+    /// </summary>
+    /// <param name="port"></param>
     private static void LaunchBrowser(int port)
     {
         Process.Start($"http://localhost:{port}");
     }
 
+    /// <summary>
+    /// Check if streamlit process is alive
+    /// </summary>
+    /// <param name="pythonPID"></param>
+    /// <param name="port"></param>
+    /// <param name="pyrceptionPID"></param>
+    /// <returns></returns>
     private static bool ProcessAlive(int pythonPID, int port, int pyrceptionPID)
     {
         return PIDExists(pythonPID) &&
@@ -335,6 +376,11 @@ public class PyrceptionInstaller : EditorWindow
             checkProcessName(pyrceptionPID, nameOfPyrceptionProcess);
     }
 
+    /// <summary>
+    /// Check if a process with ProcessId = PID is alive
+    /// </summary>
+    /// <param name="PID"></param>
+    /// <returns></returns>
     private static bool PIDExists(int PID)
     {
          try
@@ -355,12 +401,24 @@ public class PyrceptionInstaller : EditorWindow
          }
     }
 
+    /// <summary>
+    /// Check if process with PID has a name that contains "name"
+    /// </summary>
+    /// <param name="PID"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
     private static bool checkProcessName(int PID, string name)
     {
         Process proc = Process.GetProcessById(PID + 1);
         return proc.ProcessName.ToLower().Contains(name);
     }
 
+    /// <summary>
+    /// Check if the given PID listens to given port
+    /// </summary>
+    /// <param name="PID"></param>
+    /// <param name="port"></param>
+    /// <returns></returns>
     private static bool ProcessListensToPort(int PID, int port)
     {
         List<ProcessPort> processes = ProcessPorts.ProcessPortMap.FindAll(
@@ -416,7 +474,9 @@ public class PyrceptionInstaller : EditorWindow
 
                     Proc.StartInfo = StartInfo;
                     Proc.Start();
+#if UNITY_EDITOR_OSX
                     Proc.WaitForExit();
+#endif
 
                     StreamReader StandardOutput = Proc.StandardOutput;
                     StreamReader StandardError = Proc.StandardError;

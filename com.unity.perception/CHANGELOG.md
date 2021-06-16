@@ -36,6 +36,8 @@ Fixed keypoint labeling bug when visualizations are disabled.
 
 Fixed an issue where Simulation Delta Time values larger than 100 seconds (in Perception Camera) would cause incorrect capture scheduling behavior.
 
+Fixed an issue where Categorical Parameters sometimes tried to fetch items at `i = categories.Count`, which caused an exception.
+
 ## [0.8.0-preview.3] - 2021-03-24
 ### Changed
 

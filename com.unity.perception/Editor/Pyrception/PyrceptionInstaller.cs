@@ -45,6 +45,27 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Setup")]
     static void SetupPyrception()
     {
+        string project = Application.dataPath;
+
+        (int pythonPID, int port, int pyrceptionPID) = ReadEntry(project);
+
+        //If there is a python instance for this project AND it is alive then setup will fail (must kill instance)
+        if(pythonPID != -1 && ProcessAlive(pythonPID, port, pyrceptionPID))
+        {
+            if (EditorUtility.DisplayDialog("Kill visualizer?",
+                "The visualizer tool can't be running while you setup, would you like to kill the current instance?",
+                "Kill visualizer",
+                "Cancel"))
+            {
+                Process.GetProcessById(pythonPID + 1).Kill();
+            }
+            else
+            {
+                return;
+            }
+        }
+        
+
         int steps = 3;
         int ExitCode = 0;
 
@@ -91,6 +112,8 @@ public class PyrceptionInstaller : EditorWindow
         }
 
         EditorUtility.ClearProgressBar();
+
+        PlayerPrefs.SetInt("VisualizerSetup", 1);
     }
 
     /// <summary>
@@ -150,6 +173,11 @@ public class PyrceptionInstaller : EditorWindow
     [MenuItem("Window/Pyrception/Run")]
     private static void RunPyrception()
     {
+        if(!PlayerPrefs.HasKey("VisualizerSetup") || PlayerPrefs.GetInt("VisualizerSetup") != 1)
+        {
+            SetupPyrception();
+        }
+
         //The dataPath is used as a unique identifier for the project
         string project = Application.dataPath;
 

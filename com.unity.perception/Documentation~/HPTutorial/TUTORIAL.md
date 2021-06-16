@@ -120,14 +120,16 @@ Similar to the labelers we used in the Perception Tutorial, we will need a label
 </p> 
 
 * **:green_circle: Action**: Return to `Perception Camera` and assign `HPE_IdLabelConfig` to the `KeyPointLabeler`'s label configuration property.
+* **:green_circle: Action**: Search in the _**Project**_ tab for `CocoKeypointTemplate`, with the scope set to _**In Packages**_. Drag and drop the found asset into the `Active Template` field of the `Perception Camera`.
 
 The labeler should now look like the image below:
 
 <p align="center">
 <img src="Images/keypoint_labeler.png" width="500"/>
-</p> 
+</p>
 
-Note the `CocoKeypointTemplate` asset that is already assigned as the `Active Template`. This template will tell the labeler how to map default Unity rig joints to human joint labels in the popular COCO dataset so that the output of the labeler can be easily converted to COCO format. Later in this tutorial, we will learn how to add more joints to our character and how to customize joint mapping templates.
+
+The `Active Template` tells the labeler how to map default Unity rig joints to human joint labels in the popular COCO dataset so that the output of the labeler can be easily converted to COCO format. Later in this tutorial, we will learn how to add more joints to our character and how to customize joint mapping templates.
 
 <p align="center">
 <img src="Images/take_objects_keypoints.gif" width="600"/>

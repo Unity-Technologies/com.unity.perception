@@ -14,7 +14,7 @@ public class PyrceptionInstaller : EditorWindow
 
     //This files stores entries as ProjectDataPath,PythonPID,Port,PyrceptionPID
     //It keeps a record of the instances of pyrception opened so that we don't open a new one everytime
-    private static readonly string _filename_streamlit_instances = "streamlit_instances.csv";
+    private static readonly string _filename_streamlit_instances = "Unity/cache/streamlit_instances.csv";
     private static string pathToStreamlitInstances
     {
         get
@@ -22,7 +22,7 @@ public class PyrceptionInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _filename_streamlit_instances);
 #elif UNITY_EDITOR_OSX
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), _filename_streamlit_instances);
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), _filename_streamlit_instances);
 #endif
         }
     }
@@ -281,6 +281,7 @@ public class PyrceptionInstaller : EditorWindow
     private static (int pythonPID, int port, int pyrceptionPID) ReadEntry(string project)
     {
         string path = pathToStreamlitInstances;
+        if (!Directory.Exists(pathToStreamlitInstances))
         if (!File.Exists(path))
             return (-1,-1,-1);
         using (StreamReader sr = File.OpenText(path))

@@ -71,7 +71,18 @@ namespace UnityEditor.Perception.Randomization
         {
             var propertyField = new PropertyField(iterator.Copy());
             propertyField.Bind(iterator.serializedObject);
-            var originalField = parentPropertyType.GetField(iterator.name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance );
+
+            FieldInfo originalField;
+            do
+            {
+                originalField = parentPropertyType.GetField(iterator.name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance );
+                parentPropertyType = parentPropertyType.BaseType;
+            }
+            while (originalField == null && parentPropertyType != null) ;
+
+            if (originalField == null)
+                return null;
+
             var tooltipAttribute = originalField.GetCustomAttributes(true)
                 .ToList().Find(att => att.GetType() == typeof(TooltipAttribute));
             if (tooltipAttribute != null)

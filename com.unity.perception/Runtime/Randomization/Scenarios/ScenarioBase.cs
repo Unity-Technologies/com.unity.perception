@@ -47,6 +47,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         public TextAsset configuration;
 
+        private bool m_ShouldRestartIteration;
+        private const int k_MaxIterationStartCount = 100;
+
         /// <summary>
         /// Enumerates over all enabled randomizers
         /// </summary>
@@ -346,8 +349,25 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             {
                 ResetRandomStateOnIteration();
                 OnIterationStart();
-                foreach (var randomizer in activeRandomizers)
-                    randomizer.IterationStart();
+
+                int iterationStartCount = 0;
+                do
+                {
+                    m_ShouldRestartIteration = false;
+                    iterationStartCount++;
+                    foreach (var randomizer in activeRandomizers)
+                    {
+                        randomizer.IterationStart();
+                        if (m_ShouldRestartIteration)
+                            break;
+                    }
+                } while (m_ShouldRestartIteration && iterationStartCount < k_MaxIterationStartCount);
+
+                if (m_ShouldRestartIteration)
+                {
+                    Debug.LogError($"The iteration was restarted {k_MaxIterationStartCount} times. Continuing the scenario to prevent an infinite loop.");
+                    m_ShouldRestartIteration = false;
+                }
             }
 
             // Perform new frame tasks
@@ -473,6 +493,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             /// The scenario has finished and is idle
             /// </summary>
             Idle
+        }
+
+        public void RestartIteration()
+        {
+            m_ShouldRestartIteration = true;
         }
     }
 }

@@ -126,13 +126,47 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                     m_NumObjectsActive[i] = 0;
                     foreach (var cachedObjectData in m_InstantiatedObjects[i])
                     {
-                        // Position outside the frame
-                        cachedObjectData.instance.transform.localPosition = new Vector3(10000, 0, 0);
-                        foreach (var tag in cachedObjectData.randomizerTags)
-                            tag.Unregister();
+                        ResetObjectState(cachedObjectData);
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the given cache object back to an inactive state
+        /// </summary>
+        /// <param name="gameObject">The object to make inactive</param>
+        /// <exception cref="ArgumentException">Thrown when gameObject is not an active cached object.</exception>
+        public void ResetObject(GameObject gameObject)
+        {
+            for (var i = 0; i < m_InstantiatedObjects.Length; ++i)
+            {
+                var instantiatedObjectList = m_InstantiatedObjects[i];
+                int indexFound = -1;
+                for (var j = 0; j < instantiatedObjectList.Count && indexFound < 0; j++)
+                {
+                    if (instantiatedObjectList[j].instance == gameObject)
+                        indexFound = j;
+                }
+
+                if (indexFound >= 0)
+                {
+                    ResetObjectState(instantiatedObjectList[indexFound]);
+                    instantiatedObjectList.RemoveAt(indexFound);
+                    m_NumObjectsActive[i]--;
+                    return;
+                }
+            }
+
+            throw new ArgumentException("Passed GameObject is not an active object in the cache.");
+        }
+
+        private static void ResetObjectState(CachedObjectData cachedObjectData)
+        {
+            // Position outside the frame
+            cachedObjectData.instance.transform.localPosition = new Vector3(10000, 0, 0);
+            foreach (var tag in cachedObjectData.randomizerTags)
+                tag.Unregister();
         }
 
         static bool IsPrefab(GameObject obj)

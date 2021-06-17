@@ -40,6 +40,12 @@ In-depth documentation on individual components of the package.
 |[Dataset Capture](com.unity.perception/Documentation~/DatasetCapture.md)|Ensures sensors are triggered at proper rates and accepts data for the JSON dataset.|
 |[Randomization](com.unity.perception/Documentation~/Randomization/Index.md)|The Randomization tool set lets you integrate domain randomization principles into your simulation.|
 
+## Community and Support
+
+For setup problems or discussions about leveraging the Perception package in your project, please create a new thread on the **[Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/)** and make sure to include as much detail as possible. If you run into any other problems with the Perception package or have a specific feature request, please submit a **[GitHub issue](https://github.com/Unity-Technologies/com.unity.perception/issues)**.
+
+For any other questions or feedback, connect directly with the Computer Vision team at [computer-vision@unity3d.com](mailto:computer-vision@unity3d.com).
+
 ## Example Projects
 
 ### SynthDet
@@ -72,12 +78,6 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 
 ## License
 * [License](com.unity.perception/LICENSE.md)
-
-## Community and Feedback
-
-For setup problems or discussions about leveraging the Perception package in your project, please create a new thread on the [Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/) and make sure to include as much detail as possible. If you run into any other problems with the Perception package or have a specific feature request, please submit a [GitHub issue](https://github.com/Unity-Technologies/com.unity.perception/issues).
-
-For any other questions or feedback, connect directly with the Computer Vision team at [computer-vision@unity3d.com](mailto:computer-vision@unity3d.com).
 
 ## Citation
 If you find this package useful, consider citing it using:

@@ -18,6 +18,8 @@ Added random seed field to the Run in Unity Simulation Window
 
 Added AssetSource class for loading assets from generic sources inside randomizers
 
+User can now choose the base folder location to store their generated data.
+
 ### Changed
 Increased color variety in instance segmentation images
 
@@ -35,6 +37,8 @@ Changed the JSON serialization key of Normal Sampler's standard deviation proper
 Fixed keypoint labeling bug when visualizations are disabled.
 
 Fixed an issue where Simulation Delta Time values larger than 100 seconds (in Perception Camera) would cause incorrect capture scheduling behavior.
+
+Fixed an issue where Categorical Parameters sometimes tried to fetch items at `i = categories.Count`, which caused an exception.
 
 ## [0.8.0-preview.3] - 2021-03-24
 ### Changed

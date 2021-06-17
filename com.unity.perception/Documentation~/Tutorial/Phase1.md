@@ -16,6 +16,9 @@ Steps included in this phase of the tutorial:
 * [Step 7: Inspect Generated Synthetic Data](#step-7)
 * [Step 8: Verify Data Using Dataset Insights](#step-8)
 
+
+> :information_source: If you face any problems while following this tutorial, please create a post on the **[Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/)** or the **[GitHub issues](https://github.com/Unity-Technologies/com.unity.perception/issues)** page and include as much detail as possible.
+
 ### <a name="step-1">Step 1: Download Unity Editor and Create a New Project</a> 
 * **:green_circle: Action**: Navigate to [this](https://unity3d.com/get-unity/download/archive) page to download and install the latest version of **Unity Editor 2020.2.x**. (The tutorial has not yet been fully tested on newer versions.)
 

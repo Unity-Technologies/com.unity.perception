@@ -72,8 +72,11 @@ namespace UnityEngine.Perception.GroundTruth {
             m_LabelEntryMatchCache = null;
         }
 
+        /// <summary>
+        /// A structure representing a label entry for writing out to datasets.
+        /// </summary>
         [SuppressMessage("ReSharper", "InconsistentNaming")]
-        internal struct LabelEntrySpec
+        public struct LabelEntrySpec
         {
             /// <summary>
             /// The label id prepared for reporting in the annotation
@@ -87,7 +90,10 @@ namespace UnityEngine.Perception.GroundTruth {
             public string label_name;
         }
 
-        internal LabelEntrySpec[] GetAnnotationSpecification()
+        /// <summary>
+        /// Returns the label entries as structures suited for writing out to JSON datasets.
+        /// </summary>
+        public LabelEntrySpec[] GetAnnotationSpecification()
         {
             return labelEntries.Select((l) => new LabelEntrySpec()
             {

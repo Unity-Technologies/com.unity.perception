@@ -152,7 +152,6 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 if (indexFound >= 0)
                 {
                     ResetObjectState(instantiatedObjectList[indexFound]);
-                    instantiatedObjectList.RemoveAt(indexFound);
                     m_NumObjectsActive[i]--;
                     return;
                 }

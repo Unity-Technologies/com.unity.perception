@@ -1,0 +1,35 @@
+{
+  "version": "0.1.0",
+  "bbox3d": [
+    {
+      "instance_id": "85149ab1-3b75-443b-8540-773b31559a26",
+      "label_id": 27,
+      "label_name": "car",
+      "translation": [24.0, 12.1, 0.0],
+      "size": [2.0, 3.0, 1.0],
+      "rotation": [0.0, 1.0, 2.0, 0.0],
+      "velocity": [0.5, 0.0, 0.0],
+      "acceleration": null
+    },
+    {
+      "instance_id": "f2e56dad-9bfd-4930-9dca-bfe08672de3a",
+      "label_id": 34,
+      "label_name": "bicycle",
+      "translation": [5.2, 7.9, 0.0],
+      "size": [0.3, 0.5, 1.0],
+      "rotation": [0.0, 1.0, 2.0, 0.0],
+      "velocity": [0.0, 0.1, 0.0],
+      "acceleration": null
+    },
+    {
+      "instance_id": "a52dfb48-e5a4-4008-96b6-80da91caa777",
+      "label_id": 25,
+      "label_name": "person",
+      "translation": [41.2, 1.5, 0.0],
+      "size": [0.3, 0.3, 1.8],
+      "rotation": [0.0, 1.0, 2.0, 0.0],
+      "velocity": [0.05, 0.0, 0.0],
+      "acceleration": null
+    }
+  ]
+}

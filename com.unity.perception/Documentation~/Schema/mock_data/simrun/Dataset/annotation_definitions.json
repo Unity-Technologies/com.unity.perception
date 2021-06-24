@@ -41,7 +41,7 @@
     },
     {
       "id": 3,
-      "name": "lidar semantic segmention",
+      "name": "lidar semantic segmentation",
       "description": "3d point cloud semantic segmentation",
       "format": "PCD",
       "spec": [

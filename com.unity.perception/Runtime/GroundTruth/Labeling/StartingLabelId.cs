@@ -3,7 +3,7 @@
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
-    /// Selector for whether label ids should start at zero or one. <seealso cref="IdLabelConfig.startingLabelId"/>.
+    /// Selector for whether label ids should start at zero or one. <seealso cref="LabelingConfiguration.StartingLabelId"/>.
     /// </summary>
     public enum StartingLabelId
     {

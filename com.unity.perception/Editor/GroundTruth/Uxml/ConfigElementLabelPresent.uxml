@@ -1,8 +1,0 @@
-<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <VisualElement class="config-label-present">
-        <Style src="../Uss/Styles.uss"/>
-        <Label name="config-name" class="labeling__config-name-label"/>
-        <Button name="remove-from-config-button" class="labeling__addremove-config-button"/>
-        <Button name="open-config-button" class="labeling__addremove-config-button" text="Open"/>
-    </VisualElement>
-</UXML>

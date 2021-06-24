@@ -1,7 +1,0 @@
-﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <VisualElement style="margin-bottom: 4px;">
-        <Style src="../../Uss/Styles.uss"/>
-        <Label name="display-name" text="Sampler Name" class="unity-base-field__label"/>
-        <VisualElement name="fields-container" style="margin-left: 18px;"/>
-    </VisualElement>
-</UXML>

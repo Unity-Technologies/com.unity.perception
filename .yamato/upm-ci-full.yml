@@ -1,5 +1,37 @@
-{% metadata_file .yamato/environments.yml %}
+test_editors:
+  - version: 2019.3.7f1
+test_platforms:
+  - name: win
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+    extra-args: --force-d3d11
+    standalone-platform: StandaloneWindows64
+  - name: mac
+    type: Unity::VM::osx
+    image: package-ci/mac:stable
+    flavor: m1.mac
+    extra-args: --force-metal
+    standalone-platform: StandaloneOSX
+  - name: ubuntu
+    type: Unity::VM
+    image: package-ci/ubuntu:latest
+    flavor: b1.large
 
+suites:
+  - name: standalone
+    display_name: standalone
+    args: --suite=playmode --platform=
+  - name: editmode
+    display_name: editmode
+    args: --suite=playmode --suite=editor --platform=editmode
+
+package_variants:
+  - name: Perception
+
+projects:
+  - name: PerceptionHDRP
+  - name: PerceptionURP
 ---
 {% for variant in package_variants %}
 pack_{{ variant.name }}:
@@ -10,7 +42,7 @@ pack_{{ variant.name }}:
     flavor: b1.large
   commands:
      - git submodule update --init --recursive
-     - npm install upm-ci-utils@stable -g --registry {{ upmci_registry }}
+     - npm install upm-ci-utils -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
      - upm-ci package pack --package-path ./com.unity.perception/
   artifacts:
     packages:
@@ -19,7 +51,7 @@ pack_{{ variant.name }}:
 {% endfor %}
 
 {% for variant in package_variants %}
-{% for editor in complete_editors %}
+{% for editor in test_editors %}
 {% for platform in test_platforms %}
 pkg_test_{{variant.name}}_{{ platform.name }}_{{ editor.version }}:
   name : Package tests ({{variant.name}} pkg, {{ editor.version }}, {{ platform.name }})
@@ -29,7 +61,7 @@ pkg_test_{{variant.name}}_{{ platform.name }}_{{ editor.version }}:
     flavor: {{ platform.flavor}}
   commands:
     - git submodule update --init --recursive
-    - npm install upm-ci-utils@stable -g --registry {{ upmci_registry }}
+    - npm install upm-ci-utils -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package test -u {{ editor.version }} --package-path ./com.unity.perception --type vetting-tests
   artifacts:
     logs:
@@ -42,7 +74,7 @@ pkg_test_{{variant.name}}_{{ platform.name }}_{{ editor.version }}:
 {% endfor %}
 
 test_trigger:
-  name: Per Commit Tests
+  name: All Tests
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -53,45 +85,9 @@ test_trigger:
     branches:
       only:
         - "/.*/"
-    cancel_old_ci: true
-  artifacts:
-    logs:
-      paths:
-        - "upm-ci~/test-results/**/*"
-    packages:
-      paths:
-        - "upm-ci~/packages/**/*"
-  dependencies:
-    {% for variant in package_variants %}
-    {% for editor in per_commit_editors %}
-    {% for platform in test_platforms %}
-    - .yamato/upm-ci-full.yml#pkg_test_{{variant.name}}_{{platform.name}}_{{editor.version}}
-    {% endfor %}
-    {% endfor %}
-    {% endfor %}
-    
-    {% for editor in per_commit_editors %}
-    {% for project in projects %}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_editmode_{{editor.version}}
-    - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{editor.version}}
-    {% endfor %}
-    {% endfor %}
-
-all_tests:
-  name: Complete Tests
-  agent:
-    type: Unity::VM
-    image: package-ci/win10:stable
-    flavor: b1.small
-  commands:
-    - dir
-  triggers:
     recurring:
       - branch: master
         frequency: daily # Should run between midnight and 6AM UTC
-    cancel_old_ci: true
   artifacts:
     logs:
       paths:
@@ -101,17 +97,16 @@ all_tests:
         - "upm-ci~/packages/**/*"
   dependencies:
     {% for variant in package_variants %}
-    {% for editor in complete_editors %}
+    {% for editor in test_editors %}
     {% for platform in test_platforms %}
     - .yamato/upm-ci-full.yml#pkg_test_{{variant.name}}_{{platform.name}}_{{editor.version}}
     {% endfor %}
     {% endfor %}
     {% endfor %}
 
-    {% for editor in coverage_editors %}
+    # Disabling trigger of standalone tests which aren't working at the moment
+    {% for editor in test_editors %}
     - .yamato/upm-ci-testprojects.yml#codecoverage_windows_editmode_{{editor.version}}
-    {% endfor %}
-    {% for editor in complete_editors %}
     {% for project in projects %}
     - .yamato/upm-ci-testprojects.yml#{{project.name}}_windows_standalone_{{editor.version}}
     - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_standalone_{{editor.version}}
@@ -119,38 +114,30 @@ all_tests:
     - .yamato/upm-ci-testprojects.yml#{{project.name}}_linux_editmode_{{editor.version}}
     {% endfor %}
     {% endfor %}
-    
-    {% for editor in complete_editors %}
-    {% for project in projects %}
-    - .yamato/upm-ci-performance.yml#{{project.name}}_windows_standalone_{{editor.version}}
-    - .yamato/upm-ci-performance.yml#{{project.name}}_linux_standalone_{{editor.version}}
-    {% endfor %}
-    {% endfor %}
 
-all_tests_nightly_perf:
-  name: Nightly Performance Tests
+{% for variant in package_variants %}
+publish:
+  name: Publish Perception package to internal registry
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
-    flavor: b1.small
+    flavor: b1.large
   commands:
-    - dir
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - upm-ci package publish --package-path com.unity.perception
   triggers:
-    recurring:
-      - branch: performance_testing
-        frequency: daily 
-    cancel_old_ci: true
+    tags:
+      only:
+        - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
   artifacts:
-    logs:
+    artifacts:
       paths:
-        - "upm-ci~/test-results/**/*"
-    packages:
-      paths:
-        - "upm-ci~/packages/**/*"
+        - "upm-ci~/packages/*.tgz"
   dependencies:
-    {% for editor in performance_editors %}
-    {% for project in projects %}
-    - .yamato/upm-ci-performance.yml#{{project.name}}_windows_standalone_{{editor.version}}
-    - .yamato/upm-ci-performance.yml#{{project.name}}_linux_standalone_{{editor.version}}
+    - .yamato/upm-ci-full.yml#pack_{{ variant.name }}
+    {% for editor in test_editors %}
+    {% for platform in test_platforms %}
+    - .yamato/upm-ci-full.yml#test_perception_{{ platform.name }}_{{ editor.version }}
     {% endfor %}
     {% endfor %}
+{% endfor %}

@@ -2,7 +2,7 @@
 {
     Properties
     {
-        [PerObjectData] _SegmentationId("Segmentation ID", vector) = (0,0,0,1)
+        [PerObjectData] _SegmentationId("Segmentation ID", int) = 0
     }
     SubShader
     {
@@ -17,8 +17,8 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
-            #include "Packing.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
             struct appdata
             {
@@ -30,7 +30,7 @@
                 float4 vertex : SV_POSITION;
             };
 
-            float4 _SegmentationId;
+            uint _SegmentationId;
 
             v2f vert (appdata v)
             {
@@ -41,7 +41,7 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-                return _SegmentationId;
+                return float4(UnpackUIntToFloat((uint)_SegmentationId, 0, 8), UnpackUIntToFloat(_SegmentationId, 8, 8), UnpackUIntToFloat(_SegmentationId, 16, 8), UnpackUIntToFloat(_SegmentationId, 24, 8));
             }
             ENDCG
         }

@@ -26,7 +26,7 @@ namespace EditorTests.BuildTests
         [Test]
         public void BuildPlayerStandaloneWindows64()
         {
-            BuildPlayer(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64, m_BuildPath, BuildOptions.None, out _, out m_Summary);
+            BuildPlayer(BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows64, m_BuildPath, BuildOptions.IncludeTestAssemblies, out _, out m_Summary);
             Assert.AreEqual(BuildResult.Succeeded, m_Summary.result, " BuildTarget.StandaloneWindows64 failed to build");
         }
 
@@ -34,7 +34,7 @@ namespace EditorTests.BuildTests
         [Test]
         public void BuildPlayerLinux()
         {
-            BuildPlayer(BuildTargetGroup.Standalone, BuildTarget.StandaloneLinux64, m_BuildPath, BuildOptions.None, out _, out m_Summary);
+            BuildPlayer(BuildTargetGroup.Standalone, BuildTarget.StandaloneLinux64, m_BuildPath, BuildOptions.IncludeTestAssemblies, out _, out m_Summary);
             Assert.AreEqual(BuildResult.Succeeded, m_Summary.result, "BuildTarget.StandaloneLinux64 failed to build");
         }
 
@@ -43,7 +43,7 @@ namespace EditorTests.BuildTests
         [Test]
         public void BuildPlayerOSX()
         {
-            BuildPlayer(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX, m_BuildPath, BuildOptions.None, out _, out m_Summary);
+            BuildPlayer(BuildTargetGroup.Standalone, BuildTarget.StandaloneOSX, m_BuildPath, BuildOptions.IncludeTestAssemblies, out _, out m_Summary);
             Assert.AreEqual(BuildResult.Succeeded, m_Summary.result, "BuildTarget.StandaloneLinux64 failed to build");
         }
 

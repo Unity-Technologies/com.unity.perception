@@ -2,7 +2,7 @@
 {
     Properties
     {
-        [PerObjectData] LabelingId("Labeling Id", Vector) = (0,0,0,1)
+        [PerObjectData] LabelingId("Labeling Id", int) = 0
     }
 
     HLSLINCLUDE
@@ -32,33 +32,36 @@
 
             CGPROGRAM
 
-            #pragma vertex semanticSegmentationVertexStage
-            #pragma fragment semanticSegmentationFragmentStage
+            #pragma vertex vert
+            #pragma fragment frag
 
-            #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
-            float4 LabelingId;
+            uint LabelingId;
 
-            struct in_vert
+            struct appdata
             {
                 float4 vertex : POSITION;
             };
 
-            struct vertexToFragment
+            struct v2f
             {
                 float4 vertex : SV_POSITION;
             };
 
-            vertexToFragment semanticSegmentationVertexStage (in_vert vertWorldSpace)
+            uint _SegmentationId;
+
+            v2f vert (appdata v)
             {
-                vertexToFragment vertScreenSpace;
-                vertScreenSpace.vertex = UnityObjectToClipPos(vertWorldSpace.vertex);
-                return vertScreenSpace;
+                v2f o;
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                return o;
             }
 
-            fixed4 semanticSegmentationFragmentStage (vertexToFragment vertScreenSpace) : SV_Target
+            fixed4 frag (v2f i) : SV_Target
             {
-                return LabelingId;
+                return float4(UnpackUIntToFloat((uint)LabelingId, 0, 8), UnpackUIntToFloat((uint)LabelingId, 8, 8), 0, 1.0);
             }
 
             ENDCG

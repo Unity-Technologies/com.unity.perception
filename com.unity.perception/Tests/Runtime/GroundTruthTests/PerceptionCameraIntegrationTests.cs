@@ -7,10 +7,6 @@ using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.TestTools;
 
-#if MOQ_PRESENT
-using Moq;
-#endif
-
 namespace GroundTruthTests
 {
 #if HDRP_PRESENT
@@ -27,122 +23,88 @@ namespace GroundTruthTests
             //give the screen a chance to resize
             yield return null;
 
-            var jsonExpected = $@"[
-            {{
-              ""label_id"": 100,
+            var jsonExpected = $@"            {{
+              ""label_id"": 0,
               ""label_name"": ""label"",
               ""instance_id"": 1,
               ""x"": 0.0,
               ""y"": {Screen.height / 4:F1},
               ""width"": {Screen.width:F1},
               ""height"": {Screen.height / 2:F1}
-            }}
-          ]";
+            }}";
             var labelingConfiguration = CreateLabelingConfiguration();
-            SetupCamera(pc =>
+            SetupCamera(labelingConfiguration, pc =>
             {
-                pc.AddLabeler(new BoundingBox2DLabeler(labelingConfiguration));
+                pc.produceBoundingBoxAnnotations = true;
             });
 
             var plane = TestHelper.CreateLabeledPlane();
             AddTestObjectForCleanup(plane);
             //a plane is 10x10 by default, so scale it down to be 10x1 to cover the center half of the image
             plane.transform.localScale = new Vector3(10f, -1f, .1f);
-            plane.transform.localPosition = new Vector3(0, 0, 10);
-
-            var plane2 = TestHelper.CreateLabeledPlane(label: "nonmatching");
-            AddTestObjectForCleanup(plane2);
-            //place a smaller plane in front to test non-matching objects
-            plane2.transform.localScale = new Vector3(.1f, -1f, .1f);
-            plane2.transform.localPosition = new Vector3(0, 0, 5);
             yield return null;
-            DatasetCapture.ResetSimulation();
+            SimulationManager.ResetSimulation();
 
-            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
-            StringAssert.Contains(TestHelper.NormalizeJson(jsonExpected, true), TestHelper.NormalizeJson(capturesJson, true));
+            StringAssert.Contains(jsonExpected, capturesJson);
         }
 
         [UnityTest]
-        public IEnumerator EnableSemanticSegmentation_GeneratesCorrectDataset([Values(true, false)] bool enabled)
+        public IEnumerator EnableSemanticSegmentation_GeneratesCorrectDataset()
         {
-            SemanticSegmentationLabeler semanticSegmentationLabeler = null;
-            SetupCamera(pc =>
-            {
-                semanticSegmentationLabeler = new SemanticSegmentationLabeler(CreateSemanticSegmentationLabelConfig());
-                pc.AddLabeler(semanticSegmentationLabeler);
-            }, enabled);
+            var labelingConfiguration = CreateLabelingConfiguration();
+            SetupCamera(labelingConfiguration, pc => pc.produceSegmentationImages = true);
 
             string expectedImageFilename = $"segmentation_{Time.frameCount}.png";
 
             this.AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
             yield return null;
-            DatasetCapture.ResetSimulation();
+            SimulationManager.ResetSimulation();
 
-            if (enabled)
-            {
-                var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
-                var capturesJson = File.ReadAllText(capturesPath);
-                var imagePath = $"{semanticSegmentationLabeler.semanticSegmentationDirectory}/{expectedImageFilename}";
-                StringAssert.Contains(imagePath, capturesJson);
-            }
-            else
-            {
-                DirectoryAssert.DoesNotExist(DatasetCapture.OutputDirectory);
-            }
-        }
-
-        [UnityTest]
-        public IEnumerator Disabled_GeneratesCorrectDataset()
-        {
-            SemanticSegmentationLabeler semanticSegmentationLabeler = null;
-            SetupCamera(pc =>
-            {
-                semanticSegmentationLabeler = new SemanticSegmentationLabeler(CreateSemanticSegmentationLabelConfig());
-                pc.AddLabeler(semanticSegmentationLabeler);
-            });
-
-            string expectedImageFilename = $"segmentation_{Time.frameCount}.png";
-
-            this.AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
-            yield return null;
-            DatasetCapture.ResetSimulation();
-
-            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
-            var imagePath = $"{semanticSegmentationLabeler.semanticSegmentationDirectory}/{expectedImageFilename}";
+            var imagePath = Path.Combine("SemanticSegmentation", expectedImageFilename).Replace(@"\", @"\\");
             StringAssert.Contains(imagePath, capturesJson);
         }
 
-        static IdLabelConfig CreateLabelingConfiguration()
+        static LabelingConfiguration CreateLabelingConfiguration()
         {
             var label = "label";
-            var labelConfig = ScriptableObject.CreateInstance<IdLabelConfig>();
+            var labelingConfiguration = ScriptableObject.CreateInstance<LabelingConfiguration>();
 
-            labelConfig.Init(new List<IdLabelEntry>
+            labelingConfiguration.LabelEntries = new List<LabelEntry>
             {
-                new IdLabelEntry
+                new LabelEntry
                 {
-                    id = 100,
-                    label = label
-                }
-            });
-            return labelConfig;
-        }
-        static SemanticSegmentationLabelConfig CreateSemanticSegmentationLabelConfig()
-        {
-            var label = "label";
-            var labelingConfiguration = ScriptableObject.CreateInstance<SemanticSegmentationLabelConfig>();
-
-            labelingConfiguration.Init(new List<SemanticSegmentationLabelEntry>
-            {
-                new SemanticSegmentationLabelEntry()
-                {
+                    id = 1,
                     label = label,
-                    color = Color.blue
+                    value = 500
                 }
-            });
+            };
             return labelingConfiguration;
+        }
+
+        GameObject SetupCamera(LabelingConfiguration labelingConfiguration, Action<PerceptionCamera> initPerceptionCamera)
+        {
+            var cameraObject = new GameObject();
+            cameraObject.SetActive(false);
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.orthographic = true;
+            camera.orthographicSize = 1;
+
+            var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
+            perceptionCamera.produceSegmentationImages = false;
+            perceptionCamera.produceRenderedObjectInfoMetric = false;
+            perceptionCamera.produceBoundingBoxAnnotations = false;
+            perceptionCamera.produceObjectCountAnnotations = false;
+            perceptionCamera.captureRgbImages = false;
+            perceptionCamera.LabelingConfiguration = labelingConfiguration;
+            initPerceptionCamera(perceptionCamera);
+
+            cameraObject.SetActive(true);
+            AddTestObjectForCleanup(cameraObject);
+            return cameraObject;
         }
     }
 }

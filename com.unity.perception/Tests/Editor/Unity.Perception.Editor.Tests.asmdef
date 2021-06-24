@@ -9,8 +9,7 @@
         "Unity.Collections",
         "Unity.Entities",
         "Unity.Simulation.Core",
-        "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.HighDefinition.Runtime"
     ],
     "includePlatforms": [
         "Editor"
@@ -19,8 +18,7 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll",
-        "Moq.dll"
+        "nunit.framework.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
@@ -31,16 +29,6 @@
             "name": "com.unity.render-pipelines.high-definition",
             "expression": "",
             "define": "HDRP_PRESENT"
-        },
-        {
-            "name": "com.unity.render-pipelines.universal",
-            "expression": "",
-            "define": "URP_PRESENT"
-        },
-        {
-            "name": "nuget.moq",
-            "expression": "",
-            "define": "MOQ_PRESENT"
         }
     ],
     "noEngineReferences": false

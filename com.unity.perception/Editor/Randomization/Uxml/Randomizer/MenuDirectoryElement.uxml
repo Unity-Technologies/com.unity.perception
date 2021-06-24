@@ -1,6 +1,0 @@
-﻿<UXML xmlns="UnityEngine.UIElements">
-    <VisualElement style="flex-direction: row; justify-content: space-between; align-items: center;" class="randomizer__add-menu-directory-item">
-        <TextElement name="directory" style="margin-right: 10px;"/>
-        <VisualElement class="randomization__chevron-right"/>
-    </VisualElement>
-</UXML>

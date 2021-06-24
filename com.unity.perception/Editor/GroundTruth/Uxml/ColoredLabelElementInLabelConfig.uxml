@@ -1,0 +1,15 @@
+<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement class="added-label" style="padding-top: 3px;">
+        <Button name="remove-button" class="labeling__remove-item-button"/>
+        <TextField name="label-value" class="labeling__added-label-value"/>
+        <VisualElement class="generic-hover"
+                       style="min-width : 137px; flex-direction: row; padding: 3px 0 3px 6px; margin-left: 3px; margin-right: 3px; border-width: 1px; border-color: #555555; border-radius: 4px;">
+            <editor:ColorField name="label-color-value" style="min-width : 60px; max-width: 60px; align-self:center; margin:2px"/>
+            <Label name="label-color-hex" style="font-size: 11; min-width : 60px; max-width: 60px; align-self:center;"/>
+        </VisualElement>
+        <VisualElement style="min-width:20px; flex-direction: row; display:none">
+            <Button name="move-up-button" class="move-label-in-config-button move-up" style="margin-right:-2px"/>
+            <Button name="move-down-button" class="move-label-in-config-button move-down"/>
+        </VisualElement>
+    </VisualElement>
+</UXML>

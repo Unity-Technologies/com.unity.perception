@@ -17,6 +17,7 @@ node_modules/**
 .npmrc
 !Documentation~
 !.Documentation
+!Samples~
 npm-debug.log
 build.sh.meta
 build.bat.meta
@@ -34,4 +35,7 @@ upm-ci~/*
 **/.bin
 CodeCoverage
 /.download
-/TestProjects/PerceptionURP/Build
+**/Build/**
+**/Builds/**
+/utr
+*.user

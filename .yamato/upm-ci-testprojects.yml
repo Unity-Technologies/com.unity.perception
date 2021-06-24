@@ -1,18 +1,8 @@
-test_editors:
-  - version: 2019.3.7f1
-suites:
-  - name: standalone
-    display_name: standalone
-    args: --suite=playmode --platform=
-  - name: editmode
-    display_name: editmode
-    args: --suite=playmode --suite=editor --platform=Editor
-projects:
-  - name: PerceptionHDRP
-  - name: PerceptionURP
+{% metadata_file .yamato/environments.yml %}
+
 ---
 
-{% for editor in test_editors %}
+{% for editor in complete_editors %}
 {% for suite in suites %}
 {% for project in projects %}
 {{project.name}}_windows_{{suite.name}}_{{editor.version}}:
@@ -24,12 +14,12 @@ projects:
   commands:
     - git submodule update --init --recursive
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
     - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}
-    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64
     {% else %}
-    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}
     {% endif %}
   artifacts:
     logs:
@@ -40,7 +30,7 @@ projects:
 {% endfor %}
 {% endfor %}
 
-{% for editor in test_editors %}
+{% for editor in coverage_editors %}
 {% for suite in suites %}
 codecoverage_windows_{{suite.name}}_{{editor.version}}:
   name : CodeCoverage {{ suite.display_name }} tests ({{ editor.version }}, Windows)
@@ -64,25 +54,28 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
 {% endfor %}
 {% endfor %}
 
-{% for editor in test_editors %}
+{% for editor in complete_editors %}
 {% for suite in suites %}
 {% for project in projects %}
 {{project.name}}_linux_{{suite.name}}_{{editor.version}}:
   name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Linux)
   agent:
     type: Unity::VM::GPU
-    image: cds-ops/ubuntu-18.04-base:latest
+    model: rtx2080
+    image: cds-ops/ubuntu-18.04-base:stable
     flavor: b1.large
+  variables:
+    PATH: /root/.local/bin:/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
   commands:
     - git submodule update --init --recursive
-    - sudo -H pip install --upgrade pip
-    - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-    - sudo unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}
-    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}}StandaloneLinux64
+    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}}StandaloneLinux64
     {% else %}
-    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}}
+    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal  --extra-editor-arg="--force-vulkan" {{suite.args}}
     {% endif %}
   artifacts:
     logs:
@@ -95,7 +88,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
 # Not including OSX because the only OSX platform on Bokken with a GPU is a Mac Mini, of which there are only a few and setting up Yamato jobs is very complicated.
 
 # {% for variant in package_variants %}
-# {% for editor in test_editors %}
+# {% for editor in complete_editors %}
 # code_coverage_win_{{editor.version}}:
 #   name: Code Coverage Report - Windows
 #   agent:

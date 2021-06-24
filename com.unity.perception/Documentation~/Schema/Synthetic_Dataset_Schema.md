@@ -184,65 +184,83 @@ bounding_box_2d {
   y:            <float> -- y coordinate of the upper left corner.
   width:        <float> -- number of pixels in the x direction
   height:       <float> -- number of pixels in the y direction
+##### instance segmentation - color image
+
+A color png file that stores instance ids as a color value per pixel. The png files are located in the "filename" location.
+
+```
+instance_segmentation {
+  instance_id:  <int> -- The instance ID of the labeled object
+  color {             -- The pixel color that correlates with the instance ID
+    r:          <int> -- The red value of the pixel between 0 and 255
+    g:          <int> -- The green value of the pixel between 0 and 255
+    b:          <int> -- The blue value of the pixel between 0 and 255
+    a:          <int> -- The alpha value of the pixel between 0 and 255
+  }
 }
 ```
 
+##### 3D bounding box - json file
 
-<!-- Not yet implemented annotations
-##### instance segmentation - polygon
-
-A json object that stores collections of polygons. Each polygon record maps a tuple of (instance, label) to a list of
-K pixel coordinates that forms a polygon. This object can be directly stored in annotation.values
-
-```
-semantic_segmentation_polygon {
-  label_id:     <int> -- Integer identifier of the label
-  label_name:   <str> -- String identifier of the label
-  instance_id:  <str> -- UUID of the instance.
-  polygon:      [<int, int>,...] -- List of points in pixel coordinates of the outer edge. Connecting these points in order should create a polygon that identifies the object.
-}
-```
--->
-
-<!-- Not yet implemented annotations
-
-##### 3D bounding box
-
-A json file that stored collections of 3D bounding boxes.
+A json file that stored 3D bounding box information. Unlike the 2D bounding box, 3D bounding boxes coordinates are captured in **sensor coordinate system**.
 Each bounding box record maps a tuple of (instance, label) to translation, size and rotation that draws a 3D bounding box, as well as velocity and acceleration (optional) of the 3D bounding box.
-All location data is given with respect to the **sensor coordinate system**.
 
 ```
 bounding_box_3d {
-  label_id:     <int> -- Integer identifier of the label
-  label_name:   <str> -- String identifier of the label
-  instance_id:  <str> -- UUID of the instance.
-  translation:  <float, float, float> -- 3d bounding box's center location in meters as center_x, center_y, center_z with respect to global coordinate system.
-  size:         <float, float, float> -- 3d bounding box size in meters as width, length, height.
-  rotation:     <float, float, float, float> -- 3d bounding box orientation as quaternion: w, x, y, z.
-  velocity:     <float, float, float>  -- 3d bounding box velocity in meters per second as v_x, v_y, v_z.
-  acceleration: <float, float, float> [optional] -- 3d bounding box acceleration in meters per second^2 as a_x, a_y, a_z.
+  label_id:      <int>   -- Integer identifier of the label
+  label_name:    <str>   -- String identifier of the label
+  instance_id:   <str>   -- UUID of the instance.
+  translation {          -- 3d bounding box's center location in meters with respect to the sensor's coordinate system
+    x:           <float> -- The x coordinate
+    y:           <float> -- The y coordinate
+    z:           <float> -- The z coordinate
+  }
+  size {                 -- 3d bounding box size in meters
+    x:           <float> -- The x coordinate
+    y:           <float> -- The y coordinate
+    z:           <float> -- The z coordinate
+  }
+  rotation {             -- 3d bounding box orientation as quaternion: w, x, y, z.
+    x:           <float> -- The x coordinate
+    y:           <float> -- The y coordinate
+    z:           <float> -- The z coordinate
+    w:           <float> -- The w coordinate
+  }
+  velocity {             -- [Optional] 3d bounding box velocity in meters per second.
+    x:           <float> -- The x coordinate
+    y:           <float> -- The y coordinate
+    z:           <float> -- The z coordinate
+  }
+  acceleration {         -- [Optional] 3d bounding box acceleration in meters per second^2.
+    x:           <float> -- The x coordinate
+    y:           <float> -- The y coordinate
+    z:           <float> -- The z coordinate
+  }
 }
 ```
 
+##### Keypoints - json file
 
-#### instances (V2, WIP)
-
-Although we don’t have a specific table that account for instances, it should be noted that instances should be checked against the following cases
-
-* Consider cases for object tracking
-
-* Consider cases not used for object tracking, so that instances do not need to be consistent across different captures/annotations.
-How to support instance segmentation (maybe we need to use polygon instead of pixel color)
-
-* Stored in values of annotation and metric values
-
-##### instance segmentation file - grayscale image (V2)
-
-A grayscale PNG file that stores integer values of labeled instances at each pixel.
-
-![image alt text](image_4.png)
--->
+Keypoint data, commonly used for human pose estimation. A keypoint capture is associated to a template that defines the keypoints (see annotation.definition file).
+Each keypoint record maps a tuple of (instance, label) to template, pose, and an array of keypoints. A keypoint will exist in this record for each keypoint defined in the template file.
+If a given keypoint doesn't exist in the labeled gameobject, then that keypoint will have a state value of 0; if it exists but is not visible, it will have a state value of 1,
+if it exists and is visible it will have a state value of 2.
+```
+keypoints {
+  label_id:      <int>   -- Integer identifier of the label
+  instance_id:   <str>   -- UUID of the instance.
+  template_guid: <str>   -- UUID of the keypoint template
+  pose:          <str>   -- Pose ground truth information
+  keypoints [            -- Array of keypoint data, one entry for each keypoint defined in associated template file.
+    {
+      index:     <int>   -- Index of keypoint in template
+      x:         <float> -- X pixel coordinate of keypoint
+      y:         <float> -- Y pixel coordinate of keypoint
+      state:     <int>   -- 0: keypoint does not exist, 1 keypoint exists but is not visible, 2 keypoint exists and is visible
+    }, ...
+  ]
+}
+```
 
 ### metrics
 
@@ -302,6 +320,8 @@ Each record describes a particular type of annotation and contains an annotation
 Typically, the `spec` key describes all labels_id and label_name used by the annotation.
 Some special cases like semantic segmentation might assign additional values (e.g. pixel value) to record the mapping between label_id/label_name and pixel color in the annotated PNG files.
 
+##### annotation definition header
+
 ```
 annotation_definition {
   id:           <int> -- Integer identifier of the annotation definition.
@@ -310,19 +330,56 @@ annotation_definition {
   format:       <str> -- The format of the annotation files. (e.g. png, json, etc.)
   spec:         [<obj>...] -- Format-specific specification for the annotation values (ex. label-value mappings for semantic segmentation images)
 }
+```
 
-# semantic segmentation
+##### semantic segmentation
+Annotation spec for semantic [segmentation labeler](#semantic-segmentation---grayscale-image)
+```
 annotation_definition.spec {
-  label_id:          <int> -- Integer identifier of the label
-  label_name:        <str> -- String identifier of the label
-  pixel_value:       <int> -- Grayscale pixel value
-  color_pixel_value: <int, int, int> [optional] -- Color pixel value
+  label_id:          <int>           -- Integer identifier of the label
+  label_name:        <str>           -- String identifier of the label
+  pixel_value:       <int>           -- Grayscale pixel value
+  color_pixel_value: <int, int, int> -- [Optional] Color pixel value
 }
-
-# label enumeration spec, used for annotations like bounding box 2d. This might be a subset of all labels used in simulation.
+```
+##### label enumeration spec
+This spec is used for annotations like [bounding box 2d](#2d-bounding-box). This might be a subset of all labels used in simulation.
+```
 annotation_definition.spec {
-  label_id:    <int> -- Integer identifier of the label
-  label_name:  <str> -- String identifier of the label
+  label_id:          <int>           -- Integer identifier of the label
+  label_name:        <str>           -- String identifier of the label
+}
+```
+##### keypoint template
+keypoint templates are used to define the keypoints and skeletal connections captured by the [keypoint labeler](#keypoints).
+```
+annotation_definition.spec {
+  template_id:       <str>           -- The UUID of the template
+  template_name:     <str>           -- Human readable name of the template
+  key_points [                       -- Array of joints defined in this template
+    {
+      label:         <str>           -- The label of the joint
+      index:         <int>           -- The index of the joint
+      color {                        -- [Optional] The color to use for the visualization of the keypoint
+        r:           <float>         -- Value from 0 to 1 for the red channel
+        g:           <float>         -- Value from 0 to 1 for the green channel
+        b:           <float>         -- Value from 0 to 1 for the blue channel
+        a:           <float>         -- Value from 0 to 1 for the alpha channel
+      }
+    }, ...
+  ]
+  skeleton [                         -- Array of skeletal connections (which joints have connections between one another) defined in this template
+    {
+      joint1:        <int>           -- The first joint of the connection
+      joint2:        <int>           -- The second joint of the connection
+      color {                        -- [Optional] The color to use for the visualization of the bone
+        r:           <float>         -- Value from 0 to 1 for the red channel
+        g:           <float>         -- Value from 0 to 1 for the green channel
+        b:           <float>         -- Value from 0 to 1 for the blue channel
+        a:           <float>         -- Value from 0 to 1 for the alpha channel
+      }
+    }, ...
+  ]
 }
 ```
 

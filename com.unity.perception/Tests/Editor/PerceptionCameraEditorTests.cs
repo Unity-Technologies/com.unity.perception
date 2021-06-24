@@ -8,6 +8,12 @@ using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+#if MOQ_PRESENT
+using Moq;
+using Moq.Protected;
+using UnityEngine.Rendering;
+
+#endif
 
 namespace EditorTests
 {
@@ -17,14 +23,15 @@ namespace EditorTests
         [UnityTest]
         public IEnumerator EditorPause_DoesNotLogErrors()
         {
-            int sceneCount = SceneManager.sceneCount;
-            for (int i = sceneCount - 1; i >= 0; i--)
+            ResetScene();
+            var cameraObject = SetupCamera(p =>
             {
-                EditorSceneManager.CloseScene(SceneManager.GetSceneAt(i), true);
-            }
-
-            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
-            SetupCamera(ScriptableObject.CreateInstance<LabelingConfiguration>());
+                var idLabelConfig = ScriptableObject.CreateInstance<IdLabelConfig>();
+                p.captureRgbImages = true;
+                p.AddLabeler(new BoundingBox2DLabeler(idLabelConfig));
+                p.AddLabeler(new RenderedObjectInfoLabeler(idLabelConfig));
+            });
+            cameraObject.name = "Camera";
             yield return new EnterPlayMode();
             var expectedFirstFrame = Time.frameCount;
             yield return null;
@@ -38,20 +45,160 @@ namespace EditorTests
             var expectedLastFrame = Time.frameCount;
             yield return null;
 
-            SimulationManager.ResetSimulation();
+            DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(SimulationManager.OutputDirectory, "captures_000.json");
+            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
             var capturesJson = File.ReadAllText(capturesPath);
             for (int iFrameCount = expectedFirstFrame; iFrameCount <= expectedLastFrame; iFrameCount++)
             {
-                var imagePath = Path.Combine(PerceptionCamera.RgbDirectory, $"rgb_{iFrameCount}").Replace(@"\", @"\\");
+                var imagePath = $"{GameObject.Find("Camera").GetComponent<PerceptionCamera>().rgbDirectory}/rgb_{iFrameCount}";
                 StringAssert.Contains(imagePath, capturesJson);
             }
 
             yield return new ExitPlayMode();
         }
 
-        static void SetupCamera(LabelingConfiguration labelingConfiguration)
+        static void ResetScene()
+        {
+            int sceneCount = SceneManager.sceneCount;
+            for (int i = sceneCount - 1; i >= 0; i--)
+            {
+                EditorSceneManager.CloseScene(SceneManager.GetSceneAt(i), true);
+            }
+
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+        }
+
+#if MOQ_PRESENT
+        [UnityTest]
+        public IEnumerator AddLabelerAfterStart_ShouldInitialize()
+        {
+            ResetScene();
+            yield return new EnterPlayMode();
+            var camera = SetupCamera(null);
+            var mockLabeler = new Mock<CameraLabeler>();
+            yield return null;
+            camera.GetComponent<PerceptionCamera>().AddLabeler(mockLabeler.Object);
+            yield return null;
+            mockLabeler.Protected().Verify("Setup", Times.Once());
+            yield return new ExitPlayMode();
+        }
+        [UnityTest]
+        public IEnumerator Labeler_ShouldRunCallbacksInFirstFrame()
+        {
+            ResetScene();
+            yield return new EnterPlayMode();
+            var mockLabeler = new Mock<CameraLabeler>();
+            var camera = SetupCamera(null);
+            camera.GetComponent<PerceptionCamera>().AddLabeler(mockLabeler.Object);
+            yield return null;
+
+            mockLabeler.Protected().Verify("Setup", Times.Once());
+            mockLabeler.Protected().Verify("OnUpdate", Times.Once());
+            mockLabeler.Protected().Verify("OnBeginRendering", Times.Once(), ItExpr.IsAny<ScriptableRenderContext>());
+            mockLabeler.Protected().Verify("OnEndRendering", Times.Once(), ItExpr.IsAny<ScriptableRenderContext>());
+            yield return new ExitPlayMode();
+        }
+        [UnityTest]
+        public IEnumerator Labeler_ShouldNotRunCallbacksWhenCameraDisabled()
+        {
+            ResetScene();
+            yield return new EnterPlayMode();
+            var mockLabeler = new Mock<CameraLabeler>();
+            var camera = SetupCamera(null);
+            var perceptionCamera = camera.GetComponent<PerceptionCamera>();
+            perceptionCamera.AddLabeler(mockLabeler.Object);
+            yield return null;
+            perceptionCamera.enabled = false;
+            yield return null;
+
+            mockLabeler.Protected().Verify("Setup", Times.Once());
+            mockLabeler.Protected().Verify("OnUpdate", Times.Once());
+            mockLabeler.Protected().Verify("OnBeginRendering", Times.Once(), ItExpr.IsAny<ScriptableRenderContext>());
+            mockLabeler.Protected().Verify("OnEndRendering", Times.Once(), ItExpr.IsAny<ScriptableRenderContext>());
+            yield return new ExitPlayMode();
+        }
+        [UnityTest]
+        public IEnumerator AddAndRemoveLabelerInSameFrame_ShouldDoNothing()
+        {
+            ResetScene();
+            yield return new EnterPlayMode();
+            var mockLabeler = new Mock<CameraLabeler>();
+            var cameraObject = SetupCamera(null);
+            var perceptionCamera = cameraObject.GetComponent<PerceptionCamera>();
+            perceptionCamera.AddLabeler(mockLabeler.Object);
+            perceptionCamera.RemoveLabeler(mockLabeler.Object);
+            yield return null;
+            mockLabeler.Protected().Verify("Setup", Times.Never());
+            mockLabeler.Protected().Verify("OnUpdate", Times.Never());
+            mockLabeler.Protected().Verify("OnBeginRendering", Times.Never(), It.IsAny<ScriptableRenderContext>());
+            mockLabeler.Protected().Verify("OnEndRendering", Times.Never(), It.IsAny<ScriptableRenderContext>());
+            mockLabeler.Protected().Verify("Cleanup", Times.Never());
+            yield return new ExitPlayMode();
+        }
+        [UnityTest]
+        public IEnumerator RemoveLabeler_ShouldCallCleanup()
+        {
+            ResetScene();
+            yield return new EnterPlayMode();
+            var mockLabeler = new Mock<CameraLabeler>();
+            var cameraObject = SetupCamera(null);
+            var perceptionCamera = cameraObject.GetComponent<PerceptionCamera>();
+            perceptionCamera.AddLabeler(mockLabeler.Object);
+            yield return null;
+            Assert.IsTrue(perceptionCamera.RemoveLabeler(mockLabeler.Object));
+            mockLabeler.Protected().Verify("Cleanup", Times.Once());
+            yield return new ExitPlayMode();
+        }
+        [UnityTest]
+        public IEnumerator RemoveLabeler_OnLabelerNotAdded_ShouldNotCallCleanup()
+        {
+            ResetScene();
+            yield return new EnterPlayMode();
+            var mockLabeler = new Mock<CameraLabeler>();
+            var cameraObject = SetupCamera(null);
+            var perceptionCamera = cameraObject.GetComponent<PerceptionCamera>();
+            yield return null;
+            Assert.IsFalse(perceptionCamera.RemoveLabeler(mockLabeler.Object));
+            mockLabeler.Protected().Verify("Cleanup", Times.Never());
+            yield return new ExitPlayMode();
+        }
+        [UnityTest]
+        public IEnumerator DestroyPerceptionCameraObject_ShouldCallCleanup()
+        {
+            ResetScene();
+            yield return new EnterPlayMode();
+            var mockLabeler = new Mock<CameraLabeler>();
+            var cameraObject = SetupCamera(null);
+            var perceptionCamera = cameraObject.GetComponent<PerceptionCamera>();
+            perceptionCamera.AddLabeler(mockLabeler.Object);
+            yield return null;
+            UnityEngine.Object.DestroyImmediate(cameraObject);
+            mockLabeler.Protected().Verify("Cleanup", Times.Once());
+            yield return new ExitPlayMode();
+        }
+        [UnityTest]
+        public IEnumerator SetupThrows_ShouldDisable()
+        {
+            ResetScene();
+            yield return new EnterPlayMode();
+            var mockLabeler = new Mock<CameraLabeler>();
+            mockLabeler.Protected().Setup("Setup").Throws<InvalidOperationException>();
+            var labeler = mockLabeler.Object;
+            var camera = SetupCamera(null);
+            camera.GetComponent<PerceptionCamera>().AddLabeler(labeler);
+            LogAssert.Expect(LogType.Exception, "InvalidOperationException: Operation is not valid due to the current state of the object.");
+            yield return null;
+            mockLabeler.Protected().Verify("Setup", Times.Once());
+            mockLabeler.Protected().Verify("OnUpdate", Times.Never());
+            mockLabeler.Protected().Verify("OnBeginRendering", Times.Never(), It.IsAny<ScriptableRenderContext>());
+            mockLabeler.Protected().Verify("OnEndRendering", Times.Never(), It.IsAny<ScriptableRenderContext>());
+            Assert.IsFalse(labeler.enabled);
+            yield return new ExitPlayMode();
+        }
+#endif
+
+        static GameObject SetupCamera(Action<PerceptionCamera> initPerceptionCameraCallback)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -63,12 +210,10 @@ namespace EditorTests
 #endif
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
-            perceptionCamera.LabelingConfiguration = labelingConfiguration;
-            perceptionCamera.captureRgbImages = true;
-            perceptionCamera.produceBoundingBoxAnnotations = true;
-            perceptionCamera.produceObjectCountAnnotations = true;
+            initPerceptionCameraCallback?.Invoke(perceptionCamera);
 
             cameraObject.SetActive(true);
+            return cameraObject;
         }
     }
 }

@@ -1,0 +1,13 @@
+﻿<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement name="container" style="width: 225px; height: 300px; background-color: #383838; border-width: 1px; border-color: #232323;">
+        <Style src="../../Uss/Styles.uss"/>
+        <TextField name="search-bar" class="randomizer__menu-search-bar" style="padding: 3px;"/>
+        <VisualElement name="directory-label" style="flex-direction: row; justify-content: space-between; align-items: center; background-color: #414141">
+            <VisualElement name="directory-chevron" class="randomization__chevron-left"/>
+            <TextElement name="directory-label-text" text="Randomizers" style="-unity-font-style: bold; padding: 3px;"/>
+            <VisualElement/>
+        </VisualElement>
+        <VisualElement name="menu-options"/>
+        <VisualElement class="randomizer__menu-search-icon"/>
+    </VisualElement>
+</UXML>

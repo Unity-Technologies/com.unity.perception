@@ -3,17 +3,26 @@ using UnityEngine;
 namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
-    /// Interface for setting up MeshRenderers for ground truth generation via <see cref="GroundTruthLabelSetupSystem"/>.
+    /// Interface for setting up Renderers for ground truth generation via <see cref="LabelManager"/>.
     /// </summary>
     public interface IGroundTruthGenerator
     {
         /// <summary>
-        /// Called by <see cref="GroundTruthLabelSetupSystem"/> when first registered or when a Labeling is created at runtime.
+        /// Enables ground truth generation for a <see cref="Labeling"/> component or its associated <see cref="MaterialPropertyBlock"/>. This function is called by <see cref="LabelManager"/> when a <see cref="Labeling"/> component is registered, created, or enabled.
         /// </summary>
-        /// <param name="mpb">The MaterialPropertyBlock for the given meshRenderer. Can be used to set properties for custom rendering.</param>
-        /// <param name="meshRenderer">The MeshRenderer which exists under the given Labeling.</param>
-        /// <param name="labeling">The Labeling component created</param>
-        /// <param name="instanceId">The instanceId assigned to the given Labeling instance.</param>
-        void SetupMaterialProperties(MaterialPropertyBlock mpb, MeshRenderer meshRenderer, Labeling labeling, uint instanceId);
+        /// <param name="mpb">The <see cref="MaterialPropertyBlock"/> for the given <see cref="MeshRenderer"/>. Can be used to set properties for custom rendering.</param>
+        /// <param name="renderer">The <see cref="Renderer"/> under the given <see cref="LabelManager"/>.</param>
+        /// <param name="labeling">The <see cref="LabelManager"/> component that was registered, created, or enabled</param>
+        /// <param name="instanceId">The instanceId assigned to the given <see cref="LabelManager"/> instance.</param>
+        void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId);
+
+        /// <summary>
+        /// Disables ground truth generation for a <see cref="Labeling"/> component or its associated <see cref="MaterialPropertyBlock"/>. This function is called by <see cref="LabelManager"/> when a <see cref="Labeling"/> component is disabled.
+        /// </summary>
+        /// <param name="mpb">The <see cref="MaterialPropertyBlock"/> for the given <see cref="MeshRenderer"/>. Can be used to set properties for custom rendering.</param>
+        /// <param name="renderer">The <see cref="Renderer"/> under the given <see cref="LabelManager"/>.</param>
+        /// <param name="labeling">The <see cref="LabelManager"/> component for which ground-truth generation should stop.</param>
+        /// <param name="instanceId">The instanceId assigned to the given <see cref="LabelManager"/> instance.</param>
+        void ClearMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId);
     }
 }

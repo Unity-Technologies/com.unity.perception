@@ -13,7 +13,7 @@ namespace UnityEditor.Perception.GroundTruth
         {
             AddProperty(customPass.FindPropertyRelative(nameof(SemanticSegmentationPass.targetCamera)));
             AddProperty(customPass.FindPropertyRelative(nameof(SemanticSegmentationPass.targetTexture)));
-            AddProperty(customPass.FindPropertyRelative(nameof(SemanticSegmentationPass.labelingConfiguration)));
+            AddProperty(customPass.FindPropertyRelative(nameof(SemanticSegmentationPass.semanticSegmentationLabelConfig)));
             base.Initialize(customPass);
         }
     }

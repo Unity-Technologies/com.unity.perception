@@ -1,0 +1,38 @@
+<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement class="outer-container" name="outer-container">
+        <Style src="../Uss/Styles.uss"/>
+        <Toggle name = "auto-or-manual-toggle" text="Use Automatic Labeling" style="margin-top: 5px"/>
+        <VisualElement name="automatic-labeling" class="inner-container">
+            <VisualElement name = "drop-down-parent"/>
+            <VisualElement style="flex-direction:row; flex-shrink:1; width:auto">
+                <Label name ="current-auto-label-title" text="Automatic Label:"/>
+                <Label name ="current-auto-label" style="-unity-font-style: bold; margin-left: 54px;"/>
+            </VisualElement>
+            <Button name ="add-auto-label-to-config" text="Add to Label Config..." style="margin-top: 5px; align-self: flex-end;"/>
+        </VisualElement>
+        <VisualElement name="manual-labeling" class="inner-container" style="margin-top:5px">
+            <Label text="Added Labels" name="added-labels-title" class="title-label"/>
+            <ListView name="current-labels-listview" class="labeling__label-listview" style="margin-top: 2px"/>
+            <Button name="add-label" text="Add New Label" class="labeling__add-label-button"/>
+            <Label name = "add-manual-labels-title" text="Add Labels" class="title-label" style = "margin-top:0px"/>
+            <VisualElement name="from-label-configs" class="inner-container depth2" style="margin-top:0">
+                <Label text="From Existing Label Configs" class="title-label"/>
+                <VisualElement name="add-from-label-configs" style="padding-top: 0px;">
+                    <ScrollView name="label-configs-scrollview" class="labeling__label-configs-scrollview" style="min-height: 100px;"/>
+                </VisualElement>
+            </VisualElement>
+            <VisualElement name="suggested-labels" class="inner-container depth2">
+                <Label text="Other Suggested Labels" class="title-label"/>
+                <VisualElement name="suggested-labels-from-name" style="padding-top: 5px;">
+                    <Label text="Based on asset name" class="subtitle-label"/>
+                    <ListView name="suggested-labels-name-listview" class="labeling__label-listview" style="min-height: 100px;"/>
+                </VisualElement>
+                <VisualElement name="suggested-labels-from-path" style="padding-top: 5px;">
+                    <Label text="Based on asset path" class="subtitle-label"/>
+                    <ListView name="suggested-labels-path-listview" class="labeling__label-listview" style="min-height: 100px;"/>
+                </VisualElement>
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>
+

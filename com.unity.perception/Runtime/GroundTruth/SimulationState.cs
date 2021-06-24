@@ -1,27 +1,26 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Unity.Collections;
+using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Profiling;
-
-// ReSharper disable NotAccessedField.Local
-// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace UnityEngine.Perception.GroundTruth
 {
     partial class SimulationState
     {
-        public string OutputDirectory { get; }
-
         HashSet<SensorHandle> m_ActiveSensors = new HashSet<SensorHandle>();
         Dictionary<SensorHandle, SensorData> m_Sensors = new Dictionary<SensorHandle, SensorData>();
         HashSet<EgoHandle> m_Egos = new HashSet<EgoHandle>();
         HashSet<Guid> m_Ids = new HashSet<Guid>();
         Guid m_SequenceId = Guid.NewGuid();
 
-        //Always use the property SequenceTimeMs instead
+        // Always use the property SequenceTimeMs instead
         int m_FrameCountLastUpdatedSequenceTime;
         float m_SequenceTimeDoNotUse;
         float m_UnscaledSequenceTimeDoNotUse;
@@ -46,18 +45,50 @@ namespace UnityEngine.Perception.GroundTruth
         CustomSampler m_SerializeMetricsAsyncSampler = CustomSampler.Create("SerializeMetricsAsync");
         CustomSampler m_GetOrCreatePendingCaptureForThisFrameSampler = CustomSampler.Create("GetOrCreatePendingCaptureForThisFrame");
         float m_LastTimeScale;
+        readonly string m_OutputDirectoryName;
+        string m_OutputDirectoryPath;
+        public const string userBaseDirectoryKey = "userBaseDirectory";
+        public const string latestOutputDirectoryKey = "latestOutputDirectory";
+        public const string defaultOutputBaseDirectory = "defaultOutputBaseDirectory";
 
         public bool IsRunning { get; private set; }
 
+        public string OutputDirectory
+        {
+            get
+            {
+                if (m_OutputDirectoryPath == null)
+                    m_OutputDirectoryPath = Manager.Instance.GetDirectoryFor(m_OutputDirectoryName);
+
+                return m_OutputDirectoryPath;
+            }
+        }
+
         //A sensor will be triggered if sequenceTime is within includeThreshold seconds of the next trigger
-        const float k_IncludeInFrameThreshold = .01f;
+        const float k_SimulationTimingAccuracy = 0.01f;
         const int k_MinPendingCapturesBeforeWrite = 150;
         const int k_MinPendingMetricsBeforeWrite = 150;
-        const int k_MaxDeltaTime = 10;
 
         public SimulationState(string outputDirectory)
         {
-            OutputDirectory = outputDirectory;
+            PlayerPrefs.SetString(defaultOutputBaseDirectory, Configuration.Instance.GetStorageBasePath());
+            m_OutputDirectoryName = outputDirectory;
+            var basePath = PlayerPrefs.GetString(userBaseDirectoryKey, string.Empty);
+
+            if (basePath != string.Empty)
+            {
+                if (Directory.Exists(basePath))
+                {
+                    Configuration.localPersistentDataPath = basePath;
+                }
+                else
+                {
+                    Debug.LogWarning($"Passed in directory to store simulation artifacts: {basePath}, does not exist. Using default directory {Configuration.localPersistentDataPath} instead.");
+                    basePath = Configuration.localPersistentDataPath;
+                }
+            }
+
+            PlayerPrefs.SetString(latestOutputDirectoryKey, Manager.Instance.GetDirectoryFor("", basePath));
             IsRunning = true;
         }
 
@@ -106,9 +137,10 @@ namespace UnityEngine.Perception.GroundTruth
                 Values = values;
             }
 
+            // ReSharper disable NotAccessedField.Local
+            public readonly SensorHandle SensorHandle;
             public readonly MetricDefinition MetricDefinition;
             public readonly int MetricId;
-            public readonly SensorHandle SensorHandle;
             public readonly Guid CaptureId;
             public readonly Annotation Annotation;
             public readonly Guid SequenceId;
@@ -122,10 +154,14 @@ namespace UnityEngine.Perception.GroundTruth
         {
             public string modality;
             public string description;
-            public float period;
             public float firstCaptureTime;
+            public CaptureTriggerMode captureTriggerMode;
+            public float renderingDeltaTime;
+            public int framesBetweenCaptures;
+            public bool manualSensorAffectSimulationTiming;
 
-            public float sequenceTimeNextCapture;
+            public float sequenceTimeOfNextCapture;
+            public float sequenceTimeOfNextRender;
             public int lastCaptureFrameCount;
             public EgoHandle egoHandle;
         }
@@ -202,6 +238,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 unchecked
                 {
+                    // ReSharper disable NonReadonlyMemberInGetHashCode
                     var hashCode = (name != null ? StringComparer.InvariantCulture.GetHashCode(name) : 0);
                     hashCode = (hashCode * 397) ^ (description != null ? StringComparer.InvariantCulture.GetHashCode(description) : 0);
                     hashCode = (hashCode * 397) ^ (format != null ? StringComparer.InvariantCulture.GetHashCode(format) : 0);
@@ -286,6 +323,8 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
+        public string GetOutputDirectoryNoCreate() => Path.Combine(Configuration.Instance.GetStoragePath(), m_OutputDirectoryName);
+
         void EnsureSequenceTimingsUpdated()
         {
             if (!m_HasStarted)
@@ -329,7 +368,8 @@ namespace UnityEngine.Perception.GroundTruth
             foreach (var kvp in m_Sensors.ToArray())
             {
                 var sensorData = kvp.Value;
-                sensorData.sequenceTimeNextCapture = SequenceTimeOfNextCapture(sensorData);
+                sensorData.sequenceTimeOfNextCapture = GetSequenceTimeOfNextCapture(sensorData);
+                sensorData.sequenceTimeOfNextRender = 0;
                 m_Sensors[kvp.Key] = sensorData;
             }
 
@@ -344,29 +384,36 @@ namespace UnityEngine.Perception.GroundTruth
             m_LastTimeScale = Time.timeScale;
         }
 
-        public void AddSensor(EgoHandle egoHandle, string modality, string description, float period, float firstCaptureTime, SensorHandle sensor)
+        public void AddSensor(EgoHandle egoHandle, string modality, string description, float firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float renderingDeltaTime, int framesBetweenCaptures, bool manualSensorAffectSimulationTiming, SensorHandle sensor)
         {
             var sensorData = new SensorData()
             {
                 modality = modality,
                 description = description,
-                period = period,
-                firstCaptureTime = firstCaptureTime,
+                firstCaptureTime = UnscaledSequenceTime + firstCaptureFrame * renderingDeltaTime,
+                captureTriggerMode = captureTriggerMode,
+                renderingDeltaTime = renderingDeltaTime,
+                framesBetweenCaptures = framesBetweenCaptures,
+                manualSensorAffectSimulationTiming = manualSensorAffectSimulationTiming,
                 egoHandle = egoHandle,
                 lastCaptureFrameCount = -1
             };
-            sensorData.sequenceTimeNextCapture = SequenceTimeOfNextCapture(sensorData);
+            sensorData.sequenceTimeOfNextCapture = GetSequenceTimeOfNextCapture(sensorData);
+            sensorData.sequenceTimeOfNextRender = UnscaledSequenceTime;
             m_ActiveSensors.Add(sensor);
             m_Sensors.Add(sensor, sensorData);
             m_Ids.Add(sensor.Id);
         }
 
-        float SequenceTimeOfNextCapture(SensorData sensorData)
+        float GetSequenceTimeOfNextCapture(SensorData sensorData)
         {
+            // If the first capture hasn't happened yet, sequenceTimeNextCapture field won't be valid
             if (sensorData.firstCaptureTime >= UnscaledSequenceTime)
-                return sensorData.firstCaptureTime;
+            {
+                return sensorData.captureTriggerMode == CaptureTriggerMode.Scheduled? sensorData.firstCaptureTime : float.MaxValue;
+            }
 
-            return sensorData.period - (UnscaledSequenceTime - sensorData.firstCaptureTime) % sensorData.period;
+            return sensorData.sequenceTimeOfNextCapture;
         }
 
         public bool Contains(Guid id) => m_Ids.Contains(id);
@@ -389,7 +436,7 @@ namespace UnityEngine.Perception.GroundTruth
                 m_ActiveSensors.Add(sensorHandle);
         }
 
-        void CheckDatasetAllowed()
+        static void CheckDatasetAllowed()
         {
             if (!Application.isPlaying)
             {
@@ -410,34 +457,80 @@ namespace UnityEngine.Perception.GroundTruth
                 m_HasStarted = true;
             }
 
+            EnsureSequenceTimingsUpdated();
+
             //update the active sensors sequenceTimeNextCapture and lastCaptureFrameCount
             foreach (var activeSensor in m_ActiveSensors)
             {
                 var sensorData = m_Sensors[activeSensor];
-                if (!activeSensor.ShouldCaptureThisFrame)
-                    continue;
 
-                //Just in case we get in a situation where we are so far beyond sequenceTimeNextCapture that incrementing next time by the period still doesn't get us to a time past "now"
-                do
+#if UNITY_EDITOR
+                if (UnityEditor.EditorApplication.isPaused)
                 {
-                    sensorData.sequenceTimeNextCapture += sensorData.period;
-                }
-                while (sensorData.sequenceTimeNextCapture <= UnscaledSequenceTime);
+                    //When the user clicks the 'step' button in the editor, frames will always progress at .02 seconds per step.
+                    //In this case, just run all sensors each frame to allow for debugging
+                    Debug.Log($"Frame step forced all sensors to synchronize, changing frame timings.");
 
-                sensorData.lastCaptureFrameCount = Time.frameCount;
+                    sensorData.sequenceTimeOfNextRender = UnscaledSequenceTime;
+                    sensorData.sequenceTimeOfNextCapture = UnscaledSequenceTime;
+                }
+#endif
+
+                if (Mathf.Abs(sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime) < k_SimulationTimingAccuracy)
+                {
+                    //means this frame fulfills this sensor's simulation time requirements, we can move target to next frame.
+                    sensorData.sequenceTimeOfNextRender += sensorData.renderingDeltaTime;
+                }
+
+                if (activeSensor.ShouldCaptureThisFrame)
+                {
+                    if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
+                    {
+                        sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + 1);
+                        Debug.Assert(sensorData.sequenceTimeOfNextCapture > UnscaledSequenceTime,
+                            $"Next scheduled capture should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeOfNextCapture}");
+                        while (sensorData.sequenceTimeOfNextCapture <= UnscaledSequenceTime)
+                            sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + 1);
+                    }
+                    else if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Manual))
+                    {
+                        sensorData.sequenceTimeOfNextCapture = float.MaxValue;
+                    }
+
+                    sensorData.lastCaptureFrameCount = Time.frameCount;
+                }
+
                 m_Sensors[activeSensor] = sensorData;
             }
 
             //find the deltatime required to land on the next active sensor that needs simulation
-            float nextFrameDt = k_MaxDeltaTime;
+            var nextFrameDt = float.PositiveInfinity;
             foreach (var activeSensor in m_ActiveSensors)
             {
-                var sensorData = m_Sensors[activeSensor];
-                var thisSensorNextFrameDt = sensorData.sequenceTimeNextCapture - UnscaledSequenceTime;
+                float thisSensorNextFrameDt = -1;
 
-                Debug.Assert(thisSensorNextFrameDt > 0f, "Sensor was scheduled to run in the past but got skipped over.");
+                var sensorData = m_Sensors[activeSensor];
+                if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
+                {
+                    thisSensorNextFrameDt = sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime;
+
+                    Debug.Assert(thisSensorNextFrameDt > 0f, "Sensor was scheduled to capture in the past but got skipped over.");
+                }
+                else if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Manual) && sensorData.manualSensorAffectSimulationTiming)
+                {
+                    thisSensorNextFrameDt = sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime;
+                }
+
                 if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
+                {
                     nextFrameDt = thisSensorNextFrameDt;
+                }
+            }
+
+            if (float.IsPositiveInfinity(nextFrameDt))
+            {
+                //means no sensor is controlling simulation timing, so we set Time.captureDeltaTime to 0 (default) which means the setting does not do anything
+                nextFrameDt = 0;
             }
 
             WritePendingCaptures();
@@ -446,13 +539,26 @@ namespace UnityEngine.Perception.GroundTruth
             Time.captureDeltaTime = nextFrameDt;
         }
 
+        public void SetNextCaptureTimeToNowForSensor(SensorHandle sensorHandle)
+        {
+            if (!m_Sensors.ContainsKey(sensorHandle))
+                return;
+
+            var data = m_Sensors[sensorHandle];
+            data.sequenceTimeOfNextCapture = UnscaledSequenceTime;
+            m_Sensors[sensorHandle] = data;
+        }
+
         public bool ShouldCaptureThisFrame(SensorHandle sensorHandle)
         {
+            if (!m_Sensors.ContainsKey(sensorHandle))
+                return false;
+
             var data = m_Sensors[sensorHandle];
             if (data.lastCaptureFrameCount == Time.frameCount)
                 return true;
 
-            return (data.sequenceTimeNextCapture - UnscaledSequenceTime) < k_IncludeInFrameThreshold;
+            return data.sequenceTimeOfNextCapture - UnscaledSequenceTime < k_SimulationTimingAccuracy;
         }
 
         public void End()
@@ -460,7 +566,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (m_Ids.Count == 0)
                 return;
 
-            WritePendingCaptures(true, writeCapturesFromThisFrame: true);
+            WritePendingCaptures(true, true);
             if (m_PendingCaptures.Count > 0)
                 Debug.LogError($"Simulation ended with pending annotations: {string.Join(", ", m_PendingCaptures.Select(c => $"id:{c.SensorHandle.Id} frame:{c.FrameCount}"))}");
 
@@ -588,29 +694,57 @@ namespace UnityEngine.Perception.GroundTruth
             return new AsyncAnnotation(ReportAnnotationFile(annotationDefinition, sensorHandle, null), this);
         }
 
-        public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, T[] values = null)
+        public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, NativeSlice<T> values = default) where T : struct
+        {
+            var jArray = new JArray();
+            foreach (var value in values)
+                jArray.Add(new JRaw(DatasetJsonUtility.ToJToken(value)));
+
+            ReportAsyncAnnotationResult(asyncAnnotation, filename, jArray);
+        }
+
+        public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, IEnumerable<T> values = null)
+        {
+            JArray jArray = null;
+
+            if (values != null)
+            {
+                jArray = new JArray();
+                foreach (var value in values)
+                {
+                    if (value != null)
+                        jArray.Add(new JRaw(DatasetJsonUtility.ToJToken(value)));
+                }
+            }
+
+            ReportAsyncAnnotationResult(asyncAnnotation, filename, jArray);
+        }
+
+        void ReportAsyncAnnotationResult(AsyncAnnotation asyncAnnotation, string filename, JArray jArray)
         {
             if (!asyncAnnotation.IsPending)
                 throw new InvalidOperationException("AsyncAnnotation has already been reported and cannot be reported again.");
 
             PendingCapture pendingCapture = null;
+            var annotationIndex = -1;
             foreach (var c in m_PendingCaptures)
             {
                 if (c.Step == asyncAnnotation.Annotation.Step && c.SensorHandle == asyncAnnotation.Annotation.SensorHandle)
                 {
                     pendingCapture = c;
-                    break;
+                    annotationIndex = pendingCapture.Annotations.FindIndex(a => a.Item1.Equals(asyncAnnotation.Annotation));
+                    if (annotationIndex != -1)
+                        break;
                 }
             }
 
-            Debug.Assert(pendingCapture != null);
+            Debug.Assert(pendingCapture != null && annotationIndex != -1);
 
-            var annotationIndex = pendingCapture.Annotations.FindIndex(a => a.Item1.Equals(asyncAnnotation.Annotation));
             var annotationTuple = pendingCapture.Annotations[annotationIndex];
             var annotationData = annotationTuple.Item2;
 
             annotationData.Path = filename;
-            annotationData.ValuesJson = values == null ? null : JArray.FromObject(values);
+            annotationData.ValuesJson = jArray;
 
             annotationTuple.Item2 = annotationData;
             pendingCapture.Annotations[annotationIndex] = annotationTuple;

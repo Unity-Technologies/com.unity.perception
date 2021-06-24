@@ -1,28 +1,19 @@
-# Setup for local development
-* Clone the [Perception](https://github.com/Unity-Technologies/com.unity.perception) repository
-* Install and use Unity latest [2019.3 Unity editor](https://unity.com/releases/2019-3) 
+# Installing the Perception package in your project
 
-## Setting up a Project
-Below are two options for getting started using the Perception package. Option 1 is opening existing test projects in the repository. Option 2 new Unity project and integrate the Perception package.
+![ReleaseBadge](https://badge-proxy.cds.internal.unity3d.com/5ab9a162-9dd0-4ba1-ba41-cf25378a927a)
 
-### Option 1: PerceptionHDRP & PerceptionURP Projects
-The repository includes two projects for local development in `TestProjects` folder, one set up for HDRP and the other for URP. You can open these with the Unity
-editor you installed in Setup instructions.
+This page provides brief instructions on installing the Perception package. Head over to the [Perception Tutorial](Tutorial/TUTORIAL.md) for more detailed instructions and steps for building a sample project.
 
-<img src="images/TestProjects.PNG" align="middle"/>
 
-### Option 2: Create a new Project 
-These option is walkthrough in creating a new project, then adding the Perception SDK package to the project for development use.
-*The following instructions reference the Unity doc's page on [installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html)*
+1. Install the latest version of **2020.2.x** Unity Editor from [here](https://unity3d.com/get-unity/download/archive). (The Perception package has not been fully tested on newer Unity versions)
+1. Create a new HDRP or URP project, or open an existing project.
+1. Open `Window` ->  `Package Manager`
+	1. In the Package Manager window find and click the ***+*** button in the upper lefthand corner of the window
+	1. Select ***Add package from git URL...***
+	1. Enter `com.unity.perception` and click ***Add***
 
-#### Create a new project 
-1. Create a new HDRP project or open an existing project
-	1. Creating anew HDRP project can be done by creating a new project using the HDRP template 
-2. Back in Unity editor, got Window ->  Package Manager
-	1. Add the High Definition RP package, version 7.1.2 or later from the packages list 
-	2. In the Package Manager window find and click the ***+*** button in the upper lefthand corner of the window
-	3. Select the ***add package from disk*** option
-	4. Navigate to the com.unity.perception folder in your cloned repository and select the package.json file
-3. Once you have a project with Perception SDK installed you can move forward to the Getting Started walkthrough 
+Note that although the Perception package is compatible with both URP and HDRP, Unity Simulation currently only supports URP projects, therefore a URP project is recommended. 
 
-Once completed you can move on to the getting started steps, click [here](Documentation~/GettingStarted.md) to start project setup.
+If you want a specific version of the package, append the version to the end of the "git URL". Ex. `com.unity.perception@0.8.0-preview.1`
+
+To install from a local clone of the repository, see [installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html) in the Unity manual.

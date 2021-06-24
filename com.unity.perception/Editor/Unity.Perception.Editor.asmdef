@@ -1,23 +1,26 @@
 {
     "name": "Unity.Perception.Editor",
     "references": [
-        "Unity.RenderPipelines.Core.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Editor",
-        "Unity.Mathematics",
-        "Unity.Entities",
         "Unity.Collections",
+        "Unity.Entities",
+        "Unity.Mathematics",
         "Unity.Perception.Runtime",
-        "PathCreatorEditor",
-        "PathCreator"
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Editor",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.Simulation.Client.Editor",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll",
+        "ZipUtility.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [
@@ -25,6 +28,11 @@
             "name": "com.unity.render-pipelines.high-definition",
             "expression": "",
             "define": "HDRP_PRESENT"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "",
+            "define": "URP_PRESENT"
         }
     ],
     "noEngineReferences": false

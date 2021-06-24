@@ -1,0 +1,183 @@
+﻿/* General randomization classes */
+.randomization__remove-item-button {
+    width: 12px;
+    height: 14px;
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/X.png");
+}
+
+.randomization__collapse-toggle {
+    flex-shrink: 0;
+    margin-right: 3px;
+    margin-left: 3px;
+    width: 10px;
+    height: 10px;
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/FoldoutOpen.png");
+}
+
+.collapsed .randomization__collapse-toggle {
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/FoldoutClosed.png");
+}
+
+.randomization__collapse-toggle:hover {
+    -unity-background-image-tint-color: cornflowerblue;
+}
+
+.collapsed .randomization__collapsible-container {
+    display: none;
+}
+
+.randomization__chevron-left {
+    height: 12px;
+    width: 12px;
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/ChevronLeft.png");
+}
+
+.randomization__chevron-right {
+    height: 12px;
+    width: 12px;
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/ChevronRight.png");
+}
+
+/* Scenario classes */
+.scenario__info-box {
+    border-width: 1px;
+    border-color: #808080;
+    padding: 7px;
+    border-radius: 4px;
+    white-space: normal;
+    margin: 3px 3px 3px 3px;
+}
+
+.scenario__error-box {
+    color: #FF4040;
+}
+
+.scenario__dark-viewport {
+    border-radius: 5px;
+    background-color: #191919;
+    padding: 2px;
+}
+
+.scenario__title-label {
+    -unity-font-style: bold;
+    margin: 3px 3px 3px 3px;
+    color: #CACACA;
+}
+
+/* Randomizer classes */
+.randomizer__drag-bar {
+    width: 100px;
+    height: 6px;
+    background-color: rgba(100,149,237,0.4);
+    position: absolute;
+}
+
+.randomizer__element {
+    border-width: 2px;
+    border-radius: 5px;
+    margin: 2px 1px;
+    background-color: #383838;
+    flex-direction: row;
+}
+
+.randomizer__drag-handle {
+    flex-shrink: 0;
+    width: 16px;
+    height: 100%;
+    min-height: 20px;
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/DragHandle.png");
+}
+
+.randomizer__drag-handle:hover {
+    -unity-background-image-tint-color: black;
+}
+
+.randomizer__add-menu-directory-item {
+    padding: 2px 10px 2px 20px;
+}
+
+.randomizer__add-menu-directory-item:hover {
+    background-color: #3E5F96;
+}
+
+.randomizer__reordering-hover-indicator {
+    width: 100px;
+    height: 6px;
+    background-color: rgba(100,149,237,0.4);
+    position: absolute;
+}
+
+.randomizer__menu-search-icon {
+    position: absolute;
+    left: 10px;
+    top: 9px;
+    width: 10px;
+    height: 10px;
+    background-image: resource("Packages/com.unity.perception/Editor/Icons/Search.png");
+}
+
+.randomizer__menu-search-bar .unity-base-text-field__input {
+    padding-left: 15px;
+}
+
+
+/* Parameter classes */
+.parameter__categorical-option {
+    flex-direction: row;
+    background-color: #3F3F3F;
+    margin: 1px;
+    border-radius: 4px;
+}
+
+.parameter__categorical-options-list {
+    background-color: #191919;
+    border-radius: 4px;
+    margin-right: 2px;
+    padding: 3px;
+    border-bottom-right-radius: 0;
+}
+
+.parameter__categorical-option-property-field {
+    width: 0;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+.parameter__categorical-option-property-field Label.unity-property-field__label {
+    display: none;
+}
+
+.parameter__categorical-options-list-button {
+    align-self: flex-end;
+    border-width: 0;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+    background-color: #191919;
+    margin-top: 0;
+    margin-right: 2px;
+}
+
+.parameter__categorical-options-list-button:hover {
+    background-color: #2A2A2A;
+}
+
+.parameter__categorical-options-list-button:active {
+    color: cornflowerblue;
+}
+
+
+/* Sampler classes */
+.sampler__type-menu {
+    flex-grow: 1.5;
+    border-radius: 3px;
+    border-width: 1px;
+    margin-top: 2px;
+    margin-right: 3px;
+}
+
+.sampler__float-range .unity-base-field__label {
+    min-width: auto;
+    margin-right: 4px;
+}
+
+

@@ -4,7 +4,7 @@
     "com.unity.collections": "0.9.0-preview.6",
     "com.unity.nuget.newtonsoft-json": "1.1.2",
     "com.unity.render-pipelines.core": "7.1.6",
-    "com.unity.simulation.capture": "0.0.10-preview.22",
+    "com.unity.simulation.capture": "0.0.10-preview.23",
     "com.unity.simulation.client": "0.0.10-preview.10",
     "com.unity.simulation.core": "0.0.10-preview.22"
   },

@@ -5,44 +5,56 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [0.8.0-preview.4] - 2021-07-05
 
 ### Upgrade Notes
 
 ### Known Issues
 
 ### Added
+
 Added support for 'step' button in editor.
 
-Added random seed field to the Run in Unity Simulation Window
+Added random seed field to the Run in Unity Simulation Window.
 
 ### Changed
 
-Increased color variety in instance segmentation images
+Increased color variety in instance segmentation images.
 
 The PoissonDiskSampling utility now samples a larger region of points to then crop to size of the intended region to prevent edge case bias.
 
-Upgraded capture package dependency to 0.0.10-preview.22 to fix an issue with URP where post processing effects were not included when capturing images.
+Upgraded capture package dependency to 0.0.10-preview.23 to fix two issues: (1) Post processing effects were not included when capturing images in URP (2) RGB images were upside-down when post processing effects were enabled and FXAA disabled.
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
 Fixed keypoint labeling bug when visualizations are disabled.
 
-Fixed an issue where Simulation Delta Time values larger than 100 seconds (in Perception Camera) would cause incorrect capture scheduling behavior.
+Fixed an issue where Simulation Delta Time values larger than 100 seconds in Perception Camera would cause incorrect capture scheduling behavior.
 
 Fixed an issue where Categorical Parameters sometimes tried to fetch items at `i = categories.Count`, which caused an exception.
 
-Fixed an issue where Simulation Delta Time values larger than 100 seconds (in Perception Camera) would cause incorrect capture scheduling behavior.
 
 ## [0.8.0-preview.3] - 2021-03-24
+
+### Upgrade Notes
+
+### Known Issues
+
+### Added
+
 ### Changed
 
 Expanded documentation on the Keypoint Labeler
 Updated Keypoint Labeler logic to only report keypoints for visible objects by default
 Increased color variety in instance segmentation images
+
+### Deprecated
+
+### Removed
 
 ### Fixed
 

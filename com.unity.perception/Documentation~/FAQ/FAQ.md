@@ -601,7 +601,7 @@ The physics engine needs to catch up with the position and rotation of your obje
 </details>
 
 <details>
-  <summary><strong>Q:</strong> Where can I get humanoid models and animations?
+  <summary><strong>Q: Where can I get humanoid models and animations?</strong>
 </summary>
 
 ---

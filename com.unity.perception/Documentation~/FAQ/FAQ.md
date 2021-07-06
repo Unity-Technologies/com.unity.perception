@@ -148,7 +148,7 @@ This Randomizer takes a list of `PrefabCluster` assets, then, on each Iteration,
 <details>
   <summary><strong>Q: How can I specify an exact number of objects to place using the sample foreground object placement Randomizer?</strong> </summary><br>
 
-The provided `ForegroundObjectPlacementRandomizer` uses Poisson Disk sampling to find randomly positioned points in the space denoted by the provided `Width` and `Height` values. The distance between the sampled points will be at equal to `Separation Distance`. The number of sampled points will be the maximum number of points in the given area that match these criteria.
+The provided `ForegroundObjectPlacementRandomizer` uses Poisson Disk sampling to find randomly positioned points in the space denoted by the provided `Width` and `Height` values. The lower bound on the distance between the sampled points will be `Separation Distance`. The number of sampled points will be the maximum number of points in the given area that match these criteria.
 
 Thus, to limit the number of spawned objects, you can simply introduce a hard limit in the `for` loop that iterates over the Poisson Disk samples, to break out of the loop if the limit is reached. For example:
 
@@ -192,7 +192,7 @@ This will guarantee an upper limit of 50 on the number of objects. To have exact
 
   There are a number of ways for procedurally placing objects while avoiding any overlap between them, and most of these methods can be rather complex and need to place objects in a sequence. All the modifications to the objects (like scale, rotation, etc.) would also need to happen before the next object is placed, so that the state of the world is fully known before each placement.
 
-  Here, we are going to introduce a rather simple modification in the sample foreground placement code provided with the package. In each Iteration, a random scale factor is chosen, and then a desirable separation distance is calculated based on this scale factor and the list of given prefabs. We scale the objects here to introduce additional randomization, and the fact that once we have placed the objects we can no longer scale them.
+  Here, we are going to introduce a rather simple modification in the sample foreground placement code provided with the package. In each Iteration, a random scale factor is chosen, and then a desirable separation distance is calculated based on this scale factor and the list of given prefabs. We also scale the objects here to introduce additional randomization, due to the fact that once we have placed the objects we can no longer scale them.
   
   Based on the value given for `Non Overlap Guarantee`, this Randomizer can either reduce the amount of overlap or completely remove overlap. 
 
@@ -324,7 +324,7 @@ public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
 </details>
 
 <details>
-  <summary><strong>Q: What if I don't want randomized object placement? Can I move my objects in a non-randomized predefined manner on each frame?</strong> </summary><br>
+  <summary><strong>Q: What if I don't want randomized object placement? Can I move my objects in a non-randomized deterministic manner on each frame?</strong> </summary><br>
 
 Even though we call them Randomizers, you can use a Randomizer to perform any task through-out the execution lifecycle of your Scenario. The power of the Randomizers comes from the lifecycle hooks that they have into the Iteration and the Scenario, making it easy to know and guarantee when and in which order in the life of your simulation each piece of code runs. These functions include:
 * `OnEnable`
@@ -356,7 +356,7 @@ protected override void OnIterationStart()
 
 The objects instantiated by the sample foreground Randomizer are all parented to an object named `Foreground Objects` at the root of the Scene Hierarchy. To modify the orientation of the objects, you can simply rotate this parent object at the beginning of the Scenario. 
 
-Alternatively, you could also place `Foreground Objects` inside another GameObject in the Scene using the `Transform.SetParent()` method, and then modifying the local position and and rotation of `Foreground Objects` in such a way that makes the objects appear on the surface of the parent GameObject. 
+Alternatively, you could also place `Foreground Objects` inside another GameObject in the Scene using the `Transform.SetParent()` method, and then modify the local position and rotation of `Foreground Objects` in such a way that makes the objects appear on the surface of the parent GameObject. 
 
 To achieve more natural placement, you could also use Unity's physics engine to drop the objects on a surface, let them settle, and then capture an image. To achieve this, you would just need to have sufficient frames in each Iteration of the Scenario (instead of the default 1 frame per iteration), and set your Perception Camera's capture interval to a large enough number that would make it capture each Iteration once after the objects have settled. This example is explained in more detail in the [Perception Camera](#perception-camera) section of this FAQ.
 
@@ -378,7 +378,7 @@ To achieve more natural placement, you could also use Unity's physics engine to 
 ## <a name="perception-camera">Perception Camera</a>
 
 <details>
-  <summary><strong>Q: What is the relationship between the Scenario's lifecycle properties (Iterations and Frames per Iteration) in conjunction with the Perception Camera's timing properties (Simulation Delta Time, Start at Frame, and Frames Between Captures)?</strong> </summary><br>
+  <summary><strong>Q: What is the relationship between the Scenario's lifecycle properties (Iterations and Frames per Iteration) and the Perception Camera's timing properties (Simulation Delta Time, Start at Frame, and Frames Between Captures)?</strong> </summary><br>
 
 Each Iteration of the Scenario resets the Perception Camera's timing variables. Thus, you can think of each Iteration of the Scenario as one separate Perception Camera sequence, in which the camera's internal timing properties come into play. For instance, if you have 10 `Frames Per Iteration` on your Scenario, and your Perception Camera's `Start at Frame` value is set to 8, you will get two captures from the camera at the 9th and 10th frames of each Iteration (note that `Start at Frame` starts from 0). Similarly, you can use the `Frames Between Captures` to introduce intervals between captures. A value of 0 leads to all frames being captured.
 
@@ -390,22 +390,20 @@ Each Iteration of the Scenario resets the Perception Camera's timing variables. 
 
 The Perception Camera can be set to capture at specific frame intervals, rather than every frame. The `Frames Between Captures` value is set to 0 by default, which causes the camera to capture all frames; however, you can change this to 1 to capture every other frame, or larger numbers to allow more time between captures. You can also have the camera start capturing at a certain frame rather the first frame, by setting the `Start at Frame` value to a value other than 0. All of this timing happens within each Iteration of the Scenario, and gets reset when you advance to the next Iteration. Therefore, the combination of these properties and the Scenario's `Frames Per Iteration` property allows you to randomize the state of your Scene at the start of each Iteration, let things run for a number of frames, and then capture the Scene at the end of the Iteration.
 
-Suppose we need to drop a few objects into the Scene, let them interact physically and settle after a number of frames, and then capture their final state once. Afterwards, we want to repeat this cycle by randomizing the initial positions of the objects, dropping them, and capturing the final state again. We will set the Scenario's `Frames Per Iteration` to 300, which should be sufficient for the objects to get close to a settled position (this depends on the value you use for `Simulation Delta Time` in Perception Camera and the physical properties of the engine and objects, and can be found through experimentation). We also set the `Start at Frame` value of the Perception Camera to 290, and the `Frames Between Captures` to a sufficiently large number (like 100), so that we only get one capture per Iteration of the Scenario. The results look like below:
+Suppose we need to drop a few objects into the Scene, let them interact physically and settle after a number of frames, and then capture their final state once. Afterwards, we want to repeat this cycle by randomizing the initial positions of the objects, dropping them, and capturing the final state again. We will set the Scenario's `Frames Per Iteration` to 300, which should be sufficient for the objects to get close to a settled position (this depends on the value you use for `Simulation Delta Time` in Perception Camera and the physical properties of the engine and objects, and can be found through experimentation). We also set the `Start at Frame` value of the Perception Camera to 290, and the `Frames Between Captures` to a sufficiently large number (like 100), so that we only get one capture per Iteration of the Scenario. The results look like below. Note how the bounding boxes only update after the objects are fairly settled. These are the timestamps at which captures are happening.
 
 
 <p align="center">
 <img src="images/object_drop.gif" width="700"/>
 </p>  
 
-Note how the bounding boxes only update after the objects are fairly settled. These are the points at which captures are happening.
-
 ---
 </details>
 
 <details>
-  <summary><strong>Q: I do not want to use the Perception Camera to control the timing of my simulation or capture on a scheduled basis. Can I have a Perception Camera in my Scene and trigger captures manually from other scripts?</strong></summary><br>
+  <summary><strong>Q: I do not want Perception Camera to control the delta time of my simulation or capture on a scheduled basis. Can I have a Perception Camera in my Scene that does not affect timings and trigger captures manually from other scripts?</strong></summary><br>
 
-Yes. The Perception Camera offers two trigger modes, `Scheduled` and `Manual`, and these can be chosen in the editor UI for the camera. If you select the `Manual` mode, you will be able to trigger captures by calling the `RequestCapture()` method of `PerceptionCamera`. In this mode, you still have an option to dictate your simulation delta time with this camera, in order to have deterministic simulation progress between rendered frames. This is controlled using the `Affect Simulation Timing` checkbox.
+Yes. The Perception Camera offers two trigger modes, `Scheduled` and `Manual`, and these can be chosen in the editor UI for the Perception Camera component. If you select the `Manual` mode, you will be able to trigger captures by calling the `RequestCapture()` method of `PerceptionCamera`. In this mode, you have the option to not have this camera dictate your simulation delta time. This is controlled using the `Affect Simulation Timing` checkbox.
 
 ---
 </details>
@@ -425,7 +423,7 @@ However, you can have more than one Perception Camera in the Scene, if only one 
   <summary><strong>Q: My RGB images look darker than what I see in Unity Editor, when I render the Perception Camera to a texture. How can I fix this?</strong>
 </summary><br>
 
-This issue is caused by the color format of the texture. In the ***Inspector** view of the render texture, set color format to `R8G8B8A8_SRGB`.
+This issue is caused by the color format of the texture. In the ***Inspector*** view of the render texture, set color format to `R8G8B8A8_SRGB`.
 
 ---
 </details>
@@ -445,7 +443,7 @@ This can be done by adding custom annotations to your dataset. Have a look at [t
   <summary><strong>Q: Objects in my captured images have jagged edges, how can I fix this?</strong>
 </summary><br>
 
-This is a common issue with rendering graphics into pixel grids (digital images), when the resolution of the grid is not high enough to perfectly display the slanting lines in the image. The common solution to this issue is the use of anti-aliasing methods, and Unity offers a number of these in both URP and HDRP. To experiment with anti-aliasing, go to the ***Inspector*** view of your Perception Camera object and in the Camera component, change `Anti-aliasing` from `None` to another option.
+This is a common issue with rendering graphics into pixel grids (digital images), when the resolution of the grid is not high enough to perfectly display slanting lines. The common solution to this issue is the use of anti-aliasing methods, and Unity offers a number of these in both URP and HDRP. To experiment with anti-aliasing, go to the ***Inspector*** view of your Perception Camera object and in the Camera component, change `Anti-aliasing` from `None` to another option.
 
 ---
 </details>
@@ -454,7 +452,7 @@ This is a common issue with rendering graphics into pixel grids (digital images)
   <summary><strong>Q: I am using an HDRP Unity project with Perception and my images have significant blurring around most objects. How can I remove this blur?</strong>
 </summary><br>
 
-The effect you are observing here is motion blur, which is happens because the placement Randomizers used in the Perception tutorial cache their instantiated objects from one frame to the next, and move them to new locations on each frame instead of destroying them and creating new ones. This "motion" of the objects causes the motion blur effect to kick in. 
+The effect you are observing here is motion blur, which happens because the placement Randomizers used in the Perception tutorial cache their instantiated objects from one Iteration to the next, and move them to new locations on each Iteration instead of destroying them and creating new ones. This "motion" of the objects causes the motion blur effect to kick in. 
 
 
 HDRP projects have motion blur and a number of other post processing effects enabled by default. To disable motion blur or any other effect, follow these steps:
@@ -471,15 +469,15 @@ HDRP projects have motion blur and a number of other post processing effects ena
 </details>
 
 <details>
-  <summary><strong>Q: Are all post processing effects provided by Unity safe to use?</strong>
+  <summary><strong>Q: Are all post processing effects provided by Unity safe to use in synthetic datasets?</strong>
 </summary><br>
 
-A couple of important notes to keep in mind with post-processing revolve around randomness:
+No. When using post processing effects, you need to be careful about issues regarding randomness and determinism:
 
-  * Some effects need to be Randomized from frame to frame, e.g. Film Grain). The Film Grain effect provided by Unity is not sufficiently randomized for model training and can thus mislead your CV model in the training process. 
-  * Even if an effect is properly randomized, using it would make your overall randomization strategy non-deterministic, as it would use random number generators outside of the Perception package provided Samplers. 
+  * There are certain post processing effects that need randomization internally, e.g. film grain. The film grain effect provided by Unity is not sufficiently randomized for model training and can thus mislead your CV model to look for a specific noise pattern during prediction. 
+  * Even if such an effect is properly randomized, using a randomized effect would make your overall randomization strategy non-deterministic, meaning you would not be able to reproduce your datasets. This is because the effect would internally use random number generators outside of the Perception package provided Samplers. If you have access to the source code for a randomized effect, you can modify it to only use Perception Samplers for random number generation, which would make its behavior deterministic and thus appropriate for use in synthetic datasets that need to be reproducible.
 
-To make sure you do not run into insufficient randomization or non-determinism, it would be best to implement effects such as Film Grain yourself and only use the Perception provided Samplers and Parameters in order to guarantee determinism.
+To make sure you do not run into insufficient randomization or non-determinism, it would be best to implement effects such as film grain yourself or modify existing code to make sure no random number generators are used except for the Samplers provided in the Perception package.
 
 ---
 </details>

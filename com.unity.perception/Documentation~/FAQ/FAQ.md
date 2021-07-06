@@ -20,7 +20,7 @@ This page covers a variety of topics, including common questions and issues that
 </details>
 
 <details>
-  <summary><strong>Q: How can I remove or add new labels to objects at runtime?</strong></summary><br><br>
+  <summary><strong>Q: How can I remove or add new labels to objects at runtime?</strong></summary><br>
 
 This can be achieved through modifying the `labels` list of the `Labeling` component. The key is to call `RefreshLabeling` on the component after making any changes to the labels. Example:
 

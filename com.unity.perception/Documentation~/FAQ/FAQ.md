@@ -8,6 +8,7 @@ This page covers a variety of topics, including common questions and issues that
 <details>
   <summary><strong>Q: How can I disable or enable labeling on an object at runtime?</strong></summary>
 <br>
+  
  You can turn labeling on and off on a GameObject by switching the enabled state of its `Labeling` component. For example:
 
   ```C#
@@ -22,7 +23,7 @@ This page covers a variety of topics, including common questions and issues that
 <details>
   <summary><strong>Q: How can I remove or add new labels to objects at runtime?</strong></summary><br>
 
-This can be achieved through modifying the `labels` list of the `Labeling` component. The key is to call `RefreshLabeling` on the component after making any changes to the labels. Example:
+This can be achieved through modifying the `labels` list of the `Labeling` component. The key is to call `RefreshLabeling()` on the component after making any changes to the labels. Example:
 
 ```C#
 var labeling = gameObject.GetComponent<Labeling>();
@@ -30,7 +31,7 @@ labeling.labels.Clear();
 labeling.labels.Add("new-label");
 labeling.RefreshLabeling();
 ```
-Keep in mind that any new label added with this method should already be present in the `LabelConfig` attached to the `Labeler` that is supposed to label this object.
+Keep in mind that any new label added with this method should already be present in the Label Config attached to the Labeler that is supposed to label this object.
 
 ---
 </details>
@@ -47,10 +48,10 @@ Keep in mind that any new label added with this method should already be present
   Alternatively, in cases where parts of the surface of the object need to be labeled (e.g. decals on objects), you can add labeled invisible surfaces on top of these sections. These invisible surfaces need to have a fully transparent material. To create an invisible material:
 
   * Create a new material (***Assets -> Create -> Material***) and name it `TransparentMaterial`
-  * Set the `Surface Type` for the material to `Transparent`, and set the alpha channel of the `Base Map` color to 0.
-    * For HDRP: In addition to the above, disable `Preserve specular lighting` 
+  * Set the **Surface Type** for the material to **Transparent**, and set the alpha channel of the **Base Map** color to 0.
+    * For HDRP: In addition to the above, disable **Preserve specular lighting** 
    
-  An example labeled output for an object with separate labels on inner objects is shown below:
+  An example labeled output for an object with separate labels on inner objects and decals is shown below:
 
 <p align="center">
 <img src="images/inner_labels.gif" width="600"/>
@@ -74,7 +75,7 @@ This is due to a common graphics problem called *z-fighting*. This occurs when t
   <summary><strong>Q: How can I have multiple sets of prefabs in a foreground placement Randomizer, and on every Iteration select one from each set?</strong>
   </summary><br>
 
-  This question is an example of more complex functionality that can be achieved by applying slight modifications to the provided sample Randomizers, or by creating completely custom ones using the powerful Parameters provided in the package. 
+  This question is an example of more complex functionality that can be achieved by applying slight modifications to the provided sample Randomizers, or by creating completely custom ones by extending the `Randomizer` class. 
 
   Here, we have a variety of options toward achieving the described outcome. One simple method could be to add several more `GameObjectParameter` fields inside of the provided sample `ForegroundObjectPlacementRandomizer`. Each of these Parameters could hold one of our object lists. Then, on each iteration, we would fetch one prefab from each of the lists using the `Sample()` function of each Parameter. 
   
@@ -93,7 +94,7 @@ This is due to a common graphics problem called *z-fighting*. This occurs when t
   }
   ```
 
-  We can now create a cluster asset using the ***Assets -> Create -> Test -> PrefabCluster** menu option and populate its list of prefabs. Each cluster contains one `GameObjectParameter`, which will hold the list of prefabs and provide us with a `Sample()` function.
+  We can now create a cluster asset using the ***Assets -> Create -> Test -> PrefabCluster*** menu option and populate its list of prefabs. Each cluster contains one `GameObjectParameter`, which will hold the list of prefabs and provide us with a `Sample()` function.
 
   To be able to edit these clusters with the same editor UI available for Randomizers, you will also need to add an empty custom editor for the `PrefabCluster` class that extends our bespoke `ParameterUIElementsEditor` class:
 
@@ -105,7 +106,7 @@ This is due to a common graphics problem called *z-fighting*. This occurs when t
   public class PrefabClusterEditor : ParameterUIElementsEditor { }
   ```
 
-  Note that any editor scripts must be placed inside a folder named "Editor" within your project. "Editor" is a special folder name in Unity that prevents editor code from compiling into a player during the build process. For example, the file path for the `PrefabClusterEditor` script above could be ".../Assets/Scripts/Editor/PrefabClusterEditor".
+  Note that any editor scripts must be placed inside a folder named "Editor" within your project. "Editor" is a special folder name in Unity that prevents editor code from compiling into a player during the build process. For example, the file path for the `PrefabClusterEditor` script above could be `.../Assets/Scripts/Editor/PrefabClusterEditor`.
 
   The ***Inspector*** view of a prefab cluster asset looks like below:
 
@@ -113,7 +114,7 @@ This is due to a common graphics problem called *z-fighting*. This occurs when t
 <img src="images/prefab_cluster.png" width="400"/>
 </p>  
 
-  Now all that is left is to use our prefab clusters inside a Randomizer. here is some sample code:
+  Now all that is left is to use our prefab clusters inside a Randomizer. Here is some sample code:
 
   ```C#
   using System;

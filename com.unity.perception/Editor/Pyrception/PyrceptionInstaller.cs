@@ -14,7 +14,7 @@ public class PyrceptionInstaller : EditorWindow
 
     //This files stores entries as ProjectDataPath,PythonPID,Port,PyrceptionPID
     //It keeps a record of the instances of pyrception opened so that we don't open a new one everytime
-    private static readonly string _filename_streamlit_instances = "Unity/cache/streamlit_instances.csv";
+    private static readonly string _filename_streamlit_instances = "Unity/streamlit_instances.csv";
     private static string pathToStreamlitInstances
     {
         get
@@ -138,7 +138,7 @@ public class PyrceptionInstaller : EditorWindow
 #endif
         ProcessStartInfo info = new ProcessStartInfo(shell, argument);
 
-        info.CreateNoWindow = true;
+        info.CreateNoWindow = !displayWindow;
         info.UseShellExecute = false;
         info.RedirectStandardOutput = false;
         info.RedirectStandardError = waitForExit;
@@ -202,30 +202,52 @@ public class PyrceptionInstaller : EditorWindow
             }
             Process[] after = null;
 
+            int maxAttempts = 5;
             //Poll for new processes until the pyrception process is launched
             int newPyrceptionPID = -1;
+            int attempts = 0;
             while(newPyrceptionPID == -1)
             {
                 Thread.Sleep(1000);
                 after = Process.GetProcesses();
                 newPyrceptionPID = GetNewProcessID(before, after, nameOfPyrceptionProcess);
+                if(attempts == maxAttempts)
+                {
+                    UnityEngine.Debug.LogError("Failed to get pyrception ID");
+                    return;
+                }
+                attempts++;
             }
 
             //Poll for new processes until the streamlit python script is launched
             int newPythonPID = -1;
+            attempts = 0;
             while(newPythonPID == -1)
             {
                 Thread.Sleep(1000);
                 after = Process.GetProcesses();
                 newPythonPID = GetNewProcessID(before, after, "python");
+                if(attempts == maxAttempts)
+                {
+                    UnityEngine.Debug.LogError("Failed to get python ID");
+                    return;
+                }
+                attempts++;
             }
 
             //Poll until the python script starts using the port
             int newPort = -1;
+            attempts = 0;
             while(newPort == -1)
             {
                 Thread.Sleep(1000);
                 newPort = GetPortForPID(newPythonPID);
+                if(attempts == maxAttempts)
+                {
+                    UnityEngine.Debug.LogError("Failed to get PORT");
+                    return;
+                }
+                attempts++;
             }
 
             //Save this into the streamlit_instances.csv file
@@ -233,13 +255,15 @@ public class PyrceptionInstaller : EditorWindow
 
             //When launching the process it will try to open a new tab in the default browser, however if a tab for it already exists it will not
             //For convinience if the user wants to force a new one to open they can press on "manually open"
-            if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
+            /*if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
                 $"The visualizer tool should open shortly in your default browser at http://localhost:{newPort}.\n\nIf this is not the case after a few seconds you may open it manually",
                 "Manually Open",
                 "Cancel"))
             {
                 LaunchBrowser(newPort);
-            }
+            }*/
+
+            LaunchBrowser(newPort);
             
         }
     }
@@ -268,8 +292,9 @@ public class PyrceptionInstaller : EditorWindow
 #elif UNITY_EDITOR_OSX
         command = $"cd \'{packagesPath}\' ;./python3.7 ./pyrception-utils.py preview --data=\'{pathToData}/..\'";
 #endif
+
         int ExitCode = 0;
-        int PID = ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: true);
+        int PID = ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: false);
         if (ExitCode != 0)
         {
             UnityEngine.Debug.LogError("Problem occured when launching pyrception-utils - Exit Code: " + ExitCode);

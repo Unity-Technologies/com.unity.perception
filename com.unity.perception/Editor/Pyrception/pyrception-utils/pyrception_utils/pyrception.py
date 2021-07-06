@@ -203,6 +203,7 @@ class PyrceptionDataset:
                 "You must specify either PyrceptionDatasetMetadata or a data directory"
             )
         self.last_file_index = None
+        self.ann_to_index = None
 
     def __getitem__(self, index: int) -> dict:
         """
@@ -226,38 +227,38 @@ class PyrceptionDataset:
             ).convert("RGB")
             image_and_labelers["image"] = image
 
-            # Assumes that the order is the same for the annotations in metadata as in the captures_***.json file
-            annotations = {}
-            for i in range(len(self.metadata.annotations)):
-                a = self.metadata.annotations[i]
-                for j in range(len(self.data[sub_index]["annotations"])):
-                    if self.data[sub_index]["annotations"][j]["annotation_definition"] == a["id"]:
-                        annotations[a["name"]] = j
-                        break
-
-            self.metadata.available_annotations = annotations
+            if self.ann_to_index is None:
+                # Assumes that the order is the same for the annotations in metadata as in the captures_***.json file
+                self.ann_to_index = {}
+                for i in range(len(self.metadata.annotations)):
+                    a = self.metadata.annotations[i]
+                    for j in range(len(self.data[sub_index]["annotations"])):
+                        if self.data[sub_index]["annotations"][j]["annotation_definition"] == a["id"]:
+                            self.ann_to_index[a["name"]] = j
+                            break
+                self.ann_to_index = self.ann_to_index
 
             # Bounding Boxes
-            if "bounding box" in annotations:
-                image_and_labelers["bounding box"] = self.get_bounding_boxes(sub_index, annotations["bounding box"])
+            if "bounding box" in self.ann_to_index:
+                image_and_labelers["bounding box"] = self.get_bounding_boxes(sub_index, self.ann_to_index["bounding box"])
 
             # Bounding Boxes 3d
-            if "bounding box 3D" in annotations:
-                image_and_labelers["bounding box 3D"] = self.get_bounding_box_3d(sub_index, annotations["bounding box 3D"])
+            if "bounding box 3D" in self.ann_to_index:
+                image_and_labelers["bounding box 3D"] = self.get_bounding_box_3d(sub_index, self.ann_to_index["bounding box 3D"])
 
             # Semantic Segmentation
-            if "semantic segmentation" in annotations:
-                image_and_labelers["semantic segmentation"] = self.get_segmentation(sub_index, annotations[
+            if "semantic segmentation" in self.ann_to_index:
+                image_and_labelers["semantic segmentation"] = self.get_segmentation(sub_index, self.ann_to_index[
                     "semantic segmentation"])
 
             # Instance Segmentation
-            if "instance segmentation" in annotations:
-                image_and_labelers["instance segmentation"] = self.get_segmentation(sub_index, annotations[
+            if "instance segmentation" in self.ann_to_index:
+                image_and_labelers["instance segmentation"] = self.get_segmentation(sub_index, self.ann_to_index[
                     "instance segmentation"])
 
             # Keypoints
-            if "keypoints" in annotations:
-                image_and_labelers["keypoints"] = self.get_keypoints(sub_index, annotations["keypoints"])
+            if "keypoints" in self.ann_to_index:
+                image_and_labelers["keypoints"] = self.get_keypoints(sub_index, self.ann_to_index["keypoints"])
 
         except IndexError:
             print(self.data)

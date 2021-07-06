@@ -8,11 +8,16 @@ This page covers a variety of topics, including common questions and issues that
 <details>
   <summary><strong>Q:</strong> How can I disable or enable labeling on an object at runtime?</summary>
 
+<div style="border-color:grey; border-style:solid; border-radius:10px; padding: 10px; border-width: 2px"> 
+
  You can turn labeling on and off on a GameObject by switching the enabled state of its `Labeling` component. For example:
-  
+
   ```C#
   gameObject.GetComponent<Labeling>().enabled = false;  
   ```
+
+ </div>
+  
 </details>
 
 <details>

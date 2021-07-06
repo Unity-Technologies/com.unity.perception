@@ -11,12 +11,15 @@ import numpy as np
 import streamlit as st
 import SessionState
 import visualization.visualizers as v
+import PIL.Image as Image
 
+import datasetinsights
+from datasetinsights.datasets.unity_perception import AnnotationDefinitions, MetricDefinitions
+from datasetinsights.datasets.unity_perception.captures import Captures
 
-# import datasetinsights
-from pyrception_utils import PyrceptionDataset
+#from pyrception_utils import PyrceptionDataset
 
-st.set_page_config(layout="wide") #This needs to be the first streamlit command
+st.set_page_config(layout="wide")  # This needs to be the first streamlit command
 import helpers.custom_components_setup as cc
 
 
@@ -30,7 +33,7 @@ def list_datasets(path) -> List:
     """
     datasets = []
     for item in os.listdir(path):
-        if os.path.isdir(os.path.join(path, item)) and item != "Unity":
+        if os.path.isdir(os.path.join(path, item)) and item != "Unity" and item != ".streamlit":
             date = os.path.getctime(os.path.join(path, item))
             datasets.append((date, item))
     datasets.sort(reverse=True)
@@ -40,7 +43,7 @@ def list_datasets(path) -> List:
 
 
 @st.cache(show_spinner=True, allow_output_mutation=True)
-def load_perception_dataset(path: str) -> Tuple:
+def load_perception_dataset(data_root: str) -> Tuple:
     """
     Loads the perception dataset in the cache and caches the random bounding box color scheme.
     :param path: Dataset path
@@ -50,11 +53,14 @@ def load_perception_dataset(path: str) -> Tuple:
     """
     # --------------------------------CHANGE TO DATASETINSIGHTS LOADING---------------------------------------------
 
-    dataset = PyrceptionDataset(data_dir=path)
-    classes = dataset.classes
-    colors = {name: tuple(np.random.randint(128, 255, size=3)) for name in classes}
-    return colors, dataset
-
+    # dataset = PyrceptionDataset(data_dir=path)
+    # classes = dataset.classes
+    # colors = {name: tuple(np.random.randint(128, 255, size=3)) for name in classes}
+    # return colors, dataset
+    ann_def = AnnotationDefinitions(data_root)
+    metric_def = MetricDefinitions(data_root)
+    cap = Captures(data_root)
+    return ann_def, metric_def, cap
 
 def preview_dataset(base_dataset_dir: str):
     """
@@ -64,7 +70,8 @@ def preview_dataset(base_dataset_dir: str):
     :type str:
     """
 
-    session_state = SessionState.get(image='-1', start_at='0', num_cols='3', current_page='main', curr_dir=base_dataset_dir)
+    session_state = SessionState.get(image='-1', start_at='0', num_cols='3', current_page='main',
+                                     curr_dir=base_dataset_dir)
     base_dataset_dir = session_state.curr_dir
 
     st.sidebar.markdown("# Select Project")
@@ -85,14 +92,15 @@ def preview_dataset(base_dataset_dir: str):
                 break
 
         if dataset_name is not None:
-            colors, dataset = load_perception_dataset(
+            ann_def, metric_def, cap = load_perception_dataset(
                 os.path.join(base_dataset_dir, dataset_name)
             )
 
             st.sidebar.markdown("# Labeler Visualization")
 
-            # change this to load from dataset insights the names of the available labelers
-            available_labelers = [a["name"] for a in dataset.metadata.annotations]
+            st.write(ann_def)
+
+            available_labelers = [a[1] for a in ann_def.table.iterrows()]
 
             labelers = {}
             if 'bounding box' in available_labelers:
@@ -103,7 +111,9 @@ def preview_dataset(base_dataset_dir: str):
                 labelers['keypoints'] = st.sidebar.checkbox("Key Points", key="kp")
             if 'instance segmentation' in available_labelers and 'semantic segmentation' in available_labelers:
                 if st.sidebar.checkbox('Segmentation'):
-                    selected_segmentation = st.sidebar.radio("Select the segmentation type:", ['Semantic Segmentation', 'Instance Segmentation'], index=0)
+                    selected_segmentation = st.sidebar.radio("Select the segmentation type:",
+                                                             ['Semantic Segmentation', 'Instance Segmentation'],
+                                                             index=0)
                     if selected_segmentation == 'Semantic Segmentation':
                         labelers['semantic segmentation'] = True
                     elif selected_segmentation == 'Instance Segmentation':
@@ -122,24 +132,44 @@ def preview_dataset(base_dataset_dir: str):
             index = int(session_state.image)
             if index >= 0:
                 dataset_path = os.path.join(base_dataset_dir, dataset_name)
-                zoom(index, colors, dataset, session_state, labelers, dataset_path)
+                zoom(index, ann_def, metric_def, cap, base_dataset_dir, session_state, labelers, dataset_path)
             else:
                 num_rows = 5
-                grid_view(num_rows, colors, dataset, session_state, labelers)
+                grid_view(num_rows, ann_def, metric_def, cap, base_dataset_dir, session_state, labelers)
 
 
-def get_image_with_labelers(image_and_labelers, dataset, colors, labelers_to_use):
-    image = image_and_labelers['image']
+def get_image_with_labelers(index, ann_def, metric_def, cap, data_root, labelers_to_use):
+
+    filename = os.path.join(data_root, cap.loc[index, "filename"])
+    image = Image.open(filename)
     if 'semantic segmentation' in labelers_to_use and labelers_to_use['semantic segmentation']:
-        semantic = image_and_labelers["semantic segmentation"]
+        semantic_segmentation_definition_id = -1
+        for idx, a in enumerate(ann_def):
+            if a["name"] == "semantic segmentation":
+                semantic_segmentation_definition_id = idx
+                break
+
+        seg_captures = cap.filter(def_id=semantic_segmentation_definition_id)
+        seg_filename = os.path.join(data_root, seg_captures.loc[index, "annotation.filename"])
+        seg = Image.open(seg_filename)
+
         image = v.draw_image_with_segmentation(
-            image, semantic
+            image, seg
         )
 
     if 'instance segmentation' in labelers_to_use and labelers_to_use['instance segmentation']:
-        instance = image_and_labelers['instance segmentation']
+        instance_segmentation_definition_id = -1
+        for idx, a in enumerate(ann_def):
+            if a["name"] == "semantic segmentation":
+                instance_segmentation_definition_id = idx
+                break
+
+        inst_captures = cap.filter(def_id=instance_segmentation_definition_id)
+        inst_filename = os.path.join(data_root, inst_captures.loc[index, "annotation.filename"])
+        inst = Image.open(inst_filename)
+
         image = v.draw_image_with_segmentation(
-            image, instance
+            image, inst
         )
 
     if 'bounding box' in labelers_to_use and labelers_to_use['bounding box']:
@@ -165,55 +195,21 @@ def get_image_with_labelers(image_and_labelers, dataset, colors, labelers_to_use
 
 
 def folder_select(session_state):
-
-    '''if st.sidebar.button("< Back to main page"):
-        session_state.current_page = 'main'
-        st.experimental_rerun()
-    else:
-        curr_dir = session_state.curr_dir
-        print(curr_dir)
-        curr_dir = str(Path(curr_dir).absolute()).replace("\\", "/") + "/"
-        placeholder = st.empty()
-        prev = curr_dir
-        curr_dir = placeholder.text_input("Path to data", curr_dir)
-        if curr_dir != prev:
-            curr_dir = str(Path(curr_dir).absolute()).replace("\\", "/") + "/"
-            session_state.curr_dir = curr_dir
-            st.experimental_rerun()
-
-        if st.button("< parent folder"):
-            curr_dir = str(Path(curr_dir).parent.absolute()).replace("\\", "/") + "/"
-            session_state.curr_dir = curr_dir
-            st.experimental_rerun()
-
-        st.write("Contents of " + curr_dir)
-        folder_cols = st.beta_columns(3)
-        folders = [d for d in os.listdir(curr_dir) if os.path.isdir(curr_dir + d)]
-        for i, folder in enumerate(folders):
-            if folder_cols[i % 3].button(folder):
-                session_state.curr_dir = str(Path(curr_dir + folder).absolute()).replace("\\", "/") + "/"
-                st.experimental_rerun()
-    '''
-
-
-        # session_state.curr_dir = str(Path(fileName).absolute()).replace("\\", "/") + "/"
-
-    # fileName = dialog.getExistingDirectory(
-            #     self,
-            #     "Select Directory",
-            #     "",
-            #     QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
-            # )
-
-    #app.quit()
-    #del app
-    output = subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.realpath(__file__)), "helpers/folder_explorer.py")], stdin=subprocess.PIPE, stdout=subprocess.PIPE,  stderr=subprocess.STDOUT)
+    output = subprocess.run(
+        [sys.executable, os.path.join(os.path.dirname(os.path.realpath(__file__)), "helpers/folder_explorer.py")],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
+    stdout = str(os.path.abspath(str(output.stdout).split("\'")[1]))
+    if stdout[-2:] == "\r\n":
+        stdout = stdout[:-2]
+    elif stdout[-1:] == '\n':
+        stdout = stdout[:-1]
 
     session_state.curr_dir = str(os.path.abspath(str(output.stdout).split("\'")[1])[:-4]).replace("\\", "/") + "/"
     st.experimental_rerun()
 
 
-def grid_view(num_rows, colors, dataset, session_state, labelers):
+def grid_view(num_rows, ann_def, metric_def, cap, data_root, session_state, labelers):
     header = st.beta_columns([2 / 3, 1 / 3])
 
     num_cols = header[1].slider(label="Image per row: ", min_value=1, max_value=5, step=1,
@@ -223,13 +219,13 @@ def grid_view(num_rows, colors, dataset, session_state, labelers):
         st.experimental_rerun()
 
     with header[0]:
-        start_at = cc.item_selector(int(session_state.start_at), num_cols * num_rows, len(dataset))
+        start_at = cc.item_selector(int(session_state.start_at), num_cols * num_rows, len(cap))
         session_state.start_at = start_at
 
     cols = st.beta_columns(num_cols)
 
-    for i in range(start_at, min(start_at + (num_cols * num_rows), len(dataset))):
-        image = get_image_with_labelers(dataset[i], dataset, colors, labelers)
+    for i in range(start_at, min(start_at + (num_cols * num_rows), len(cap))):
+        image = get_image_with_labelers(i, ann_def, metric_def, cap, data_root, labelers)
 
         container = cols[(i - (start_at % num_cols)) % num_cols].beta_container()
         container.write("Capture #" + str(i))
@@ -240,7 +236,7 @@ def grid_view(num_rows, colors, dataset, session_state, labelers):
             st.experimental_rerun()
 
 
-def zoom(index, colors, dataset, session_state, labelers, dataset_path):
+def zoom(index, ann_def, metric_def, cap, data_root, session_state, labelers, dataset_path):
     header = st.beta_columns([0.2, 0.6, 0.2])
 
     if header[0].button('< Back to Grid view'):
@@ -248,12 +244,12 @@ def zoom(index, colors, dataset, session_state, labelers, dataset_path):
         st.experimental_rerun()
 
     with header[1]:
-        new_index = cc.item_selector_zoom(index, len(dataset))
+        new_index = cc.item_selector_zoom(index, len(cap))
         if not new_index == index:
             session_state.image = new_index
             st.experimental_rerun()
 
-    image = get_image_with_labelers(dataset[index], dataset, colors, labelers)
+    image = get_image_with_labelers(index, ann_def, metric_def, cap, data_root, labelers)
 
     layout = st.beta_columns([0.7, 0.3])
     layout[0].image(image, use_column_width=True)
@@ -265,7 +261,7 @@ def zoom(index, colors, dataset, session_state, labelers, dataset_path):
         if name.startswith("Dataset") and "." not in name[1:]:
             captures_dir = directory[0]
             break
-
+    # TODO Change 150 to whatever the number really is in the metadata
     file_num = index // 150
     postfix = ('000' + str(file_num))
     postfix = postfix[len(postfix) - 3:]
@@ -289,14 +285,10 @@ def preview_app(args):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("data", type=str)
     args = parser.parse_args()
 
-    st.write(os.getcwd())
-
     # remove the default zoom in button for images
     st.markdown('<style>button.css-9eqr5v{display: none}</style>', unsafe_allow_html=True)
     preview_app(args)
-

@@ -86,6 +86,10 @@ def draw_image_with_segmentation(
     image.paste(foreground, (0, 0), foreground)
     return image
 
+def find_metadata_annotation_index(dataset, name):
+    for idx, annotation in enumerate(dataset.metadata.annotations):
+        if annotation["name"] == name:
+            return idx
 
 def draw_image_with_keypoints(
     image: Image,
@@ -94,16 +98,17 @@ def draw_image_with_keypoints(
 ):
     image = image.copy()
     image_draw = ImageDraw(image)
+
     radius = int(dataset.metadata.image_size[0] * 5/500)
     for i in range(len(keypoints)):
         keypoint = keypoints[i]
         if keypoint["state"] != 2:
             continue
         coordinates = (keypoint["x"]-radius, keypoint["y"]-radius, keypoint["x"]+radius, keypoint["y"]+radius)
-        color = dataset.metadata.annotations[dataset.ann_to_index['keypoints']]["spec"][0]["key_points"][i]["color"]
+        color = dataset.metadata.annotations[find_metadata_annotation_index(dataset,"keypoints")]["spec"][0]["key_points"][i]["color"]
         image_draw.ellipse(coordinates, fill=(int(255*color["r"]), int(255*color["g"]), int(255*color["b"]), 255))
 
-    skeleton = dataset.metadata.annotations[dataset.ann_to_index['keypoints']]["spec"][0]["skeleton"]
+    skeleton = dataset.metadata.annotations[find_metadata_annotation_index(dataset,"keypoints")]["spec"][0]["skeleton"]
     for bone in skeleton:
         if keypoints[bone["joint1"]]["state"] != 2 or keypoints[bone["joint1"]]["state"] != 2:
             continue

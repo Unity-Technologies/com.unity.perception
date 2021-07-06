@@ -363,7 +363,7 @@ To achieve more natural placement, you could also use Unity's physics engine to 
 </details>
 
 <details>
-  <summary><strong>Q: Does using the same `Random Seed` value in two runs of the same Scenario guarantee that the generated datasets are identical?</strong></summary><br>
+  <summary><strong>Q: Does using the same Random Seed value in two runs of the same Scenario guarantee that the generated datasets are identical?</strong></summary><br>
 
  If you only use the Samplers (and Parameters, which internally use Samplers) provided in the Perception package to generate random values throughout the Scenario's lifecycle and keep the `Random Seed` value unchanged, an identical sequence of random numbers will be generated every time the Scenario is run. This is because the Samplers obtain their seeds through continually mutating the provided global `Random Seed` in the Scenario.  
 
@@ -377,7 +377,7 @@ To achieve more natural placement, you could also use Unity's physics engine to 
 ## <a name="perception-camera">Perception Camera</a>
 
 <details>
-  <summary><strong>Q: What is the relationship between the Scenario's lifecycle properties (Iterations and Frames per Iteration) in conjunction with the Perception Camera's timing properties (Simulation Delta Time, Start at Frame, and Frames Between Captures). </summary><br>
+  <summary><strong>Q: What is the relationship between the Scenario's lifecycle properties (Iterations and Frames per Iteration) in conjunction with the Perception Camera's timing properties (Simulation Delta Time, Start at Frame, and Frames Between Captures)?</strong> </summary><br>
 
 Each Iteration of the Scenario resets the Perception Camera's timing variables. Thus, you can think of each Iteration of the Scenario as one separate Perception Camera sequence, in which the camera's internal timing properties come into play. For instance, if you have 10 `Frames Per Iteration` on your Scenario, and your Perception Camera's `Start at Frame` value is set to 8, you will get two captures from the camera at the 9th and 10th frames of each Iteration (note that `Start at Frame` starts from 0). Similarly, you can use the `Frames Between Captures` to introduce intervals between captures. A value of 0 leads to all frames being captured.
 
@@ -385,7 +385,7 @@ Each Iteration of the Scenario resets the Perception Camera's timing variables. 
 </details>
 
 <details>
-  <summary><strong>Q: I want to simulate physics (or other accumulative behaviors such as auto-exposure) for a number of frames and let things settle before capturing the Scene. Is this possible with the Perception package?</summary><br>
+  <summary><strong>Q: I want to simulate physics (or other accumulative behaviors such as auto-exposure) for a number of frames and let things settle before capturing the Scene. Is this possible with the Perception package?</strong></summary><br>
 
 The Perception Camera can be set to capture at specific frame intervals, rather than every frame. The `Frames Between Captures` value is set to 0 by default, which causes the camera to capture all frames; however, you can change this to 1 to capture every other frame, or larger numbers to allow more time between captures. You can also have the camera start capturing at a certain frame rather the first frame, by setting the `Start at Frame` value to a value other than 0. All of this timing happens within each Iteration of the Scenario, and gets reset when you advance to the next Iteration. Therefore, the combination of these properties and the Scenario's `Frames Per Iteration` property allows you to randomize the state of your Scene at the start of each Iteration, let things run for a number of frames, and then capture the Scene at the end of the Iteration.
 
@@ -493,7 +493,7 @@ Based on our experiments, randomizing contrast, saturation, lens blur, and lens 
 </details>
 
 <details>
-  <summary><strong>Q: Can I debug my C# code?
+  <summary><strong>Q: Can I debug my C# code?</strong>
 </summary><br>
 
 Unity projects can be debugged using external editors such as Visual Studio or JetBrains Rider. For local development and debugging, you will first need to clone the Perception repository to disk and add the Perception package from this cloned repository to your Unity project. Then, in Unity Editor, go to ***Edit (or "Unity" on OSX) -> Preferences -> External Tools***. Select your preferred editor as the External Script Editor, and enable 
@@ -567,7 +567,7 @@ HDRP with Path Tracing (4096 samples) (more samples leads to less ray tracing no
 </details>
 
 <details>
-  <summary><strong>Q: I am randomizing my Scene every frame and using ray casting to detect the position of objects, but my ray casts are returning incorrect results. What is the issue here?
+  <summary><strong>Q: I am randomizing my Scene every frame and using ray casting to detect the position of objects, but my ray casts are returning incorrect results. What is the issue here?</strong>
 </summary><br>
 
 The physics engine needs to catch up with the position and rotation of your objects and is typically a frame behind. When you randomize things every frame, the physics engine can never cath up. To fix this, call `Physics.SyncTransforms` just before calling any ray casting methods.

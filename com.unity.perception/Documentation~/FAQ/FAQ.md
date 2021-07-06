@@ -8,7 +8,6 @@ This page covers a variety of topics, including common questions and issues that
 <details>
   <summary><strong>Q: How can I disable or enable labeling on an object at runtime?</strong></summary>
 
----
 
  You can turn labeling on and off on a GameObject by switching the enabled state of its `Labeling` component. For example:
 
@@ -24,7 +23,6 @@ This page covers a variety of topics, including common questions and issues that
 <details>
   <summary><strong>Q: How can I remove or add new labels to objects at runtime?</strong></summary>
 
----
 This can be achieved through modifying the `labels` list of the `Labeling` component. The key is to call `RefreshLabeling` on the component after making any changes to the labels. Example:
 
 ```C#
@@ -41,7 +39,6 @@ Keep in mind that any new label added with this method should already be present
 <details>
   <summary><strong>Q: Is it possible to label only parts of an object or assign different labels to different parts of objects?</strong></summary>
 
----
   Labeling works on the GameObject level, so to achieve the scenarios described here, you will need to break down your main object into multiple GameObjects parented to the same root object, and add `Labeling` components to each of the inner objects, as shown below.
 
 <p align="center">
@@ -66,7 +63,6 @@ Keep in mind that any new label added with this method should already be present
 <details>
   <summary><strong>Q: When visible surfaces of two objects are fully aligned, the bounding boxes seem to blink in and out of existence from one frame to another. Why is that?</strong></summary>
 
----
 This is due to a common graphics problem called *z-fighting*. This occurs when the shader can't decide which of the two surfaces to draw on top of the other, since they both have the exact same distance from the camera. To fix this, simply move one of the objects slightly so that the two problematic surfaces do not fully align.
 
 ---
@@ -79,7 +75,6 @@ This is due to a common graphics problem called *z-fighting*. This occurs when t
   <summary><strong>Q: How can I have multiple sets of prefabs in a foreground placement Randomizer, and on every Iteration select one from each set?</strong>
   </summary>
 
----
   This question is an example of more complex functionality that can be achieved by applying slight modifications to the provided sample Randomizers, or by creating completely custom ones using the powerful Parameters provided in the package. 
 
   Here, we have a variety of options toward achieving the described outcome. One simple method could be to add several more `GameObjectParameter` fields inside of the provided sample `ForegroundObjectPlacementRandomizer`. Each of these Parameters could hold one of our object lists. Then, on each iteration, we would fetch one prefab from each of the lists using the `Sample()` function of each Parameter. 
@@ -153,7 +148,6 @@ This Randomizer takes a list of `PrefabCluster` assets, then, on each Iteration,
 <details>
   <summary><strong>Q: How can I specify an exact number of objects to place using the sample foreground object placement Randomizer?</strong> </summary>
 
----
 The provided `ForegroundObjectPlacementRandomizer` uses Poisson Disk sampling to find randomly positioned points in the space denoted by the provided `Width` and `Height` values. The distance between the sampled points will be at equal to `Separation Distance`. The number of sampled points will be the maximum number of points in the given area that match these criteria.
 
 Thus, to limit the number of spawned objects, you can simply introduce a hard limit in the `for` loop that iterates over the Poisson Disk samples, to break out of the loop if the limit is reached. For example:
@@ -196,7 +190,6 @@ This will guarantee an upper limit of 50 on the number of objects. To have exact
 <details>
   <summary><strong>Q: How can I avoid object overlap with the sample foreground object placement Randomizer?</strong></summary>
 
----
   There are a number of ways for procedurally placing objects while avoiding any overlap between them, and most of these methods can be rather complex and need to place objects in a sequence. All the modifications to the objects (like scale, rotation, etc.) would also need to happen before the next object is placed, so that the state of the world is fully known before each placement.
 
   Here, we are going to introduce a rather simple modification in the sample foreground placement code provided with the package. In each Iteration, a random scale factor is chosen, and then a desirable separation distance is calculated based on this scale factor and the list of given prefabs. We scale the objects here to introduce additional randomization, and the fact that once we have placed the objects we can no longer scale them.
@@ -333,7 +326,6 @@ public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
 <details>
   <summary><strong>Q: What if I don't want randomized object placement? Can I move my objects in a non-randomized predefined manner on each frame?</strong> </summary>
 
----
 Even though we call them Randomizers, you can use a Randomizer to perform any task through-out the execution lifecycle of your Scenario. The power of the Randomizers comes from the lifecycle hooks that they have into the Iteration and the Scenario, making it easy to know and guarantee when and in which order in the life of your simulation each piece of code runs. These functions include:
 * `OnEnable`
 * `OnAwake`
@@ -362,7 +354,6 @@ protected override void OnIterationStart()
 <details>
   <summary><strong>Q: The objects instantiated using the sample foreground placement Randomizer are floating in the air. How can I use this Randomizer to place objects on a horizontal surface instead?</strong> </summary>
 
----
 The objects instantiated by the sample foreground Randomizer are all parented to an object named `Foreground Objects` at the root of the Scene Hierarchy. To modify the orientation of the objects, you can simply rotate this parent object at the beginning of the Scenario. 
 
 Alternatively, you could also place `Foreground Objects` inside another GameObject in the Scene using the `Transform.SetParent()` method, and then modifying the local position and and rotation of `Foreground Objects` in such a way that makes the objects appear on the surface of the parent GameObject. 
@@ -375,7 +366,6 @@ To achieve more natural placement, you could also use Unity's physics engine to 
 <details>
   <summary><strong>Q: Does using the same `Random Seed` value in two runs of the same Scenario guarantee that the generated datasets are identical?</strong></summary>
 
----
  If you only use the Samplers (and Parameters, which internally use Samplers) provided in the Perception package to generate random values throughout the Scenario's lifecycle and keep the `Random Seed` value unchanged, an identical sequence of random numbers will be generated every time the Scenario is run. This is because the Samplers obtain their seeds through continually mutating the provided global `Random Seed` in the Scenario.  
 
  Keep in mind that any change in the order of sampling or the number of samples obtained can lead to different outcomes. For example, if you change the order of Randomizers in the Scenario, the Samplers inside of these Randomizers will now execute in the new order, and thus, they will operate based on different seeds than before and generate different numbers. The same can happen if you add additional calls to a Sampler inside a Randomizer, causing the Samplers in later Randomizers to now use different seeds, since the global seed has been mutated more times than before.
@@ -390,7 +380,6 @@ To achieve more natural placement, you could also use Unity's physics engine to 
 <details>
   <summary><strong>Q: What is the relationship between the Scenario's lifecycle properties (Iterations and Frames per Iteration) in conjunction with the Perception Camera's timing properties (Simulation Delta Time, Start at Frame, and Frames Between Captures). </summary>
 
----
 Each Iteration of the Scenario resets the Perception Camera's timing variables. Thus, you can think of each Iteration of the Scenario as one separate Perception Camera sequence, in which the camera's internal timing properties come into play. For instance, if you have 10 `Frames Per Iteration` on your Scenario, and your Perception Camera's `Start at Frame` value is set to 8, you will get two captures from the camera at the 9th and 10th frames of each Iteration (note that `Start at Frame` starts from 0). Similarly, you can use the `Frames Between Captures` to introduce intervals between captures. A value of 0 leads to all frames being captured.
 
 ---
@@ -399,7 +388,6 @@ Each Iteration of the Scenario resets the Perception Camera's timing variables. 
 <details>
   <summary><strong>Q: I want to simulate physics (or other accumulative behaviors such as auto-exposure) for a number of frames and let things settle before capturing the Scene. Is this possible with the Perception package?</summary>
 
----
 The Perception Camera can be set to capture at specific frame intervals, rather than every frame. The `Frames Between Captures` value is set to 0 by default, which causes the camera to capture all frames; however, you can change this to 1 to capture every other frame, or larger numbers to allow more time between captures. You can also have the camera start capturing at a certain frame rather the first frame, by setting the `Start at Frame` value to a value other than 0. All of this timing happens within each Iteration of the Scenario, and gets reset when you advance to the next Iteration. Therefore, the combination of these properties and the Scenario's `Frames Per Iteration` property allows you to randomize the state of your Scene at the start of each Iteration, let things run for a number of frames, and then capture the Scene at the end of the Iteration.
 
 Suppose we need to drop a few objects into the Scene, let them interact physically and settle after a number of frames, and then capture their final state once. Afterwards, we want to repeat this cycle by randomizing the initial positions of the objects, dropping them, and capturing the final state again. We will set the Scenario's `Frames Per Iteration` to 300, which should be sufficient for the objects to get close to a settled position (this depends on the value you use for `Simulation Delta Time` in Perception Camera and the physical properties of the engine and objects, and can be found through experimentation). We also set the `Start at Frame` value of the Perception Camera to 290, and the `Frames Between Captures` to a sufficiently large number (like 100), so that we only get one capture per Iteration of the Scenario. The results look like below:
@@ -417,7 +405,6 @@ Note how the bounding boxes only update after the objects are fairly settled. Th
 <details>
   <summary><strong>Q: I do not want to use the Perception Camera to control the timing of my simulation or capture on a scheduled basis. Can I have a Perception Camera in my Scene and trigger captures manually from other scripts?</strong></summary>
 
----
 Yes. The Perception Camera offers two trigger modes, `Scheduled` and `Manual`, and these can be chosen in the editor UI for the camera. If you select the `Manual` mode, you will be able to trigger captures by calling the `RequestCapture()` method of `PerceptionCamera`. In this mode, you still have an option to dictate your simulation delta time with this camera, in order to have deterministic simulation progress between rendered frames. This is controlled using the `Affect Simulation Timing` checkbox.
 
 ---
@@ -427,7 +414,6 @@ Yes. The Perception Camera offers two trigger modes, `Scheduled` and `Manual`, a
 <details>
   <summary><strong>Q: Can I have multiple Perception Cameras active in my Scene simultaneously?</strong></summary>
 
----
 We currently do not support multiple active Perception Cameras, but you may be able to get things working partially if you clone the repository and modify parts of the code to fix some of the more easy-to-fix issues such as file sharing errors. You would also need to use render textures on all cameras. That said, there are still issues with the render pipeline that may prevent you from using Labelers of the same kind with different Label Configs on these cameras.
 
 However, you can have more than one Perception Camera in the Scene, if only one is active when the simulation starts. Therefore, one possible workaround, if your simulation is fully deterministic from one run to the next, would be to run the simulation more than once, each time with one of the cameras active. While not ideal, this will at least let you generate matching datasets.
@@ -439,7 +425,6 @@ However, you can have more than one Perception Camera in the Scene, if only one 
   <summary><strong>Q: My RGB images look darker than what I see in Unity Editor, when I render the Perception Camera to a texture. How can I fix this?</strong>
 </summary>
 
----
 This issue is caused by the color format of the texture. In the ***Inspector** view of the render texture, set color format to `R8G8B8A8_SRGB`.
 
 ---
@@ -449,7 +434,6 @@ This issue is caused by the color format of the texture. In the ***Inspector** v
   <summary><strong>Q: How do I report additional custom information in my output dataset for each frame or the whole simulation (e.g. 3D position of objects at the start of each Iteration, intensity of lights, etc.)?</strong>
 </summary>
 
----
 This can be done by adding custom annotations to your dataset. Have a look at [this](https://github.com/Unity-Technologies/com.unity.perception/blob/master/com.unity.perception/Documentation%7E/DatasetCapture.md) page for an explanation, as well as an example for how to do this. 
 
 ---
@@ -461,7 +445,6 @@ This can be done by adding custom annotations to your dataset. Have a look at [t
   <summary><strong>Q: Objects in my captured images have jagged edges, how can I fix this?</strong>
 </summary>
 
----
 This is a common issue with rendering graphics into pixel grids (digital images), when the resolution of the grid is not high enough to perfectly display the slanting lines in the image. The common solution to this issue is the use of anti-aliasing methods, and Unity offers a number of these in both URP and HDRP. To experiment with anti-aliasing, go to the ***Inspector*** view of your Perception Camera object and in the Camera component, change `Anti-aliasing` from `None` to another option.
 
 ---
@@ -471,7 +454,6 @@ This is a common issue with rendering graphics into pixel grids (digital images)
   <summary><strong>Q: I am using an HDRP Unity project with Perception and my images have significant blurring around most objects. How can I remove this blur?</strong>
 </summary>
 
----
 The effect you are observing here is motion blur, which is happens because the placement Randomizers used in the Perception tutorial cache their instantiated objects from one frame to the next, and move them to new locations on each frame instead of destroying them and creating new ones. This "motion" of the objects causes the motion blur effect to kick in. 
 
 
@@ -492,7 +474,6 @@ HDRP projects have motion blur and a number of other post processing effects ena
   <summary><strong>Q: Are all post processing effects provided by Unity safe to use?</strong>
 </summary>
 
----
 A couple of important notes to keep in mind with post-processing revolve around randomness:
 
   * Some effects need to be Randomized from frame to frame, e.g. Film Grain). The Film Grain effect provided by Unity is not sufficiently randomized for model training and can thus mislead your CV model in the training process. 
@@ -507,7 +488,6 @@ To make sure you do not run into insufficient randomization or non-determinism, 
   <summary><strong>Q: What post processing effects can help improve model performance?</strong>
 </summary>
 
----
 Based on our experiments, randomizing contrast, saturation, lens blur, and lens distortion can help significantly improve the performance of your CV model. We recommend experimenting with these as well as other effects to determine those that work best for your use-case.
 
 ---
@@ -517,7 +497,6 @@ Based on our experiments, randomizing contrast, saturation, lens blur, and lens 
   <summary><strong>Q: Can I debug my C# code?
 </summary>
 
----
 Unity projects can be debugged using external editors such as Visual Studio or JetBrains Rider. For local development and debugging, you will first need to clone the Perception repository to disk and add the Perception package from this cloned repository to your Unity project. Then, in Unity Editor, go to ***Edit (or "Unity" on OSX) -> Preferences -> External Tools***. Select your preferred editor as the External Script Editor, and enable 
 **General .csproj files** for at least **Embedded packages** and **Local packages**. This will allow you to quickly navigate through the code-base for the Perception package and internal Unity Editor packages.
 
@@ -531,7 +510,6 @@ All you need to do now is to double click any of the Perception package's C# scr
   <summary><strong>Q: What kind of synthetic environment will be best for my use-case?</strong>
 </summary>
 
----
 It is difficult to say what type of synthetic environment would lead to the best model performance. It is best to carry out small and quick experiments with both random unstructured environments (such as the [SynthDet](https://github.com/Unity-Technologies/SynthDet) project) and more structured ones that may resemble real environments in which prediction will need to happen. This will help identify the types of environments and randomizations that work best for each specific use-case. The beauty of synthetic data is that you can try these experiments fairly quickly.
 
 Here are a few of blog posts to give you some ideas: [1](https://blog.unity.com/technology/synthetic-data-simulating-myriad-possibilities-to-train-robust-machine-learning-models), [2](https://blog.unity.com/technology/use-unitys-perception-tools-to-generate-and-analyze-synthetic-data-at-scale-to-train), [3](https://blog.unity.com/technology/training-a-performant-object-detection-ml-model-on-synthetic-data-using-unity-perception), [4](https://blog.unity.com/technology/supercharge-your-computer-vision-models-with-synthetic-datasets-built-by-unity), [5](https://blog.unity.com/technology/boosting-computer-vision-performance-with-synthetic-data).
@@ -544,7 +522,6 @@ Here are a few of blog posts to give you some ideas: [1](https://blog.unity.com/
   <summary><strong>Q: Can I have more realistic rendering in my Scene?</strong>
 </summary>
 
----
 A project's lighting configuration typically has the greatest influence over the final rendered output over any other simulation property. Unity has many lighting options, each of which is designed as a different trade-off between performance and realism/capability. The 3 most pertinent options that you will likely be interested in are:
 
 * URP baked lighting: The Universal Render Pipeline offers the most performant lighting configurations by using an offline baking process to generate realistic bounce lighting within a static scene and then using simple shadow mapped dynamic lights in conjunctions with light probes to make dynamic (or randomized) objects "fit" into the baked scene. This option provides high performance, but lacks the visual fidelity needed for interior environments and is geared toward more outdoor-like settings. Also, depending on scene randomization complexity, light baking might not be the best option. Randomly generated scenes will often place objects and adjust lighting in ways that make the new scene incompatible with the original baked lighting configuration.
@@ -594,7 +571,6 @@ HDRP with Path Tracing (4096 samples) (more samples leads to less ray tracing no
   <summary><strong>Q: I am randomizing my Scene every frame and using ray casting to detect the position of objects, but my ray casts are returning incorrect results. What is the issue here?
 </summary>
 
----
 The physics engine needs to catch up with the position and rotation of your objects and is typically a frame behind. When you randomize things every frame, the physics engine can never cath up. To fix this, call `Physics.SyncTransforms` just before calling any ray casting methods.
 
 ---
@@ -604,7 +580,6 @@ The physics engine needs to catch up with the position and rotation of your obje
   <summary><strong>Q: Where can I get humanoid models and animations?</strong>
 </summary>
 
----
 One useful resource for humanoid characters and animations is [Mixamo](https://www.mixamo.com/#/?page=1&type=Motion%2CMotionPack).
 
 ---

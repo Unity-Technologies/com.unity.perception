@@ -449,6 +449,27 @@ HDRP projects have motion blur and a number of other post processing effects ena
 </details>
 
 <details>
+  <summary><strong>Q:</strong> Are all post processing effects provided by Unity safe to use?
+</summary>
+
+A couple of important notes to keep in mind with post-processing revolve around randomness:
+
+  * Some effects need to be Randomized from frame to frame, e.g. Film Grain). The Film Grain effect provided by Unity is not sufficiently randomized for model training and can thus mislead your CV model in the training process. 
+  * Even if an effect is properly randomized, using it would make your overall randomization strategy non-deterministic, as it would use random number generators outside of the Perception package provided Samplers. 
+
+To make sure you do not run into insufficient randomization or non-determinism, it would be best to implement effects such as Film Grain yourself and only use the Perception provided Samplers and Parameters in order to guarantee determinism.
+
+</details>
+
+<details>
+  <summary><strong>Q:</strong> What post processing effects can help improve model performance?
+</summary>
+
+Based on our experiments, randomizing contrast, saturation, lens blur, and lens distortion can help significantly improve the performance of your CV model. We recommend experimenting with these as well as other effects to determine those that work best for your use-case.
+
+</details>
+
+<details>
   <summary><strong>Q:</strong> Can I debug my C# code?
 </summary>
 
@@ -516,4 +537,19 @@ HDRP with Path Tracing (4096 samples) (more samples leads to less ray tracing no
 <img src="images/hdrp_pt_4096_samples.png" width="700"/>
 </p>  
 
+</details>
+
+<details>
+  <summary><strong>Q:</strong> I am randomizing my Scene every frame and using ray casting to detect the position of objects, but my ray casts are returning incorrect results. What is the issue here?
+</summary>
+
+The physics engine needs to catch up with the position and rotation of your objects and is typically a frame behind. When you randomize things every frame, the physics engine can never cath up. To fix this, call `Physics.SyncTransforms` just before calling any ray casting methods.
+
+</details>
+
+<details>
+  <summary><strong>Q:</strong> Where can I get humanoid models and animations?
+</summary>
+
+One useful resource for humanoid characters and animations is [Mixamo](https://www.mixamo.com/#/?page=1&type=Motion%2CMotionPack).
 </details>

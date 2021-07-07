@@ -150,33 +150,35 @@ This Randomizer takes a list of `PrefabCluster` assets, then, on each Iteration,
 
 The provided `ForegroundObjectPlacementRandomizer` uses Poisson Disk sampling to find randomly positioned points in the space denoted by the provided `Width` and `Height` values. The lower bound on the distance between the sampled points will be `Separation Distance`. The number of sampled points will be the maximum number of points in the given area that match these criteria.
 
-Thus, to limit the number of spawned objects, you can simply introduce a hard limit in the `for` loop that iterates over the Poisson Disk samples, to break out of the loop if the limit is reached. For example:
-
+Thus, to limit the number of spawned objects, you can simply introduce a hard limit in the `for` loop that iterates over the Poisson Disk samples, to break out of the loop if the limit is reached. Additionally, we will need to shuffle the list of points retrieved from the Poisson Disk sampling in order to remove any selection bias when building our subset of points. This is because Poisson Disk points are sampled in sequence and relative to the points already sampled, therefore, the initial points in the list are likely to be closer to each other. We will use a `FloatParameter` to perform this shuffle, so that we can guarantee that our simulation is deterministic and reproducible.
 ```C#
+FloatParameter m_IndexShuffleParameter = new FloatParameter { value = new UniformSampler(0, 1) };
+
 protected override void OnIterationStart()
 {
     var seed = SamplerState.NextRandomState();
-    
-    //retrieve points using Poisson Disk sampling
     var placementSamples = PoissonDiskSampling.GenerateSamples(
         placementArea.x, placementArea.y, separationDistance, seed);
-
     var offset = new Vector3(placementArea.x, placementArea.y, 0f) * -0.5f;
 
-    var limit = 50;
+    //shuffle retrieved points
+    var indexes = Enumerable.Range(0, placementSamples.Length).ToList();
+    indexes = indexes.OrderBy(item => m_IndexShuffleParameter.Sample()).ToList();
+
     //maximum number of objects to place
+    var limit = 50;
 
     var instantiatedCount = 0;
     //iterate over all points
-    foreach (var sample in placementSamples)
+    foreach (var index in indexes)
     {
+        instantiatedCount ++;
+
         if (instantiatedCount == limit)
             break;
 
-        instantiatedCount ++;        
-
         var instance = m_GameObjectOneWayCache.GetOrInstantiate(prefabs.Sample());
-        instance.transform.position = new Vector3(sample.x, sample.y, depth) + offset;
+        instance.transform.position = new Vector3(placementSamples[index].x, placementSamples[index].y, depth) + offset;
     }
     placementSamples.Dispose();
 }
@@ -348,6 +350,8 @@ protected override void OnIterationStart()
     }
 }
 ```
+Additionally, keep in mind that you can use Perception Samplers (and therefore Parameters) to generate constant values, not just random ones. The `ConstantSampler` class provides this functionality.
+
 ---
 </details>
 
@@ -358,7 +362,28 @@ The objects instantiated by the sample foreground Randomizer are all parented to
 
 Alternatively, you could also place `Foreground Objects` inside another GameObject in the Scene using the `Transform.SetParent()` method, and then modify the local position and rotation of `Foreground Objects` in such a way that makes the objects appear on the surface of the parent GameObject. 
 
-To achieve more natural placement, you could also use Unity's physics engine to drop the objects on a surface, let them settle, and then capture an image. To achieve this, you would just need to have sufficient frames in each Iteration of the Scenario (instead of the default 1 frame per iteration), and set your Perception Camera's capture interval to a large enough number that would make it capture each Iteration once after the objects have settled. This example is explained in more detail in the [Perception Camera](#perception-camera) section of this FAQ.
+In addition, if you'd like to have horizontal placement without touching the parent object, you can modify the Randomizer's code to place objects horizontally instead of vertically. The lines responsible for placement are:
+```C#
+var offset = new Vector3(placementArea.x, placementArea.y, 0) * -0.5f;        
+```
+```C#
+instance.transform.position = new Vector3(sample.x, sample.y, depth) + offset;
+```
+
+The first line builds an offset vector that is later used to center the points retrieved from Poisson Disk sampling around the center of the coordinate system. The second line is executed in a loop, and each time, places one object at one of the sampled points at the depth (along Z axis) provided by the user.
+
+To make this placement horizontal, you would just need to change these two lines to swap Y for Z. The resulting lines would be:
+
+```C#
+var offset = new Vector3(placementArea.x, 0, placementArea.y) * -0.5f;        
+```
+```C#
+instance.transform.position = new Vector3(sample.x, depth, sample.y) + offset;
+```
+
+Note that the variable `depth` is in fact playing the role of a height variable now.
+
+Finally, to achieve more natural placement, you could also use Unity's physics engine to drop the objects on a surface, let them settle, and then capture an image. To achieve this, you would just need to have sufficient frames in each Iteration of the Scenario (instead of the default 1 frame per iteration), and set your Perception Camera's capture interval to a large enough number that would make it capture each Iteration once after the objects have settled. This example is explained in more detail in the [Perception Camera](#perception-camera) section of this FAQ.
 
 ---
 </details>
@@ -388,9 +413,9 @@ Each Iteration of the Scenario resets the Perception Camera's timing variables. 
 <details>
   <summary><strong>Q: I want to simulate physics (or other accumulative behaviors such as auto-exposure) for a number of frames and let things settle before capturing the Scene. Is this possible with the Perception package?</strong></summary><br>
 
-The Perception Camera can be set to capture at specific frame intervals, rather than every frame. The `Frames Between Captures` value is set to 0 by default, which causes the camera to capture all frames; however, you can change this to 1 to capture every other frame, or larger numbers to allow more time between captures. You can also have the camera start capturing at a certain frame rather the first frame, by setting the `Start at Frame` value to a value other than 0. All of this timing happens within each Iteration of the Scenario, and gets reset when you advance to the next Iteration. Therefore, the combination of these properties and the Scenario's `Frames Per Iteration` property allows you to randomize the state of your Scene at the start of each Iteration, let things run for a number of frames, and then capture the Scene at the end of the Iteration.
+Yes. The Perception Camera can be set to capture at specific frame intervals, rather than every frame. The `Frames Between Captures` value is set to 0 by default, which causes the camera to capture all frames; however, you can change this to 1 to capture every other frame, or larger numbers to allow more time between captures. You can also have the camera start capturing at a certain frame rather the first frame, by setting the `Start at Frame` value to a value other than 0. All of this timing happens within each Iteration of the Scenario, and gets reset when you advance to the next Iteration. Therefore, the combination of these properties and the Scenario's `Frames Per Iteration` property allows you to randomize the state of your Scene at the start of each Iteration, let things run for a number of frames, and then capture the Scene at the end of the Iteration.
 
-Suppose we need to drop a few objects into the Scene, let them interact physically and settle after a number of frames, and then capture their final state once. Afterwards, we want to repeat this cycle by randomizing the initial positions of the objects, dropping them, and capturing the final state again. We will set the Scenario's `Frames Per Iteration` to 300, which should be sufficient for the objects to get close to a settled position (this depends on the value you use for `Simulation Delta Time` in Perception Camera and the physical properties of the engine and objects, and can be found through experimentation). We also set the `Start at Frame` value of the Perception Camera to 290, and the `Frames Between Captures` to a sufficiently large number (like 100), so that we only get one capture per Iteration of the Scenario. The results look like below. Note how the bounding boxes only update after the objects are fairly settled. These are the timestamps at which captures are happening.
+Suppose we need to drop a few objects into the Scene, let them interact physically and settle after a number of frames, and then capture their final state once. Afterwards, we want to repeat this cycle by randomizing the initial positions of the objects, dropping them, and capturing the final state again. We will set the Scenario's `Frames Per Iteration` to 300, which should be sufficient for the objects to get close to a settled position (this depends on the value you use for `Simulation Delta Time` in Perception Camera and the physical properties of the engine and objects, and can be found through experimentation). We also set the `Start at Frame` value of the Perception Camera to 290, and the `Frames Between Captures` to a sufficiently large number (like 100), so that we only get one capture per Iteration of the Scenario. The results look like below. Note how the bounding boxes only appear after the objects are fairly settled. These are the timestamps at which captures are happening.
 
 
 <p align="center">
@@ -412,9 +437,9 @@ Yes. The Perception Camera offers two trigger modes, `Scheduled` and `Manual`, a
 <details>
   <summary><strong>Q: Can I have multiple Perception Cameras active in my Scene simultaneously?</strong></summary><br>
 
-We currently do not support multiple active Perception Cameras, but you may be able to get things working partially if you clone the repository and modify parts of the code to fix some of the more easy-to-fix issues such as file sharing errors. You would also need to use render textures on all cameras. That said, there are still issues with the render pipeline that may prevent you from using Labelers of the same kind with different Label Configs on these cameras.
+No, at this time the Perception package only supports one active Perception Camera. This is something that is on our roadmap and we hope to support soon. 
 
-However, you can have more than one Perception Camera in the Scene, if only one is active when the simulation starts. Therefore, one possible workaround, if your simulation is fully deterministic from one run to the next, would be to run the simulation more than once, each time with one of the cameras active. While not ideal, this will at least let you generate matching datasets.
+However, the package does support having more than one Perception Camera in the Scene, as long as only one is active when the simulation starts. Therefore, one possible workaround, if your simulation is fully deterministic from one run to the next, would be to run the simulation more than once, each time with one of the cameras active. While not ideal, this will at least let you generate matching datasets.
 
 ---
 </details>

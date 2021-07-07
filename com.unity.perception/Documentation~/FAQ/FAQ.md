@@ -184,7 +184,7 @@ protected override void OnIterationStart()
 }
 ```
 
-This will guarantee an upper limit of 50 on the number of objects. To have exactly 50 objects, we need to make sure the `Separation Distance` is small enough for the given area, so that there is always at least 50 point samples found. Experiment with different values for the distance until you find one that produces the minimum number of points required.
+This will guarantee an upper limit of 50 on the number of objects. To have exactly 50 objects, we need to make sure the `Separation Distance` is small enough for the given area, so that there are always at least 50 point samples found. Experiment with different values for the distance until you find one that produces the minimum number of points required.
 
 ---
 </details>
@@ -250,7 +250,7 @@ public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
         }
 
         //Use average bounds size and average scale to guess the maximum number of objects that can be placed without having them overlap. 
-        //This is a heuristic to help us start the placement process. The actual number of items placed will usually be usually much smaller.
+        //This is a heuristic to help us start the placement process. The actual number of items placed will usually be much smaller.
         m_SelectionPoolSizePerFrame = (int)(placementArea.x * placementArea.y / (averageBoundsSize * averageScale));
     }
 
@@ -338,7 +338,7 @@ Even though we call them Randomizers, you can use a Randomizer to perform any ta
 * `OnScenarioComplete`
 * `OnDisable`
 
-So, in order to have deliberate non-random object movement, you will just need to put your object movement code inside of one of the recurrent lifecycle functions. `OnUpdate()` runs on every frame of the simulation, and `OnIterationStart()` runs every Iteration (which can be the same as each frame if you have only 1 frame per Iteration of your Scenario). For example, the code below moves all objects tagged with the component `ForwardMoverTag` by along their forward axis by 1 unit, on every Iteration. 
+So, in order to have deliberate non-random object movement, you will just need to put your object movement code inside of one of the recurrent lifecycle functions. `OnUpdate()` runs on every frame of the simulation, and `OnIterationStart()` runs every Iteration (which can be the same as each frame if you have only 1 frame per Iteration of your Scenario). For example, the code below moves all objects tagged with the component `ForwardMoverTag` along their forward axis by 1 unit, on every Iteration. 
 
 ```C#
 protected override void OnIterationStart()
@@ -413,7 +413,7 @@ Each Iteration of the Scenario resets the Perception Camera's timing variables. 
 <details>
   <summary><strong>Q: I want to simulate physics (or other accumulative behaviors such as auto-exposure) for a number of frames and let things settle before capturing the Scene. Is this possible with the Perception package?</strong></summary><br>
 
-Yes. The Perception Camera can be set to capture at specific frame intervals, rather than every frame. The `Frames Between Captures` value is set to 0 by default, which causes the camera to capture all frames; however, you can change this to 1 to capture every other frame, or larger numbers to allow more time between captures. You can also have the camera start capturing at a certain frame rather the first frame, by setting the `Start at Frame` value to a value other than 0. All of this timing happens within each Iteration of the Scenario, and gets reset when you advance to the next Iteration. Therefore, the combination of these properties and the Scenario's `Frames Per Iteration` property allows you to randomize the state of your Scene at the start of each Iteration, let things run for a number of frames, and then capture the Scene at the end of the Iteration.
+Yes. The Perception Camera can be set to capture at specific frame intervals, rather than every frame. The `Frames Between Captures` value is set to 0 by default, which causes the camera to capture all frames; however, you can change this to 1 to capture every other frame, or larger numbers to allow more time between captures. You can also have the camera start capturing at a certain frame rather than the first frame, by setting the `Start at Frame` value to a value other than 0. All of this timing happens within each Iteration of the Scenario, and gets reset when you advance to the next Iteration. Therefore, the combination of these properties and the Scenario's `Frames Per Iteration` property allows you to randomize the state of your Scene at the start of each Iteration, let things run for a number of frames, and then capture the Scene at the end of the Iteration.
 
 Suppose we need to drop a few objects into the Scene, let them interact physically and settle after a number of frames, and then capture their final state once. Afterwards, we want to repeat this cycle by randomizing the initial positions of the objects, dropping them, and capturing the final state again. We will set the Scenario's `Frames Per Iteration` to 300, which should be sufficient for the objects to get close to a settled position (this depends on the value you use for `Simulation Delta Time` in Perception Camera and the physical properties of the engine and objects, and can be found through experimentation). We also set the `Start at Frame` value of the Perception Camera to 290, and the `Frames Between Captures` to a sufficiently large number (like 100), so that we only get one capture per Iteration of the Scenario. The results look like below. Note how the bounding boxes only appear after the objects are fairly settled. These are the timestamps at which captures are happening.
 
@@ -426,7 +426,7 @@ Suppose we need to drop a few objects into the Scene, let them interact physical
 </details>
 
 <details>
-  <summary><strong>Q: I do not want Perception Camera to control the delta time of my simulation or capture on a scheduled basis. Can I have a Perception Camera in my Scene that does not affect timings and trigger captures manually from other scripts?</strong></summary><br>
+  <summary><strong>Q: I do not want the Perception Camera to control the delta time of my simulation or capture on a scheduled basis. Can I have a Perception Camera in my Scene that does not affect timings and trigger captures manually from other scripts?</strong></summary><br>
 
 Yes. The Perception Camera offers two trigger modes, `Scheduled` and `Manual`, and these can be chosen in the editor UI for the Perception Camera component. If you select the `Manual` mode, you will be able to trigger captures by calling the `RequestCapture()` method of `PerceptionCamera`. In this mode, you have the option to not have this camera dictate your simulation delta time. This is controlled using the `Affect Simulation Timing` checkbox.
 
@@ -500,7 +500,7 @@ HDRP projects have motion blur and a number of other post processing effects ena
 No. When using post processing effects, you need to be careful about issues regarding randomness and determinism:
 
   * There are certain post processing effects that need randomization internally, e.g. film grain. The film grain effect provided by Unity is not sufficiently randomized for model training and can thus mislead your CV model to look for a specific noise pattern during prediction. 
-  * Even if such an effect is properly randomized, using a randomized effect would make your overall randomization strategy non-deterministic, meaning you would not be able to reproduce your datasets. This is because the effect would internally use random number generators outside of the Perception package provided Samplers. If you have access to the source code for a randomized effect, you can modify it to only use Perception Samplers for random number generation, which would make its behavior deterministic and thus appropriate for use in synthetic datasets that need to be reproducible.
+  * Even if such an effect is properly randomized, using a randomized effect would make your overall randomization strategy non-deterministic, meaning you would not be able to reproduce your datasets. This is because the effect would internally use random number generators outside of the Samplers provided by the Perception package. If you have access to the source code for a randomized effect, you can modify it to only use Perception Samplers for random number generation, which would make its behavior deterministic and thus appropriate for use in synthetic datasets that need to be reproducible.
 
 To make sure you do not run into insufficient randomization or non-determinism, it would be best to implement effects such as film grain yourself or modify existing code to make sure no random number generators are used except for the Samplers provided in the Perception package.
 
@@ -535,7 +535,7 @@ All you need to do now is to double click any of the Perception package's C# scr
 
 It is difficult to say what type of synthetic environment would lead to the best model performance. It is best to carry out small and quick experiments with both random unstructured environments (such as the [SynthDet](https://github.com/Unity-Technologies/SynthDet) project) and more structured ones that may resemble real environments in which prediction will need to happen. This will help identify the types of environments and randomizations that work best for each specific use-case. The beauty of synthetic data is that you can try these experiments fairly quickly.
 
-Here are a few of blog posts to give you some ideas: [1](https://blog.unity.com/technology/synthetic-data-simulating-myriad-possibilities-to-train-robust-machine-learning-models), [2](https://blog.unity.com/technology/use-unitys-perception-tools-to-generate-and-analyze-synthetic-data-at-scale-to-train), [3](https://blog.unity.com/technology/training-a-performant-object-detection-ml-model-on-synthetic-data-using-unity-perception), [4](https://blog.unity.com/technology/supercharge-your-computer-vision-models-with-synthetic-datasets-built-by-unity), [5](https://blog.unity.com/technology/boosting-computer-vision-performance-with-synthetic-data).
+Here are a few blog posts to give you some ideas: [1](https://blog.unity.com/technology/synthetic-data-simulating-myriad-possibilities-to-train-robust-machine-learning-models), [2](https://blog.unity.com/technology/use-unitys-perception-tools-to-generate-and-analyze-synthetic-data-at-scale-to-train), [3](https://blog.unity.com/technology/training-a-performant-object-detection-ml-model-on-synthetic-data-using-unity-perception), [4](https://blog.unity.com/technology/supercharge-your-computer-vision-models-with-synthetic-datasets-built-by-unity), [5](https://blog.unity.com/technology/boosting-computer-vision-performance-with-synthetic-data).
 
 ---
 </details>
@@ -557,7 +557,7 @@ A project's lighting configuration typically has the greatest influence over the
     * No light baking required
   * Cons:
     * Requires special hardware to run (Nvidia RTX graphics cards)
-    * Time consuming to render (relative to default HDRP). Some lighting options (Global Illumination) are less expensive then others (Path Tracing).
+    * Time consuming to render (relative to default HDRP). Some lighting options (Global Illumination) are less expensive than others (Path Tracing).
     * More complicated to configure
     * These features are still in preview and subject to change
  
@@ -594,7 +594,7 @@ HDRP with Path Tracing (4096 samples) (more samples leads to less ray tracing no
   <summary><strong>Q: I am randomizing my Scene every frame and using ray casting to detect the position of objects, but my ray casts are returning incorrect results. What is the issue here?</strong>
 </summary><br>
 
-The physics engine needs to catch up with the position and rotation of your objects and is typically a frame behind. When you randomize things every frame, the physics engine can never cath up. To fix this, call `Physics.SyncTransforms` just before calling any ray casting methods.
+The physics engine needs to catch up with the position and rotation of your objects and is typically a frame behind. When you randomize things every frame, the physics engine can never catch up. To fix this, call `Physics.SyncTransforms` just before calling any ray casting methods.
 
 ---
 </details>

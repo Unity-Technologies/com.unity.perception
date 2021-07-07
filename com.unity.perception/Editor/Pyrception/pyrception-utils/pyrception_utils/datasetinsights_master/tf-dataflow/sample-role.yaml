@@ -1,0 +1,5 @@
+title: GetStorageBucketRole
+description: Grants storage.buckets.read to holders.
+stage: GA
+includedPermissions:
+- storage.buckets.get

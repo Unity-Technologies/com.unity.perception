@@ -1,0 +1,102 @@
+[tool.poetry]
+name = "datasetinsights"
+version = "1.0.0"
+description = "Synthetic dataset insights."
+license = "Apache-2.0"
+authors = [
+  "Unity AI Perception Team <computer-vision@unity3d.com>"
+]
+readme = "README.md"
+homepage = "https://github.com/Unity-Technologies/datasetinsights"
+repository = "https://github.com/Unity-Technologies/datasetinsights"
+documentation = "https://datasetinsights.readthedocs.io/en/latest/"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Framework :: Jupyter",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Visualization",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Utilities"
+]
+include = [
+  "LICENSE",
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.7"
+cython = "^0.29.14"
+google-cloud-storage = "^1.24.1"
+jupyter = "^1.0.0"
+numpy = "^1.17"
+plotly = "^4.4.1"
+pyquaternion = "^0.9.5"
+codetiming = "^1.2.0"
+pandas = "^1.0.1"
+tqdm = "^4.45.0"
+dask = {extras = ["complete"], version = "^2.14.0"}
+dash = "1.12.0"
+click = "^7.1.2"
+opencv-python = "^4.4.0.42"
+matplotlib = "^3.3.1"
+
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+flake8 = "^3.7.9"
+pytest = "^6.0.2"
+pytest-cov = "^2.8.1"
+responses = "^0.10.9"
+isort = "^4.3.21"
+sphinx-rtd-theme = "^0.5.0"
+recommonmark = "^0.6.0"
+sphinx-click = "^2.5.0"
+
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 80
+
+[tool.black]
+line-length = 80
+target-version = ["py37"]
+include = '\.pyi?$'
+exclude = '''
+
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | protos
+  )/
+)
+'''
+
+[tool.pytest.ini_options]
+addopts = "--cov=datasetinsights -rxXs --verbose"
+testpaths = [
+    "tests"
+]
+
+[tool.poetry.scripts]
+datasetinsights = "datasetinsights.__main__:entrypoint"
+
+[build-system]
+requires = ["poetry>=1.0.5"]
+build-backend = "poetry.masonry.api"

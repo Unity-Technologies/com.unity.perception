@@ -10,14 +10,13 @@ from typing import List, Tuple
 import numpy as np
 import streamlit as st
 import SessionState
-import visualization.visualizers as v
 import PIL.Image as Image
+import streamlit.components.v1 as components
 
-import datasetinsights
-from datasetinsights.datasets.unity_perception import AnnotationDefinitions, MetricDefinitions
-from datasetinsights.datasets.unity_perception.captures import Captures
-
-#from pyrception_utils import PyrceptionDataset
+import datasetinsights_master.datasetinsights
+from datasetinsights_master.datasetinsights.datasets.unity_perception import AnnotationDefinitions, MetricDefinitions
+from datasetinsights_master.datasetinsights.datasets.unity_perception.captures import Captures
+import visualization.visualizers as v
 
 st.set_page_config(layout="wide")  # This needs to be the first streamlit command
 import helpers.custom_components_setup as cc
@@ -44,23 +43,11 @@ def list_datasets(path) -> List:
 
 @st.cache(show_spinner=True, allow_output_mutation=True)
 def load_perception_dataset(data_root: str) -> Tuple:
-    """
-    Loads the perception dataset in the cache and caches the random bounding box color scheme.
-    :param path: Dataset path
-    :type str:
-    :return: A tuple with the colors and PyrceptionDataset object as (colors, dataset)
-    :rtype: Tuple
-    """
-    # --------------------------------CHANGE TO DATASETINSIGHTS LOADING---------------------------------------------
-
-    # dataset = PyrceptionDataset(data_dir=path)
-    # classes = dataset.classes
-    # colors = {name: tuple(np.random.randint(128, 255, size=3)) for name in classes}
-    # return colors, dataset
     ann_def = AnnotationDefinitions(data_root)
     metric_def = MetricDefinitions(data_root)
     cap = Captures(data_root)
     return ann_def, metric_def, cap
+
 
 def preview_dataset(base_dataset_dir: str):
     """
@@ -75,11 +62,11 @@ def preview_dataset(base_dataset_dir: str):
     base_dataset_dir = session_state.curr_dir
 
     st.sidebar.markdown("# Select Project")
-    if st.sidebar.button("Change dataset folder"):
+    if st.sidebar.button("Change project folder"):
         folder_select(session_state)
 
     if session_state.current_page == 'main':
-        st.sidebar.markdown("# Dataset Selection")
+        st.sidebar.markdown("# Select Dataset")
         datasets = list_datasets(base_dataset_dir)
         datasets_names = [ctime + " " + item for ctime, item in datasets]
 
@@ -92,15 +79,13 @@ def preview_dataset(base_dataset_dir: str):
                 break
 
         if dataset_name is not None:
-            ann_def, metric_def, cap = load_perception_dataset(
-                os.path.join(base_dataset_dir, dataset_name)
-            )
+
+            data_root = os.path.join(base_dataset_dir, dataset_name)
+            ann_def, metric_def, cap = load_perception_dataset(data_root)
 
             st.sidebar.markdown("# Labeler Visualization")
 
-            st.write(ann_def)
-
-            available_labelers = [a[1] for a in ann_def.table.iterrows()]
+            available_labelers = [a["name"] for a in ann_def.table.to_dict('records')]
 
             labelers = {}
             if 'bounding box' in available_labelers:
@@ -131,23 +116,31 @@ def preview_dataset(base_dataset_dir: str):
 
             index = int(session_state.image)
             if index >= 0:
-                dataset_path = os.path.join(base_dataset_dir, dataset_name)
-                zoom(index, ann_def, metric_def, cap, base_dataset_dir, session_state, labelers, dataset_path)
+                zoom(index, ann_def, metric_def, cap, data_root, session_state, labelers, data_root)
             else:
                 num_rows = 5
-                grid_view(num_rows, ann_def, metric_def, cap, base_dataset_dir, session_state, labelers)
+                grid_view(num_rows, ann_def, metric_def, cap, data_root, session_state, labelers)
+
+
+def get_annotation_def(ann_def, name):
+    for idx, a in enumerate(ann_def.table.to_dict('records')):
+        if a["name"] == name:
+            return a["id"]
+    return -1
+
+
+def get_annotation_index(ann_def, name):
+    for idx, a in enumerate(ann_def.table.to_dict('records')):
+        if a["name"] == name:
+            return idx
+    return -1
 
 
 def get_image_with_labelers(index, ann_def, metric_def, cap, data_root, labelers_to_use):
-
-    filename = os.path.join(data_root, cap.loc[index, "filename"])
+    filename = os.path.join(data_root, cap.captures.loc[index, "filename"])
     image = Image.open(filename)
     if 'semantic segmentation' in labelers_to_use and labelers_to_use['semantic segmentation']:
-        semantic_segmentation_definition_id = -1
-        for idx, a in enumerate(ann_def):
-            if a["name"] == "semantic segmentation":
-                semantic_segmentation_definition_id = idx
-                break
+        semantic_segmentation_definition_id = get_annotation_def(ann_def, 'semantic segmentation')
 
         seg_captures = cap.filter(def_id=semantic_segmentation_definition_id)
         seg_filename = os.path.join(data_root, seg_captures.loc[index, "annotation.filename"])
@@ -158,11 +151,7 @@ def get_image_with_labelers(index, ann_def, metric_def, cap, data_root, labelers
         )
 
     if 'instance segmentation' in labelers_to_use and labelers_to_use['instance segmentation']:
-        instance_segmentation_definition_id = -1
-        for idx, a in enumerate(ann_def):
-            if a["name"] == "semantic segmentation":
-                instance_segmentation_definition_id = idx
-                break
+        instance_segmentation_definition_id = get_annotation_def(ann_def, 'instance segmentation')
 
         inst_captures = cap.filter(def_id=instance_segmentation_definition_id)
         inst_filename = os.path.join(data_root, inst_captures.loc[index, "annotation.filename"])
@@ -173,23 +162,29 @@ def get_image_with_labelers(index, ann_def, metric_def, cap, data_root, labelers
         )
 
     if 'bounding box' in labelers_to_use and labelers_to_use['bounding box']:
-        target = image_and_labelers["bounding box"]
-        labels = target["labels"]
-        boxes = target["boxes"]
-        classes = dataset.classes
+        bounding_box_definition_id = get_annotation_def(ann_def, 'bounding box')
+        catalog = v.capture_df(bounding_box_definition_id, data_root)
+        label_mappings = v.label_mappings_dict(bounding_box_definition_id, data_root)
         image = v.draw_image_with_boxes(
-            image, classes, labels, boxes, colors
+            image,
+            index,
+            catalog,
+            label_mappings,
         )
 
     if 'keypoints' in labelers_to_use and labelers_to_use['keypoints']:
-        keypoints = image_and_labelers["keypoints"]
-        image = v.draw_image_with_keypoints(
-            image, keypoints, dataset
-        )
+        keypoints_definition_id = get_annotation_def(ann_def, 'keypoints')
+        kp_captures = cap.filter(def_id=keypoints_definition_id)
+        annotations = kp_captures.loc[index, "annotation.values"]
+        templates = ann_def.table.to_dict('records')[get_annotation_index(ann_def, 'keypoints')]['spec']
+        v.draw_image_with_keypoints(image, annotations, templates)
 
     if 'bounding box 3D' in labelers_to_use and labelers_to_use['bounding box 3D']:
-        sensor, values = image_and_labelers['bounding box 3D']
-        image = v.draw_image_with_box_3d(image, sensor, values, colors)
+        bounding_box_3d_definition_id = get_annotation_def(ann_def, 'bounding box 3D')
+        box_captures = cap.filter(def_id=bounding_box_3d_definition_id)
+        annotations = box_captures.loc[index, "annotation.values"]
+        sensor = box_captures.loc[index, "sensor"]
+        image = v.draw_image_with_box_3d(image, sensor, annotations, None)
 
     return image
 
@@ -218,13 +213,16 @@ def grid_view(num_rows, ann_def, metric_def, cap, data_root, session_state, labe
         session_state.num_cols = num_cols
         st.experimental_rerun()
 
+
     with header[0]:
-        start_at = cc.item_selector(int(session_state.start_at), num_cols * num_rows, len(cap))
+        start_at = cc.item_selector(int(session_state.start_at), num_cols * num_rows, len(cap.captures.to_dict('records')))
         session_state.start_at = start_at
+
+    components.html("""<hr style="height:2px;border:none;border-bottom:-25px;color:#AAA;background-color:#AAA;" /> """, height=10)
 
     cols = st.beta_columns(num_cols)
 
-    for i in range(start_at, min(start_at + (num_cols * num_rows), len(cap))):
+    for i in range(start_at, min(start_at + (num_cols * num_rows), len(cap.captures.to_dict('records')))):
         image = get_image_with_labelers(i, ann_def, metric_def, cap, data_root, labelers)
 
         container = cols[(i - (start_at % num_cols)) % num_cols].beta_container()
@@ -244,7 +242,7 @@ def zoom(index, ann_def, metric_def, cap, data_root, session_state, labelers, da
         st.experimental_rerun()
 
     with header[1]:
-        new_index = cc.item_selector_zoom(index, len(cap))
+        new_index = cc.item_selector_zoom(index, len(cap.captures.to_dict('records')))
         if not new_index == index:
             session_state.image = new_index
             st.experimental_rerun()

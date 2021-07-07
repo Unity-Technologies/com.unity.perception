@@ -443,7 +443,7 @@ This can be done by adding custom annotations to your dataset. Have a look at [t
   <summary><strong>Q: Objects in my captured images have jagged edges, how can I fix this?</strong>
 </summary><br>
 
-This is a common issue with rendering graphics into pixel grids (digital images), when the resolution of the grid is not high enough to perfectly display slanting lines. The common solution to this issue is the use of anti-aliasing methods, and Unity offers a number of these in both URP and HDRP. To experiment with anti-aliasing, go to the ***Inspector*** view of your Perception Camera object and in the Camera component, change `Anti-aliasing` from `None` to another option.
+This is a common issue with rendering graphics into raster images (digital images), when the resolution of the raster is not high enough to perfectly display slanting lines. The common solution to this issue is the use of anti-aliasing methods, and Unity offers a number of these in both URP and HDRP. To experiment with anti-aliasing, go to the ***Inspector*** view of your Perception Camera object and in the Camera component, change `Anti-aliasing` from `None` to another option.
 
 ---
 </details>

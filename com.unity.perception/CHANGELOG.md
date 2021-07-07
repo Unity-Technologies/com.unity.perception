@@ -18,6 +18,8 @@ Added random seed field to the Run in Unity Simulation Window
 
 User can now choose the base folder location to store their generated data.
 
+Added 'projection' field in the capture.sensor metadata. Values are either "perspective" or "orthographic"
+
 ### Changed
 Increased color variety in instance segmentation images
 

@@ -163,7 +163,7 @@ Example output:
 ```
  name                  id                                       creation time             
 --------------------- ---------------------------------------- --------------------------- 
- Perception Tutorial   acd31956-582b-4138-bec8-6670be150f09 *   2020-09-30T00:33:41+00:00 
+ Perception Tutorial   38baa0d0-a2cd-4ee1-801b-39ca3fc5cbc6 *   2020-09-30T00:33:41+00:00 
  SynthDet              9ec23417-73cd-becd-9dd6-556183946153     2020-08-12T19:46:20+00:00  
  ```
 
@@ -191,7 +191,7 @@ MacOS:
 An example output with 3 runs would look like this:
 
 ```
-Active Project ID: acd31956-582b-4138-bec8-6670be150f09
+Active Project ID: 38baa0d0-a2cd-4ee1-801b-39ca3fc5cbc6
 name        id        creation time         executions                                    
 ----------- --------- --------------------- -----------------------------------------------
  FirstRun    1tLbZxL   2020-10-01 23:17:50    id        status        created_at           

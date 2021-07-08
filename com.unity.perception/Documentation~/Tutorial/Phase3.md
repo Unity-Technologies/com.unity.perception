@@ -78,7 +78,7 @@ In order to make sure our builds are compatible with Unity Simulation, we need t
 Here, you can specify a name for the run, the number of Iterations the Scenario will execute for, and the number of Instances (number of nodes the work will be distributed across) for the run. This window automatically picks the currently active Scene and Scenario to run in Unity Simulation.
 
 * **:green_circle: Action**: Name your run `FirstRun`, set the number of Iterations to `1000`, and Instances to `20`.
-* **:green_circle: Action**: Click `Randomize` to generate a seed for your runs.
+* **:green_circle: Action**: If you'd like to use a new random seed for this run of your Scenario, click `Randomize` to generate a new seed.
 * **:green_circle: Action**: Click _**Build and Run**_.
 
 > :information_source: You can ignore the ***Optional Configuration*** section for now. This is useful if you plan to specify a configuration for your Scenario (including the Randomizers) that will override the values set in the Scenario UI, in Unity Simulation. To generate a configuration, you can click on the ***Generate JSON Config*** button provided in the ***Inspector*** view of Scenario components.
@@ -196,7 +196,7 @@ name        id        creation time         executions
 ----------- --------- --------------------- -----------------------------------------------
  FirstRun    1tLbZxL   2020-10-01 23:17:50    id        status        created_at           
                                              --------- ------------- --------------------- 
-                                              yegz4WN   In_Progress   2020-10-01 23:17:54  
+                                              ojE8Z20   In_Progress   2020-10-01 23:17:54  
  Run2        klvfxgT   2020-10-01 21:46:39    id        status        created_at           
                                              --------- ------------- --------------------- 
                                               kML3i50   In_Progress   2020-10-01 21:46:42  
@@ -209,9 +209,9 @@ As seen above, each run has a name, an ID, a creation time, and a list of execut
 
 You can also obtain a list of all the builds you have uploaded to Unity Simulation using the `usim get builds` command.
 
-You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `yegz4WN`.
+You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `ojE8Z20`.
 
-Unity Simulation utilizes the ability to run simulation Instances in parallel. If you enter a number larger than 1 for the number of Instances in the _**Run in Unity Simulation**_ window, your run will be parallelized, and multiple simulation Instances will simultaneously execute. You can view the status of all simulation Instances using the `usim summarize run-execution <execution-id>` command. This command will tell you how many Instances have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
+Unity Simulation utilizes the ability to run simulation Instances in parallel. If you enter a number larger than 1 for the number of Instances in the _**Run in Unity Simulation**_ window, your run will be parallelized, and multiple simulation Instances will simultaneously execute. You can view the status of all simulation Instances using the `usim summarize run-execution <execution-id>` command. This command will tell you how many Instances have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `ojE8Z20`.
 
 * **:green_circle: Action**: Use the `usim summarize run-execution <execution-id>` command to observe the status of your execution nodes:
 

@@ -53,6 +53,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public IdLabelConfig idLabelConfig;
 
+        public float visThickness = 6;
+
+        public bool drawBones = true;
+
         /// <summary>
         /// Controls which objects will have keypoints recorded in the dataset.
         /// <see cref="KeypointObjectFilter"/>
@@ -539,6 +543,7 @@ namespace UnityEngine.Perception.GroundTruth
             public Animator animator;
             public KeypointEntry keypoints;
             public List<(JointLabel, int)> overrides;
+            public float occlusionScalar;
         }
 
         Dictionary<uint, CachedData> m_KnownStatus;
@@ -581,7 +586,8 @@ namespace UnityEngine.Perception.GroundTruth
                     status = false,
                     animator = null,
                     keypoints = new KeypointEntry(),
-                    overrides = new List<(JointLabel, int)>()
+                    overrides = new List<(JointLabel, int)>(),
+                    occlusionScalar = 1.0f
                 };
 
                 var entityGameObject = labeledEntity.gameObject;
@@ -612,6 +618,12 @@ namespace UnityEngine.Perception.GroundTruth
                     }
                 }
 
+                var occlusionOverrider = labeledEntity.GetComponent<KeypointOcclusionOverrides>();
+                if (occlusionOverrider != null)
+                {
+                    cached.occlusionScalar = occlusionOverrider.overrideDistanceScale;
+                }
+
                 m_KnownStatus[labeledEntity.instanceId] = cached;
             }
 
@@ -639,7 +651,12 @@ namespace UnityEngine.Perception.GroundTruth
                         if (bone != null)
                         {
                             var bonePosition = bone.position;
-                            var jointSelfOcclusionDistance = JointSelfOcclusionDistance(bone, bonePosition, cameraPosition, cameraforward, pt.selfOcclusionDistance);
+
+                            // Check to see if
+
+                            var occlusionDistance = pt.selfOcclusionDistance * cachedData.occlusionScalar;
+
+                            var jointSelfOcclusionDistance = JointSelfOcclusionDistance(bone, bonePosition, cameraPosition, cameraforward, occlusionDistance);
                             InitKeypoint(bonePosition, cachedData, checkLocationsSlice, i, jointSelfOcclusionDistance);
                         }
                     }
@@ -759,6 +776,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override void OnVisualize()
         {
+            // TODO - remove this, it is just for debugging
+            hudPanel.UpdateEntry(this, "frame", m_CurrentFrame.ToString());
+            // END OF TODO
+
             if (m_KeypointEntriesToReport == null) return;
             using (k_OnVisualizeMarker.Auto())
             {
@@ -770,21 +791,31 @@ namespace UnityEngine.Perception.GroundTruth
 
                 foreach (var entry in m_KeypointEntriesToReport)
                 {
-                    foreach (var bone in activeTemplate.skeleton)
+                    if (drawBones)
                     {
-                        var joint1 = GetKeypointForJoint(entry, bone.joint1);
-                        var joint2 = GetKeypointForJoint(entry, bone.joint2);
-
-                        if (joint1 != null && joint1.Value.state == 2 && joint2 != null && joint2.Value.state == 2)
+                        foreach (var bone in activeTemplate.skeleton)
                         {
-                            VisualizationHelper.DrawLine(joint1.Value.x, joint1.Value.y, joint2.Value.x, joint2.Value.y, bone.color, 8, skeletonTexture);
+                            var joint1 = GetKeypointForJoint(entry, bone.joint1);
+                            var joint2 = GetKeypointForJoint(entry, bone.joint2);
+
+                            if (joint1 != null && joint1.Value.state == 2 && joint2 != null && joint2.Value.state == 2)
+                            {
+                                VisualizationHelper.DrawLine(joint1.Value.x, joint1.Value.y, joint2.Value.x, joint2.Value.y, bone.color, visThickness, skeletonTexture);
+                            }
                         }
                     }
 
                     foreach (var keypoint in entry.keypoints)
                     {
+#if false
+                        var color = keypoint.state == 1 ? Color.black : activeTemplate.keypoints[keypoint.index].color;
+
+                        if (keypoint.state > 0)
+                            VisualizationHelper.DrawPoint(keypoint.x, keypoint.y, color, visualizationBaseSize * activeTemplate.keypoints[keypoint.index].selfOcclusionDistance, jointTexture);
+#else
                         if (keypoint.state == 2)
-                            VisualizationHelper.DrawPoint(keypoint.x, keypoint.y, activeTemplate.keypoints[keypoint.index].color, 8, jointTexture);
+                            VisualizationHelper.DrawPoint(keypoint.x, keypoint.y, activeTemplate.keypoints[keypoint.index].color, visThickness, jointTexture);
+#endif
                     }
                 }
             }

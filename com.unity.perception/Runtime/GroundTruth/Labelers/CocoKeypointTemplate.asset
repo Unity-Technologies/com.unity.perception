@@ -31,7 +31,7 @@ MonoBehaviour:
     associateToRig: 1
     rigLabel: 14
     color: {r: 1, g: 0.5694697, b: 0, a: 1}
-    selfOcclusionDistance: 0.15
+    selfOcclusionDistance: 0.185
   - label: right_elbow
     associateToRig: 1
     rigLabel: 16
@@ -46,7 +46,7 @@ MonoBehaviour:
     associateToRig: 1
     rigLabel: 13
     color: {r: 0.33125544, g: 1, b: 0, a: 1}
-    selfOcclusionDistance: 0.15
+    selfOcclusionDistance: 0.185
   - label: left_elbow
     associateToRig: 1
     rigLabel: 15
@@ -61,7 +61,7 @@ MonoBehaviour:
     associateToRig: 1
     rigLabel: 2
     color: {r: 0, g: 1, b: 0.36656523, a: 1}
-    selfOcclusionDistance: 0.2
+    selfOcclusionDistance: 0.18
   - label: right_knee
     associateToRig: 1
     rigLabel: 4
@@ -76,7 +76,7 @@ MonoBehaviour:
     associateToRig: 1
     rigLabel: 1
     color: {r: 0, g: 1, b: 1, a: 1}
-    selfOcclusionDistance: 0.3
+    selfOcclusionDistance: 0.2
   - label: left_knee
     associateToRig: 1
     rigLabel: 3

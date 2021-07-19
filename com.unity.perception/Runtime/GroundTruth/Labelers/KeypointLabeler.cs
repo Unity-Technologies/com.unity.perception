@@ -668,6 +668,8 @@ namespace UnityEngine.Perception.GroundTruth
                     else
                         resolvedSelfOcclusionDistance = activeTemplate.keypoints[templateIdx].selfOcclusionDistance;
 
+                    resolvedSelfOcclusionDistance *= cachedData.occlusionScalar;
+
                     var jointSelfOcclusionDistance = JointSelfOcclusionDistance(joint.transform, jointPosition, cameraPosition, cameraforward, resolvedSelfOcclusionDistance);
 
                     InitKeypoint(jointPosition, cachedData, checkLocationsSlice, templateIdx, jointSelfOcclusionDistance);

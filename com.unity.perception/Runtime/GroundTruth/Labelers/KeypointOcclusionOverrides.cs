@@ -23,7 +23,7 @@ namespace UnityEngine.Perception.GroundTruth
         public float overrideDistanceScale
         {
             get => distanceScale;
-            private set => distanceScale = value;
+            internal set => distanceScale = value;
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.SceneManagement;
@@ -1247,6 +1246,99 @@ namespace GroundTruthTests
             cube.transform.localScale = args.objectScale;
             cube.transform.localRotation = args.rotation;
             SetupCubeJoint(cube, "Center", args.pointLocalPosition.x, args.pointLocalPosition.y, args.pointLocalPosition.z, args.checkDistance);
+
+            cube.SetActive(true);
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+            AddTestObjectForCleanup(cube);
+
+            //for (int i = 0; i < 10000; i++)
+             yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+            texture.Release();
+
+            var testCase = incoming.Last();
+            Assert.AreEqual(1, testCase.Count);
+            var t = testCase.First();
+            Assert.AreEqual(args.expectOccluded ? 1 : 2, t.keypoints[8].state);
+        }
+
+        public static IEnumerable<(Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, float overrideScalar, bool expectOccluded)>
+            Keypoint_OnCorner_OfRotatedScaledBox_RespectsModelOverrideThreshold_TestCases()
+        {
+            yield return (
+                new Vector3(90f, 90f, 10f),
+                Quaternion.identity,
+                .11f,
+                new Vector3(-.4f, -.4f, -.4f),
+                1f,
+                false);
+            yield return (
+                new Vector3(90f, 90f, 1f),
+                Quaternion.identity,
+                .5f,
+                new Vector3(-.4f, -.4f, .4f),
+                .5f,
+                true);
+            yield return (
+                new Vector3(90, 90, 9),
+                Quaternion.AngleAxis(90, Vector3.right),
+                .11f,
+                new Vector3(-.4f, -.4f, -.4f),
+                1f,
+                false);
+            yield return (
+                new Vector3(90, 90, 90),
+                Quaternion.AngleAxis(90, Vector3.right),
+                .11f,
+                new Vector3(-.4f, -.4f, -.4f),
+                .5f,
+                true);
+            yield return (
+                new Vector3(90, 90, 90),
+                Quaternion.AngleAxis(90, Vector3.right),
+                .055f,
+                new Vector3(-.4f, -.4f, -.4f),
+                1f,
+                true);
+            yield return (
+                new Vector3(90, 90, 90),
+                Quaternion.AngleAxis(90, Vector3.right),
+                .055f,
+                new Vector3(-.4f, -.4f, -.4f),
+                2f,
+                false);
+        }
+
+        [UnityTest]
+        public IEnumerator Keypoint_OnCorner_OfRotatedScaledBox_RespectsModelOverrideThreshold(
+            [ValueSource(nameof(Keypoint_OnCorner_OfRotatedScaledBox_RespectsModelOverrideThreshold_TestCases))]
+            (Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, float overrideScalar, bool expectOccluded) args)
+        {
+            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var labelerSelfOcclusionDistance = 0.5f;
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate", labelerSelfOcclusionDistance);
+            var frameSize = 1024;
+            var texture = new RenderTexture(frameSize, frameSize, 16);
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(data);
+            }, texture);
+            var camComponent = cam.GetComponent<Camera>();
+            camComponent.orthographic = true;
+            camComponent.orthographicSize = 100f;
+            cam.transform.localPosition = new Vector3(0, 0, -95f);
+
+            var cube = TestHelper.CreateLabeledCube(scale: 1f);
+            cube.transform.localScale = args.objectScale;
+            cube.transform.localRotation = args.rotation;
+            SetupCubeJoint(cube, "Center", args.pointLocalPosition.x, args.pointLocalPosition.y, args.pointLocalPosition.z, args.checkDistance);
+
+            var kpOc = cube.AddComponent<KeypointOcclusionOverrides>();
+            kpOc.overrideDistanceScale = args.overrideScalar;
 
             cube.SetActive(true);
             cam.SetActive(true);

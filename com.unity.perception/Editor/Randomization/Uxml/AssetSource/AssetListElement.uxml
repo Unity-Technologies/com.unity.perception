@@ -1,0 +1,10 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement class="parameter__categorical-options-list">
+        <ListView name="assets"/>
+    </VisualElement>
+    <VisualElement style="flex-direction: row; justify-content: flex-end;">
+        <Button name="add-asset" text="Add Asset" class="parameter__categorical-options-list-button"/>
+        <Button name="add-folder" text="Add Folder" class="parameter__categorical-options-list-button"/>
+        <Button name="clear-assets" text="Clear Assets" class="parameter__categorical-options-list-button"/>
+    </VisualElement>
+</UXML>

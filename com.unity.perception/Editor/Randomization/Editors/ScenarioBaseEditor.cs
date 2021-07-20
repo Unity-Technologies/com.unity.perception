@@ -53,7 +53,10 @@ namespace UnityEditor.Perception.Randomization
                 if (string.IsNullOrEmpty(filePath))
                     return;
                 Undo.RecordObject(m_Scenario, "Deserialized scenario configuration");
-                m_Scenario.DeserializeFromFile(filePath);
+                var originalConfig = m_Scenario.configuration;
+                m_Scenario.LoadConfigurationFromFile(filePath);
+                m_Scenario.DeserializeConfiguration();
+                m_Scenario.configuration = originalConfig;
                 Debug.Log($"Deserialized scenario configuration from {Path.GetFullPath(filePath)}. " +
                     "Using undo in the editor will revert these changes to your scenario.");
                 PlayerPrefs.SetString(k_ConfigFilePlayerPrefKey, filePath);
@@ -86,6 +89,8 @@ namespace UnityEditor.Perception.Randomization
                     case "constants":
                         m_HasConstantsField = true;
                         UIElementsEditorUtilities.CreatePropertyFields(iterator.Copy(), m_ConstantsListVisualContainer);
+                        break;
+                    case "configuration":
                         break;
                     default:
                     {

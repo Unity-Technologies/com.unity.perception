@@ -16,6 +16,8 @@ Added support for 'step' button in editor.
 
 Added random seed field to the Run in Unity Simulation Window
 
+Added AssetSource class for loading assets from generic sources inside randomizers
+
 User can now choose the base folder location to store their generated data.
 
 Added 'projection' field in the capture.sensor metadata. Values are either "perspective" or "orthographic"

@@ -8,8 +8,13 @@
                 class="scenario__info-box"
                 text="Scenarios control the execution flow of your simulation by applying randomization parameters. Make sure to always have only one scenario active within your scene."/>
             <VisualElement name="constants-container">
+                <editor:PropertyField
+                    name="configuration-asset"
+                    label="Configuration"
+                    binding-path="configuration"
+                    style="margin-left: 13 px;"
+                    tooltip="References a JSON configuration text asset to load at runtime before the scenario starts executing. Scenario configuration files can be created using the Generate JSON Config button below."/>
                 <Foldout style="padding-left: 16px" text="Constants" name="constants-list" tooltip="A list of parameters for this scenario that will be JSON serialized in the configuration file."/>
-                <editor:PropertyField name="configuration-file-name" label="Constants File Name" binding-path="serializedConstantsFileName"/>
                 <VisualElement style="flex-direction: row;">
                     <Button name="generate-json-config" text="Generate JSON Config" style="flex-grow: 1;"
                         tooltip="Serializes scenario constants and randomizer settings to a JSON configuration file"/>

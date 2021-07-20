@@ -12,6 +12,8 @@ namespace UnityEditor.Perception.Randomization
         SerializedProperty m_RangeProperty;
         ToolbarMenu m_SamplerTypeDropdown;
 
+        ISampler sampler => (ISampler)StaticData.GetManagedReferenceValue(m_Property);
+
         public SamplerInterfaceElement(SerializedProperty property)
         {
             m_Property = property;
@@ -23,26 +25,24 @@ namespace UnityEditor.Perception.Randomization
                 CreateSampler(typeof(UniformSampler));
 
             var samplerName = this.Q<Label>("sampler-name");
-            samplerName.text = UppercaseFirstLetter(m_Property.name);
+            samplerName.text = m_Property.displayName;
 
             m_PropertiesContainer = this.Q<VisualElement>("fields-container");
             m_SamplerTypeDropdown = this.Q<ToolbarMenu>("sampler-type-dropdown");
             m_SamplerTypeDropdown.text = SamplerUtility.GetSamplerDisplayName(sampler.GetType());
-            ;
+
             foreach (var samplerType in StaticData.samplerTypes)
             {
                 var displayName = SamplerUtility.GetSamplerDisplayName(samplerType);
                 ;
                 m_SamplerTypeDropdown.menu.AppendAction(
                     displayName,
-                    a => { ReplaceSampler(samplerType); },
+                    a => ReplaceSampler(samplerType),
                     a => DropdownMenuAction.Status.Normal);
             }
 
             CreatePropertyFields();
         }
-
-        ISampler sampler => (ISampler)StaticData.GetManagedReferenceValue(m_Property);
 
         void ReplaceSampler(Type samplerType)
         {
@@ -79,11 +79,6 @@ namespace UnityEditor.Perception.Randomization
             m_RangeProperty = null;
             m_PropertiesContainer.Clear();
             UIElementsEditorUtilities.CreatePropertyFields(m_Property, m_PropertiesContainer);
-        }
-
-        static string UppercaseFirstLetter(string s)
-        {
-            return string.IsNullOrEmpty(s) ? string.Empty : char.ToUpper(s[0]) + s.Substring(1);
         }
     }
 }

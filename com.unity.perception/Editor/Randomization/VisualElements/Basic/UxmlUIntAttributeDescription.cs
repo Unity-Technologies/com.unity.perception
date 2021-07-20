@@ -6,7 +6,7 @@ namespace UnityEngine.UIElements
     /// <summary>
     ///     <para>Describes a XML int attribute.</para>
     /// </summary>
-    public class UxmlUIntAttributeDescription : TypedUxmlAttributeDescription<uint>
+    class UxmlUIntAttributeDescription : TypedUxmlAttributeDescription<uint>
     {
         /// <summary>
         ///     <para>Constructor.</para>

@@ -75,11 +75,11 @@ namespace RandomizationTests.ScenarioTests
 
             // Serialize some values
             m_Scenario.constants = constants;
-            var serializedConfig = m_Scenario.SerializeToJson();
+            m_Scenario.configuration = new TextAsset(m_Scenario.SerializeToJson());
 
             // Change the values
             m_Scenario.constants = changedConstants;
-            m_Scenario.DeserializeFromJson(serializedConfig);
+            m_Scenario.DeserializeConfiguration();
 
             // Check if the values reverted correctly
             Assert.AreEqual(m_Scenario.constants.framesPerIteration, constants.framesPerIteration);

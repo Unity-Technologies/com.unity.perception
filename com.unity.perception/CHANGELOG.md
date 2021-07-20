@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 Added support for 'step' button in editor.
+Added the character joint generation tool.
 
 Added random seed field to the Run in Unity Simulation Window
 

@@ -23,8 +23,9 @@ keypoints {
 
 The `state` entry has three possible values: 
 * 0 - the keypoint either does not exist or is outside of the image's bounds
-* 1 - the keypoint exists inside of the image bounds but cannot be seen because the object is not visible at its location in the image
-* 2 - the keypoint exists and the object is visible at its location
+* 1 - the keypoint is defined and inside of the image's bounds but cannot be seen because it is either occluded by 
+another object or itself
+* 2 - the keypoint exists and is visible at its location
 
 The annotation definition, captured by the Keypoint Labeler once in each dataset, describes points being captured and their skeletal connections. These are defined by the [Keypoint Template](#KeypointTemplate).
 ```
@@ -58,6 +59,16 @@ The Keypoint Labeler captures keypoints each frame from each object in the scene
 
 For a tutorial on setting up your project for keypoint labeling, see the [Human Pose Labeling and Randomization Tutorial](../HPTutorial/TUTORIAL.md).
 
+## Keypoint Self Occlusion
+A keypoint will be considered not visible if it outside of the camera's view, the camera cannot see it because
+another object is occluding it (in between the camera and the keypoint), or another part of its own model is occluding it (for
+example a human model's arm is raised and blocking its face from view). The keypoint is a point in space generally internal
+to the model, for example the elbow joint is in the center of the arm volume. A self occlusion distance value has
+been added to each keypoint allowing the keypoint to have depth. If a keypoint is occluded by itself, then this value is added to keypoint location to see
+if that location is now closer than the mesh which is occluding the object. If it is then the keypoint will be marked as visible,
+if it is not, then the keypoint will be marked as not visible. In the case of the elbow, the distance should be enough that
+it is not blocked by the volume of the arm.  
+
 ## Keypoint Template
 
 Keypoint Templates are used to define the keypoints and skeletal connections captured by the Keypoint Labeler. The Keypoint Template takes advantage of Unity's humanoid animation rig, and allows the user to automatically associate template keypoints to animation rig joints. Additionally, the user can choose to ignore the rigged points, or add points not defined in the rig.
@@ -77,9 +88,10 @@ In the header section, a user can change the name of the template and supply tex
 <br/>_Keypoint section of the keypoint template_
 
 The keypoint section allows the user to create/edit keypoints and associate them with Unity animation rig points. Each keypoint record
-has 4 fields: label (the name of the keypoint), Associate to Rig (a boolean value which, if true, automatically maps the keypoint to
+has 5 fields: label (the name of the keypoint), Associate to Rig (a boolean value which, if true, automatically maps the keypoint to
 the GameObject defined by the rig), Rig Label (only needed if Associate To Rig is true, defines which rig component to associate with
-the keypoint), and Color (RGB color value of the keypoint in the visualization).
+the keypoint), Color (RGB color value of the keypoint in the visualization), and Self Occlusion Distance (length to use to determine if a 
+keypoint is not occluded by itself).
 
 ![Skeleton section of the keypoint template](../images/keypoint_template_skeleton.png)
 <br/>_Skeleton section of the keypoint template_

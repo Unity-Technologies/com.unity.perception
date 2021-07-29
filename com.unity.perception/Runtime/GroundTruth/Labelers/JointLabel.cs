@@ -12,9 +12,15 @@ namespace UnityEngine.Perception.GroundTruth
         JointLabel,
         KeypointLabeler
     }
+
     /// <summary>
     /// Label to designate a custom joint/keypoint. These are needed to add body
     /// parts to a humanoid model that are not contained in its <see cref="Animator"/> <see cref="Avatar"/>
+    ///
+    /// These label's can also be applied to the keypoints found in the <see cref="Avatar"/> to override the self
+    /// occlusion tolerance values defined in the <see cref="KeypointTemplate"/> file. The <see cref="KeypointTemplate"/>
+    /// defines the typical tolerances for a model, but certain models may need to have specific overrides on a keypoint
+    /// for the self occlusion to work properly.
     /// </summary>
     [AddComponentMenu("Perception/Labeling/Joint Label")]
     [Serializable]

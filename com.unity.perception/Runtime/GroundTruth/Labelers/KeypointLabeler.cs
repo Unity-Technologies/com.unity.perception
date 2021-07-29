@@ -18,6 +18,16 @@ namespace UnityEngine.Perception.GroundTruth
     /// <see cref="Animator"/> <seealso cref="Avatar"/>. Custom joints can be
     /// created by applying <see cref="JointLabel"/> to empty game objects at a body
     /// part's location.
+    ///
+    /// Keypoints are recorded by this labeler with a state value describing if they are present on the model,
+    /// present but not visible, or visible. A keypoint can be listed as not visible for three reasons: it is outside
+    /// of the camera's view frustum, it is occluded by another object in the scene, or it is occluded by itself, for
+    /// example a raised arm in front a model's face could occlude its eyes from being visible. To calculate self
+    /// occlusion values, the keypoint labeler uses tolerances per keypoint to determine if the keypoint is blocked.
+    /// The initial tolerance value for each keypoint is set per keypoint in the <see cref="KeypointTemplate"/> file.
+    /// The tolerance of a custom keypoints can be set with the <see cref="JointLabel"/> used to create the keypoint.
+    /// Finally, a <see cref="KeypointOcclusionOverrides"/> component be added to a model to apply a universal scaling
+    /// override to all of the keypoint tolerances defined in a keypoint template.
     /// </summary>
     [Serializable]
     public sealed class KeypointLabeler : CameraLabeler

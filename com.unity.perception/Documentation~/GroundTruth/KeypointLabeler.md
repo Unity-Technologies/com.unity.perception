@@ -64,10 +64,10 @@ A keypoint will be considered not visible if it outside of the camera's view, th
 another object is occluding it (in between the camera and the keypoint), or another part of its own model is occluding it (for
 example a human model's arm is raised and blocking its face from view). The keypoint is a point in space generally internal
 to the model, for example the elbow joint is in the center of the arm volume. A self occlusion distance value has
-been added to each keypoint allowing the keypoint to have depth. If a keypoint is occluded by itself, then this value is added to keypoint location to see
-if that location is now closer than the mesh which is occluding the object. If it is then the keypoint will be marked as visible,
-if it is not, then the keypoint will be marked as not visible. In the case of the elbow, the distance should be enough that
-it is not blocked by the volume of the arm.  
+been added to each keypoint allowing the keypoint to have depth. If a keypoint is occluded by the mesh that it is residing in, 
+then this value is added to keypoint location to see if that location is now closer than the mesh which is occluding the object. 
+If it is then the keypoint will be marked as visible, if it is not, then the keypoint will be marked as not visible. In the 
+case of the elbow, the distance should be enough that it is not blocked by the volume of the arm.  
 
 ## Keypoint Template
 

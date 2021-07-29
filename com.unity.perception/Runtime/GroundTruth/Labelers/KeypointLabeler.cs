@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 using Unity.Profiling;
 using Unity.Simulation;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
-using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -35,8 +33,8 @@ namespace UnityEngine.Perception.GroundTruth
         // Smaller texture sizes produce assertion failures in the engine
         const int k_MinTextureWidth = 8;
 
-        static ProfilerMarker k_OnEndRenderingMarker = new ProfilerMarker($"KeypointLabeler OnEndRendering");
-        static ProfilerMarker k_OnVisualizeMarker = new ProfilerMarker($"KeypointLabeler OnVisualize");
+        static ProfilerMarker s_OnEndRenderingMarker = new ProfilerMarker($"KeypointLabeler OnEndRendering");
+        static ProfilerMarker s_OnVisualizeMarker = new ProfilerMarker($"KeypointLabeler OnVisualize");
 
         /// <summary>
         /// The active keypoint template. Required to annotate keypoint data.
@@ -171,7 +169,7 @@ namespace UnityEngine.Perception.GroundTruth
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfoReadback;
         }
 
-        private void SetupDepthCheckBuffers(int size)
+        void SetupDepthCheckBuffers(int size)
         {
             var textureDimensions = TextureDimensions(size);
             if (m_ResultsBuffer != null &&
@@ -184,8 +182,6 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 m_ResultsBuffer.Release();
                 m_DepthCheckReader.Dispose(false);
-                // Object.Destroy(m_KeypointPositionsTexture);
-                // Object.Destroy(m_KeypointCheckDepthTexture);
             }
 
             m_KeypointPositionsTexture = new Texture2D(textureDimensions.x, textureDimensions.y, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
@@ -219,7 +215,7 @@ namespace UnityEngine.Perception.GroundTruth
         // We determine if a point is occluded by other objects is by checking the pixel location of the keypoint
         // against the instance segmentation mask for the frame. The instance segmentation mask provides the instance id of the
         // visible object at a pixel location. Which means, if the keypoint does not match the visible pixel, then another
-        // object is in front of the keypoint occluding it from view. An important note here is that the keypoint is an infintely small
+        // object is in front of the keypoint occluding it from view. An important note here is that the keypoint is an infinitely small
         // point in space, which can lead to false negatives due to rounding issues if the keypoint is on the edge of an object or very
         // close to the edge of the screen. Because of this we will test not only the keypoint pixel, but also the immediate surrounding
         // pixels  to determine if the pixel is really visible. This method returns 1 if the pixel is not visible but on screen, and 0
@@ -344,11 +340,10 @@ namespace UnityEngine.Perception.GroundTruth
             frameKeypointData.objectInfos.Dispose();
         }
 
-        /// <param name="scriptableRenderContext"></param>
         /// <inheritdoc/>
         protected override void OnEndRendering(ScriptableRenderContext scriptableRenderContext)
         {
-            using (k_OnEndRenderingMarker.Auto())
+            using (s_OnEndRenderingMarker.Auto())
             {
                 m_CurrentFrame = Time.frameCount;
 
@@ -379,6 +374,9 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
+        /// Check self occlusion of each keypoint by passing keypoint location (x & y in one texture) and modified distance from camera (keypoint distance - keypoint threshold distance)
+        /// in an additional texture. The computer shader checks the depth buffer at each passed in location, converts the depth at the pixel to linear space, and then compares it to
+        /// the passed in modified keypoint distance. If the modified keypoint distance is less than the depth buffer distance, the keypoint is visible, else it is blocked by itself.
         private void DoDepthCheck(ScriptableRenderContext scriptableRenderContext, List<KeypointEntry> keypointEntries, NativeList<float3> checkLocations)
         {
             var keypointCount = keypointEntries.Count * activeTemplate.keypoints.Length;
@@ -441,6 +439,8 @@ namespace UnityEngine.Perception.GroundTruth
             //DoDepthCheckReadback(frameCount, data);
         }
 
+        // Go through each keypoint and check if the depth compute shader has determined if it is visible (depth texture
+        // value of 1.
         private void DoDepthCheckReadback(int frameCount, NativeArray<Color32> data)
         {
             var frameKeypointData = m_FrameKeypointData[frameCount];
@@ -783,7 +783,7 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void OnVisualize()
         {
             if (m_KeypointEntriesToReport == null) return;
-            using (k_OnVisualizeMarker.Auto())
+            using (s_OnVisualizeMarker.Auto())
             {
                 var jointTexture = activeTemplate.jointTexture;
                 if (jointTexture == null) jointTexture = m_MissingTexture;

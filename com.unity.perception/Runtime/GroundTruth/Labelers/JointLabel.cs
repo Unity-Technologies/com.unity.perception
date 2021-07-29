@@ -7,12 +7,6 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Perception.GroundTruth
 {
-    public enum SelfOcclusionDistanceSource
-    {
-        JointLabel,
-        KeypointLabeler
-    }
-
     /// <summary>
     /// Label to designate a custom joint/keypoint. These are needed to add body
     /// parts to a humanoid model that are not contained in its <see cref="Animator"/> <see cref="Avatar"/>
@@ -26,7 +20,7 @@ namespace UnityEngine.Perception.GroundTruth
     [Serializable]
     public class JointLabel : MonoBehaviour, ISerializationCallbackReceiver
     {
-        private static PerceptionCamera singlePerceptionCamera = null;
+        static PerceptionCamera s_SinglePerceptionCamera;
 
         /// <summary>
         /// Maps this joint to a joint in a <see cref="KeypointTemplate"/>
@@ -45,7 +39,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         [SerializeField]
         [HideInInspector]
-        private List<TemplateData> templateInformation;
+        List<TemplateData> templateInformation;
 
         /// <summary>
         /// List of all of the templates that this joint can be mapped to.
@@ -92,9 +86,9 @@ namespace UnityEngine.Perception.GroundTruth
 
         private void OnDrawGizmosSelected()
         {
-            if (singlePerceptionCamera == null)
+            if (s_SinglePerceptionCamera == null)
             {
-                singlePerceptionCamera = FindObjectOfType<PerceptionCamera>();
+                s_SinglePerceptionCamera = FindObjectOfType<PerceptionCamera>();
             }
 
             Mesh sphereMesh = null;
@@ -110,13 +104,13 @@ namespace UnityEngine.Perception.GroundTruth
             }
             else
             {
-                if (singlePerceptionCamera == null)
+                if (s_SinglePerceptionCamera == null)
                 {
                     occlusionDistance = KeypointDefinition.defaultSelfOcclusionDistance;
                 }
                 else
                 {
-                    var keypointLabeler = (KeypointLabeler) singlePerceptionCamera.labelers.FirstOrDefault(l => l is KeypointLabeler);
+                    var keypointLabeler = (KeypointLabeler) s_SinglePerceptionCamera.labelers.FirstOrDefault(l => l is KeypointLabeler);
                     var template = keypointLabeler?.activeTemplate;
                     if (template == null)
                         occlusionDistance = KeypointDefinition.defaultSelfOcclusionDistance;

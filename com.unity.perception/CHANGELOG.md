@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 Added support for 'step' button in editor.
 
+Added support for keypoint self occlusion.
+
+Added the ability to adjust keypoint self occlusion tolerance per keypoint in keypoint template file.
+
+Added the ability to adjust keypoint self occlusion tolerance on a user defined joint using the joint label.
+
+Added a Keypoint Occlusion Override component which allows a user to universally scale all of the keypoint tolerances for a model.
+
 ### Changed
 Increased color variety in instance segmentation images
 

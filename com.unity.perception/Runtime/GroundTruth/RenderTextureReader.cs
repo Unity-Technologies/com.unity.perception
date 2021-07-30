@@ -90,7 +90,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="waitForAllImages">Whether this should block on waiting for asynchronous readbacks</param>
         public void Dispose(bool waitForAllImages)
         {
-            WaitForAllImages();
+            if (waitForAllImages)
+                WaitForAllImages();
+            
             if (m_CpuTexture != null)
             {
                 Object.Destroy(m_CpuTexture);

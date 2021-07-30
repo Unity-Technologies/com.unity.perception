@@ -2,7 +2,9 @@ using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Unity.Collections;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth;
@@ -51,7 +53,7 @@ namespace GroundTruthTests
             callback(data);
         }
 
-        [Conditional("UNITY_EDITOR")]
+#if UNITY_EDITOR
         public static void LoadAndStartRenderDocCapture()
         {
             UnityEditorInternal.RenderDoc.Load();
@@ -65,6 +67,7 @@ namespace GroundTruthTests
         {
             UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(s_GameView);
         }
+#endif
 
         public static string NormalizeJson(string json, bool normalizeFormatting = false)
         {

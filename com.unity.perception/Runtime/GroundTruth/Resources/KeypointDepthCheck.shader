@@ -1,9 +1,15 @@
-﻿Shader "Perception/KeypointDepthCheck"
+﻿//This shader takes in keypoint positions and minimum depth values as pixels
+//in a pair of textures and compares them with the depth image to see if any
+//objects are occluding the keypoint
+Shader "Perception/KeypointDepthCheck"
 {
     Properties
     {
+        //2d position in screen space of each keypoint
         _Positions("Positions", 2D) = "defaultTexture" {}
+        //minimum allowable depth of geometry in the direction ot each keypoint
         _KeypointCheckDepth("KeypointCheckDepth", 2D) = "defaultTexture" {}
+        //The rendered depth texture
         _DepthTexture("Depth", 2DArray) = "defaultTexture" {}
     }
 

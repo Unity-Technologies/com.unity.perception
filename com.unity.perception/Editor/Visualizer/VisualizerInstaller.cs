@@ -22,7 +22,11 @@ public class VisualizerInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _filenameStreamlitInstances);
 #elif UNITY_EDITOR_OSX
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), _filenameStreamlitInstances);
+            return Path.Combine(
+                        Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library"
+                        ),
+                    _filenameStreamlitInstances);
 #endif
         }
     }
@@ -44,7 +48,7 @@ public class VisualizerInstaller : EditorWindow
     /// </summary>
     [MenuItem("Window/Visualizer/Setup")]
     static void SetupVisualizer()
-    {
+    { 
         string project = Application.dataPath;
 
         (int pythonPID, int port, int visualizerPID) = ReadEntry(project);
@@ -159,7 +163,7 @@ public class VisualizerInstaller : EditorWindow
     [MenuItem("Window/Visualizer/Run")]
     private static void RunVisualizer()
     {
-        if(!PlayerPrefs.HasKey("VisualizerSetup") || PlayerPrefs.GetInt("VisualizerSetup") != 1)
+        if (!PlayerPrefs.HasKey("VisualizerSetup") || PlayerPrefs.GetInt("VisualizerSetup") != 1)
         {
             SetupVisualizer();
         }
@@ -265,6 +269,7 @@ public class VisualizerInstaller : EditorWindow
 #elif UNITY_EDITOR_OSX
         string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
 #endif
+
         string pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
 #if UNITY_EDITOR_WIN
         path = path.Replace("/", "\\");
@@ -272,12 +277,15 @@ public class VisualizerInstaller : EditorWindow
         pathToData = pathToData.Replace("/", "\\");
 #endif
         string command = "";
-
 #if UNITY_EDITOR_WIN
         command = $"cd \"{pathToData}\" && \"{packagesPath}\\datasetvisualizer.exe\" preview --data=\".\"";
 #elif UNITY_EDITOR_OSX
-        command = $"cd \'{packagesPath}\'; datasetvisualizer preview --data=\'{pathToData}\'";
+        command = $"cd \'{pathToData}\'; \'{packagesPath}/datasetvisualizer\' preview --data=\'.\'";
 #endif
+
+        UnityEngine.Debug.Log(pathToData);
+
+        UnityEngine.Debug.Log(command);
 
         int ExitCode = 0;
         int PID = ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: false);
@@ -570,12 +578,14 @@ public class VisualizerInstaller : EditorWindow
                         {
                             try
                             {
-                                ProcessPorts.Add(new ProcessPort(
-                                    GetProcessName(Convert.ToInt32(Tokens[8])),
-                                    Convert.ToInt32(Tokens[8]),
-                                    "tcp4",
-                                    Convert.ToInt32(Tokens[3].Split('.')[1])
-                                ));
+                                if(Tokens[5] != "CLOSED"){
+                                    ProcessPorts.Add(new ProcessPort(
+                                        GetProcessName(Convert.ToInt32(Tokens[8])),
+                                        Convert.ToInt32(Tokens[8]),
+                                        "tcp4",
+                                        Convert.ToInt32(Tokens[3].Split('.')[1])
+                                    ));
+                                }
                             }
                             catch
                             {

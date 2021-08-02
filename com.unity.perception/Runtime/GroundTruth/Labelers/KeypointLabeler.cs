@@ -624,10 +624,10 @@ namespace UnityEngine.Perception.GroundTruth
                     }
                 }
 
-                var occlusionOverrider = labeledEntity.GetComponent<KeypointOcclusionOverrides>();
+                var occlusionOverrider = labeledEntity.GetComponentInParent<KeypointOcclusionOverrides>();
                 if (occlusionOverrider != null)
                 {
-                    cached.occlusionScalar = occlusionOverrider.overrideDistanceScale;
+                    cached.occlusionScalar = occlusionOverrider.distanceScale;
                 }
 
                 m_KnownStatus[labeledEntity.instanceId] = cached;

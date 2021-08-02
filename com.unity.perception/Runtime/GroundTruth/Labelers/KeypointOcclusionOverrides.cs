@@ -13,17 +13,6 @@ namespace UnityEngine.Perception.GroundTruth
     public class KeypointOcclusionOverrides : MonoBehaviour
     {
         [Tooltip("Overrides the default occlusion distance values by a scalar. This is necessary for bodies with different body types (i.e. children should be less than one)")]
-        [SerializeField]
-        // ReSharper disable once InconsistentNaming, this needs to be human readable in the inspector
-        float distanceScale = 1.0f;
-
-        /// <summary>
-        /// The value to use to scale the values for keypoints distances defined in <see cref="KeypointTemplate"/>
-        /// </summary>
-        public float overrideDistanceScale
-        {
-            get => distanceScale;
-            internal set => distanceScale = value;
-        }
+        public float distanceScale = 1.0f;
     }
 }

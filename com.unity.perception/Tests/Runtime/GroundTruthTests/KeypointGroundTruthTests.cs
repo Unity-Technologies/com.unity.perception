@@ -1338,7 +1338,7 @@ namespace GroundTruthTests
             SetupCubeJoint(cube, "Center", args.pointLocalPosition.x, args.pointLocalPosition.y, args.pointLocalPosition.z, args.checkDistance);
 
             var kpOc = cube.AddComponent<KeypointOcclusionOverrides>();
-            kpOc.overrideDistanceScale = args.overrideScalar;
+            kpOc.distanceScale = args.overrideScalar;
 
             cube.SetActive(true);
             cam.SetActive(true);

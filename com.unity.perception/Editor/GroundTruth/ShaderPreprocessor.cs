@@ -32,6 +32,13 @@ namespace UnityEditor.Perception.GroundTruth
 #endif
             for (var i = data.Count - 1; i >= 0; --i)
             {
+                var skeys = data[i].shaderKeywordSet.GetShaderKeywords();
+                foreach (var s in skeys)
+                {
+                    var txt = ShaderKeyword.GetGlobalKeywordName(s);
+                    txt = ShaderKeyword.GetKeywordName(shader, s);
+                }
+
                 data[i].shaderKeywordSet.Enable(enabled);
                 data[i].shaderKeywordSet.Disable(disabled);
             }

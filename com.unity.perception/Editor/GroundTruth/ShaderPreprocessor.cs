@@ -25,7 +25,7 @@ namespace UnityEditor.Perception.GroundTruth
             var enabled = new ShaderKeyword(shader, "HDRP_ENABLED");
             var disabled = new ShaderKeyword(shader, "URP_ENABLED");
 #else
-            var enabled = new ShaderKeyword(shader, "URP_ENABLED");
+            var enabled = new ShaderKeyword(shader, "HDRP_DISABLED");
             var disabled = new ShaderKeyword(shader, "HDRP_ENABLED");
 
 

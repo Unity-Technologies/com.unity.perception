@@ -286,8 +286,10 @@ namespace UnityEditor.Perception.Randomization
                 switch (buildIdKind)
                 {
                     case BuildIdKind.BuildPlayer:
-                        CreateLinuxBuildAndZip();
-                        buildId = await UploadBuild(cancellationTokenSource, token);
+                        if (CreateLinuxBuildAndZip())
+                        {
+                            buildId = await UploadBuild(cancellationTokenSource, token);
+                        }
                         break;
                     case BuildIdKind.ExistingBuildZip:
                         m_BuildZipPath = m_BuildPathField.value;
@@ -369,17 +371,37 @@ namespace UnityEditor.Perception.Randomization
             }
         }
 
-        void CreateLinuxBuildAndZip()
+        bool CreateLinuxBuildAndZip()
         {
-            var projectBuildDirectory = $"{m_BuildDirectory}/{m_RunParameters.runName}";
-            if (!Directory.Exists(projectBuildDirectory))
-                Directory.CreateDirectory(projectBuildDirectory);
             List<string> scenes = new List<string>();
             foreach(var scene in EditorBuildSettings.scenes)
             {
                 if(scene.enabled)
                     scenes.Add(scene.path);
             }
+
+            if (scenes.Count == 0)
+            {
+                if (EditorUtility.DisplayDialog("No Scenes Found", "Could not find any enabled Scenes in build settings. Open File -> Build Settings and add all your required Scenes.", "Use Currently Open Scene", "Cancel Build"))
+                {
+                    var currentOpenScenePath = SceneManager.GetSceneAt(0).path;
+                    if (string.IsNullOrEmpty(currentOpenScenePath))
+                    {
+                        EditorUtility.DisplayDialog("Build Failed", "Could not find an active Scene.", "OK");
+                        throw new Exception($"Could not find an active Scene.");
+                    }
+                    scenes.Add(currentOpenScenePath);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            var projectBuildDirectory = $"{m_BuildDirectory}/{m_RunParameters.runName}";
+            if (!Directory.Exists(projectBuildDirectory))
+                Directory.CreateDirectory(projectBuildDirectory);
+
             var buildPlayerOptions = new BuildPlayerOptions
             {
                 scenes = scenes.ToArray(),
@@ -398,6 +420,8 @@ namespace UnityEditor.Perception.Randomization
             EditorUtility.DisplayProgressBar("Unity Simulation Run", "Zipping Linux build...", 0f);
             Zip.DirectoryContents(projectBuildDirectory, m_RunParameters.runName);
             m_BuildZipPath = projectBuildDirectory + ".zip";
+
+            return true;
         }
 
         List<AppParam> UploadAppParam()

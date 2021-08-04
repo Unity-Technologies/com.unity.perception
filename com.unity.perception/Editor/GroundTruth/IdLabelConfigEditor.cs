@@ -149,14 +149,22 @@ namespace UnityEditor.Perception.GroundTruth
         protected override IdLabelEntry CreateLabelEntryFromLabelString(SerializedProperty serializedArray,
             string labelToAdd)
         {
-            int maxLabel = Int32.MinValue;
+            var maxLabel = int.MinValue;
             if (serializedArray.arraySize == 0)
                 maxLabel = -1;
 
-            for (int i = 0; i < serializedArray.arraySize; i++)
+            for (var i = 0; i < serializedArray.arraySize; i++)
             {
                 var item = serializedArray.GetArrayElementAtIndex(i);
                 maxLabel = math.max(maxLabel, item.FindPropertyRelative(nameof(IdLabelEntry.id)).intValue);
+            }
+
+            if (maxLabel == -1)
+            {
+                var startingLabelId =
+                    (StartingLabelId) serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId)).enumValueIndex;
+                if (startingLabelId == StartingLabelId.One)
+                    maxLabel = 0;
             }
 
             return new IdLabelEntry

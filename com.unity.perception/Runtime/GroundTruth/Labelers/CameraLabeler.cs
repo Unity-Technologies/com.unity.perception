@@ -107,7 +107,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Initializes labeler with the target perception camera
         /// </summary>
         /// <param name="camera">The target perception camera</param>
-        public void Init(PerceptionCamera camera)
+        internal void Init(PerceptionCamera camera)
         {
             try
             {

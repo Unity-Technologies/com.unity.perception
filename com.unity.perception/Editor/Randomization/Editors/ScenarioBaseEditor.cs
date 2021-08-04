@@ -26,6 +26,13 @@ namespace UnityEditor.Perception.Randomization
             m_Root = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/ScenarioBaseElement.uxml").CloneTree();
 
+#if !ENABLE_SCENARIO_APP_PARAM_CONFIG
+            var configuration = m_Root.Q<PropertyField>("configuration-asset");
+            configuration.style.display = DisplayStyle.None;
+            m_Scenario.configuration = null;
+            EditorUtility.SetDirty(m_Scenario);
+#endif
+
             m_RandomizerListPlaceholder = m_Root.Q<VisualElement>("randomizer-list-placeholder");
 
             CreatePropertyFields();

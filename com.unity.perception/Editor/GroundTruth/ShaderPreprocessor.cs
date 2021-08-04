@@ -22,25 +22,17 @@ namespace UnityEditor.Perception.GroundTruth
 #if HDRP_PRESENT || URP_PRESENT
 
 #if HDRP_PRESENT
-            var enabled = new ShaderKeyword(shader, "HDRP_ENABLED");
-            var disabled = new ShaderKeyword(shader, "URP_ENABLED");
+            var keyword = new ShaderKeyword(shader, "HDRP_ENABLED");
 #else
-            var enabled = new ShaderKeyword(shader, "HDRP_DISABLED");
-            var disabled = new ShaderKeyword(shader, "HDRP_ENABLED");
-
+            var keyword = new ShaderKeyword(shader, "HDRP_DISABLED");
 
 #endif
             for (var i = data.Count - 1; i >= 0; --i)
             {
-                var skeys = data[i].shaderKeywordSet.GetShaderKeywords();
-                foreach (var s in skeys)
-                {
-                    var txt = ShaderKeyword.GetGlobalKeywordName(s);
-                    txt = ShaderKeyword.GetKeywordName(shader, s);
-                }
+                if (data[i].shaderKeywordSet.IsEnabled(keyword))
+                    continue;
 
-                data[i].shaderKeywordSet.Enable(enabled);
-                data[i].shaderKeywordSet.Disable(disabled);
+                data.RemoveAt(i);
             }
 #endif
         }

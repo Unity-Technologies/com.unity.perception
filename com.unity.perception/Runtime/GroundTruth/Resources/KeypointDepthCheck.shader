@@ -19,7 +19,7 @@ Shader "Perception/KeypointDepthCheck"
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     //enable GPU instancing support
-    #pragma multi_compile __ HDRP_ENABLED
+    #pragma multi_compile HDRP_ENABLED HDRP_DISABLED
     #pragma multi_compile_instancing
 
     ENDHLSL

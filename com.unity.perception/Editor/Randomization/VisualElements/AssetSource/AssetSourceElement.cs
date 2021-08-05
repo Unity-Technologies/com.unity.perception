@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using UnityEditor;
@@ -19,6 +20,7 @@ namespace Editor.Randomization.VisualElements.AssetSource
         VisualElement m_FieldsContainer;
         TextElement m_LocationNotes;
         Type m_AssetType;
+        Dictionary<string, Type> m_AssetRoleLabelsToTypes = new Dictionary<string, Type>();
 
         AssetRoleBase assetRole =>
             (AssetRoleBase)StaticData.GetManagedReferenceValue(m_AssetRoleProperty);
@@ -50,12 +52,20 @@ namespace Editor.Randomization.VisualElements.AssetSource
                 "None",
                 a => ReplaceAssetRole(null),
                 a => DropdownMenuAction.Status.Normal);
+            m_AssetRoleLabelsToTypes.Clear();
             foreach (var type in StaticData.assetRoleTypes)
             {
                 if (!type.IsSubclassOf(baseType))
                     continue;
+                var label = GetAssetRoleDisplayName(type);
+
+                if (m_AssetRoleLabelsToTypes.ContainsKey(label))
+                    Debug.LogError($"The asset role classes {type.Name} && {m_AssetRoleLabelsToTypes[label].Name} have an identical label: \"{label}\". Asset role labels should be unique.");
+                else
+                    m_AssetRoleLabelsToTypes.Add(label, type);
+
                 m_AssetRoleToolbarMenu.menu.AppendAction(
-                    GetAssetRoleDisplayName(type),
+                    label,
                     a => ReplaceAssetRole(type),
                     a => DropdownMenuAction.Status.Normal);
             }
@@ -137,7 +147,7 @@ namespace Editor.Randomization.VisualElements.AssetSource
 
         static string GetAssetRoleDisplayName(Type type)
         {
-            return type.Name.Replace("AssetRole", string.Empty);
+            return ((AssetRoleBase)Activator.CreateInstance(type)).label;
         }
     }
 }

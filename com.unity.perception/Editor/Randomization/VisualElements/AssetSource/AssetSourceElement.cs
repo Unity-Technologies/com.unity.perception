@@ -93,7 +93,7 @@ namespace Editor.Randomization.VisualElements.AssetSource
             }
             else
             {
-                m_AssetRoleToolbarMenu.text = GetDisplayName(type);
+                m_AssetRoleToolbarMenu.text = GetAssetRoleDisplayName(type);
                 var newAssetRole = (AssetRoleBase)Activator.CreateInstance(type);
                 m_AssetRoleProperty.managedReferenceValue = newAssetRole;
             }
@@ -147,7 +147,7 @@ namespace Editor.Randomization.VisualElements.AssetSource
 
         static string GetAssetRoleDisplayName(Type type)
         {
-            return ((AssetRoleBase)Activator.CreateInstance(type)).label;
+            return $"{((AssetRoleBase)Activator.CreateInstance(type)).label} ({type.Name})";
         }
     }
 }

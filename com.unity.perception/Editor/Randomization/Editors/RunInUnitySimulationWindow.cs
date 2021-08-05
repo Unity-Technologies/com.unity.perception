@@ -172,6 +172,7 @@ namespace UnityEditor.Perception.Randomization
             m_SelectedBuildPathTextField = root.Q<TextField>("selected-build-path");
             m_SelectedBuildPathTextField.isReadOnly = true;
 
+            m_BuildPathField = root.Q<TextField>("selected-build-path");
             m_BuildIdField = root.Q<TextField>("build-id");
 
             UpdateBuildIdElements((BuildIdKind) m_BuildTypeMenu.value);
@@ -302,7 +303,7 @@ namespace UnityEditor.Perception.Randomization
                 if (buildId == null)
                     return;
 
-                await StartUnitySimulationRun(runGuid, buildId);
+                StartUnitySimulationRun(runGuid, buildId);
             }
             catch (Exception e)
             {
@@ -448,7 +449,7 @@ namespace UnityEditor.Perception.Randomization
             return appParamIds;
         }
 
-        async Task StartUnitySimulationRun(Guid runGuid, string buildId)
+        void StartUnitySimulationRun(Guid runGuid, string buildId)
         {
             // Generate and upload app-params
             EditorUtility.DisplayProgressBar("Unity Simulation Run", "Uploading app-params...", 0.90f);

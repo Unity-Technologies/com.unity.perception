@@ -14,6 +14,7 @@ namespace RandomizationTests.AssetSourceTests
         class TestAssetRole : AssetRole<GameObject>
         {
             public override string label => "test";
+            public override string description => "";
 
             public override void Preprocess(GameObject asset)
             {

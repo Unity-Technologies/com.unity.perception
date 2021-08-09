@@ -276,9 +276,9 @@ public class VisualizerInstaller : EditorWindow
 #endif
         string command = "";
 #if UNITY_EDITOR_WIN
-        command = $"cd \"{pathToData}\" && \"{packagesPath}\\datasetvisualizer.exe\" preview --data=\".\"";
+        command = $"cd \"{pathToData}\" && \"{packagesPath}\\datasetvisualizer.exe\" --data=\".\"";
 #elif UNITY_EDITOR_OSX
-        command = $"cd \'{pathToData}\'; \'{packagesPath}/datasetvisualizer\' preview --data=\'.\'";
+        command = $"cd \'{pathToData}\'; \'{packagesPath}/datasetvisualizer\' --data=\'.\'";
 #endif
 
         UnityEngine.Debug.Log(pathToData);

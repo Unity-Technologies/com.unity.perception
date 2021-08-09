@@ -12,20 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Known Issues
 
 ### Added
-Added support for 'step' button in editor.
-
-Added random seed field to the Run in Unity Simulation Window
-
 User can now choose the base folder location to store their generated data.
 
 Added 'projection' field in the capture.sensor metadata. Values are either "perspective" or "orthographic"
 
 ### Changed
-Increased color variety in instance segmentation images
-
-The PoissonDiskSampling utility now samples a larger region of points to then crop to size of the intended region to prevent edge case bias.
-
-Upgraded capture package dependency to 0.0.10-preview.22 to fix an issue with URP where post processing effects were not included when capturing images.
 
 Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scneario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.
 
@@ -34,9 +25,38 @@ Changed the JSON serialization key of Normal Sampler's standard deviation proper
 ### Removed
 
 ### Fixed
+
+## [0.8.0-preview.4] - 2021-07-05
+
+### Upgrade Notes
+
+### Known Issues
+
+When using URP in OSX, having MSAA enabled on the camera while the post-processing option is disabled may cause the output RGB images to be blank. As a workaround, you can disable MSAA and use FXAA instead, until the issue is fixed.
+
+### Added
+
+Added support for 'step' button in editor.
+
+Added random seed field to the Run in Unity Simulation Window.
+
+### Changed
+
+Increased color variety in instance segmentation images.
+
+The PoissonDiskSampling utility now samples a larger region of points to then crop to size of the intended region to prevent edge case bias.
+
+Upgraded capture package dependency to 0.0.10-preview.23 to fix two issues: (1) Post processing effects were not included when capturing images in URP (2) RGB images were upside-down when post processing effects were enabled and FXAA disabled.
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
 Fixed keypoint labeling bug when visualizations are disabled.
 
-Fixed an issue where Simulation Delta Time values larger than 100 seconds (in Perception Camera) would cause incorrect capture scheduling behavior.
+Fixed an issue where Simulation Delta Time values larger than 100 seconds in Perception Camera would cause incorrect capture scheduling behavior.
 
 Fixed an issue where Categorical Parameters sometimes tried to fetch items at `i = categories.Count`, which caused an exception.
 

@@ -13,13 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-User can now choose the base folder location to store their generated data.
+The user can now choose the base folder location to store their generated datasets.
 
 Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
 
 ### Changed
 
-Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scenario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.
+Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scneario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.
 
 ### Deprecated
 
@@ -34,6 +34,8 @@ Fixed an indexing issue with the IdLabelConfig editor. When a new label was adde
 ### Upgrade Notes
 
 ### Known Issues
+
+When using URP in OSX, having MSAA enabled on the camera while the post-processing option is disabled may cause the output RGB images to be blank. As a workaround, you can disable MSAA and use FXAA instead, until the issue is fixed.
 
 ### Added
 

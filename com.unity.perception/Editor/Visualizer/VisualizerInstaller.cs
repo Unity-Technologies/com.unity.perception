@@ -14,15 +14,15 @@ public class VisualizerInstaller : EditorWindow
 
     //This files stores entries as ProjectDataPath,PythonPID,Port,VisualizerPID
     //It keeps a record of the instances of visualizer opened so that we don't open a new one everytime
-    private static readonly string _filenameStreamlitInstances = "Unity/streamlit_instances.csv";
-    private static string pathToStreamlitInstances
+    private static readonly string _filename_streamlit_instances = "Unity/streamlit_instances.csv";
+    private static string PathToStreamlitInstances
     {
         get
         {
 #if UNITY_EDITOR_WIN
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _filenameStreamlitInstances);
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _filename_streamlit_instances);
 #elif UNITY_EDITOR_OSX
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), _filenameStreamlitInstances);
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), _filename_streamlit_instances);
 #endif
         }
     }
@@ -120,8 +120,6 @@ public class VisualizerInstaller : EditorWindow
         argument = $"-c \"{command}\"";
 #endif
 
-        UnityEngine.Debug.Log(command);
-
         ProcessStartInfo info = new ProcessStartInfo(shell, argument);
 
         info.CreateNoWindow = !displayWindow;
@@ -180,7 +178,7 @@ public class VisualizerInstaller : EditorWindow
             DeleteEntry(project); 
             Process[] before = Process.GetProcesses();
 
-            int errorCode = LaunchVisualizer();
+            int errorCode = ExecuteVisualizer();
             if(errorCode == -1)
             {
                 UnityEngine.Debug.LogError("Could not launch visualizer tool");
@@ -257,7 +255,7 @@ public class VisualizerInstaller : EditorWindow
     /// <summary>
     /// Runs visualizer instance (streamlit) from the python for unity install
     /// </summary>
-    static int LaunchVisualizer()
+    static int ExecuteVisualizer()
     {
         string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
 #if UNITY_EDITOR_WIN
@@ -291,8 +289,8 @@ public class VisualizerInstaller : EditorWindow
 
     private static (int pythonPID, int port, int visualizerPID) ReadEntry(string project)
     {
-        string path = pathToStreamlitInstances;
-        if (!Directory.Exists(pathToStreamlitInstances))
+        string path = PathToStreamlitInstances;
+        if (!Directory.Exists(PathToStreamlitInstances))
         if (!File.Exists(path))
             return (-1,-1,-1);
         using (StreamReader sr = File.OpenText(path))
@@ -313,7 +311,7 @@ public class VisualizerInstaller : EditorWindow
 
     private static void WriteEntry(string project, int pythonId, int port, int visualizerId)
     {
-        string path = pathToStreamlitInstances;
+        string path = PathToStreamlitInstances;
         using (StreamWriter sw = File.AppendText(path))
         {
             sw.WriteLine($"{project},{pythonId},{port},{visualizerId}");
@@ -322,7 +320,7 @@ public class VisualizerInstaller : EditorWindow
 
     private static void DeleteEntry(string project)
     {
-        string path = pathToStreamlitInstances;
+        string path = PathToStreamlitInstances;
         if (!File.Exists(path))
             return;
         List<string> entries = new List<string>(File.ReadAllLines(path));
@@ -484,7 +482,7 @@ public class VisualizerInstaller : EditorWindow
 
 
         /// <summary>
-        /// This method distills the output from netstat -a -n -o into a list of ProcessPorts that provide a mapping between
+        /// This method distills the output from Windows: netstat -a -n -o or OSX: netstat -v -a into a list of ProcessPorts that provide a mapping between
         /// the process (name and id) and the ports that the process is using.
         /// </summary>
         /// <returns></returns>
@@ -514,7 +512,7 @@ public class VisualizerInstaller : EditorWindow
                     Proc.StartInfo = StartInfo;
                     Proc.Start();
 #if UNITY_EDITOR_OSX
-                    Proc.WaitForExit();
+                    Proc.WaitForExit(2500);
 #endif
 
                     StreamReader StandardOutput = Proc.StandardOutput;

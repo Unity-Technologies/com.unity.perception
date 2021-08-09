@@ -15,7 +15,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers
         /// OnEnable is called when this RandomizerTag is enabled, either created, instantiated, or enabled via
         /// the Unity Editor
         /// </summary>
-        protected void OnEnable()
+        protected virtual void OnEnable()
         {
             Register();
         }

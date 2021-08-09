@@ -51,8 +51,6 @@ If you have used Unity before, you might have set up multiple organizations for 
 
 The process of running a project on Unity Simulation involves building it for Linux and then uploading this build, along with a set of parameters, to Unity Simulation. The Perception package simplifies this process by including a dedicated _**Run in Unity Simulation**_ window that accepts a small number of required parameters and handles everything else automatically.
 
-For performance reasons, it is best to disable real-time visualizations before carrying on with the Unity Simulation run. 
-
 * **:green_circle: Action**: From the _**Inspector**_ view of `Perception Camera`, disable real-time visualizations.
 
 In order to make sure our builds are compatible with Unity Simulation, we need to set our project's scripting backend to _**Mono**_ rather than _**IL2CPP**_ (if not already set). We will also need to switch to _**Windowed**_ mode.
@@ -77,16 +75,17 @@ In order to make sure our builds are compatible with Unity Simulation, we need t
 <img src="Images/runinusim.png" width="600"/>
 </p>
 
-Here, you can also specify a name for the run, the number of Iterations the Scenario will execute for, and the number of _**Instances**_ (number of nodes the work will be distributed across) for the run. This window automatically picks the currently active Scene and Scenario to run in Unity Simulation.
+Here, you can specify a name for the run, the number of Iterations the Scenario will execute for, and the number of Instances (number of nodes the work will be distributed across) for the run. This window automatically picks the currently active Scene and Scenario to run in Unity Simulation.
 
-* **:green_circle: Action**: Name your run `FirstRun`, set the number of Iterations to `1000`, and Instances to `20`. 
+* **:green_circle: Action**: Name your run `FirstRun`, set the number of Iterations to `1000`, and Instances to `20`.
+* **:green_circle: Action**: If you'd like to use a new random seed for this run of your Scenario, click `Randomize` to generate a new seed.
 * **:green_circle: Action**: Click _**Build and Run**_.
 
 > :information_source: You can ignore the ***Optional Configuration*** section for now. This is useful if you plan to specify a configuration for your Scenario (including the Randomizers) that will override the values set in the Scenario UI, in Unity Simulation. To generate a configuration, you can click on the ***Generate JSON Config*** button provided in the ***Inspector*** view of Scenario components.
 
 Your project will now be built and then uploaded to Unity Simulation and run. This may take a few minutes to complete, during which the editor may become frozen; this is normal behaviour.
 
-* **:green_circle: Action**: Once the operation is complete, you can find the **Execution ID** of this Unity Simulation run in the **Console** tab and the ***Run in Unity Simulation** Window: 
+* **:green_circle: Action**: Once the operation is complete, you can find the **Execution ID** of this Unity Simulation run in the **Console** tab and the ***Run in Unity Simulation*** Window: 
 
 <p align="center">
 <img src="Images/build_uploaded.png" width="600"/>
@@ -164,7 +163,7 @@ Example output:
 ```
  name                  id                                       creation time             
 --------------------- ---------------------------------------- --------------------------- 
- Perception Tutorial   acd31956-582b-4138-bec8-6670be150f09 *   2020-09-30T00:33:41+00:00 
+ Perception Tutorial   38baa0d0-a2cd-4ee1-801b-39ca3fc5cbc6 *   2020-09-30T00:33:41+00:00 
  SynthDet              9ec23417-73cd-becd-9dd6-556183946153     2020-08-12T19:46:20+00:00  
  ```
 
@@ -192,12 +191,12 @@ MacOS:
 An example output with 3 runs would look like this:
 
 ```
-Active Project ID: acd31956-582b-4138-bec8-6670be150f09
+Active Project ID: 38baa0d0-a2cd-4ee1-801b-39ca3fc5cbc6
 name        id        creation time         executions                                    
 ----------- --------- --------------------- -----------------------------------------------
  FirstRun    1tLbZxL   2020-10-01 23:17:50    id        status        created_at           
                                              --------- ------------- --------------------- 
-                                              yegz4WN   In_Progress   2020-10-01 23:17:54  
+                                              ojE8Z20   In_Progress   2020-10-01 23:17:54  
  Run2        klvfxgT   2020-10-01 21:46:39    id        status        created_at           
                                              --------- ------------- --------------------- 
                                               kML3i50   In_Progress   2020-10-01 21:46:42  
@@ -210,9 +209,9 @@ As seen above, each run has a name, an ID, a creation time, and a list of execut
 
 You can also obtain a list of all the builds you have uploaded to Unity Simulation using the `usim get builds` command.
 
-You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `yegz4WN`.
+You may notice that the IDs seen above for the run named `FirstRun` match those we saw earlier in Unity Editor's _**Console**_. You can see here that the single execution for our recently uploaded build is `In_Progress` and that the execution ID is `ojE8Z20`.
 
-Unity Simulation utilizes the ability to run simulation Instances in parallel. If you enter a number larger than 1 for the number of Instances in the _**Run in Unity Simulation**_ window, your run will be parallelized, and multiple simulation Instances will simultaneously execute. You can view the status of all simulation Instances using the `usim summarize run-execution <execution-id>` command. This command will tell you how many Instances have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `yegz4WN`.
+Unity Simulation utilizes the ability to run simulation Instances in parallel. If you enter a number larger than 1 for the number of Instances in the _**Run in Unity Simulation**_ window, your run will be parallelized, and multiple simulation Instances will simultaneously execute. You can view the status of all simulation Instances using the `usim summarize run-execution <execution-id>` command. This command will tell you how many Instances have succeeded, failed, have not run yet, or are in progress. Make sure to replace `<execution-id>` with the execution ID seen in your run list. In the above example, this ID would be `ojE8Z20`.
 
 * **:green_circle: Action**: Use the `usim summarize run-execution <execution-id>` command to observe the status of your execution nodes:
 
@@ -221,18 +220,18 @@ MacOS:
 <!--Windows:
 `USimCLI\windows\usim summarize run-execution <execution-id>`-->
 
-Here is an example output of this command, indicating that there is only one node, and that the node is still in progress:
+Here is an example output of this command, indicating that there are 20 nodes, and that they are all still in progress:
 
 ```
  state         count 
 ------------- -------
  Successes     0     
- In Progress   1     
+ In Progress   20     
  Failures      0     
  Not Run       0    
  ```
 
- At this point, we will need to wait until the execution is complete. Check your run with the above command periodically until you see a 1 for `Successes` and 0 for `In Progress`.
+ At this point, we will need to wait until the execution is complete. Check your run with the above command periodically until you see a 20 for `Successes` and 0 for `In Progress`.
  Given the relatively small size of our Scenario (1,000 Iterations), this should take less than 5 minutes.
 
  * **:green_circle: Action**: Use the `usim summarize run-execution <execution-id>` command periodically to check the progress of your run.
@@ -242,7 +241,7 @@ Here is an example output of this command, indicating that there is only one nod
  `USimCLI/mac/usim download manifest <execution-id>`
 
  The manifest is a `.csv` formatted file and will be downloaded to the same location from which you execute the above command, which is the `unity_simulation_bundle` folder.
- This file does **not**** include actual data, rather, it includes links to the generated data, including the JSON files, the logs, the images, and so on.
+ This file does **not** include actual data, rather, it includes links to the generated data, including the JSON files, the logs, the images, and so on.
  
  * **:green_circle: Action**: Open the manifest file to check it. Make sure there are links to various types of output and check a few of the links to see if they work.
 

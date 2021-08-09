@@ -15,6 +15,16 @@ namespace UnityEditor.Perception.GroundTruth
         {
             m_MoveButtons.style.display = DisplayStyle.None;
             m_IdSpecificUi.style.display = DisplayStyle.None;
+
+            var skyColorProperty = serializedObject.FindProperty(nameof(SemanticSegmentationLabelConfig.skyColor));
+            m_SkyColorField.BindProperty(skyColorProperty);
+            m_SkyColorField.RegisterValueChangedCallback(e => UpdateSkyHexLabel(e.newValue));
+            UpdateSkyHexLabel(skyColorProperty.colorValue);
+        }
+
+        private void UpdateSkyHexLabel(Color colorValue)
+        {
+            m_SkyHexLabel.text = "#" + ColorUtility.ToHtmlStringRGBA(colorValue);
         }
 
         public override void PostRemoveOperations()

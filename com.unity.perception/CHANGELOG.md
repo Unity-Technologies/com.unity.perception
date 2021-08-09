@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Known Issues
 
+When using URP in OSX, having MSAA enabled on the camera while the post-processing option is disabled may cause the output RGB images to be blank. As a workaround, you can disable MSAA and use FXAA instead, until the issue is fixed.
+
 ### Added
 Added support for 'step' button in editor.
 

@@ -24,7 +24,7 @@ namespace UnityEditor.Perception.Randomization
             randomizerTypes = GetConstructableDerivedTypes<Randomizer>();
             samplerTypes = GetConstructableDerivedTypes<ISampler>();
             assetSourceLocationTypes = GetConstructableDerivedTypes<AssetSourceLocation>();
-            assetRoleTypes = GetConstructableDerivedTypes<AssetRoleBase>();
+            assetRoleTypes = GetConstructableDerivedTypes<IAssetRoleBase>();
         }
 
         static Type[] GetConstructableDerivedTypes<T>()

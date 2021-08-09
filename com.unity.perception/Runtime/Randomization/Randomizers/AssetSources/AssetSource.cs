@@ -10,7 +10,7 @@ namespace UnityEngine.Perception.Randomization
     [Serializable]
     public sealed class AssetSource<T> where T : Object
     {
-        [SerializeReference] AssetRoleBase m_AssetRoleBase;
+        [SerializeReference] IAssetRoleBase m_AssetRoleBase;
 
         /// <summary>
         /// The location to load assets from

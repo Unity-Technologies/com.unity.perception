@@ -22,8 +22,8 @@ namespace Editor.Randomization.VisualElements.AssetSource
         Type m_AssetType;
         Dictionary<string, Type> m_AssetRoleLabelsToTypes = new Dictionary<string, Type>();
 
-        AssetRoleBase assetRole =>
-            (AssetRoleBase)StaticData.GetManagedReferenceValue(m_AssetRoleProperty);
+        IAssetRoleBase assetRole =>
+            (IAssetRoleBase)StaticData.GetManagedReferenceValue(m_AssetRoleProperty);
         AssetSourceLocation assetSourceLocation =>
             (AssetSourceLocation)StaticData.GetManagedReferenceValue(m_LocationProperty);
 
@@ -94,7 +94,7 @@ namespace Editor.Randomization.VisualElements.AssetSource
             else
             {
                 m_AssetRoleToolbarMenu.text = GetAssetRoleDisplayName(type);
-                var newAssetRole = (AssetRoleBase)Activator.CreateInstance(type);
+                var newAssetRole = (IAssetRoleBase)Activator.CreateInstance(type);
                 m_AssetRoleProperty.managedReferenceValue = newAssetRole;
             }
             m_AssetRoleProperty.serializedObject.ApplyModifiedProperties();
@@ -147,7 +147,7 @@ namespace Editor.Randomization.VisualElements.AssetSource
 
         static string GetAssetRoleDisplayName(Type type)
         {
-            return $"{((AssetRoleBase)Activator.CreateInstance(type)).label} ({type.Name})";
+            return $"{((IAssetRoleBase)Activator.CreateInstance(type)).label} ({type.Name})";
         }
     }
 }

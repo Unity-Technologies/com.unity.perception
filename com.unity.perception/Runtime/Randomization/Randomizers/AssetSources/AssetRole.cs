@@ -5,8 +5,14 @@
     /// Typed asset roles are used to apply preprocessing steps to assets loaded from an <see cref="AssetSource{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of asset to preprocess</typeparam>
-    public abstract class AssetRole<T> : AssetRoleBase where T : Object
+    public abstract class AssetRole<T> : IAssetRoleBase where T : Object
     {
+        /// <inheritdoc/>
+        public abstract string label { get; }
+
+        /// <inheritdoc/>
+        public abstract string description { get; }
+
         /// <summary>
         /// Perform preprocessing operations on an asset loaded from an <see cref="AssetSource{T}"/>.
         /// </summary>

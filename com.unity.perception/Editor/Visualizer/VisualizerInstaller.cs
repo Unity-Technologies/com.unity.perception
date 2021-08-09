@@ -22,7 +22,11 @@ public class VisualizerInstaller : EditorWindow
 #if UNITY_EDITOR_WIN
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _filename_streamlit_instances);
 #elif UNITY_EDITOR_OSX
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), _filename_streamlit_instances);
+            return Path.Combine(
+                        Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library"
+                        ),
+                    _filenameStreamlitInstances);
 #endif
         }
     }
@@ -35,7 +39,7 @@ public class VisualizerInstaller : EditorWindow
         = "";
 #endif
 
-    
+
 
     /// <summary>
     /// Install visualizer (Assumes python3 and pip3 are already installed)
@@ -64,7 +68,7 @@ public class VisualizerInstaller : EditorWindow
                 return;
             }
         }
-        
+
 
         int steps = 3;
         int ExitCode = 0;
@@ -80,7 +84,7 @@ public class VisualizerInstaller : EditorWindow
         packagesPath = packagesPath.Replace("/", "\\");
 #endif
 
-        
+
         //==============================INSTALL VISUALIZER IN PYTHON FOR UNITY======================================
 
         EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing the Visualizer...", 2.5f / steps);
@@ -157,7 +161,7 @@ public class VisualizerInstaller : EditorWindow
     [MenuItem("Window/Visualizer/Run")]
     private static void RunVisualizer()
     {
-        if(!PlayerPrefs.HasKey("VisualizerSetup") || PlayerPrefs.GetInt("VisualizerSetup") != 1)
+        if (!PlayerPrefs.HasKey("VisualizerSetup") || PlayerPrefs.GetInt("VisualizerSetup") != 1)
         {
             SetupVisualizer();
         }
@@ -170,12 +174,12 @@ public class VisualizerInstaller : EditorWindow
         //If there is a python instance for this project AND it is alive then just run browser
         if(pythonPID != -1 && ProcessAlive(pythonPID, port, visualizerPID))
         {
-            LaunchBrowser(port);            
+            LaunchBrowser(port);
         }
         //Otherwise delete any previous entry for this project and launch a new process
         else
         {
-            DeleteEntry(project); 
+            DeleteEntry(project);
             Process[] before = Process.GetProcesses();
 
             int errorCode = ExecuteVisualizer();
@@ -248,7 +252,7 @@ public class VisualizerInstaller : EditorWindow
             }*/
 
             LaunchBrowser(newPort);
-            
+
         }
     }
 
@@ -263,6 +267,7 @@ public class VisualizerInstaller : EditorWindow
 #elif UNITY_EDITOR_OSX
         string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
 #endif
+
         string pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
 #if UNITY_EDITOR_WIN
         path = path.Replace("/", "\\");
@@ -270,12 +275,15 @@ public class VisualizerInstaller : EditorWindow
         pathToData = pathToData.Replace("/", "\\");
 #endif
         string command = "";
-
 #if UNITY_EDITOR_WIN
         command = $"cd \"{pathToData}\" && \"{packagesPath}\\datasetvisualizer.exe\" preview --data=\".\"";
 #elif UNITY_EDITOR_OSX
-        command = $"cd \'{packagesPath}\'; datasetvisualizer preview --data=\'{pathToData}\'";
+        command = $"cd \'{pathToData}\'; \'{packagesPath}/datasetvisualizer\' preview --data=\'.\'";
 #endif
+
+        UnityEngine.Debug.Log(pathToData);
+
+        UnityEngine.Debug.Log(command);
 
         int ExitCode = 0;
         int PID = ExecuteCMD(command, ref ExitCode, waitForExit: false, displayWindow: false);
@@ -428,7 +436,7 @@ public class VisualizerInstaller : EditorWindow
                 return false;
             }
             else
-            {  
+            {
                 return true;
             }
          }
@@ -568,12 +576,14 @@ public class VisualizerInstaller : EditorWindow
                         {
                             try
                             {
-                                ProcessPorts.Add(new ProcessPort(
-                                    GetProcessName(Convert.ToInt32(Tokens[8])),
-                                    Convert.ToInt32(Tokens[8]),
-                                    "tcp4",
-                                    Convert.ToInt32(Tokens[3].Split('.')[1])
-                                ));
+                                if(Tokens[5] != "CLOSED"){
+                                    ProcessPorts.Add(new ProcessPort(
+                                        GetProcessName(Convert.ToInt32(Tokens[8])),
+                                        Convert.ToInt32(Tokens[8]),
+                                        "tcp4",
+                                        Convert.ToInt32(Tokens[3].Split('.')[1])
+                                    ));
+                                }
                             }
                             catch
                             {

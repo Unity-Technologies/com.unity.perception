@@ -182,10 +182,15 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <summary>
         /// Overwrites this scenario's randomizer settings and scenario constants from a JSON serialized configuration
         /// </summary>
-        public virtual void DeserializeConfiguration()
+        protected virtual void DeserializeConfiguration()
         {
             if (configuration != null)
                 ScenarioSerializer.Deserialize(this, configuration.text);
+        }
+
+        internal void DeserializeConfigurationInternal()
+        {
+            DeserializeConfiguration();
         }
 
         /// <summary>

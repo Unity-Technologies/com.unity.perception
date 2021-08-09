@@ -62,7 +62,7 @@ namespace UnityEditor.Perception.Randomization
                 Undo.RecordObject(m_Scenario, "Deserialized scenario configuration");
                 var originalConfig = m_Scenario.configuration;
                 m_Scenario.LoadConfigurationFromFile(filePath);
-                m_Scenario.DeserializeConfiguration();
+                m_Scenario.DeserializeConfigurationInternal();
                 m_Scenario.configuration = originalConfig;
                 Debug.Log($"Deserialized scenario configuration from {Path.GetFullPath(filePath)}. " +
                     "Using undo in the editor will revert these changes to your scenario.");

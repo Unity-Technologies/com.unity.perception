@@ -79,7 +79,7 @@ namespace RandomizationTests.ScenarioTests
 
             // Change the values
             m_Scenario.constants = changedConstants;
-            m_Scenario.DeserializeConfiguration();
+            m_Scenario.DeserializeConfigurationInternal();
 
             // Check if the values reverted correctly
             Assert.AreEqual(m_Scenario.constants.framesPerIteration, constants.framesPerIteration);

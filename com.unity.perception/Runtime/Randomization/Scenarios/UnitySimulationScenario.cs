@@ -44,7 +44,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         /// <inheritdoc/>
-        public override void DeserializeConfiguration()
+        protected override void DeserializeConfiguration()
         {
             base.DeserializeConfiguration();
             if (Configuration.Instance.IsSimulationRunningInCloud())

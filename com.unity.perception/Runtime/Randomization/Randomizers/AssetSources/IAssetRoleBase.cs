@@ -10,11 +10,11 @@ namespace UnityEngine.Perception.Randomization
         /// <summary>
         /// The string label uniquely associated with this asset role
         /// </summary>
-        public abstract string label { get; }
+        string label { get; }
 
         /// <summary>
         /// A description for this asset role
         /// </summary>
-        public abstract string description { get; }
+        string description { get; }
     }
 }

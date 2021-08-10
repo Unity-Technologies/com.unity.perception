@@ -42,7 +42,6 @@ namespace EditorTests
             gameObject.SetActive(false);
             gameObject.AddComponent<Camera>();
             gameObject.AddComponent<UniversalAdditionalCameraData>();
-
             var perceptionCamera = gameObject.AddComponent<PerceptionCamera>();
             gameObject.SetActive(true);
             LogAssert.Expect(LogType.Error, "GroundTruthRendererFeature must be present on the ScriptableRenderer associated with the camera. The ScriptableRenderer can be accessed through Edit -> Project Settings... -> Graphics -> Scriptable Render Pipeline Settings -> Renderer List.");

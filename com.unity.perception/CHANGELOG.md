@@ -12,9 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Known Issues
 
 ### Added
-User can now choose the base folder location to store their generated data.
 
-Added 'projection' field in the capture.sensor metadata. Values are either "perspective" or "orthographic"
+The user can now choose the base folder location to store their generated datasets.
+
+Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
 
 ### Changed
 
@@ -25,6 +26,8 @@ Changed the JSON serialization key of Normal Sampler's standard deviation proper
 ### Removed
 
 ### Fixed
+
+Fixed an indexing issue with the IdLabelConfig editor. When a new label was added to an empty Id Label Config with Auto Assign IDs enabled, the starting id (0 or 1) was ignored and the new label would always have an id of 0.
 
 ## [0.8.0-preview.4] - 2021-07-05
 

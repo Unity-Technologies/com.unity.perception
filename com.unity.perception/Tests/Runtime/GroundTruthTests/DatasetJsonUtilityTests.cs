@@ -85,7 +85,7 @@ namespace GroundTruthTests
         [TestCase(1u, "1")]
         [TestCase(1.0, "1")]
         [TestCase(1.0f, "1")]
-        [TestCase("string", "\"string\"")]
+        [TestCase("string", "string")]
         public void Primitive_ReturnsValue(object o, string jsonExpected)
         {
             var jsonActual = DatasetJsonUtility.ToJToken(o).ToString();

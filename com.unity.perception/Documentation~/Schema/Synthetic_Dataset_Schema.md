@@ -140,6 +140,7 @@ sensor {
   translation:      <float, float, float> -- Position in meters: (x, y, z) with respect to the ego coordinate system. This is typically fixed during the simulation, but we can allow small variation for domain randomization.
   rotation:         <float, float, float, float> -- Orientation as quaternion: (w, x, y, z) with respect to ego coordinate system. This is typically fixed during the simulation, but we can allow small variation for domain randomization.
   camera_intrinsic: <3x3 float matrix> [optional] -- Intrinsic camera calibration. Empty for sensors that are not cameras.
+  projection:       <string> -- holds the type of projection the camera used for that capture: Options: "perspective" or "orthographic"
   
   # add arbitrary optional key-value pairs for sensor attributes
 }

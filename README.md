@@ -7,9 +7,9 @@
 [![license badge](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
 
 <img src="https://img.shields.io/badge/unity-2019.4-green.svg?style=flat-square" alt="unity 2019.4">
-<img src="https://img.shields.io/badge/unity-2020.2-green.svg?style=flat-square" alt="unity 2020.2">
+<img src="https://img.shields.io/badge/unity-2020.2-green.svg?style=flat-square" alt="unity 2020.3">
 
-> com.unity.perception is in active development. Its features and API are subject to significant change as development progresses.
+> `com.unity.perception` is in active development. Its features and API are subject to significant change as development progresses.
 
 
 # Perception Package ([Unity Computer Vision](https://unity.com/computer-vision))
@@ -28,6 +28,9 @@ Detailed instructions covering all the important steps from installing Unity Edi
 
 **[Human Pose Labeling and Randomization Tutorial](com.unity.perception/Documentation~/HPTutorial/TUTORIAL.md)**  
 Step by step instructions for using the keypoint, pose, and animation randomization tools included in the Perception package. It is recommended that you finish Phase 1 of the Perception Tutorial above before starting this tutorial.
+
+**[FAQ](com.unity.perception/Documentation~/FAQ/FAQ.md)**  
+Check out our FAQ for a list of common questions, tips, tricks, and some sample code.
 
 ## Documentation
 In-depth documentation on individual components of the package. 

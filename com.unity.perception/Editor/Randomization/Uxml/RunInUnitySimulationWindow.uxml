@@ -25,6 +25,14 @@
                 tooltip="Selects a scenario JSON configuration to load during the run.
                     You can leave this option blank to use the scenario settings currently configured in the editor."/>
 
+            <editor:EnumField name="build-type-menu" label="Build type" style="flex-grow:1; margin:0; border-width: 1px;"/>
+            <VisualElement name="build-select-controls" style="margin-bottom: 0; flex-direction: row; justify-content: space-between; align-items: center;">
+                <TextField name="selected-build-path" label="Build Zip Path" style="flex-grow: 1; flex-shrink: 1;" />
+                <Button name="select-build-file-button" text="Browse..." style="margin: 0; align-items: flex-end; margin-top: 0; width: 70px;" />
+            </VisualElement>
+
+            <TextField name="build-id" label="Build ID" style="flex-grow: 1; flex-shrink: 1;" />
+
             <VisualElement style="align-items: center; margin-top: 8px;">
                 <Button name="run-button" text="Build and Run" style="margin: 10px; padding: 2 20; font-size: 13px;"/>
             </VisualElement>

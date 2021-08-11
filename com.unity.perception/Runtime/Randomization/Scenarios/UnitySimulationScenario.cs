@@ -30,15 +30,25 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         protected sealed override bool isScenarioComplete => currentIteration >= constants.totalIterations;
 
         /// <inheritdoc/>
-        protected override void OnConfigurationImport()
+        protected override void LoadConfigurationAsset()
         {
             if (Configuration.Instance.IsSimulationRunningInCloud())
             {
-                DeserializeFromFile(new Uri(Configuration.Instance.SimulationConfig.app_param_uri).LocalPath);
-                constants.instanceIndex = int.Parse(Configuration.Instance.GetInstanceId()) - 1;
+                var filePath = new Uri(Configuration.Instance.SimulationConfig.app_param_uri).LocalPath;
+                LoadConfigurationFromFile(filePath);
             }
             else
-                base.OnConfigurationImport();
+            {
+                base.LoadConfigurationAsset();
+            }
+        }
+
+        /// <inheritdoc/>
+        protected override void DeserializeConfiguration()
+        {
+            base.DeserializeConfiguration();
+            if (Configuration.Instance.IsSimulationRunningInCloud())
+                constants.instanceIndex = int.Parse(Configuration.Instance.GetInstanceId()) - 1;
             currentIteration = constants.instanceIndex;
         }
 

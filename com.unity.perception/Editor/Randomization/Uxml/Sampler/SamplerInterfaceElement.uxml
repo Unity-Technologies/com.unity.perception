@@ -1,5 +1,5 @@
 ﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
-    <VisualElement name="sampler-template" style="margin-bottom: 4px;">
+    <VisualElement style="margin-bottom: 4px;">
         <Style src="../../Uss/Styles.uss"/>
         <VisualElement style="flex-direction: row; align-items: center;">
             <Label name="sampler-name" text="Sampler Name" class="unity-base-field__label"/>

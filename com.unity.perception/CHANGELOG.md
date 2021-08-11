@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 The user can now choose the base folder location to store their generated datasets.
 
+Added the AssetSource class for loading assets from generic sources inside randomizers.
+
+Users can now choose the base folder location to store their generated datasets.
+
 Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
 
 ### Changed

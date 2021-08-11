@@ -11,21 +11,24 @@
       "RotationRandomizer": {
         "metadata": {
           "name": "",
-          "description": ""
+          "description": "",
+          "imageLink": ""
         },
         "items": {
           "rotation": {
             "param": {
               "metadata": {
                 "name": "",
-                "description": ""
+                "description": "",
+                "imageLink": ""
               },
               "items": {
                 "x": {
                   "samplerOptions": {
                     "metadata": {
                       "name": "",
-                      "description": ""
+                      "description": "",
+                      "imageLink": ""
                     },
                     "uniform": {
                       "min": 0.0,
@@ -37,7 +40,8 @@
                   "samplerOptions": {
                     "metadata": {
                       "name": "",
-                      "description": ""
+                      "description": "",
+                      "imageLink": ""
                     },
                     "uniform": {
                       "min": 0.0,
@@ -49,7 +53,8 @@
                   "samplerOptions": {
                     "metadata": {
                       "name": "",
-                      "description": ""
+                      "description": "",
+                      "imageLink": ""
                     },
                     "uniform": {
                       "min": 0.0,

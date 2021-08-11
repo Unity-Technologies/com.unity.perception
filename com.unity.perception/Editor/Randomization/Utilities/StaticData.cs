@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine.Perception.Randomization;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -15,11 +16,15 @@ namespace UnityEditor.Perception.Randomization
 
         internal static Type[] randomizerTypes;
         internal static Type[] samplerTypes;
+        internal static Type[] assetSourceLocationTypes;
+        internal static Type[] assetRoleTypes;
 
         static StaticData()
         {
             randomizerTypes = GetConstructableDerivedTypes<Randomizer>();
             samplerTypes = GetConstructableDerivedTypes<ISampler>();
+            assetSourceLocationTypes = GetConstructableDerivedTypes<AssetSourceLocation>();
+            assetRoleTypes = GetConstructableDerivedTypes<IAssetRoleBase>();
         }
 
         static Type[] GetConstructableDerivedTypes<T>()

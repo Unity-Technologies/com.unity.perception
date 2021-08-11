@@ -103,6 +103,26 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         protected virtual void Cleanup() {}
 
+        /// <summary>
+        /// Initializes labeler with the target perception camera
+        /// </summary>
+        /// <param name="camera">The target perception camera</param>
+        internal void Init(PerceptionCamera camera)
+        {
+            try
+            {
+                perceptionCamera = camera;
+                sensorHandle = camera.SensorHandle;
+                Setup();
+                isInitialized = true;
+            }
+            catch (Exception)
+            {
+                enabled = false;
+                throw;
+            }
+        }
+
         internal void InternalSetup() => Setup();
 
         internal bool InternalVisualizationEnabled
@@ -116,7 +136,7 @@ namespace UnityEngine.Perception.GroundTruth
         internal void InternalCleanup() => Cleanup();
         internal void InternalVisualize() => OnVisualize();
 
-        private bool m_ShowVisualizations = false;
+        bool m_ShowVisualizationsForLabeler;
 
         /// <summary>
         /// Turns on/off the labeler's realtime visualization capability. If a labeler does not support realtime
@@ -127,17 +147,20 @@ namespace UnityEngine.Perception.GroundTruth
         {
             get
             {
-                return supportsVisualization && m_ShowVisualizations;
+                if (!supportsVisualization)
+                    return false;
+
+                return perceptionCamera && perceptionCamera.showVisualizations && m_ShowVisualizationsForLabeler;
             }
             set
             {
                 if (!supportsVisualization) return;
 
-                if (value != m_ShowVisualizations)
+                if (value != m_ShowVisualizationsForLabeler)
                 {
-                    m_ShowVisualizations = value;
+                    m_ShowVisualizationsForLabeler = value;
 
-                    OnVisualizerEnabledChanged(m_ShowVisualizations);
+                    OnVisualizerEnabledChanged(m_ShowVisualizationsForLabeler);
                 }
             }
         }
@@ -160,24 +183,6 @@ namespace UnityEngine.Perception.GroundTruth
         internal void Visualize()
         {
             if (visualizationEnabled) OnVisualize();
-        }
-
-        internal void Init(PerceptionCamera newPerceptionCamera)
-        {
-            try
-            {
-                this.perceptionCamera = newPerceptionCamera;
-                sensorHandle = newPerceptionCamera.SensorHandle;
-                Setup();
-                isInitialized = true;
-
-                m_ShowVisualizations = supportsVisualization && perceptionCamera.showVisualizations;
-            }
-            catch (Exception)
-            {
-                this.enabled = false;
-                throw;
-            }
         }
     }
 }

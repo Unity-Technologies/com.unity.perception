@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
@@ -148,6 +148,10 @@ namespace UnityEditor.Perception.GroundTruth
                     GUIUtility.systemCopyBuffer = dir;
                 }
                 GUILayout.EndHorizontal();
+                if (GUILayout.Button("Open Visualizer"))
+                {
+                    UnityEditor.Perception.Visualizer.VisualizerInstaller.RunVisualizer();
+                }
                 GUILayout.EndVertical();
             }
 

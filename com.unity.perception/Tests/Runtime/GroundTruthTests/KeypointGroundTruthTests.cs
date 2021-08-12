@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
@@ -39,6 +40,8 @@ namespace GroundTruthTests
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
             var camera = cameraObject.AddComponent<Camera>();
+            cameraObject.AddComponent<UniversalAdditionalCameraData>();
+
             camera.orthographic = false;
             camera.fieldOfView = 60;
             camera.nearClipPlane = 0.3f;

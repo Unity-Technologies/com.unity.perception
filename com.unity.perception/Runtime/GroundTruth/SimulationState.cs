@@ -18,7 +18,6 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<SensorHandle, SensorData> m_Sensors = new Dictionary<SensorHandle, SensorData>();
         HashSet<EgoHandle> m_Egos = new HashSet<EgoHandle>();
         HashSet<Guid> m_Ids = new HashSet<Guid>();
-        Dictionary<string, object> m_Metadata = new Dictionary<string, object>();
         Guid m_SequenceId = Guid.NewGuid();
 
         // Always use the property SequenceTimeMs instead
@@ -408,12 +407,6 @@ namespace UnityEngine.Perception.GroundTruth
             m_Ids.Add(egoHandle.Id);
         }
 
-        public void AddMetadata(string key, object value)
-        {
-            if (!m_Metadata.ContainsKey(key)) m_Metadata[key] = null;
-            m_Metadata[key] = value;
-        }
-
         public bool IsEnabled(SensorHandle sensorHandle) => m_ActiveSensors.Contains(sensorHandle);
 
         public void SetEnabled(SensorHandle sensorHandle, bool value)
@@ -563,9 +556,6 @@ namespace UnityEngine.Perception.GroundTruth
                 Debug.LogError($"Simulation ended with pending metrics: {string.Join(", ", m_PendingMetrics.Select(c => $"id:{c.MetricId} step:{c.Step}"))}");
 
             WriteReferences();
-
-            // TODO write metadata here
-            WriteMetadata();
 
             Time.captureDeltaTime = 0;
             IsRunning = false;

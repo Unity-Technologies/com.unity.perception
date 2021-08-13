@@ -29,7 +29,7 @@ namespace UnityEditor.Perception.Visualizer
                             Path.Combine(
                                 Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library"
                             ),
-                        _filenameStreamlitInstances);
+                        _filename_streamlit_instances);
     #endif
             }
         }
@@ -102,8 +102,7 @@ namespace UnityEditor.Perception.Visualizer
             }
 
             EditorUtility.ClearProgressBar();
-
-            PlayerPrefs.SetInt("VisualizerSetup", 1);
+	    UnityEngine.Debug.Log("Successfully installed visualizer");
         }
 
         /// <summary>
@@ -584,7 +583,11 @@ namespace UnityEditor.Perception.Visualizer
                                         ));
                                     }
                                 }
-                                catch
+                                catch (FormatException)
+				{
+				    continue;
+				}
+				catch 
                                 {
                                     UnityEngine.Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
                                     UnityEngine.Debug.LogError(NetStatRow);
@@ -700,7 +703,7 @@ namespace UnityEditor.Perception.Visualizer
 #if UNITY_EDITOR_WIN
             ExecuteCMD($"\"{packagesPath}\"\\pip3.bat show unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: 1500, getOutput: true);
 #elif UNITY_EDITOR_OSX
-            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip show unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: true, getOutput: true);
+            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip show unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: 1500, getOutput: true);
 #endif
             if (ExitCode != 0) {
                 UnityEngine.Debug.LogError("Could not get the version of the current install of the visualizer tool");
@@ -755,7 +758,7 @@ namespace UnityEditor.Perception.Visualizer
 #if UNITY_EDITOR_WIN
             ExecuteCMD($"\"{packagesPath}\"\\pip3.bat list", ref ExitCode, ref output, waitForExit: 1500, getOutput: true);
 #elif UNITY_EDITOR_OSX
-            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip list", ref ExitCode, ref output, waitForExit: true, getOutput: true);
+            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip list", ref ExitCode, ref output, waitForExit: 1500, getOutput: true);
 #endif
             if (ExitCode != 0) {
                 UnityEngine.Debug.LogError("Could not list pip packages");

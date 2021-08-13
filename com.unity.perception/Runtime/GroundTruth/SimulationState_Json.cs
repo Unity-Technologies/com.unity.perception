@@ -17,25 +17,6 @@ namespace UnityEngine.Perception.GroundTruth
     {
         const Formatting k_Formatting = Formatting.Indented;
 
-        public void WriteMetadata()
-        {
-            var metadata = new JObject();
-            metadata["version"] = DatasetCapture.SchemaVersion;
-            metadata["per_file_size"] = k_MinPendingMetricsBeforeWrite;
-
-            foreach (var md in m_Metadata)
-            {
-                metadata[md.Key] = JToken.FromObject(md.Value);
-            }
-
-
-            //metadata["dataset_size"] = 500;
-            //metadata["per_file_size"] = 150;
-            //metadata["image_width"] = 1024;
-            //metadata["image_height"] = 768;
-            WriteJObjectToFile(metadata, "metadata.json");
-        }
-
         /// <summary>
         /// Writes sensors.json, egos.json, metric_definitions.json, and annotation_definitions.json
         /// </summary>

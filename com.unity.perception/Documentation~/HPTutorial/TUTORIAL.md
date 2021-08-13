@@ -15,6 +15,9 @@ Steps included in this tutorial:
 * [Step 5: Add Joints to the Character and Customize Keypoint Templates](#step-5)
 * [Step 6: Randomize the Humanoid Character's Animations](#step-6)
 
+> :information_source: If you face any problems while following this tutorial, please create a post on the **[Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/)** or the **[GitHub issues](https://github.com/Unity-Technologies/com.unity.perception/issues)** page and include as much detail as possible.
+
+
 ### <a name="step-1">Step 1: Import `.fbx` Models and Animations</a> 
 
 This tutorial assumes that you have already created a Unity project, installed the Perception package, and set up a Scene with a `Perception Camera` inside. If this is not the case, please follow **steps 1 to 3** of [Phase 1 of the Perception Tutorial](../Tutorial/Phase1.md). 
@@ -117,14 +120,16 @@ Similar to the labelers we used in the Perception Tutorial, we will need a label
 </p> 
 
 * **:green_circle: Action**: Return to `Perception Camera` and assign `HPE_IdLabelConfig` to the `KeyPointLabeler`'s label configuration property.
+* **:green_circle: Action**: Search in the _**Project**_ tab for `CocoKeypointTemplate`, with the scope set to _**In Packages**_. Drag and drop the found asset into the `Active Template` field of the `Perception Camera`.
 
 The labeler should now look like the image below:
 
 <p align="center">
 <img src="Images/keypoint_labeler.png" width="500"/>
-</p> 
+</p>
 
-Note the `CocoKeypointTemplate` asset that is already assigned as the `Active Template`. This template will tell the labeler how to map default Unity rig joints to human joint labels in the popular COCO dataset so that the output of the labeler can be easily converted to COCO format. Later in this tutorial, we will learn how to add more joints to our character and how to customize joint mapping templates.
+
+The `Active Template` tells the labeler how to map default Unity rig joints to human joint labels in the popular COCO dataset so that the output of the labeler can be easily converted to COCO format. Later in this tutorial, we will learn how to add more joints to our character and how to customize joint mapping templates.
 
 <p align="center">
 <img src="Images/take_objects_keypoints.gif" width="600"/>

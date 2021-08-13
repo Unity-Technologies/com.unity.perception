@@ -46,22 +46,7 @@ public class MyLightRandomizer : Randomizer
 
 The purpose of this piece of code is to obtain a random float Parameter and assign it to the light's `Intensity` field on the start of every Iteration. Let's go through the code above and understand each part. The `FloatParameter` field makes it possible for us to define a randomized float Parameter and modify its properties from the editor UI, similar to how we already modified the properties for the previous Randomizers we used. 
 
-> :information_source: If you look at the _**Console**_ tab of the editor now, you will see an error regarding `MyLightRandomizerTag` not being found. This is to be expected, since we have not yet created this class; the error will go away once we create the class later.
-
-If you return to your list of Randomizers in the _**Inspector**_ view of `SimulationScenario`, you can now add this new Randomizer.
-
-* **:green_circle: Action**: Add `MyLightRandomizer` to the list of Randomizers in `SimulationScenario`.
-
-You will notice that the Randomizer's UI snippet contains one Parameter named `Light Intensity Parameter`. This is the same Parameter we added in the code block above. Here, you can set the sampling distribution (`Value`) and `Range` for this float Parameter:
-
-<p align="center">
-<img src="Images/light_rand_1.png" width="420"/>
-</p>
-
-
-* **:green_circle: Action**:  In the UI snippet for `MyLightRandomzier`, set the minimum and maximum for range to **0.5** and **3**.
-
-This range of intensities is arbitrary but will give us a typically nice lighting without excessive darkness or burnt-out highlights.
+> :information_source: If you look at the _**Console**_ tab of the editor now, you will see an error regarding `MyLightRandomizerTag` not being found. This is normal, because we have not yet created this class; the error will go away once we create the class later.
 
 The `MyLightRandomizer` class extends `Randomizer`, which is the base class for all Randomizers that can be added to a Scenario. This base class provides a plethora of useful functions and properties that can help catalyze the process of creating new Randomizers.
 
@@ -84,6 +69,23 @@ public class MyLightRandomizerTag : RandomizerTag
 Yes, a RandomizerTag can be this simple if you just need it for helping Randomizers query for target objects. Later, you will learn how to add code here to encapsulate more data and logic within the randomized objects. 
 
 Notice there is a `RequireComponent(typeof(Light))` line at the top. This line makes it so that you can only add the `MyLightRandomizerTag` component to an object that already has a `Light` component attached. This way, the Randomizers that query for this tag can be confident that the found tags are attached to GameObjects that also have a `Light` component, and can thus be Randomized.
+
+If you return to your list of Randomizers in the _**Inspector**_ view of `SimulationScenario`, you can now add the new Randomizer we created here.
+
+* **:green_circle: Action**: Add `MyLightRandomizer` to the list of Randomizers in `SimulationScenario`.
+
+You will notice that the Randomizer's UI snippet contains one Parameter named `Light Intensity Parameter`. This is the same Parameter we added in the code block above. Here, you can set the sampling distribution (`Value`) and `Range` for this float Parameter:
+
+<p align="center">
+<img src="Images/light_rand_1.png" width="420"/>
+</p>
+
+
+* **:green_circle: Action**:  In the UI snippet for `MyLightRandomzier`, set the minimum and maximum for range to **0.5** and **3**.
+
+This range of intensities is arbitrary but will give us a typically nice lighting without excessive darkness or burnt-out highlights. 
+
+It is now time to add the tag we created earlier to the light in our Scene, so that the Randomizer can find it.
 
 * **:green_circle: Action**: Select `Directional Light` in the Scene's _**Hierarchy**_, and in the _**Inspector**_ tab, add a `My Light Randomizer Tag` component.
 * **:green_circle: Action**: Run the simulation again and inspect how `Directional Light` now switches between different intensities. You can pause the simulation and then use the step button (to the right of the pause button) to move the simulation one frame forward and clearly see the varying light intensity

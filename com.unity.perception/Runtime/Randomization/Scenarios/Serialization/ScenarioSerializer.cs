@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -136,7 +137,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     min = normalSampler.range.minimum,
                     max = normalSampler.range.maximum,
                     mean = normalSampler.mean,
-                    standardDeviation = normalSampler.standardDeviation
+                    stddev = normalSampler.standardDeviation
                 };
             else
                 throw new ArgumentException($"Invalid sampler type ({sampler.GetType()})");
@@ -245,7 +246,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                         maximum = (float)normalSampler.max
                     },
                     mean = (float)normalSampler.mean,
-                    standardDeviation = (float)normalSampler.standardDeviation
+                    standardDeviation = (float)normalSampler.stddev
                 };
             throw new ArgumentException($"Cannot deserialize unsupported sampler type {samplerOption.GetType()}");
         }

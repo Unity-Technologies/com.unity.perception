@@ -1,0 +1,26 @@
+﻿<UXML xmlns="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements">
+    <VisualElement style="margin-bottom: 4px;">
+        <Style src="../../Uss/Styles.uss"/>
+        <Label name="name" text="Field Name" class="unity-base-field__label"/>
+        <VisualElement style="margin-left: 18px;">
+            <VisualElement style="flex-direction: row; align-items: center;">
+                <Label
+                    text="Location"
+                    class="unity-base-field__label"
+                    tooltip="The asset source location to load assets from"/>
+                <editor:ToolbarMenu name="location-dropdown" text="Type" class="sampler__type-menu"/>
+            </VisualElement>
+            <VisualElement style="margin-left: 18px;">
+                <VisualElement name="fields-container" style="flex-grow: 1;"/>
+                <TextElement name="location-notes" class="scenario__info-box"/>
+            </VisualElement>
+            <VisualElement style="flex-direction: row; align-items: center;">
+                <Label
+                    text="Asset Role"
+                    class="unity-base-field__label"
+                    tooltip="Asset Roles preprocess assets loaded from the selected asset source location"/>
+                <editor:ToolbarMenu name="asset-role-dropdown" text="Type" class="sampler__type-menu"/>
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

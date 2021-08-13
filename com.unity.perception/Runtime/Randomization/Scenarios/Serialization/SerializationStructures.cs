@@ -23,6 +23,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     {
         public string name = string.Empty;
         public string description = string.Empty;
+        public string imageLink = string.Empty;
     }
 
     class Group
@@ -59,7 +60,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public double min;
         public double max;
         public double mean;
-        public double standardDeviation;
+        public double stddev;
     }
 
     class ConstantSampler : ISamplerOption

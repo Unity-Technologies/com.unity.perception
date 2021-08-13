@@ -224,12 +224,12 @@ namespace UnityEngine.Perception.GroundTruth
                         {
                             include = true;
                             break;
-                }
-            }
+                        }
+                    }
 
                     if (!include && objectFilter == KeypointObjectFilter.VisibleAndOccluded)
                         include = keypointSet.Value.keypoints.Any(k => k.state == 1);
-        }
+                }
                 if (include)
                     m_KeypointEntriesToReport.Add(entry);
             }

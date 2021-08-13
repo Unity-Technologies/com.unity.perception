@@ -149,7 +149,7 @@ namespace GroundTruthTests
             var labeler1 = new ObjectCountLabeler(cfg);
             labeler1.objectCountMetricId = "a1da3c27-369d-4929-aea6-d01614635ce2";
             var labeler2 = new ObjectCountLabeler(cfg);
-            labeler1.objectCountMetricId = "b1da3c27-369d-4929-aea6-d01614635ce2";
+            labeler2.objectCountMetricId = "b1da3c27-369d-4929-aea6-d01614635ce2";
 
             perceptionCamera.AddLabeler(labeler1);
             perceptionCamera.AddLabeler(labeler2);

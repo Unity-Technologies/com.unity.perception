@@ -12,7 +12,6 @@ using UnityEngine.TestTools;
 using Moq;
 using Moq.Protected;
 using UnityEngine.Rendering;
-
 #endif
 
 namespace EditorTests
@@ -205,8 +204,11 @@ namespace EditorTests
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
             camera.orthographicSize = 1;
+
 #if HDRP_PRESENT
             cameraObject.AddComponent<UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData>();
+#elif URP_PRESENT
+            cameraObject.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
 #endif
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();

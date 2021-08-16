@@ -156,10 +156,12 @@ namespace UnityEditor.Perception.GroundTruth
                     GUIUtility.systemCopyBuffer = dir;
                 }
                 GUILayout.EndHorizontal();
+#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
                 if (GUILayout.Button("Open Visualizer"))
                 {
                     UnityEditor.Perception.Visualizer.VisualizerInstaller.RunVisualizer();
                 }
+#endif
                 GUILayout.EndVertical();
             }
 

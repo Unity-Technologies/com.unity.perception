@@ -115,7 +115,6 @@ namespace UnityEditor.Perception.Visualizer
         /// <returns></returns>
         private static int ExecuteCMD(string command, ref int ExitCode, ref string output, int waitForExit = 0, bool displayWindow = false, bool getOutput = false)
         {
-            UnityEngine.Debug.Log(command);
             string shell = "";
             string argument = "";
 

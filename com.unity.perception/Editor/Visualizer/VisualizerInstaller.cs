@@ -1,4 +1,4 @@
-#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || true
+#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

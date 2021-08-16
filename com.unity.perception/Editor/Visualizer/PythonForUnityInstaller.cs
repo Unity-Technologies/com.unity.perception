@@ -1,4 +1,4 @@
-#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || true
+#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
 using System;
 using UnityEditor;
 using UnityEditor.PackageManager.Requests;
@@ -8,17 +8,13 @@ using System.Threading;
 
 namespace UnityEditor.Perception.Visualizer
 {
-#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
     [InitializeOnLoad]
-#endif
     internal static class PythonForUnityInstaller
     {
-#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
         static PythonForUnityInstaller()
         {
             Add();
         }
-#endif
         
         internal static void Add()
         {

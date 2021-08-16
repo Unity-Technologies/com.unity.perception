@@ -1,3 +1,4 @@
+#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -77,3 +78,4 @@ namespace UnityEditor.Perception.Visualizer
         }
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX || true
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -92,9 +93,9 @@ namespace UnityEditor.Perception.Visualizer
 
             EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing the Visualizer...", 2.5f / steps);
     #if UNITY_EDITOR_WIN
-            ExecuteCMD($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref ExitCode, ref output);
+            ExecuteCMD($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: 0);
     #elif UNITY_EDITOR_OSX
-            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref ExitCode, ref output);
+            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: 0);
     #endif
             if (ExitCode != 0) {
                 EditorUtility.ClearProgressBar();
@@ -102,7 +103,7 @@ namespace UnityEditor.Perception.Visualizer
             }
 
             EditorUtility.ClearProgressBar();
-	    UnityEngine.Debug.Log("Successfully installed visualizer");
+	        UnityEngine.Debug.Log("Successfully installed visualizer");
         }
 
         /// <summary>
@@ -130,18 +131,18 @@ namespace UnityEditor.Perception.Visualizer
             info.CreateNoWindow = !displayWindow;
             info.UseShellExecute = false;
             info.RedirectStandardOutput = getOutput;
-            info.RedirectStandardError = waitForExit == 0;
+            info.RedirectStandardError = waitForExit != 0;
 
             Process cmd = Process.Start(info);
 
-            if (!(waitForExit != 0))
+            if (waitForExit == 0)
             {
                 return cmd.Id;
             }
 
 
             cmd.WaitForExit(waitForExit);
-            if (getOutput) {
+            if (getOutput && waitForExit != 0) {
                 output = cmd.StandardOutput.ReadToEnd();
             }
 
@@ -155,13 +156,15 @@ namespace UnityEditor.Perception.Visualizer
 
             return 0;
         }
+
+
         /// <summary>
         /// If an instance is already running for this project it opens the browser at the correct port
         /// If no instance is found it launches a new process
         /// </summary>
         [MenuItem("Window/Visualizer/Run")]
         public static void RunVisualizer()
-        {
+        {            
             if (!checkIfVisualizerInstalled())
             {
                 SetupVisualizer();
@@ -777,3 +780,4 @@ namespace UnityEditor.Perception.Visualizer
         }
     }
 }
+#endif

@@ -91,11 +91,11 @@ namespace UnityEditor.Perception.Visualizer
 
             //==============================INSTALL VISUALIZER IN PYTHON FOR UNITY======================================
 
-            EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing the Visualizer...", 2.5f / steps);
+            EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes - this only happens once)", 2.5f / steps);
     #if UNITY_EDITOR_WIN
-            ExecuteCMD($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: 0);
+            ExecuteCMD($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: -1);
     #elif UNITY_EDITOR_OSX
-            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: 0);
+            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: -1);
     #endif
             if (ExitCode != 0) {
                 EditorUtility.ClearProgressBar();
@@ -115,6 +115,7 @@ namespace UnityEditor.Perception.Visualizer
         /// <returns></returns>
         private static int ExecuteCMD(string command, ref int ExitCode, ref string output, int waitForExit = 0, bool displayWindow = false, bool getOutput = false)
         {
+            UnityEngine.Debug.Log(command);
             string shell = "";
             string argument = "";
 
@@ -131,7 +132,7 @@ namespace UnityEditor.Perception.Visualizer
             info.CreateNoWindow = !displayWindow;
             info.UseShellExecute = false;
             info.RedirectStandardOutput = getOutput;
-            info.RedirectStandardError = waitForExit != 0;
+            info.RedirectStandardError = waitForExit > 0;
 
             Process cmd = Process.Start(info);
 
@@ -140,16 +141,25 @@ namespace UnityEditor.Perception.Visualizer
                 return cmd.Id;
             }
 
-
-            cmd.WaitForExit(waitForExit);
+            if(waitForExit == -1)
+            {
+                cmd.WaitForExit();
+            }
+            else if(waitForExit > 0)
+            {
+                cmd.WaitForExit(waitForExit);
+            }
+            
             if (getOutput && waitForExit != 0) {
                 output = cmd.StandardOutput.ReadToEnd();
             }
 
-            ExitCode = cmd.ExitCode;
-            if (ExitCode != 0)
-            {
-                UnityEngine.Debug.LogError($"Error - {ExitCode} - Failed to execute: {command} - {cmd.StandardError.ReadToEnd()}");
+            if (cmd.HasExited){
+                ExitCode = cmd.ExitCode;
+                if (ExitCode != 0)
+                {
+                    UnityEngine.Debug.LogError($"Error - {ExitCode} - Failed to execute: {command} - {cmd.StandardError.ReadToEnd()}");
+                }
             }
 
             cmd.Close();

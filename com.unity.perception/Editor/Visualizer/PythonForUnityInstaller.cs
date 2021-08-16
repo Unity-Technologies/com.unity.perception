@@ -21,8 +21,6 @@ namespace UnityEditor.Perception.Visualizer
             if (!checkIfPackageInstalled())
             {
                 AddRequest request = Client.Add("com.unity.scripting.python@4.0.0-exp.5");
-                
-                EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing the Visualizer...", 0.2f);
 
                 while (!request.IsCompleted)
                 {

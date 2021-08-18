@@ -155,7 +155,7 @@ namespace UnityEditor.Perception.Visualizer
                 }
             }
 
-            if (getOutput && waitForExit != 0)
+            if (getOutput)
             {
                 output = cmd.StandardOutput.ReadToEnd();
             }
@@ -169,7 +169,7 @@ namespace UnityEditor.Perception.Visualizer
                 }
             }
 
-            cmd?.Close();
+            cmd.Close();
 
             return 0;
         }

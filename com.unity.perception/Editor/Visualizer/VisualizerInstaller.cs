@@ -189,10 +189,13 @@ namespace UnityEditor.Perception.Visualizer
 
             var (pythonPid, port, visualizerPid) = ReadEntry(project);
 
+            EditorUtility.DisplayProgressBar("Opening Visualizer", "Checking if instance exists", 0.5f / 4);
             //If there is a python instance for this project AND it is alive then just run browser
             if(pythonPid != -1 && ProcessAlive(pythonPid, port, visualizerPid))
             {
+                EditorUtility.DisplayProgressBar("Opening Visualizer", "Opening", 4f / 4);
                 LaunchBrowser(port);
+                EditorUtility.ClearProgressBar();
             }
             //Otherwise delete any previous entry for this project and launch a new process
             else
@@ -200,16 +203,20 @@ namespace UnityEditor.Perception.Visualizer
                 DeleteEntry(project);
                 var before = Process.GetProcesses();
 
+                EditorUtility.DisplayProgressBar("Opening Visualizer", "Running executable", 1f / 4);
                 var errorCode = ExecuteVisualizer();
                 if(errorCode == -1)
                 {
                     Debug.LogError("Could not launch visualizer tool");
+                    EditorUtility.ClearProgressBar();
                     return;
                 }
                 Process[] after;
 
                 const int maxAttempts = 5;
+
                 //Poll for new processes until the visualizer process is launched
+                EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Visualizer instance", 2f / 4);
                 var newVisualizerPid = -1;
                 var attempts = 0;
                 while(newVisualizerPid == -1)
@@ -220,12 +227,14 @@ namespace UnityEditor.Perception.Visualizer
                     if(attempts == maxAttempts)
                     {
                         Debug.LogError("Failed to get visualizer ID");
+                        EditorUtility.ClearProgressBar();
                         return;
                     }
                     attempts++;
                 }
 
                 //Poll for new processes until the streamlit python script is launched
+                EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Streamlit instance", 3f / 4);
                 var newPythonPid = -1;
                 attempts = 0;
                 while(newPythonPid == -1)
@@ -236,12 +245,14 @@ namespace UnityEditor.Perception.Visualizer
                     if(attempts == maxAttempts)
                     {
                         Debug.LogError("Failed to get python ID");
+                        EditorUtility.ClearProgressBar();
                         return;
                     }
                     attempts++;
                 }
 
                 //Poll until the python script starts using the port
+                EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Port", 3.5f / 4);
                 var newPort = -1;
                 attempts = 0;
                 while(newPort == -1)
@@ -251,6 +262,7 @@ namespace UnityEditor.Perception.Visualizer
                     if(attempts == maxAttempts)
                     {
                         Debug.LogError("Failed to get PORT");
+                        EditorUtility.ClearProgressBar();
                         return;
                     }
                     attempts++;
@@ -269,7 +281,9 @@ namespace UnityEditor.Perception.Visualizer
                     LaunchBrowser(newPort);
                 }*/
 
+                EditorUtility.DisplayProgressBar("Opening Visualizer", "Opening", 4f / 4);
                 LaunchBrowser(newPort);
+                EditorUtility.ClearProgressBar();
 
             }
         }

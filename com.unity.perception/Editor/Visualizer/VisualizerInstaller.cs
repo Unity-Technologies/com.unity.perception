@@ -87,7 +87,7 @@ namespace UnityEditor.Perception.Visualizer
 
             //==============================INSTALL VISUALIZER IN PYTHON FOR UNITY======================================
 
-            EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes - this only happens once)", 2.5f / steps);
+            EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes)", 2f / steps);
 #if UNITY_EDITOR_WIN
             ExecuteCmd($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref exitCode, ref output, waitForExit: -1);
 #elif UNITY_EDITOR_OSX
@@ -219,7 +219,7 @@ namespace UnityEditor.Perception.Visualizer
 
                 Process[] after;
 
-                const int maxAttempts = 5;
+                const int maxAttempts = 10;
 
                 //Poll for new processes until the visualizer process is launched
                 EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Visualizer instance", 2f / 4);

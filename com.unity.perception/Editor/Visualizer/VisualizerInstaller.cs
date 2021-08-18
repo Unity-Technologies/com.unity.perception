@@ -1,5 +1,4 @@
 #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
-#define UNITY_EDITOR_OSX
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -311,7 +310,7 @@ namespace UnityEditor.Perception.Visualizer
 
         static (int pythonPID, int port, int visualizerPID) ReadEntry(string project)
         {
-            if (!Directory.Exists(PathToStreamlitInstances) || !File.Exists(PathToStreamlitInstances))
+            if (!File.Exists(PathToStreamlitInstances))
                 return (-1,-1,-1);
 
             using var sr = File.OpenText(PathToStreamlitInstances);
@@ -366,7 +365,7 @@ namespace UnityEditor.Perception.Visualizer
                 // try/catch to skip any process that may not exist anymore
                 try
                 {
-                    if (p.ProcessName.ToLower().Contains(name))
+                    if (p.ProcessName.ToLower().Contains(name.ToLower()))
                     {
                         foreach (var q in before)
                         {

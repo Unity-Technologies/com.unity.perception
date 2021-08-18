@@ -29,7 +29,7 @@ Shader "Perception/KeypointDepthCheck"
         Pass
         {
             PackageRequirements {
-                "com.unity.render-pipelines.highdefinition"
+                "com.unity.render-pipelines.high-definition"
             }
             Tags { "LightMode" = "SRP" }
 

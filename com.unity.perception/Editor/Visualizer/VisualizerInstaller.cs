@@ -313,15 +313,17 @@ namespace UnityEditor.Perception.Visualizer
             if (!File.Exists(PathToStreamlitInstances))
                 return (-1,-1,-1);
 
-            using var sr = File.OpenText(PathToStreamlitInstances);
-            string line;
-            while ((line = sr.ReadLine()) != null)
+            using (var sr = File.OpenText(PathToStreamlitInstances))
             {
-                var entry = line.TrimEnd().Split(',');
-                if(entry[0] == project)
+                string line;
+                while ((line = sr.ReadLine()) != null)
                 {
-                    //The -1 on ports is because the System.Diagnosis.Process API starts at 0 where as the PID in Windows and Mac start at 1
-                    return (int.Parse(entry[1]) -1, int.Parse(entry[2]), int.Parse(entry[3]) -1);
+                    var entry = line.TrimEnd().Split(',');
+                    if(entry[0] == project)
+                    {
+                        //The -1 on ports is because the System.Diagnosis.Process API starts at 0 where as the PID in Windows and Mac start at 1
+                        return (int.Parse(entry[1]) -1, int.Parse(entry[2]), int.Parse(entry[3]) -1);
+                    }
                 }
             }
 
@@ -331,8 +333,10 @@ namespace UnityEditor.Perception.Visualizer
         static void WriteEntry(string project, int pythonId, int port, int visualizerId)
         {
             var path = PathToStreamlitInstances;
-            using var sw = File.AppendText(path);
-            sw.WriteLine($"{project},{pythonId},{port},{visualizerId}");
+            using (var sw = File.AppendText(path))
+            {
+                sw.WriteLine($"{project},{pythonId},{port},{visualizerId}");
+            }
         }
 
         static void DeleteEntry(string project)
@@ -342,10 +346,12 @@ namespace UnityEditor.Perception.Visualizer
                 return;
             var entries = new List<string>(File.ReadAllLines(path));
             entries = entries.FindAll(x => !x.StartsWith(project));
-            using var sw = File.CreateText(path);
-            foreach(var entry in entries)
+            using (var sw = File.CreateText(path))
             {
-                sw.WriteLine(entry.TrimEnd());
+                foreach(var entry in entries)
+                {
+                    sw.WriteLine(entry.TrimEnd());
+                }
             }
         }
 
@@ -503,7 +509,7 @@ namespace UnityEditor.Perception.Visualizer
 
                 try
                 {
-                    using var proc = new Process();
+
                     var startInfo = new ProcessStartInfo();
 #if UNITY_EDITOR_WIN
                     startInfo.FileName = "netstat.exe";
@@ -518,57 +524,61 @@ namespace UnityEditor.Perception.Visualizer
                     startInfo.RedirectStandardOutput = true;
                     startInfo.RedirectStandardError = true;
 
-                    proc.StartInfo = startInfo;
-                    proc.Start();
+                    using (var proc = new Process())
+                    {
+                        proc.StartInfo = startInfo;
+                        proc.Start();
 #if UNITY_EDITOR_OSX
                         proc.WaitForExit(2500);
 #endif
 
-                    var standardOutput = proc.StandardOutput;
-                    var standardError = proc.StandardError;
+                        var standardOutput = proc.StandardOutput;
+                        var standardError = proc.StandardError;
 
-                    var netStatContent = standardOutput.ReadToEnd() + standardError.ReadToEnd();
-                    var netStatExitStatus = proc.ExitCode.ToString();
+                        var netStatContent = standardOutput.ReadToEnd() + standardError.ReadToEnd();
+                        var netStatExitStatus = proc.ExitCode.ToString();
 
-                    if (netStatExitStatus != "0")
-                    {
-                        Debug.LogError("NetStat command failed.   This may require elevated permissions.");
-                    }
+
+                        if (netStatExitStatus != "0")
+                        {
+                            Debug.LogError("NetStat command failed.   This may require elevated permissions.");
+                        }
 
 #if UNITY_EDITOR_WIN
-                    var netStatRows = Regex.Split(netStatContent, "\r\n");
+                        var netStatRows = Regex.Split(netStatContent, "\r\n");
 #elif UNITY_EDITOR_OSX
-                    var netStatRows = Regex.Split(netStatContent, "\n");
+                        var netStatRows = Regex.Split(netStatContent, "\n");
 #endif
 
-                    foreach (var netStatRow in netStatRows)
-                    {
-                        var tokens = Regex.Split(netStatRow, "\\s+");
+
+                        foreach (var netStatRow in netStatRows)
+                        {
+                            var tokens = Regex.Split(netStatRow, "\\s+");
 #if UNITY_EDITOR_WIN
-                        if (tokens.Length > 4 && (tokens[1].Equals("UDP") || tokens[1].Equals("TCP")))
-                        {
-                            var ipAddress = Regex.Replace(tokens[2], @"\[(.*?)\]", "1.1.1.1");
-                            try
+                            if (tokens.Length > 4 && (tokens[1].Equals("UDP") || tokens[1].Equals("TCP")))
                             {
-                                processPorts.Add(new ProcessPort(
-                                    tokens[1] == "UDP" ? Convert.ToInt32(tokens[4]) : Convert.ToInt32(tokens[5]),
-                                    Convert.ToInt32(ipAddress.Split(':')[1])
-                                ));
+                                var ipAddress = Regex.Replace(tokens[2], @"\[(.*?)\]", "1.1.1.1");
+                                try
+                                {
+                                    processPorts.Add(new ProcessPort(
+                                        tokens[1] == "UDP" ? Convert.ToInt32(tokens[4]) : Convert.ToInt32(tokens[5]),
+                                        Convert.ToInt32(ipAddress.Split(':')[1])
+                                    ));
+                                }
+                                catch
+                                {
+                                    Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
+                                    Debug.LogError(netStatRow);
+                                }
                             }
-                            catch
+                            else
                             {
-                                Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
-                                Debug.LogError(netStatRow);
+                                if (!netStatRow.Trim().StartsWith("Proto") && !netStatRow.Trim().StartsWith("Active") && !String.IsNullOrWhiteSpace(netStatRow))
+                                {
+                                    Debug.LogError("Unrecognized NetStat row to a Process to Port mapping.");
+                                    Debug.LogError(netStatRow);
+                                }
                             }
-                        }
-                        else
-                        {
-                            if (!netStatRow.Trim().StartsWith("Proto") && !netStatRow.Trim().StartsWith("Active") && !String.IsNullOrWhiteSpace(netStatRow))
-                            {
-                                Debug.LogError("Unrecognized NetStat row to a Process to Port mapping.");
-                                Debug.LogError(netStatRow);
-                            }
-                        }
 #elif UNITY_EDITOR_OSX
                             if (tokens.Length == 12 && tokens[0].Equals("tcp4") & (tokens[3].Contains("localhost") || tokens[3].Contains("*.")))
                             {
@@ -592,6 +602,7 @@ namespace UnityEditor.Perception.Visualizer
                                 }
                             }
 #endif
+                        }
                     }
                 }
                 catch (Exception ex)

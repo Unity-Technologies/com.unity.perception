@@ -19,17 +19,17 @@ namespace UnityEditor.Perception.GroundTruth
             if (!shadersToPreprocess.Contains(shader.name))
                 return;
 
+            var hdrpKeyword = new ShaderKeyword(shader, "HDRP_ENABLED");
 #if HDRP_PRESENT || URP_PRESENT
 
 #if HDRP_PRESENT
-            var keyword = new ShaderKeyword(shader, "HDRP_ENABLED");
+            bool isHdrp = true;
 #else
-            var keyword = new ShaderKeyword(shader, "HDRP_DISABLED");
-
+            bool isHdrp = false;
 #endif
             for (var i = data.Count - 1; i >= 0; --i)
             {
-                if (data[i].shaderKeywordSet.IsEnabled(keyword))
+                if (data[i].shaderKeywordSet.IsEnabled(hdrpKeyword) == isHdrp)
                     continue;
 
                 data.RemoveAt(i);

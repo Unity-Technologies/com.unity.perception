@@ -1,17 +1,8 @@
 #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Unity.Simulation.Client;
 using UnityEngine;
 
 namespace UnityEditor.Perception.Visualizer
@@ -19,17 +10,17 @@ namespace UnityEditor.Perception.Visualizer
     static class PipAPI
     {
         static readonly HttpClient k_HttpClient;
-        static string s_PypiServer = "https://pypi.org";
-        static string s_PackageName = "unity-cv-datasetvisualizer";
+        const string k_PypiServer = "https://pypi.org";
+        const string k_PackageName = "unity-cv-datasetvisualizer";
 
         static PipAPI()
         {
             k_HttpClient = new HttpClient();
         }
 
-        static internal async Task<string> GetLatestVersionNumber()
+        internal static async Task<string> GetLatestVersionNumber()
         {
-			var requestUri = new Uri($"{s_PypiServer}/pypi/{s_PackageName}/json?Accept=application/json");
+            var requestUri = new Uri($"{k_PypiServer}/pypi/{k_PackageName}/json?Accept=application/json");
 			try
             {
             	var httpResponse = await k_HttpClient.GetAsync(requestUri);
@@ -39,10 +30,8 @@ namespace UnityEditor.Perception.Visualizer
                     dynamic responseJson = JsonConvert.DeserializeObject(responseString);
                     return responseJson.info.version;
                 }
-                else
-                {
-                    HandleApiErrors(httpResponse);
-                }
+
+                HandleApiErrors(httpResponse);
             }
             catch (HttpRequestException e)
             {
@@ -56,25 +45,28 @@ namespace UnityEditor.Perception.Visualizer
             Debug.LogError("A request to PyPI.org did not successfully complete: " + responseMessage.ReasonPhrase);
         }
 
-        static internal int compareVersions(string version1, string version2)
+        internal static int CompareVersions(string version1, string version2)
         {
-            string[] split1 = version1.Split('.');
-            string[] split2 = version2.Split('.');
+            var split1 = version1.Split('.');
+            var split2 = version2.Split('.');
 
-            if(split1.Length != split2.Length)
+            int i;
+            for(i = 0; i < Math.Min(split1.Length, split2.Length); i++)
             {
-                throw new ArgumentException($"Can't compare two versions that do not have the same format: {version1} & {version2}");
-            }
-
-            for(int i = 0; i < split1.Length; i++)
-            {
-                int compare = Int32.Parse(split1[i]) - Int32.Parse(split2[i]);
+                var compare = Int32.Parse(split1[i]) - Int32.Parse(split2[i]);
                 if (compare != 0)
                 {
                     return compare;
                 }
             }
-            return 0;            
+
+            if (i < split1.Length)
+                return -1;
+
+            if (i < split2.Length)
+                return 1;
+
+            return 0;
         }
     }
 }

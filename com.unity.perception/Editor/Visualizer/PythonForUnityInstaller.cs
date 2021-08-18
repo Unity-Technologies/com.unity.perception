@@ -1,6 +1,5 @@
 #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
 using System;
-using UnityEditor;
 using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -9,16 +8,16 @@ using System.Threading;
 namespace UnityEditor.Perception.Visualizer
 {
     [InitializeOnLoad]
-    internal static class PythonForUnityInstaller
+    static class PythonForUnityInstaller
     {
         static PythonForUnityInstaller()
         {
             Add();
         }
-        
-        internal static void Add()
+
+        static void Add()
         {
-            if (!checkIfPackageInstalled())
+            if (!CheckIfPackageInstalled())
             {
                 AddRequest request = Client.Add("com.unity.scripting.python@4.0.0-exp.5");
 
@@ -33,7 +32,7 @@ namespace UnityEditor.Perception.Visualizer
             }
         }
 
-        static bool checkIfPackageInstalled()
+        static bool CheckIfPackageInstalled()
         {
             ListRequest request = Client.List();
             while (!request.IsCompleted)

@@ -1,15 +1,16 @@
 #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
+#define UNITY_EDITOR_OSX
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using UnityEditor;
-using UnityEditor.Perception.Visualizer;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.Perception.Visualizer
 {
@@ -18,33 +19,34 @@ namespace UnityEditor.Perception.Visualizer
 
         //This files stores entries as ProjectDataPath,PythonPID,Port,VisualizerPID
         //It keeps a record of the instances of visualizer opened so that we don't open a new one everytime
-        private static readonly string _filename_streamlit_instances = "Unity/streamlit_instances.csv";
-        private static string PathToStreamlitInstances
+        const string k_FilenameStreamlitInstances = "Unity/streamlit_instances.csv";
+
+        static string PathToStreamlitInstances
         {
             get
             {
     #if UNITY_EDITOR_WIN
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), _filename_streamlit_instances);
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), k_FilenameStreamlitInstances);
     #elif UNITY_EDITOR_OSX
                 return Path.Combine(
                             Path.Combine(
                                 Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Library"
                             ),
-                        _filename_streamlit_instances);
+                            k_FilenameStreamlitInstances);
     #endif
             }
         }
-        private static readonly string nameOfVisualizerProcess
-    #if UNITY_EDITOR_WIN
-            = "datasetvisualizer";
-    #elif UNITY_EDITOR_OSX
+
+        const string k_NameOfVisualizerProcess
+    #if UNITY_EDITOR_OSX
             = "bash";
-    #else
-            = "";
+    #elif UNITY_EDITOR_WIN
+            = "datasetvisualizer";
     #endif
 
 
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// Install visualizer (Assumes python3 and pip3 are already installed)
         /// - installs virtualenv if it is not already installed
@@ -52,19 +54,19 @@ namespace UnityEditor.Perception.Visualizer
         /// </summary>
         static void SetupVisualizer()
         {
-            string project = Application.dataPath;
+            var project = Application.dataPath;
 
-            (int pythonPID, int port, int visualizerPID) = ReadEntry(project);
+            var (pythonPid, port, visualizerPid) = ReadEntry(project);
 
             //If there is a python instance for this project AND it is alive then setup will fail (must kill instance)
-            if(pythonPID != -1 && ProcessAlive(pythonPID, port, visualizerPID))
+            if(pythonPid != -1 && ProcessAlive(pythonPid, port, visualizerPid))
             {
                 if (EditorUtility.DisplayDialog("Kill visualizer?",
                     "The visualizer tool can't be running while you setup, would you like to kill the current instance?",
                     "Kill visualizer",
                     "Cancel"))
                 {
-                    Process.GetProcessById(pythonPID + 1).Kill();
+                    Process.GetProcessById(pythonPid + 1).Kill();
                 }
                 else
                 {
@@ -73,13 +75,13 @@ namespace UnityEditor.Perception.Visualizer
             }
 
 
-            int steps = 3;
-            int ExitCode = 0;
+            const int steps = 3;
+            var exitCode = 0;
             string output = null;
 
             //==============================SETUP PATHS======================================
     #if UNITY_EDITOR_WIN
-            string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
+            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
     #elif UNITY_EDITOR_OSX
             string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
     #endif
@@ -93,99 +95,103 @@ namespace UnityEditor.Perception.Visualizer
 
             EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes - this only happens once)", 2.5f / steps);
     #if UNITY_EDITOR_WIN
-            ExecuteCMD($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: -1);
+            ExecuteCmd($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref exitCode, ref output, waitForExit: -1);
     #elif UNITY_EDITOR_OSX
-            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: -1);
+            ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref exitCode, ref output, waitForExit: -1);
     #endif
-            if (ExitCode != 0) {
+            if (exitCode != 0) {
                 EditorUtility.ClearProgressBar();
                 return;
             }
 
             EditorUtility.ClearProgressBar();
-	        UnityEngine.Debug.Log("Successfully installed visualizer");
+	        Debug.Log("Successfully installed visualizer");
         }
 
         /// <summary>
         /// Executes command in cmd or console depending on system
         /// </summary>
         /// <param name="command">The command to execute</param>
+        /// <param name="exitCode">int reference to get exit code</param>
+        /// <param name="output">string reference to save output</param>
         /// <param name="waitForExit">Should it wait for exit before returning to the editor (i.e. is it not async?)</param>
         /// <param name="displayWindow">Should the command window be displayed</param>
-        /// <returns></returns>
-        private static int ExecuteCMD(string command, ref int ExitCode, ref string output, int waitForExit = 0, bool displayWindow = false, bool getOutput = false)
+        /// <param name="getOutput">Whether or not to get output</param>
+        /// <returns>PID of process that started</returns>
+        static int ExecuteCmd(string command, ref int exitCode, ref string output, int waitForExit = 0, bool displayWindow = false, bool getOutput = false)
         {
-            string shell = "";
-            string argument = "";
+#if UNITY_EDITOR_WIN
+            const string shell = "cmd.exe";
+            var argument = $"/c \"{command}\"";
+#elif UNITY_EDITOR_OSX
+            const string shell = "/bin/bash";
+            var argument = $"-c \"{command}\"";
+#endif
 
-    #if UNITY_EDITOR_WIN
-            shell = "cmd.exe";
-            argument = $"/c \"{command}\"";
-    #elif UNITY_EDITOR_OSX
-            shell = "/bin/bash";
-            argument = $"-c \"{command}\"";
-    #endif
-
-            ProcessStartInfo info = new ProcessStartInfo(shell, argument);
+            var info = new ProcessStartInfo(shell, argument);
 
             info.CreateNoWindow = !displayWindow;
             info.UseShellExecute = false;
             info.RedirectStandardOutput = getOutput;
             info.RedirectStandardError = waitForExit > 0;
 
-            Process cmd = Process.Start(info);
-
-            if (waitForExit == 0)
+            var cmd = Process.Start(info);
+            switch (waitForExit)
             {
-                return cmd.Id;
-            }
-
-            if(waitForExit == -1)
-            {
-                cmd.WaitForExit();
-            }
-            else if(waitForExit > 0)
-            {
-                cmd.WaitForExit(waitForExit);
-            }
-            
-            if (getOutput && waitForExit != 0) {
-                output = cmd.StandardOutput.ReadToEnd();
-            }
-
-            if (cmd.HasExited){
-                ExitCode = cmd.ExitCode;
-                if (ExitCode != 0)
+                case 0:
+                    if (cmd != null) return cmd.Id;
+                    break;
+                case -1:
+                    cmd?.WaitForExit();
+                    break;
+                default:
                 {
-                    UnityEngine.Debug.LogError($"Error - {ExitCode} - Failed to execute: {command} - {cmd.StandardError.ReadToEnd()}");
+                    if(waitForExit > 0)
+                    {
+                        cmd?.WaitForExit(waitForExit);
+                    }
+                    break;
                 }
             }
 
-            cmd.Close();
+            if (getOutput && waitForExit != 0) {
+                output = cmd?.StandardOutput.ReadToEnd();
+            }
+
+            if (cmd is { HasExited: true }){
+                exitCode = cmd.ExitCode;
+                if (exitCode != 0)
+                {
+                    Debug.LogError($"Error - {exitCode} - Failed to execute: {command} - {cmd.StandardError.ReadToEnd()}");
+                }
+            }
+
+            cmd?.Close();
 
             return 0;
         }
 
 
+        // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// If an instance is already running for this project it opens the browser at the correct port
         /// If no instance is found it launches a new process
         /// </summary>
         [MenuItem("Window/Visualizer/Run")]
         public static void RunVisualizer()
-        {            
-            if (!checkIfVisualizerInstalled())
+        {
+            if (!CheckIfVisualizerInstalled())
             {
                 SetupVisualizer();
             }
 
             //The dataPath is used as a unique identifier for the project
-            string project = Application.dataPath;
+            var project = Application.dataPath;
 
-            (int pythonPID, int port, int visualizerPID) = ReadEntry(project);
+            var (pythonPid, port, visualizerPid) = ReadEntry(project);
 
             //If there is a python instance for this project AND it is alive then just run browser
-            if(pythonPID != -1 && ProcessAlive(pythonPID, port, visualizerPID))
+            if(pythonPid != -1 && ProcessAlive(pythonPid, port, visualizerPid))
             {
                 LaunchBrowser(port);
             }
@@ -193,69 +199,69 @@ namespace UnityEditor.Perception.Visualizer
             else
             {
                 DeleteEntry(project);
-                Process[] before = Process.GetProcesses();
+                var before = Process.GetProcesses();
 
-                int errorCode = ExecuteVisualizer();
+                var errorCode = ExecuteVisualizer();
                 if(errorCode == -1)
                 {
-                    UnityEngine.Debug.LogError("Could not launch visualizer tool");
+                    Debug.LogError("Could not launch visualizer tool");
                     return;
                 }
-                Process[] after = null;
+                Process[] after;
 
-                int maxAttempts = 20;
+                const int maxAttempts = 5;
                 //Poll for new processes until the visualizer process is launched
-                int newVisualizerPID = -1;
-                int attempts = 0;
-                while(newVisualizerPID == -1)
+                var newVisualizerPid = -1;
+                var attempts = 0;
+                while(newVisualizerPid == -1)
                 {
-                    Thread.Sleep(200);
+                    Thread.Sleep(1000);
                     after = Process.GetProcesses();
-                    newVisualizerPID = GetNewProcessID(before, after, nameOfVisualizerProcess);
+                    newVisualizerPid = GetNewProcessID(before, after, k_NameOfVisualizerProcess);
                     if(attempts == maxAttempts)
                     {
-                        UnityEngine.Debug.LogError("Failed to get visualizer ID");
+                        Debug.LogError("Failed to get visualizer ID");
                         return;
                     }
                     attempts++;
                 }
 
                 //Poll for new processes until the streamlit python script is launched
-                int newPythonPID = -1;
+                var newPythonPid = -1;
                 attempts = 0;
-                while(newPythonPID == -1)
+                while(newPythonPid == -1)
                 {
-                    Thread.Sleep(200);
+                    Thread.Sleep(1000);
                     after = Process.GetProcesses();
-                    newPythonPID = GetNewProcessID(before, after, "python");
+                    newPythonPid = GetNewProcessID(before, after, "python");
                     if(attempts == maxAttempts)
                     {
-                        UnityEngine.Debug.LogError("Failed to get python ID");
+                        Debug.LogError("Failed to get python ID");
                         return;
                     }
                     attempts++;
                 }
 
                 //Poll until the python script starts using the port
-                int newPort = -1;
+                var newPort = -1;
                 attempts = 0;
                 while(newPort == -1)
                 {
-                    Thread.Sleep(200);
-                    newPort = GetPortForPID(newPythonPID);
+                    Thread.Sleep(1000);
+                    newPort = GetPortForPid(newPythonPid);
                     if(attempts == maxAttempts)
                     {
-                        UnityEngine.Debug.LogError("Failed to get PORT");
+                        Debug.LogError("Failed to get PORT");
                         return;
                     }
                     attempts++;
                 }
 
                 //Save this into the streamlit_instances.csv file
-                WriteEntry(project, newPythonPID, newPort, newVisualizerPID);
+                WriteEntry(project, newPythonPid, newPort, newVisualizerPid);
 
                 //When launching the process it will try to open a new tab in the default browser, however if a tab for it already exists it will not
-                //For convinience if the user wants to force a new one to open they can press on "manually open"
+                //For convenience if the user wants to force a new one to open they can press on "manually open"
                 /*if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
                     $"The visualizer tool should open shortly in your default browser at http://localhost:{newPort}.\n\nIf this is not the case after a few seconds you may open it manually",
                     "Manually Open",
@@ -274,81 +280,73 @@ namespace UnityEditor.Perception.Visualizer
         /// </summary>
         static int ExecuteVisualizer()
         {
-            string path = Path.GetFullPath(Application.dataPath.Replace("/Assets", ""));
     #if UNITY_EDITOR_WIN
-            string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
+            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
     #elif UNITY_EDITOR_OSX
-            string packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
+            var packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
     #endif
 
-            string pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
+            var pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
     #if UNITY_EDITOR_WIN
-            path = path.Replace("/", "\\");
             packagesPath = packagesPath.Replace("/", "\\");
             pathToData = pathToData.Replace("/", "\\");
     #endif
-            string command = "";
+
     #if UNITY_EDITOR_WIN
-            command = $"cd \"{pathToData}\" && \"{packagesPath}\\datasetvisualizer.exe\" --data=\".\"";
+            var command = $"cd \"{pathToData}\" && \"{packagesPath}\\datasetvisualizer.exe\" --data=\".\"";
     #elif UNITY_EDITOR_OSX
-            command = $"cd \'{pathToData}\'; \'{packagesPath}/datasetvisualizer\' --data=\'.\'";
+            var command = $"cd \'{pathToData}\'; \'{packagesPath}/datasetvisualizer\' --data=\'.\'";
     #endif
 
             string output = null;
-            int ExitCode = 0;
-            int PID = ExecuteCMD(command, ref ExitCode, ref output, waitForExit: 0, displayWindow: false);
-            if (ExitCode != 0)
+            var exitCode = 0;
+            var pid = ExecuteCmd(command, ref exitCode, ref output, waitForExit: 0, displayWindow: false);
+            if (exitCode != 0)
             {
-                UnityEngine.Debug.LogError("Problem occured when launching the visualizer - Exit Code: " + ExitCode);
+                Debug.LogError("Problem occured when launching the visualizer - Exit Code: " + exitCode);
                 return -1;
             }
-            return PID;
+            return pid;
         }
 
-        private static (int pythonPID, int port, int visualizerPID) ReadEntry(string project)
+        static (int pythonPID, int port, int visualizerPID) ReadEntry(string project)
         {
-            string path = PathToStreamlitInstances;
-            if (!Directory.Exists(PathToStreamlitInstances))
-            if (!File.Exists(path))
+            if (!Directory.Exists(PathToStreamlitInstances) || !File.Exists(PathToStreamlitInstances))
                 return (-1,-1,-1);
-            using (StreamReader sr = File.OpenText(path))
+
+            using var sr = File.OpenText(PathToStreamlitInstances);
+            string line;
+            while ((line = sr.ReadLine()) != null)
             {
-                string line;
-                while ((line = sr.ReadLine()) != null)
+                var entry = line.TrimEnd().Split(',');
+                if(entry[0] == project)
                 {
-                    string[] entry = line.TrimEnd().Split(',');
-                    if(entry[0] == project)
-                    {
-                        //The -1 on ports is because the System.Diagnosis.Process API starts at 0 where as the PID in Windows and Mac start at 1
-                        return (int.Parse(entry[1]) -1, int.Parse(entry[2]), int.Parse(entry[3]) -1);
-                    }
+                    //The -1 on ports is because the System.Diagnosis.Process API starts at 0 where as the PID in Windows and Mac start at 1
+                    return (int.Parse(entry[1]) -1, int.Parse(entry[2]), int.Parse(entry[3]) -1);
                 }
             }
+
             return (-1,-1,-1);
         }
 
-        private static void WriteEntry(string project, int pythonId, int port, int visualizerId)
+        static void WriteEntry(string project, int pythonId, int port, int visualizerId)
         {
-            string path = PathToStreamlitInstances;
-            using (StreamWriter sw = File.AppendText(path))
-            {
-                sw.WriteLine($"{project},{pythonId},{port},{visualizerId}");
-            }
+            var path = PathToStreamlitInstances;
+            using var sw = File.AppendText(path);
+            sw.WriteLine($"{project},{pythonId},{port},{visualizerId}");
         }
 
-        private static void DeleteEntry(string project)
+        static void DeleteEntry(string project)
         {
-            string path = PathToStreamlitInstances;
+            var path = PathToStreamlitInstances;
             if (!File.Exists(path))
                 return;
-            List<string> entries = new List<string>(File.ReadAllLines(path));
+            var entries = new List<string>(File.ReadAllLines(path));
             entries = entries.FindAll(x => !x.StartsWith(project));
-            using(StreamWriter sw = File.CreateText(path))
+            using var sw = File.CreateText(path);
+            foreach(var entry in entries)
             {
-                foreach(string entry in entries)
-                {
-                    sw.WriteLine(entry.TrimEnd());
-                }
+                sw.WriteLine(entry.TrimEnd());
             }
         }
 
@@ -360,17 +358,17 @@ namespace UnityEditor.Perception.Visualizer
         /// <param name="after"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private static int GetNewProcessID(Process[] before, Process[] after, string name)
+        static int GetNewProcessID(Process[] before, Process[] after, string name)
         {
-            foreach(Process p in after)
+            foreach(var p in after)
             {
-                bool isNew = true;
+                var isNew = true;
                 // try/catch to skip any process that may not exist anymore
                 try
                 {
                     if (p.ProcessName.ToLower().Contains(name))
                     {
-                        foreach (Process q in before)
+                        foreach (var q in before)
                         {
                             if (p.Id == q.Id)
                             {
@@ -384,7 +382,10 @@ namespace UnityEditor.Perception.Visualizer
                         }
                     }
                 }
-                catch { }
+                catch
+                {
+                    // ignored
+                }
             }
             return -1;
         }
@@ -392,13 +393,13 @@ namespace UnityEditor.Perception.Visualizer
         /// <summary>
         /// Finds which port the process PID is using
         /// </summary>
-        /// <param name="PID"></param>
+        /// <param name="pid"></param>
         /// <returns></returns>
-        private static int GetPortForPID(int PID)
+        static int GetPortForPid(int pid)
         {
-            foreach(ProcessPort p in ProcessPorts.ProcessPortMap)
+            foreach(var p in ProcessPorts.ProcessPortMap)
             {
-                if(p.ProcessId == PID)
+                if(p.ProcessId == pid)
                 {
                     return p.PortNumber;
                 }
@@ -410,7 +411,7 @@ namespace UnityEditor.Perception.Visualizer
         /// Launches browser at localhost:port
         /// </summary>
         /// <param name="port"></param>
-        private static void LaunchBrowser(int port)
+        static void LaunchBrowser(int port)
         {
             Process.Start($"http://localhost:{port}");
         }
@@ -418,29 +419,29 @@ namespace UnityEditor.Perception.Visualizer
         /// <summary>
         /// Check if streamlit process is alive
         /// </summary>
-        /// <param name="pythonPID"></param>
+        /// <param name="pythonPid"></param>
         /// <param name="port"></param>
-        /// <param name="visualizerPID"></param>
+        /// <param name="visualizerPid"></param>
         /// <returns></returns>
-        private static bool ProcessAlive(int pythonPID, int port, int visualizerPID)
+        static bool ProcessAlive(int pythonPid, int port, int visualizerPid)
         {
-            return PIDExists(pythonPID) &&
-                checkProcessName(pythonPID, "python") &&
-                ProcessListensToPort(pythonPID, port) &&
-                PIDExists(visualizerPID) &&
-                checkProcessName(visualizerPID, nameOfVisualizerProcess);
+            return PidExists(pythonPid) &&
+                CheckProcessName(pythonPid, "python") &&
+                ProcessListensToPort(pythonPid, port) &&
+                PidExists(visualizerPid) &&
+                CheckProcessName(visualizerPid, k_NameOfVisualizerProcess);
         }
 
         /// <summary>
         /// Check if a process with ProcessId = PID is alive
         /// </summary>
-        /// <param name="PID"></param>
+        /// <param name="pid"></param>
         /// <returns></returns>
-        private static bool PIDExists(int PID)
+        static bool PidExists(int pid)
         {
              try
              {
-                Process proc = Process.GetProcessById(PID + 1);
+                var proc = Process.GetProcessById(pid + 1);
                 if (proc.HasExited)
                 {
                     return false;
@@ -459,25 +460,25 @@ namespace UnityEditor.Perception.Visualizer
         /// <summary>
         /// Check if process with PID has a name that contains "name"
         /// </summary>
-        /// <param name="PID"></param>
+        /// <param name="pid"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        private static bool checkProcessName(int PID, string name)
+        static bool CheckProcessName(int pid, string name)
         {
-            Process proc = Process.GetProcessById(PID + 1);
+            var proc = Process.GetProcessById(pid + 1);
             return proc.ProcessName.ToLower().Contains(name);
         }
 
         /// <summary>
         /// Check if the given PID listens to given port
         /// </summary>
-        /// <param name="PID"></param>
+        /// <param name="pid"></param>
         /// <param name="port"></param>
         /// <returns></returns>
-        private static bool ProcessListensToPort(int PID, int port)
+        static bool ProcessListensToPort(int pid, int port)
         {
-            List<ProcessPort> processes = ProcessPorts.ProcessPortMap.FindAll(
-                x => x.ProcessId == PID + 1 && x.PortNumber == port
+            var processes = ProcessPorts.ProcessPortMap.FindAll(
+                x => x.ProcessId == pid + 1 && x.PortNumber == port
             );
             return processes.Count >= 1;
         }
@@ -485,210 +486,148 @@ namespace UnityEditor.Perception.Visualizer
         /// <summary>
         /// Static class that returns the list of processes and the ports those processes use.
         /// </summary>
-        private static class ProcessPorts
+        static class ProcessPorts
         {
             /// <summary>
-            /// A list of ProcesesPorts that contain the mapping of processes and the ports that the process uses.
+            /// A list of ProcessPorts that contain the mapping of processes and the ports that the process uses.
             /// </summary>
-            public static List<ProcessPort> ProcessPortMap
-            {
-                get
-                {
-                    return GetNetStatPorts();
-                }
-            }
-
+            public static List<ProcessPort> ProcessPortMap => GetNetStatPorts();
 
             /// <summary>
             /// This method distills the output from Windows: netstat -a -n -o or OSX: netstat -v -a into a list of ProcessPorts that provide a mapping between
             /// the process (name and id) and the ports that the process is using.
             /// </summary>
             /// <returns></returns>
-            private static List<ProcessPort> GetNetStatPorts()
+            static List<ProcessPort> GetNetStatPorts()
             {
-                List<ProcessPort> ProcessPorts = new List<ProcessPort>();
+                var processPorts = new List<ProcessPort>();
 
                 try
                 {
-                    using (Process Proc = new Process())
+                    using var proc = new Process();
+                    var startInfo = new ProcessStartInfo();
+#if UNITY_EDITOR_WIN
+                    startInfo.FileName = "netstat.exe";
+                    startInfo.Arguments = "-a -n -o";
+#elif UNITY_EDITOR_OSX
+                        startInfo.FileName = "netstat";
+                        startInfo.Arguments = "-n -v -a";
+#endif
+                    startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    startInfo.UseShellExecute = false;
+                    startInfo.RedirectStandardInput = true;
+                    startInfo.RedirectStandardOutput = true;
+                    startInfo.RedirectStandardError = true;
+
+                    proc.StartInfo = startInfo;
+                    proc.Start();
+#if UNITY_EDITOR_OSX
+                        proc.WaitForExit(2500);
+#endif
+
+                    var standardOutput = proc.StandardOutput;
+                    var standardError = proc.StandardError;
+
+                    var netStatContent = standardOutput.ReadToEnd() + standardError.ReadToEnd();
+                    var netStatExitStatus = proc.ExitCode.ToString();
+
+                    if (netStatExitStatus != "0")
                     {
+                        Debug.LogError("NetStat command failed.   This may require elevated permissions.");
+                    }
 
-                        ProcessStartInfo StartInfo = new ProcessStartInfo();
-    #if UNITY_EDITOR_WIN
-                        StartInfo.FileName = "netstat.exe";
-                        StartInfo.Arguments = "-a -n -o";
-    #elif UNITY_EDITOR_OSX
-                        StartInfo.FileName = "netstat";
-                        StartInfo.Arguments = "-n -v -a";
-    #endif
-                        StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                        StartInfo.UseShellExecute = false;
-                        StartInfo.RedirectStandardInput = true;
-                        StartInfo.RedirectStandardOutput = true;
-                        StartInfo.RedirectStandardError = true;
+#if UNITY_EDITOR_WIN
+                    var netStatRows = Regex.Split(netStatContent, "\r\n");
+#elif UNITY_EDITOR_OSX
+                    var netStatRows = Regex.Split(netStatContent, "\n");
+#endif
 
-                        Proc.StartInfo = StartInfo;
-                        Proc.Start();
-    #if UNITY_EDITOR_OSX
-                        Proc.WaitForExit(2500);
-    #endif
-
-                        StreamReader StandardOutput = Proc.StandardOutput;
-                        StreamReader StandardError = Proc.StandardError;
-
-                        string NetStatContent = StandardOutput.ReadToEnd() + StandardError.ReadToEnd();
-                        string NetStatExitStatus = Proc.ExitCode.ToString();
-
-                        if (NetStatExitStatus != "0")
+                    foreach (var netStatRow in netStatRows)
+                    {
+                        var tokens = Regex.Split(netStatRow, "\\s+");
+#if UNITY_EDITOR_WIN
+                        if (tokens.Length > 4 && (tokens[1].Equals("UDP") || tokens[1].Equals("TCP")))
                         {
-                            UnityEngine.Debug.LogError("NetStat command failed.   This may require elevated permissions.");
+                            var ipAddress = Regex.Replace(tokens[2], @"\[(.*?)\]", "1.1.1.1");
+                            try
+                            {
+                                processPorts.Add(new ProcessPort(
+                                    tokens[1] == "UDP" ? Convert.ToInt32(tokens[4]) : Convert.ToInt32(tokens[5]),
+                                    Convert.ToInt32(ipAddress.Split(':')[1])
+                                ));
+                            }
+                            catch
+                            {
+                                Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
+                                Debug.LogError(netStatRow);
+                            }
                         }
-
-                        string[] NetStatRows = null;
-    #if UNITY_EDITOR_WIN
-                        NetStatRows = Regex.Split(NetStatContent, "\r\n");
-    #elif UNITY_EDITOR_OSX
-                        NetStatRows = Regex.Split(NetStatContent, "\n");
-    #endif
-
-                        foreach (string NetStatRow in NetStatRows)
+                        else
                         {
-                            string[] Tokens = Regex.Split(NetStatRow, "\\s+");
-    #if UNITY_EDITOR_WIN
-                            if (Tokens.Length > 4 && (Tokens[1].Equals("UDP") || Tokens[1].Equals("TCP")))
+                            if (!netStatRow.Trim().StartsWith("Proto") && !netStatRow.Trim().StartsWith("Active") && !String.IsNullOrWhiteSpace(netStatRow))
                             {
-                                string IpAddress = Regex.Replace(Tokens[2], @"\[(.*?)\]", "1.1.1.1");
-                                try
-                                {
-                                    ProcessPorts.Add(new ProcessPort(
-                                        Tokens[1] == "UDP" ? GetProcessName(Convert.ToInt16(Tokens[4])) : GetProcessName(Convert.ToInt32(Tokens[5])),
-                                        Tokens[1] == "UDP" ? Convert.ToInt32(Tokens[4]) : Convert.ToInt32(Tokens[5]),
-                                        IpAddress.Contains("1.1.1.1") ? String.Format("{0}v6", Tokens[1]) : String.Format("{0}v4", Tokens[1]),
-                                        Convert.ToInt32(IpAddress.Split(':')[1])
-                                    ));
-                                }
-                                catch
-                                {
-                                    UnityEngine.Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
-                                    UnityEngine.Debug.LogError(NetStatRow);
-                                }
+                                Debug.LogError("Unrecognized NetStat row to a Process to Port mapping.");
+                                Debug.LogError(netStatRow);
                             }
-                            else
-                            {
-                                if (!NetStatRow.Trim().StartsWith("Proto") && !NetStatRow.Trim().StartsWith("Active") && !String.IsNullOrWhiteSpace(NetStatRow))
-                                {
-                                    UnityEngine.Debug.LogError("Unrecognized NetStat row to a Process to Port mapping.");
-                                    UnityEngine.Debug.LogError(NetStatRow);
-                                }
-                            }
-    #elif UNITY_EDITOR_OSX
-                            if (Tokens.Length == 12 && Tokens[0].Equals("tcp4") & (Tokens[3].Contains("localhost") || Tokens[3].Contains("*.")))
+                        }
+#elif UNITY_EDITOR_OSX
+                            if (tokens.Length == 12 && tokens[0].Equals("tcp4") & (tokens[3].Contains("localhost") || tokens[3].Contains("*.")))
                             {
                                 try
                                 {
-                                    if(Tokens[5] != "CLOSED"){
-                                        ProcessPorts.Add(new ProcessPort(
-                                            GetProcessName(Convert.ToInt32(Tokens[8])),
-                                            Convert.ToInt32(Tokens[8]),
-                                            "tcp4",
-                                            Convert.ToInt32(Tokens[3].Split('.')[1])
+                                    if(tokens[5] != "CLOSED"){
+                                        processPorts.Add(new ProcessPort(
+                                            Convert.ToInt32(tokens[8]),
+                                            Convert.ToInt32(tokens[3].Split('.')[1])
                                         ));
                                     }
                                 }
                                 catch (FormatException)
-				{
-				    continue;
-				}
-				catch 
                                 {
-                                    UnityEngine.Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
-                                    UnityEngine.Debug.LogError(NetStatRow);
+
+                                }
+                                catch
+                                {
+                                    Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
+                                    Debug.LogError(netStatRow);
                                 }
                             }
-    #endif
-                        }
+#endif
                     }
                 }
                 catch (Exception ex)
                 {
-                    UnityEngine.Debug.LogError(ex.Message);
+                    Debug.LogError(ex.Message);
                 }
-                return ProcessPorts;
-            }
-
-            /// <summary>
-            /// Private method that handles pulling the process name (if one exists) from the process id.
-            /// </summary>
-            /// <param name="ProcessId"></param>
-            /// <returns></returns>
-            private static string GetProcessName(int ProcessId)
-            {
-                string procName = "UNKNOWN";
-
-                try
-                {
-                    procName = Process.GetProcessById(ProcessId).ProcessName;
-                }
-                catch { }
-
-                return procName;
+                return processPorts;
             }
         }
 
         /// <summary>
         /// A mapping for processes to ports and ports to processes that are being used in the system.
         /// </summary>
-        private class ProcessPort
+        class ProcessPort
         {
-            private string _ProcessName = String.Empty;
-            private int _ProcessId = 0;
-            private string _Protocol = String.Empty;
-            private int _PortNumber = 0;
-
             /// <summary>
             /// Internal constructor to initialize the mapping of process to port.
             /// </summary>
-            /// <param name="ProcessName">Name of process to be </param>
-            /// <param name="ProcessId"></param>
-            /// <param name="Protocol"></param>
-            /// <param name="PortNumber"></param>
-            internal ProcessPort (string ProcessName, int ProcessId, string Protocol, int PortNumber)
+            /// <param name="processId"></param>
+            /// <param name="portNumber"></param>
+            internal ProcessPort (int processId, int portNumber)
             {
-                _ProcessName = ProcessName;
-                _ProcessId = ProcessId;
-                _Protocol = Protocol;
-                _PortNumber = PortNumber;
+                ProcessId = processId;
+                PortNumber = portNumber;
             }
 
-            public string ProcessPortDescription
-            {
-                get
-                {
-                    return String.Format("{0} ({1} port {2} pid {3})", _ProcessName, _Protocol, _PortNumber, _ProcessId);
-                }
-            }
-            public string ProcessName
-            {
-                get { return _ProcessName; }
-            }
-            public int ProcessId
-            {
-                get { return _ProcessId; }
-            }
-            public string Protocol
-            {
-                get { return _Protocol; }
-            }
-            public int PortNumber
-            {
-                get { return _PortNumber; }
-            }
+            public int ProcessId { get; }
+
+            public int PortNumber { get; }
         }
 
         [MenuItem("Window/Visualizer/Check For Updates")]
-        private static void CheckForUpdates()
+        static void CheckForUpdates()
         {
-            if (!checkIfVisualizerInstalled())
+            if (!CheckIfVisualizerInstalled())
             {
                 if (EditorUtility.DisplayDialog("Visualizer not Installed",
                     $"The visualizer is not yet installed, do you wish to install it?",
@@ -699,10 +638,10 @@ namespace UnityEditor.Perception.Visualizer
                 }
                 return;
             }
-            string latestVersion = Task.Run(PipAPI.GetLatestVersionNumber).Result;
+            var latestVersion = Task.Run(PipAPI.GetLatestVersionNumber).Result;
 
 #if UNITY_EDITOR_WIN
-            string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
+            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
 #elif UNITY_EDITOR_OSX
             string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
 #endif
@@ -710,35 +649,27 @@ namespace UnityEditor.Perception.Visualizer
 #if UNITY_EDITOR_WIN
             packagesPath = packagesPath.Replace("/", "\\");
 #endif
-            int ExitCode = -1;
+            var exitCode = -1;
             string output = null;
 #if UNITY_EDITOR_WIN
-            ExecuteCMD($"\"{packagesPath}\"\\pip3.bat show unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: 1500, getOutput: true);
+            ExecuteCmd($"\"{packagesPath}\"\\pip3.bat show unity-cv-datasetvisualizer", ref exitCode, ref output, waitForExit: 1500, getOutput: true);
 #elif UNITY_EDITOR_OSX
-            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip show unity-cv-datasetvisualizer", ref ExitCode, ref output, waitForExit: 1500, getOutput: true);
+            ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip show unity-cv-datasetvisualizer", ref exitCode, ref output, waitForExit: 1500, getOutput: true);
 #endif
-            if (ExitCode != 0) {
-                UnityEngine.Debug.LogError("Could not get the version of the current install of the visualizer tool");
+            if (exitCode != 0) {
+                Debug.LogError("Could not get the version of the current install of the visualizer tool");
                 return;
             }
 
-            string currentVersion = null;
-            string[] outputLines = output.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-            for(int i = 0; i < outputLines.Length; i++)
-            {
-                if(outputLines[i].StartsWith("Version: "))
-                {
-                    currentVersion = outputLines[i].Substring("Version: ".Length);
-                    break;
-                }
-            }
+            var outputLines = output.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            var currentVersion = (from t in outputLines where t.StartsWith("Version: ") select t.Substring("Version: ".Length)).FirstOrDefault();
 
             if (currentVersion == null) {
-                UnityEngine.Debug.LogError("Could not parse the version of the current install of the visualizer tool");
+                Debug.LogError("Could not parse the version of the current install of the visualizer tool");
                 return;
             }
 
-            if(PipAPI.compareVersions(latestVersion, currentVersion) > 0)
+            if(PipAPI.CompareVersions(latestVersion, currentVersion) > 0)
             {
                 if (EditorUtility.DisplayDialog("Update Found for Visualizer",
                     $"An update was found for the Visualizer",
@@ -754,38 +685,31 @@ namespace UnityEditor.Perception.Visualizer
             }
         }
 
-        private static bool checkIfVisualizerInstalled()
+        static bool CheckIfVisualizerInstalled()
         {
 #if UNITY_EDITOR_WIN
-            string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
+            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/Scripts"));
 #elif UNITY_EDITOR_OSX
-            string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
+            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
 #endif
 
 #if UNITY_EDITOR_WIN
             packagesPath = packagesPath.Replace("/", "\\");
 #endif
-            int ExitCode = 0;
+            var exitCode = 0;
             string output = null;
 #if UNITY_EDITOR_WIN
-            ExecuteCMD($"\"{packagesPath}\"\\pip3.bat list", ref ExitCode, ref output, waitForExit: 1500, getOutput: true);
+            ExecuteCmd($"\"{packagesPath}\"\\pip3.bat list", ref exitCode, ref output, waitForExit: 1500, getOutput: true);
 #elif UNITY_EDITOR_OSX
-            ExecuteCMD($"cd \'{packagesPath}\'; ./python3.7 -m pip list", ref ExitCode, ref output, waitForExit: 1500, getOutput: true);
+            ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip list", ref exitCode, ref output, waitForExit: 1500, getOutput: true);
 #endif
-            if (ExitCode != 0) {
-                UnityEngine.Debug.LogError("Could not list pip packages");
+            if (exitCode != 0) {
+                Debug.LogError("Could not list pip packages");
                 return false;
             }
 
-            string[] outputLines = output.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-            for(int i = 0; i < outputLines.Length; i++)
-            {
-                if (outputLines[i].StartsWith("unity-cv-datasetvisualizer"))
-                {
-                    return true;
-                }
-            }
-            return false;
+            var outputLines = output.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            return outputLines.Any(t => t.StartsWith("unity-cv-datasetvisualizer"));
         }
     }
 }

@@ -28,6 +28,9 @@ Shader "Perception/KeypointDepthCheck"
     {
         Pass
         {
+            PackageRequirements {
+                "com.unity.render-pipelines.highdefinition"
+            }
             Tags { "LightMode" = "SRP" }
 
             Name "KeypointDepthCheck"
@@ -57,7 +60,6 @@ Shader "Perception/KeypointDepthCheck"
             Texture2D _Positions;
             Texture2D _KeypointCheckDepth;
 
-#if HDRP_ENABLED
             #pragma enable_d3d11_debug_symbols
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
@@ -87,7 +89,41 @@ Shader "Perception/KeypointDepthCheck"
                 uint result = depth >= checkDepth ? 1 : 0;
                 return float4(result, result, result, 1);
             }
-#else
+            ENDHLSL
+        }
+        Pass
+        {
+            PackageRequirements {
+                "com.unity.render-pipelines.universal"
+            }
+            Tags { "LightMode" = "SRP" }
+
+            Name "KeypointDepthCheck"
+            ZWrite Off
+            ZTest Always
+            Blend SrcAlpha OneMinusSrcAlpha
+            Cull Off
+
+            HLSLPROGRAM
+            #pragma only_renderers d3d11 vulkan metal
+            #pragma target 4.5
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+
+            static const float2 checkOffsets[9] = {
+                float2( 0,  0),
+                float2(-1, -1),
+                float2( 0, -1),
+                float2( 1, -1),
+                float2(-1,  0),
+                float2( 1,  0),
+                float2(-1,  1),
+                float2( 0,  1),
+                float2( 1,  1)};
+
+            Texture2D _Positions;
+            Texture2D _KeypointCheckDepth;
             #include "UnityCG.cginc"
 
             //copied from UnityInput.hlsl
@@ -191,7 +227,6 @@ Shader "Perception/KeypointDepthCheck"
                 uint result = depthVSActual >= depthVSToCheck  ? 1 : 0;
                 return float4(result, result, result, 1);
             }
-#endif
             ENDHLSL
         }
     }

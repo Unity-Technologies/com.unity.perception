@@ -157,7 +157,7 @@ namespace UnityEditor.Perception.Visualizer
                 output = cmd?.StandardOutput.ReadToEnd();
             }
 
-            if (cmd is { HasExited: true }){
+            if (cmd != null && cmd.HasExited){
                 exitCode = cmd.ExitCode;
                 if (exitCode != 0)
                 {

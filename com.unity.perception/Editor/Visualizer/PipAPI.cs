@@ -61,10 +61,10 @@ namespace UnityEditor.Perception.Visualizer
             }
 
             if (i < split1.Length)
-                return -1;
+                return 1;
 
             if (i < split2.Length)
-                return 1;
+                return -1;
 
             return 0;
         }

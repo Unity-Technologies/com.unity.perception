@@ -17,9 +17,9 @@
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
     - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}
-    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --reruncount=2 --artifacts_path=test-results --category=!Performance --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}StandaloneWindows64
     {% else %}
-    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}
+    - utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=./.Editor --reruncount=2 --artifacts_path=test-results --category=!Performance --stdout-filter=minimal --extra-editor-arg="--force-d3d11" {{suite.args}}
     {% endif %}
   artifacts:
     logs:
@@ -41,8 +41,8 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
   commands:
     - git submodule update --init --recursive
     - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
-    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
-    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform playmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
+    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results --category=!Performance -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
+    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform playmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results --category=!Performance -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
   #  - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;
   artifacts:
     logs:
@@ -73,9 +73,9 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
     - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
     {% if suite.name == "standalone" %}
-    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --extra-editor-arg="--force-vulkan" {{suite.args}}StandaloneLinux64
+    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --category=!Performance --extra-editor-arg="--force-vulkan" {{suite.args}}StandaloneLinux64
     {% else %}
-    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal  --extra-editor-arg="--force-vulkan" {{suite.args}}
+    - DISPLAY=:0.0 utr/utr --testproject=./TestProjects/{{project.name}} --editor-location=.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --category=!Performance  --extra-editor-arg="--force-vulkan" {{suite.args}}
     {% endif %}
   artifacts:
     logs:

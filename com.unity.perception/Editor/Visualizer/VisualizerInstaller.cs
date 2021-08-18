@@ -527,7 +527,7 @@ namespace UnityEditor.Perception.Visualizer
             public static List<ProcessPort> ProcessPortMap => GetNetStatPorts();
 
             /// <summary>
-            /// This method distills the output from Windows: netstat -a -n -o or OSX: netstat -v -a into a list of ProcessPorts that provide a mapping between
+            /// This method distills the output from Windows: netstat -a -n -o or OSX: netstat -n -v -a into a list of ProcessPorts that provide a mapping between
             /// the process (name and id) and the ports that the process is using.
             /// </summary>
             /// <returns></returns>

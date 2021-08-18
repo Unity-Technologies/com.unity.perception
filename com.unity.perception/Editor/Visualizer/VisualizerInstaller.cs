@@ -203,13 +203,13 @@ namespace UnityEditor.Perception.Visualizer
                 }
                 Process[] after = null;
 
-                int maxAttempts = 5;
+                int maxAttempts = 20;
                 //Poll for new processes until the visualizer process is launched
                 int newVisualizerPID = -1;
                 int attempts = 0;
                 while(newVisualizerPID == -1)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(200);
                     after = Process.GetProcesses();
                     newVisualizerPID = GetNewProcessID(before, after, nameOfVisualizerProcess);
                     if(attempts == maxAttempts)
@@ -225,7 +225,7 @@ namespace UnityEditor.Perception.Visualizer
                 attempts = 0;
                 while(newPythonPID == -1)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(200);
                     after = Process.GetProcesses();
                     newPythonPID = GetNewProcessID(before, after, "python");
                     if(attempts == maxAttempts)
@@ -241,7 +241,7 @@ namespace UnityEditor.Perception.Visualizer
                 attempts = 0;
                 while(newPort == -1)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(200);
                     newPort = GetPortForPID(newPythonPID);
                     if(attempts == maxAttempts)
                     {
@@ -519,7 +519,7 @@ namespace UnityEditor.Perception.Visualizer
                         StartInfo.Arguments = "-a -n -o";
     #elif UNITY_EDITOR_OSX
                         StartInfo.FileName = "netstat";
-                        StartInfo.Arguments = "-v -a";
+                        StartInfo.Arguments = "-n -v -a";
     #endif
                         StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                         StartInfo.UseShellExecute = false;

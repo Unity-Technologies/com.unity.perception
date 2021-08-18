@@ -19,7 +19,7 @@ namespace UnityEditor.Perception.Visualizer
         {
             if (!CheckIfPackageInstalled())
             {
-                AddRequest request = Client.Add("com.unity.scripting.python@4.0.0-exp.5");
+                var request = Client.Add("com.unity.scripting.python@4.0.0-exp.5");
 
                 while (!request.IsCompleted)
                 {
@@ -34,7 +34,7 @@ namespace UnityEditor.Perception.Visualizer
 
         static bool CheckIfPackageInstalled()
         {
-            ListRequest request = Client.List();
+            var request = Client.List();
             while (!request.IsCompleted)
             {
                 Thread.Sleep(100);

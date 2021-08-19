@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor.Perception.Visualizer;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
+using UnityEditor.Perception.Visualizer;
+#endif
 
 namespace UnityEditor.Perception.GroundTruth
 {

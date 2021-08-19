@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEditor.Perception.Visualizer;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -160,8 +161,8 @@ namespace UnityEditor.Perception.GroundTruth
 #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
                 if (GUILayout.Button("Open Visualizer"))
                 {
-                    Debug.Log("Hello?");
-                    Task.Run(Visualizer.VisualizerInstaller.RunVisualizer);
+                    var project = Application.dataPath;
+                    _=VisualizerInstaller.RunVisualizer(project);
                 }
 #endif
                 GUILayout.EndVertical();

@@ -184,21 +184,23 @@ namespace UnityEditor.Perception.Visualizer
             return 0;
         }
 
+        [MenuItem("Window/Visualizer/Open")]
+        public static async Task RunVisualizerButton()
+        {
+            var project = Application.dataPath;
+            await RunVisualizer(project);
+        }
         // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
         /// If an instance is already running for this project it opens the browser at the correct port
         /// If no instance is found it launches a new process
         /// </summary>
-        [MenuItem("Window/Visualizer/Run")]
-        public static async Task RunVisualizer()
+        public static async Task RunVisualizer(string project)
         {
-            if (!CheckIfVisualizerInstalled())
+            if (!CheckIfVisualizerInstalled(project))
             {
                 SetupVisualizer();
             }
-
-            //The dataPath is used as a unique identifier for the project
-            var project = Application.dataPath;
 
             var (pythonPid, port, visualizerPid) = ReadEntry(project);
 
@@ -219,7 +221,7 @@ namespace UnityEditor.Perception.Visualizer
                 var before = Process.GetProcesses();
 
                 EditorUtility.DisplayProgressBar("Opening Visualizer", "Running executable", 1f / 4);
-                var errorCode = ExecuteVisualizer();
+                var errorCode = ExecuteVisualizer(project);
                 if (errorCode == -1)
                 {
                     EditorUtility.ClearProgressBar();
@@ -308,12 +310,12 @@ namespace UnityEditor.Perception.Visualizer
         /// <summary>
         /// Runs visualizer instance (streamlit) from the python for unity install
         /// </summary>
-        static int ExecuteVisualizer()
+        static int ExecuteVisualizer(string project)
         {
 #if UNITY_EDITOR_WIN
-            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets", "/Library/PythonInstall/Scripts"));
+            var packagesPath = Path.GetFullPath(project.Replace("/Assets", "/Library/PythonInstall/Scripts"));
 #elif UNITY_EDITOR_OSX
-            var packagesPath = Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin");
+            var packagesPath = project.Replace("/Assets","/Library/PythonInstall/bin");
 #endif
 
             var pathToData = PlayerPrefs.GetString(SimulationState.latestOutputDirectoryKey);
@@ -680,7 +682,8 @@ namespace UnityEditor.Perception.Visualizer
         [MenuItem("Window/Visualizer/Check For Updates")]
         static async Task CheckForUpdates()
         {
-            if (!CheckIfVisualizerInstalled())
+            var project = Application.dataPath;
+            if (!CheckIfVisualizerInstalled(project))
             {
                 if (EditorUtility.DisplayDialog("Visualizer not Installed",
                     $"The visualizer is not yet installed, do you wish to install it?",
@@ -742,12 +745,12 @@ namespace UnityEditor.Perception.Visualizer
             }
         }
 
-        static bool CheckIfVisualizerInstalled()
+        static bool CheckIfVisualizerInstalled(string project)
         {
 #if UNITY_EDITOR_WIN
-            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets", "/Library/PythonInstall/Scripts"));
+            var packagesPath = Path.GetFullPath(project.Replace("/Assets", "/Library/PythonInstall/Scripts"));
 #elif UNITY_EDITOR_OSX
-            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
+            var packagesPath = Path.GetFullPath(project.Replace("/Assets","/Library/PythonInstall/bin"));
 #endif
 
 #if UNITY_EDITOR_WIN

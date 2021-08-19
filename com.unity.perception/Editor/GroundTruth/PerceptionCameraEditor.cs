@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+
 #if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
 using UnityEditor.Perception.Visualizer;
 #endif
@@ -159,13 +160,6 @@ namespace UnityEditor.Perception.GroundTruth
                     GUIUtility.systemCopyBuffer = dir;
                 }
                 GUILayout.EndHorizontal();
-#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
-                if (GUILayout.Button("Open Visualizer"))
-                {
-                    var project = Application.dataPath;
-                    _=VisualizerInstaller.RunVisualizer(project);
-                }
-#endif
                 GUILayout.EndVertical();
             }
 
@@ -198,6 +192,27 @@ namespace UnityEditor.Perception.GroundTruth
 
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
+
+#if UNITY_EDITOR_WIN || UNITY_EDITOR_OSX
+            GUILayout.Space(10);
+            EditorGUILayout.LabelField("Visualizer Tool");
+
+            GUILayout.BeginHorizontal("TextArea");
+            if (GUILayout.Button("Open Visualizer"))
+            {
+                var project = Application.dataPath;
+                _=VisualizerInstaller.RunVisualizer(project);
+            }
+
+            if (GUILayout.Button("Check For Updates"))
+            {
+                var project = Application.dataPath;
+                _=VisualizerInstaller.CheckForUpdates();
+            }
+
+            GUILayout.EndHorizontal();
+            GUILayout.Space(10);
+#endif
 
 
             if (EditorSettings.asyncShaderCompilation)

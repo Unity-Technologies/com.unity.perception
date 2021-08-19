@@ -42,17 +42,15 @@ namespace UnityEditor.Perception.Visualizer
 #endif
 
 
-        static Task<int> InstallationCommand(ref int exitCode, ref string output, string packagesPath)
+        static Task InstallationCommand(ref int exitCode, string packagesPath)
         {
             var exitCodeCopy = exitCode;
-            var outputCopy = output;
 #if UNITY_EDITOR_WIN
-            var task = Task.Run(() => ExecuteCmd($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref exitCodeCopy, ref outputCopy, waitForExit: -1));
+            var task = Task.Run(() => ExecuteCmd($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref exitCodeCopy));
 #elif UNITY_EDITOR_OSX
-            var task = Task.Run(() => ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref exitCodeCopy, ref outputCopy, waitForExit: -1));
+            var task = Task.Run(() => ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref exitCodeCopy));
 #endif
             exitCode = exitCodeCopy;
-            output = outputCopy;
             return task;
         }
 
@@ -84,7 +82,6 @@ namespace UnityEditor.Perception.Visualizer
 
             const int steps = 3;
             var exitCode = 0;
-            string output = null;
 
             //==============================SETUP PATHS======================================
 #if UNITY_EDITOR_WIN
@@ -101,7 +98,7 @@ namespace UnityEditor.Perception.Visualizer
 
             EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes)", 2f / steps);
 
-            await InstallationCommand(ref exitCode, ref output, packagesPath);
+            await InstallationCommand(ref exitCode, packagesPath);
 
             if (exitCode != 0)
             {
@@ -118,12 +115,8 @@ namespace UnityEditor.Perception.Visualizer
         /// </summary>
         /// <param name="command">The command to execute</param>
         /// <param name="exitCode">int reference to get exit code</param>
-        /// <param name="output">string reference to save output</param>
-        /// <param name="waitForExit">Should it wait for exit before returning to the editor (i.e. is it not async?)</param>
-        /// <param name="displayWindow">Should the command window be displayed</param>
-        /// <param name="getOutput">Whether or not to get output</param>
-        /// <returns>PID of process that started</returns>
-        static int ExecuteCmd(string command, ref int exitCode, ref string output, int waitForExit = 0, bool displayWindow = false, bool getOutput = false)
+        /// <param name="waitForExit">Whether this method should wait for the command to exist</param>
+        static void ExecuteCmd(string command, ref int exitCode, bool waitForExit = true)
         {
 #if UNITY_EDITOR_WIN
             const string shell = "cmd.exe";
@@ -135,40 +128,58 @@ namespace UnityEditor.Perception.Visualizer
 
             var info = new ProcessStartInfo(shell, argument);
 
-            info.CreateNoWindow = !displayWindow;
+            info.CreateNoWindow = true;
             info.UseShellExecute = false;
-            info.RedirectStandardOutput = getOutput;
-            info.RedirectStandardError = waitForExit > 0;
+            info.RedirectStandardOutput = false;
+            info.RedirectStandardError = false;
 
             var cmd = Process.Start(info);
             if (cmd == null)
             {
                 Debug.LogError($"Could not create process using command {command}");
-                return 0;
+                return;
             }
 
-            switch (waitForExit)
+            if (waitForExit)
             {
-                case 0:
-                    return cmd.Id;
-                case -1:
-                    cmd.WaitForExit();
-                    break;
-                default:
-                {
-                    if (waitForExit > 0)
-                    {
-                        cmd.WaitForExit(waitForExit);
-                    }
-
-                    break;
-                }
+                cmd.WaitForExit();
+                exitCode = cmd.ExitCode;
             }
+        }
 
-            if (getOutput)
+        /// <summary>
+        /// Executes command in cmd or console depending on system and waits a specified amount for the execution to finish
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="exitCode">int reference to get exit code</param>
+        /// <param name="output">string reference to save output</param>
+        /// <param name="waitForExit">Time to wait for the command to exit before returning to the editor</param>
+        static void ExecuteCmd(string command, ref int exitCode, ref string output, int waitForExit)
+        {
+#if UNITY_EDITOR_WIN
+            const string shell = "cmd.exe";
+            var argument = $"/c \"{command}\"";
+#elif UNITY_EDITOR_OSX
+            const string shell = "/bin/bash";
+            var argument = $"-c \"{command}\"";
+#endif
+
+            var info = new ProcessStartInfo(shell, argument);
+
+            info.CreateNoWindow = true;
+            info.UseShellExecute = false;
+            info.RedirectStandardOutput = true;
+            info.RedirectStandardError = true;
+
+            var cmd = Process.Start(info);
+            if (cmd == null)
             {
-                output = cmd.StandardOutput.ReadToEnd();
+                Debug.LogError($"Could not create process using command {command}");
+                return;
             }
+
+            cmd.WaitForExit(waitForExit);
+            output = cmd.StandardOutput.ReadToEnd();
 
             if (cmd.HasExited)
             {
@@ -180,8 +191,6 @@ namespace UnityEditor.Perception.Visualizer
             }
 
             cmd.Close();
-
-            return 0;
         }
 
         [MenuItem("Window/Dataset Visualizer/Open")]
@@ -197,112 +206,115 @@ namespace UnityEditor.Perception.Visualizer
         /// </summary>
         public static async Task RunVisualizer(string project)
         {
-            if (!CheckIfVisualizerInstalled(project))
+            try
             {
-                await SetupVisualizer();
-            }
-
-            var (pythonPid, port, visualizerPid) = ReadEntry(project);
-
-            EditorUtility.DisplayProgressBar("Opening Visualizer", "Checking if instance exists", 0.5f / 4);
-
-            //If there is a python instance for this project AND it is alive then just run browser
-            if (pythonPid != -1 && ProcessAlive(pythonPid, port, visualizerPid))
-            {
-                EditorUtility.DisplayProgressBar("Opening Visualizer", "Opening", 4f / 4);
-                LaunchBrowser(port);
-                EditorUtility.ClearProgressBar();
-            }
-
-            //Otherwise delete any previous entry for this project and launch a new process
-            else
-            {
-                DeleteEntry(project);
-                var before = Process.GetProcesses();
-
-                EditorUtility.DisplayProgressBar("Opening Visualizer", "Running executable", 1f / 4);
-                var errorCode = ExecuteVisualizer(project);
-                if (errorCode == -1)
+                if (!CheckIfVisualizerInstalled(project))
                 {
+                    await SetupVisualizer();
+                }
+
+                var (pythonPid, port, visualizerPid) = ReadEntry(project);
+
+                EditorUtility.DisplayProgressBar("Opening Visualizer", "Checking if instance exists", 0.5f / 4);
+
+                //If there is a python instance for this project AND it is alive then just run browser
+                if (pythonPid != -1 && ProcessAlive(pythonPid, port, visualizerPid))
+                {
+                    EditorUtility.DisplayProgressBar("Opening Visualizer", "Opening", 4f / 4);
+                    LaunchBrowser(port);
                     EditorUtility.ClearProgressBar();
-                    return;
                 }
 
-                Process[] after;
-
-                const int maxAttempts = 10;
-
-                //Poll for new processes until the visualizer process is launched
-                EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Visualizer instance", 2f / 4);
-                var newVisualizerPid = -1;
-                var attempts = 0;
-                while (newVisualizerPid == -1)
+                //Otherwise delete any previous entry for this project and launch a new process
+                else
                 {
-                    await Task.Delay(1000);
-                    after = Process.GetProcesses();
-                    newVisualizerPid = GetNewProcessID(before, after, k_NameOfVisualizerProcess);
-                    if (attempts == maxAttempts)
+                    DeleteEntry(project);
+                    var before = Process.GetProcesses();
+
+                    EditorUtility.DisplayProgressBar("Opening Visualizer", "Running executable", 1f / 4);
+                    ExecuteVisualizer(project);
+
+                    Process[] after;
+
+                    const int maxAttempts = 10;
+
+                    //Poll for new processes until the visualizer process is launched
+                    EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Visualizer instance", 2f / 4);
+                    var newVisualizerPid = -1;
+                    var attempts = 0;
+                    while (newVisualizerPid == -1)
                     {
-                        Debug.LogWarning("Failed to get visualizer process ID after launch. Note that this does not necessarily mean the tool did not launch successfully. However, running the visualizer again will now create a new instance of the process.");
-                        EditorUtility.ClearProgressBar();
-                        return;
+                        await Task.Delay(1000);
+                        after = Process.GetProcesses();
+                        newVisualizerPid = GetNewProcessID(before, after, k_NameOfVisualizerProcess);
+                        if (attempts == maxAttempts)
+                        {
+                            Debug.LogWarning("Failed to get visualizer process ID after launch. Note that this does not necessarily mean the tool did not launch successfully. However, running the visualizer again will now create a new instance of the process.");
+                            EditorUtility.ClearProgressBar();
+                            return;
+                        }
+
+                        attempts++;
                     }
 
-                    attempts++;
-                }
-
-                //Poll for new processes until the streamlit python script is launched
-                EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Streamlit instance", 3f / 4);
-                var newPythonPid = -1;
-                attempts = 0;
-                while (newPythonPid == -1)
-                {
-                    await Task.Delay(1000);
-                    after = Process.GetProcesses();
-                    newPythonPid = GetNewProcessID(before, after, "python");
-                    if (attempts == maxAttempts)
+                    //Poll for new processes until the streamlit python script is launched
+                    EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Streamlit instance", 3f / 4);
+                    var newPythonPid = -1;
+                    attempts = 0;
+                    while (newPythonPid == -1)
                     {
-                        Debug.LogWarning("Failed to get python process ID after launch. Note that this does not necessarily mean the tool did not launch successfully. However, running the visualizer again will now create a new instance of the process.");
-                        EditorUtility.ClearProgressBar();
-                        return;
+                        await Task.Delay(1000);
+                        after = Process.GetProcesses();
+                        newPythonPid = GetNewProcessID(before, after, "python");
+                        if (attempts == maxAttempts)
+                        {
+                            Debug.LogWarning("Failed to get python process ID after launch. Note that this does not necessarily mean the tool did not launch successfully. However, running the visualizer again will now create a new instance of the process.");
+                            EditorUtility.ClearProgressBar();
+                            return;
+                        }
+
+                        attempts++;
                     }
 
-                    attempts++;
-                }
-
-                //Poll until the python script starts using the port
-                EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Port", 3.5f / 4);
-                var newPort = -1;
-                attempts = 0;
-                while (newPort == -1)
-                {
-                    await Task.Delay(1000);
-                    newPort = GetPortForPid(newPythonPid);
-                    if (attempts == maxAttempts)
+                    //Poll until the python script starts using the port
+                    EditorUtility.DisplayProgressBar("Opening Visualizer", "Finding Port", 3.5f / 4);
+                    var newPort = -1;
+                    attempts = 0;
+                    while (newPort == -1)
                     {
-                        Debug.LogWarning("Failed to get port number used by the visualizer tool after launch. Note that this does not necessarily mean the tool did not launch successfully. However, running the visualizer again will now create a new instance of the process.");
-                        EditorUtility.ClearProgressBar();
-                        return;
+                        await Task.Delay(1000);
+                        newPort = GetPortForPid(newPythonPid);
+                        if (attempts == maxAttempts)
+                        {
+                            Debug.LogWarning("Failed to get port number used by the visualizer tool after launch. Note that this does not necessarily mean the tool did not launch successfully. However, running the visualizer again will now create a new instance of the process.");
+                            EditorUtility.ClearProgressBar();
+                            return;
+                        }
+
+                        attempts++;
                     }
 
-                    attempts++;
+                    //Save this into the streamlit_instances.csv file
+                    WriteEntry(project, newPythonPid, newPort, newVisualizerPid);
+
+                    EditorUtility.DisplayProgressBar("Opening Visualizer", "Opening", 4f / 4);
+
+                    //When launching the process it will try to open a new tab in the default browser, however if a tab for it already exists it will not
+                    //For convenience if the user wants to force a new one to open they can press on "manually open"
+                    if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
+                        $"The visualizer tool should open shortly in your default browser at http://localhost:{newPort}.\n\nIf this is not the case after a few seconds you may open it manually",
+                        "Manually Open",
+                        "Cancel"))
+                    {
+                        LaunchBrowser(newPort);
+                    }
+
+                    EditorUtility.ClearProgressBar();
                 }
-
-                //Save this into the streamlit_instances.csv file
-                WriteEntry(project, newPythonPid, newPort, newVisualizerPid);
-
-                EditorUtility.DisplayProgressBar("Opening Visualizer", "Opening", 4f / 4);
-
-                //When launching the process it will try to open a new tab in the default browser, however if a tab for it already exists it will not
-                //For convenience if the user wants to force a new one to open they can press on "manually open"
-                if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
-                    $"The visualizer tool should open shortly in your default browser at http://localhost:{newPort}.\n\nIf this is not the case after a few seconds you may open it manually",
-                    "Manually Open",
-                    "Cancel"))
-                {
-                    LaunchBrowser(newPort);
-                }
-
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.Message);
                 EditorUtility.ClearProgressBar();
             }
         }
@@ -310,7 +322,7 @@ namespace UnityEditor.Perception.Visualizer
         /// <summary>
         /// Runs visualizer instance (streamlit) from the python for unity install
         /// </summary>
-        static int ExecuteVisualizer(string project)
+        static void ExecuteVisualizer(string project)
         {
 #if UNITY_EDITOR_WIN
             var packagesPath = Path.GetFullPath(project.Replace("/Assets", "/Library/PythonInstall/Scripts"));
@@ -330,16 +342,12 @@ namespace UnityEditor.Perception.Visualizer
             var command = $"cd \'{pathToData}\'; \'{packagesPath}/datasetvisualizer\' --data=\'.\'";
 #endif
 
-            string output = null;
             var exitCode = 0;
-            var pid = ExecuteCmd(command, ref exitCode, ref output, waitForExit: 0, displayWindow: false);
+            ExecuteCmd(command, ref exitCode, false);
             if (exitCode != 0)
             {
                 Debug.LogError("Failed launching the visualizer - Exit Code: " + exitCode);
-                return -1;
             }
-
-            return pid;
         }
 
         static (int pythonPID, int port, int visualizerPID) ReadEntry(string project)
@@ -680,7 +688,7 @@ namespace UnityEditor.Perception.Visualizer
         }
 
         [MenuItem("Window/Dataset Visualizer/Check For Updates")]
-        static async Task CheckForUpdates()
+        internal static async Task CheckForUpdates()
         {
             var project = Application.dataPath;
             if (!CheckIfVisualizerInstalled(project))
@@ -710,9 +718,9 @@ namespace UnityEditor.Perception.Visualizer
             var exitCode = -1;
             string output = null;
 #if UNITY_EDITOR_WIN
-            ExecuteCmd($"\"{packagesPath}\"\\pip3.bat show unity-cv-datasetvisualizer", ref exitCode, ref output, waitForExit: 1500, getOutput: true);
+            ExecuteCmd($"\"{packagesPath}\"\\pip3.bat show unity-cv-datasetvisualizer", ref exitCode, ref output, 1500);
 #elif UNITY_EDITOR_OSX
-            ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip show unity-cv-datasetvisualizer", ref exitCode, ref output, waitForExit: 1500, getOutput: true);
+            ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip show unity-cv-datasetvisualizer", ref exitCode, ref output, 1500);
 #endif
             if (exitCode != 0)
             {
@@ -759,9 +767,9 @@ namespace UnityEditor.Perception.Visualizer
             var exitCode = 0;
             string output = null;
 #if UNITY_EDITOR_WIN
-            ExecuteCmd($"\"{packagesPath}\"\\pip3.bat list", ref exitCode, ref output, waitForExit: 1500, getOutput: true);
+            ExecuteCmd($"\"{packagesPath}\"\\pip3.bat list", ref exitCode, ref output, waitForExit: 1500);
 #elif UNITY_EDITOR_OSX
-            ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip list", ref exitCode, ref output, waitForExit: 1500, getOutput: true);
+            ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip list", ref exitCode, ref output, waitForExit: 1500);
 #endif
             if (exitCode != 0)
             {

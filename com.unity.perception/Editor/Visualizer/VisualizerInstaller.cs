@@ -736,7 +736,7 @@ namespace UnityEditor.Perception.Visualizer
                     "Install",
                     "Cancel"))
                 {
-                    SetupVisualizer();
+                    await SetupVisualizer();
                 }
             }
             else

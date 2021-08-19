@@ -685,12 +685,12 @@ namespace UnityEditor.Perception.Visualizer
             var project = Application.dataPath;
             if (!CheckIfVisualizerInstalled(project))
             {
-                if (EditorUtility.DisplayDialog("Visualizer not Installed",
+                if (EditorUtility.DisplayDialog("Visualizer Not Installed",
                     $"The visualizer is not yet installed, do you wish to install it?",
                     "Install",
                     "Cancel"))
                 {
-                    SetupVisualizer();
+                    await SetupVisualizer();
                 }
 
                 return;

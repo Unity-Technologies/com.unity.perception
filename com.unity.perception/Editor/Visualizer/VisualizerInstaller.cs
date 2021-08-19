@@ -184,7 +184,7 @@ namespace UnityEditor.Perception.Visualizer
             return 0;
         }
 
-        [MenuItem("Window/Visualizer/Open")]
+        [MenuItem("Window/Dataset Visualizer/Open")]
         public static async Task RunVisualizerButton()
         {
             var project = Application.dataPath;
@@ -679,7 +679,7 @@ namespace UnityEditor.Perception.Visualizer
             public int PortNumber { get; }
         }
 
-        [MenuItem("Window/Visualizer/Check For Updates")]
+        [MenuItem("Window/Dataset Visualizer/Check For Updates")]
         static async Task CheckForUpdates()
         {
             var project = Application.dataPath;

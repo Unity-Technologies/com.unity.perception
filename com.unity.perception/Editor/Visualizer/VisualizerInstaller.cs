@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -42,13 +41,26 @@ namespace UnityEditor.Perception.Visualizer
             = "datasetvisualizer";
 #endif
 
+
+        static Task<int> InstallationCommand(ref int exitCode, ref string output, string packagesPath)
+        {
+            var exitCodeCopy = exitCode;
+            var outputCopy = output;
+#if UNITY_EDITOR_WIN
+            var task = Task.Run(() => ExecuteCmd($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref exitCodeCopy, ref outputCopy, waitForExit: -1));
+#elif UNITY_EDITOR_OSX
+            var task = Task.Run(() => ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref exitCodeCopy, ref outputCopy, waitForExit: -1));
+#endif
+            exitCode = exitCodeCopy;
+            output = outputCopy;
+            return task;
+        }
+
         // ReSharper disable Unity.PerformanceAnalysis
         /// <summary>
-        /// Install visualizer (Assumes python3 and pip3 are already installed)
-        /// - installs virtualenv if it is not already installed
-        /// - and setups a virtual environment for visualizer
+        /// Install visualizer (Uses the python3.7 installation that comes with python for unity)
         /// </summary>
-        static void SetupVisualizer()
+        static async void SetupVisualizer()
         {
             var project = Application.dataPath;
 
@@ -57,10 +69,10 @@ namespace UnityEditor.Perception.Visualizer
             //If there is a python instance for this project AND it is alive then setup will fail (must kill instance)
             if (pythonPid != -1 && ProcessAlive(pythonPid, port, visualizerPid))
             {
-                if (EditorUtility.DisplayDialog("Kill visualizer?",
-                    "The visualizer tool can't be running while you setup, would you like to kill the current instance?",
-                    "Kill visualizer",
-                    "Cancel"))
+                if (EditorUtility.DisplayDialog("Shutdown visualizer?",
+                    "The visualizer tool can't be running while you re-installs, would you like to shutdown the current instance?",
+                    "Yes",
+                    "No"))
                 {
                     Process.GetProcessById(pythonPid + 1).Kill();
                 }
@@ -78,7 +90,7 @@ namespace UnityEditor.Perception.Visualizer
 #if UNITY_EDITOR_WIN
             var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets", "/Library/PythonInstall/Scripts"));
 #elif UNITY_EDITOR_OSX
-            string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
+            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
 #endif
 
 #if UNITY_EDITOR_WIN
@@ -88,11 +100,9 @@ namespace UnityEditor.Perception.Visualizer
             //==============================INSTALL VISUALIZER IN PYTHON FOR UNITY======================================
 
             EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes)", 2f / steps);
-#if UNITY_EDITOR_WIN
-            ExecuteCmd($"\"{packagesPath}\"\\pip3.bat install --upgrade --no-warn-script-location unity-cv-datasetvisualizer", ref exitCode, ref output, waitForExit: -1);
-#elif UNITY_EDITOR_OSX
-            ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer", ref exitCode, ref output, waitForExit: -1);
-#endif
+
+            await InstallationCommand(ref exitCode, ref output, packagesPath);
+
             if (exitCode != 0)
             {
                 EditorUtility.ClearProgressBar();
@@ -100,7 +110,7 @@ namespace UnityEditor.Perception.Visualizer
             }
 
             EditorUtility.ClearProgressBar();
-            Debug.Log("Successfully installed visualizer");
+            Debug.Log("Successfully installed visualizer tool!");
         }
 
         /// <summary>
@@ -180,7 +190,7 @@ namespace UnityEditor.Perception.Visualizer
         /// If no instance is found it launches a new process
         /// </summary>
         [MenuItem("Window/Visualizer/Run")]
-        public static void RunVisualizer()
+        public static async Task RunVisualizer()
         {
             if (!CheckIfVisualizerInstalled())
             {
@@ -212,7 +222,6 @@ namespace UnityEditor.Perception.Visualizer
                 var errorCode = ExecuteVisualizer();
                 if (errorCode == -1)
                 {
-                    Debug.LogError("Could not launch visualizer tool");
                     EditorUtility.ClearProgressBar();
                     return;
                 }
@@ -227,12 +236,12 @@ namespace UnityEditor.Perception.Visualizer
                 var attempts = 0;
                 while (newVisualizerPid == -1)
                 {
-                    Thread.Sleep(1000);
+                    await Task.Delay(1000);
                     after = Process.GetProcesses();
                     newVisualizerPid = GetNewProcessID(before, after, k_NameOfVisualizerProcess);
                     if (attempts == maxAttempts)
                     {
-                        Debug.LogError("Failed to get visualizer ID");
+                        Debug.LogWarning("Failed to get visualizer process ID after launch. Note that this does not necessarily mean the tool did not launch successfully. However, running the visualizer again will now create a new instance of the process.");
                         EditorUtility.ClearProgressBar();
                         return;
                     }
@@ -246,12 +255,12 @@ namespace UnityEditor.Perception.Visualizer
                 attempts = 0;
                 while (newPythonPid == -1)
                 {
-                    Thread.Sleep(1000);
+                    await Task.Delay(1000);
                     after = Process.GetProcesses();
                     newPythonPid = GetNewProcessID(before, after, "python");
                     if (attempts == maxAttempts)
                     {
-                        Debug.LogError("Failed to get python ID");
+                        Debug.LogWarning("Failed to get python process ID after launch. Note that this does not necessarily mean the tool did not launch successfully. However, running the visualizer again will now create a new instance of the process.");
                         EditorUtility.ClearProgressBar();
                         return;
                     }
@@ -265,11 +274,11 @@ namespace UnityEditor.Perception.Visualizer
                 attempts = 0;
                 while (newPort == -1)
                 {
-                    Thread.Sleep(1000);
+                    await Task.Delay(1000);
                     newPort = GetPortForPid(newPythonPid);
                     if (attempts == maxAttempts)
                     {
-                        Debug.LogError("Failed to get PORT");
+                        Debug.LogWarning("Failed to get port number used by the visualizer tool after launch. Note that this does not necessarily mean the tool did not launch successfully. However, running the visualizer again will now create a new instance of the process.");
                         EditorUtility.ClearProgressBar();
                         return;
                     }
@@ -280,18 +289,18 @@ namespace UnityEditor.Perception.Visualizer
                 //Save this into the streamlit_instances.csv file
                 WriteEntry(project, newPythonPid, newPort, newVisualizerPid);
 
+                EditorUtility.DisplayProgressBar("Opening Visualizer", "Opening", 4f / 4);
+
                 //When launching the process it will try to open a new tab in the default browser, however if a tab for it already exists it will not
                 //For convenience if the user wants to force a new one to open they can press on "manually open"
-                /*if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
+                if (EditorUtility.DisplayDialog("Opening Visualizer Tool",
                     $"The visualizer tool should open shortly in your default browser at http://localhost:{newPort}.\n\nIf this is not the case after a few seconds you may open it manually",
                     "Manually Open",
                     "Cancel"))
                 {
                     LaunchBrowser(newPort);
-                }*/
+                }
 
-                EditorUtility.DisplayProgressBar("Opening Visualizer", "Opening", 4f / 4);
-                LaunchBrowser(newPort);
                 EditorUtility.ClearProgressBar();
             }
         }
@@ -324,7 +333,7 @@ namespace UnityEditor.Perception.Visualizer
             var pid = ExecuteCmd(command, ref exitCode, ref output, waitForExit: 0, displayWindow: false);
             if (exitCode != 0)
             {
-                Debug.LogError("Problem occured when launching the visualizer - Exit Code: " + exitCode);
+                Debug.LogError("Failed launching the visualizer - Exit Code: " + exitCode);
                 return -1;
             }
 
@@ -432,12 +441,15 @@ namespace UnityEditor.Perception.Visualizer
         /// <returns></returns>
         static int GetPortForPid(int pid)
         {
-            foreach (var p in ProcessPorts.ProcessPortMap)
+            var processPortMap = PortProcessor.ProcessPortMap;
+            if (processPortMap == null)
             {
-                if (p.ProcessId == pid)
-                {
-                    return p.PortNumber;
-                }
+                return -1;
+            }
+
+            foreach (var p in processPortMap.Where(p => p.ProcessId == pid))
+            {
+                return p.PortNumber;
             }
 
             return -1;
@@ -478,11 +490,7 @@ namespace UnityEditor.Perception.Visualizer
             try
             {
                 var proc = Process.GetProcessById(pid + 1);
-                if (proc.HasExited)
-                {
-                    return false;
-                }
-                return true;
+                return !proc.HasExited;
             }
             catch (ArgumentException)
             {
@@ -510,7 +518,7 @@ namespace UnityEditor.Perception.Visualizer
         /// <returns></returns>
         static bool ProcessListensToPort(int pid, int port)
         {
-            var processes = ProcessPorts.ProcessPortMap.FindAll(
+            var processes = PortProcessor.ProcessPortMap.FindAll(
                 x => x.ProcessId == pid + 1 && x.PortNumber == port
             );
             return processes.Count >= 1;
@@ -519,7 +527,7 @@ namespace UnityEditor.Perception.Visualizer
         /// <summary>
         /// Static class that returns the list of processes and the ports those processes use.
         /// </summary>
-        static class ProcessPorts
+        static class PortProcessor
         {
             /// <summary>
             /// A list of ProcessPorts that contain the mapping of processes and the ports that the process uses.
@@ -565,7 +573,8 @@ namespace UnityEditor.Perception.Visualizer
 
                     if (netStatExitStatus != "0")
                     {
-                        Debug.LogError("NetStat command failed.   This may require elevated permissions.");
+                        Debug.LogError($"NetStat command failed. Try running '{startInfo.FileName} {startInfo.Arguments}' manually to verify that you have permissions to execute this command.");
+                        return null;
                     }
 
 #if UNITY_EDITOR_WIN
@@ -592,7 +601,7 @@ namespace UnityEditor.Perception.Visualizer
                             {
                                 if (ex is IndexOutOfRangeException || ex is FormatException || ex is OverflowException)
                                 {
-                                    Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
+                                    Debug.LogError("Could not convert the following NetStat row to a process to port mapping.");
                                     Debug.LogError(netStatRow);
                                 }
                                 else
@@ -605,7 +614,7 @@ namespace UnityEditor.Perception.Visualizer
                         {
                             if (!netStatRow.Trim().StartsWith("Proto") && !netStatRow.Trim().StartsWith("Active") && !String.IsNullOrWhiteSpace(netStatRow))
                             {
-                                Debug.LogError("Unrecognized NetStat row to a Process to Port mapping.");
+                                Debug.LogError("Could not convert the following NetStat row to a process to port mapping.");
                                 Debug.LogError(netStatRow);
                             }
                         }
@@ -630,7 +639,7 @@ namespace UnityEditor.Perception.Visualizer
                                 {
                                     if (ex is IndexOutOfRangeException || ex is OverflowException)
                                     {
-                                        Debug.LogError("Could not convert the following NetStat row to a Process to Port mapping.");
+                                        Debug.LogError("Could not convert the following NetStat row to a process to port mapping.");
                                         Debug.LogError(netStatRow);
                                     }
                                     else
@@ -650,7 +659,7 @@ namespace UnityEditor.Perception.Visualizer
         /// <summary>
         /// A mapping for processes to ports and ports to processes that are being used in the system.
         /// </summary>
-        class ProcessPort
+        readonly struct ProcessPort
         {
             /// <summary>
             /// Internal constructor to initialize the mapping of process to port.
@@ -669,7 +678,7 @@ namespace UnityEditor.Perception.Visualizer
         }
 
         [MenuItem("Window/Visualizer/Check For Updates")]
-        static void CheckForUpdates()
+        static async Task CheckForUpdates()
         {
             if (!CheckIfVisualizerInstalled())
             {
@@ -684,12 +693,12 @@ namespace UnityEditor.Perception.Visualizer
                 return;
             }
 
-            var latestVersion = Task.Run(PipAPI.GetLatestVersionNumber).Result;
+            var latestVersion = await PipAPI.GetLatestVersionNumber();
 
 #if UNITY_EDITOR_WIN
             var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets", "/Library/PythonInstall/Scripts"));
 #elif UNITY_EDITOR_OSX
-            string packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
+            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
 #endif
 
 #if UNITY_EDITOR_WIN
@@ -713,13 +722,13 @@ namespace UnityEditor.Perception.Visualizer
 
             if (currentVersion == null)
             {
-                Debug.LogError("Could not parse the version of the current install of the visualizer tool");
+                Debug.LogError("Could not parse the version of the currently installed visualizer tool. Cancelling update check.");
                 return;
             }
 
             if (PipAPI.CompareVersions(latestVersion, currentVersion) > 0)
             {
-                if (EditorUtility.DisplayDialog("Update Found for Visualizer",
+                if (EditorUtility.DisplayDialog("New Version Found!",
                     $"An update was found for the Visualizer",
                     "Install",
                     "Cancel"))
@@ -729,7 +738,7 @@ namespace UnityEditor.Perception.Visualizer
             }
             else
             {
-                EditorUtility.DisplayDialog("Visualizer", "No new updates found", "close");
+                EditorUtility.DisplayDialog("Visualizer", "No new updates found", "OK");
             }
         }
 
@@ -753,7 +762,7 @@ namespace UnityEditor.Perception.Visualizer
 #endif
             if (exitCode != 0)
             {
-                Debug.LogError("Could not list pip packages");
+                Debug.LogError("Could not list pip packages to check whether the visualizer is installed. Cancelling update check");
                 return false;
             }
 

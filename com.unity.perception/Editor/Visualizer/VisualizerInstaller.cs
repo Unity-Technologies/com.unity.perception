@@ -60,7 +60,7 @@ namespace UnityEditor.Perception.Visualizer
         /// <summary>
         /// Install visualizer (Uses the python3.7 installation that comes with python for unity)
         /// </summary>
-        static async void SetupVisualizer()
+        static async Task SetupVisualizer()
         {
             var project = Application.dataPath;
 
@@ -199,7 +199,7 @@ namespace UnityEditor.Perception.Visualizer
         {
             if (!CheckIfVisualizerInstalled(project))
             {
-                SetupVisualizer();
+                await SetupVisualizer();
             }
 
             var (pythonPid, port, visualizerPid) = ReadEntry(project);

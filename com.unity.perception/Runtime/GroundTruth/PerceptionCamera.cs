@@ -469,6 +469,7 @@ namespace UnityEngine.Perception.GroundTruth
 #else
             CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
 #endif
+
             Profiler.EndSample();
         }
 

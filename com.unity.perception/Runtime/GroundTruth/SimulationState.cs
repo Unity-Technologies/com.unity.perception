@@ -425,7 +425,6 @@ namespace UnityEngine.Perception.GroundTruth
             m_Ids.Add(egoHandle.Id);
         }
 
-
         public bool IsEnabled(SensorHandle sensorHandle) => m_ActiveSensors.Contains(sensorHandle);
 
         public void SetEnabled(SensorHandle sensorHandle, bool value)
@@ -575,6 +574,7 @@ namespace UnityEngine.Perception.GroundTruth
                 Debug.LogError($"Simulation ended with pending metrics: {string.Join(", ", m_PendingMetrics.Select(c => $"id:{c.MetricId} step:{c.Step}"))}");
 
             WriteReferences();
+
             Time.captureDeltaTime = 0;
             IsRunning = false;
         }

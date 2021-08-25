@@ -1,7 +1,7 @@
 # Peer Review Information:
 
 ## Editor / Package versioning:
-**Editor Version Target**: 2019.4
+**Editor Version Target**: 2020.3
 
 ## Dev Testing:
 **Tests Added**: 

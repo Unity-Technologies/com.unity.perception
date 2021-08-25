@@ -466,6 +466,60 @@ namespace GroundTruthTests
             Assert.AreEqual(1, timesSegmentationImageReceived);
         }
 
+
+        [UnityTest]
+        public IEnumerator SegmentationPass_WithMultiplePerceptionCameras_ProducesCorrectValues(
+            [Values(SegmentationKind.Instance, SegmentationKind.Semantic)] SegmentationKind segmentationKind)
+        {
+            int timesSegmentationImageReceived = 0;
+
+            var color1 = segmentationKind == SegmentationKind.Instance ?
+                k_InstanceSegmentationPixelValue :
+                k_SemanticPixelValue;
+            var color2 = segmentationKind == SegmentationKind.Instance ?
+                new Color32(0, 74, Byte.MaxValue, Byte.MaxValue) :
+                new Color32(0, 0, 0, Byte.MaxValue);
+            void OnCam1SegmentationImageReceived(NativeArray<Color32> data)
+            {
+                CollectionAssert.AreEqual(Enumerable.Repeat(color1, data.Length), data);
+                timesSegmentationImageReceived++;
+            }
+            void OnCam2SegmentationImageReceived(NativeArray<Color32> data)
+            {
+                Assert.AreEqual(color1, data[data.Length / 4]);
+                Assert.AreEqual(color2, data[data.Length * 3 / 4]);
+                timesSegmentationImageReceived++;
+            }
+
+            GameObject cameraObject;
+            GameObject cameraObject2;
+            if (segmentationKind == SegmentationKind.Instance)
+            {
+                cameraObject = SetupCameraInstanceSegmentation((frame, data, renderTexture) => OnCam1SegmentationImageReceived(data));
+                cameraObject2 = SetupCameraInstanceSegmentation((frame, data, renderTexture) => OnCam2SegmentationImageReceived(data));
+            }
+            else
+            {
+                cameraObject = SetupCameraSemanticSegmentation((args) => OnCam1SegmentationImageReceived(args.data), false);
+                cameraObject2 = SetupCameraSemanticSegmentation((args) => OnCam2SegmentationImageReceived(args.data), false);
+            }
+            //position camera to point straight at the top edge of plane1, such that plane1 takes up the bottom half of
+            //the image and plane2 takes up the top half
+            cameraObject2.transform.localPosition = Vector3.up * 2.5f;
+
+            var plane1 = TestHelper.CreateLabeledPlane(.5f);
+            var plane2 = TestHelper.CreateLabeledPlane(.5f, "label2");
+            plane2.transform.localPosition = plane2.transform.localPosition + Vector3.up * 5f;
+            AddTestObjectForCleanup(plane1);
+            AddTestObjectForCleanup(plane2);
+            yield return null;
+
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            DestroyTestObject(cameraObject2);
+            Assert.AreEqual(2, timesSegmentationImageReceived);
+        }
+
         [UnityTest]
         public IEnumerator SegmentationPassProducesCorrectValuesEachFrame(
             [Values(SegmentationKind.Instance, SegmentationKind.Semantic)] SegmentationKind segmentationKind)

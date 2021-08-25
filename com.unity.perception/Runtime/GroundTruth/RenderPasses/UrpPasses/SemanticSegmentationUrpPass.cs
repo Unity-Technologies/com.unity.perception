@@ -12,6 +12,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             m_SemanticSegmentationCrossPipelinePass = new SemanticSegmentationCrossPipelinePass(camera, labelConfig);
             ConfigureTarget(targetTexture, targetTexture.depthBuffer);
+            ConfigureClear(ClearFlag.None, Color.black);
             m_SemanticSegmentationCrossPipelinePass.Setup();
         }
 

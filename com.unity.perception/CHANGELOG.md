@@ -23,6 +23,8 @@ Added a `projection` field in the capture.sensor metadata. Values are either "pe
 
 Users can now delay the current iteration for one frame from within randomizers by calling the `DelayIteration` function of the active scenario.
 
+Added support for multiple cameras capturing simultaneously (visualization not yet supported)
+
 ### Changed
 
 Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scneario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.

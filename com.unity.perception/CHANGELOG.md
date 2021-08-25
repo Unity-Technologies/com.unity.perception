@@ -21,6 +21,8 @@ Users can now choose the base folder location to store their generated datasets.
 
 Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
 
+Added support for multiple cameras capturing simultaneously (visualization not yet supported)
+
 ### Changed
 
 Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scneario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.

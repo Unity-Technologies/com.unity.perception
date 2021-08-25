@@ -13,7 +13,7 @@ namespace UnityEngine.Perception.GroundTruth
         const string k_ShaderName = "Perception/SemanticSegmentation";
         static readonly int k_LabelingId = Shader.PropertyToID("LabelingId");
 
-        static int s_LastFrameExecuted = -1;
+        int lastFrameExecuted = -1;
 
         SemanticSegmentationLabelConfig m_LabelConfig;
 
@@ -51,10 +51,10 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void ExecutePass(
             ScriptableRenderContext renderContext, CommandBuffer cmd, Camera camera, CullingResults cullingResult)
         {
-            if (s_LastFrameExecuted == Time.frameCount)
+            if (lastFrameExecuted == Time.frameCount)
                 return;
 
-            s_LastFrameExecuted = Time.frameCount;
+            lastFrameExecuted = Time.frameCount;
             var renderList = CreateRendererListDesc(camera, cullingResult, "FirstPass", 0, m_OverrideMaterial, -1);
             cmd.ClearRenderTarget(true, true, m_LabelConfig.skyColor);
             DrawRendererList(renderContext, cmd, RendererList.Create(renderList));

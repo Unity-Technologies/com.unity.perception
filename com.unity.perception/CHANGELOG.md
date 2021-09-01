@@ -31,7 +31,9 @@ Added support for multiple cameras capturing simultaneously (visualization not y
 
 Upgraded capture package dependency to 0.0.10-preview.24. This fixes an issue where RGB images were blank on OSX when MSAA was enabled & post-processing was disabled.
 
-Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scneario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.
+Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev".
+
+Changed the JSON serialization of Randomizers in a scenario to an array of groups rather than a dictionary.
 
 ### Deprecated
 

@@ -23,7 +23,9 @@ Added a `projection` field in the capture.sensor metadata. Values are either "pe
 
 ### Changed
 
-Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scneario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.
+Scenario JSON configurations that were generated using previous versions will need to be manually updated to reflect the following changes:
+ - Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev".
+ - Changed the JSON serialization of randomizers in a scenario to an array of groups rather than a dictionary.
 
 ### Deprecated
 

@@ -7,8 +7,9 @@
     "randomSeed": 539662031
   },
   "randomizers": {
-    "groups": {
-      "RotationRandomizer": {
+    "groups": [
+      {
+        "className": "RotationRandomizer",
         "metadata": {
           "name": "",
           "description": "",
@@ -67,6 +68,6 @@
           }
         }
       }
-    }
+    ]
   }
 }

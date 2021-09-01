@@ -16,7 +16,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     #region GroupedObjects
     class TemplateConfigurationOptions
     {
-        public Dictionary<string, Group> groups = new Dictionary<string, Group>();
+        public List<Group> groups = new List<Group>();
     }
 
     class StandardMetadata
@@ -28,6 +28,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
     class Group
     {
+        public string className;
         public StandardMetadata metadata = new StandardMetadata();
         [JsonConverter(typeof(GroupItemsConverter))]
         public Dictionary<string, IGroupItem> items = new Dictionary<string, IGroupItem>();

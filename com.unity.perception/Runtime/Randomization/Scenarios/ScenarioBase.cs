@@ -48,6 +48,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public TextAsset configuration;
 
         private bool m_ShouldRestartIteration;
+        private bool m_ShouldDelayIteration;
+
         private const int k_MaxIterationStartCount = 100;
 
         /// <summary>
@@ -359,13 +361,22 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 do
                 {
                     m_ShouldRestartIteration = false;
+                    m_ShouldDelayIteration = false;
                     iterationStartCount++;
                     foreach (var randomizer in activeRandomizers)
                     {
                         randomizer.IterationStart();
                         if (m_ShouldRestartIteration)
                             break;
+
+                        if (m_ShouldDelayIteration)
+                        {
+                            Debug.Log($"Iteration was delayed by {randomizer.GetType().Name}");
+                            break;
+                        }
                     }
+                    if (m_ShouldDelayIteration)
+                        break;
                 } while (m_ShouldRestartIteration && iterationStartCount < k_MaxIterationStartCount);
 
                 if (m_ShouldRestartIteration)
@@ -381,7 +392,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 randomizer.Update();
 
             // Iterate scenario frame count
-            currentIterationFrame++;
+            if (!m_ShouldDelayIteration)
+                currentIterationFrame++;
+
             framesSinceInitialization++;
         }
 
@@ -503,6 +516,19 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public void RestartIteration()
         {
             m_ShouldRestartIteration = true;
+        }
+
+        /// <summary>
+        /// Delays the current iteration by one frame.
+        /// This results in <see cref="OnIterationStart" /> being called again for the same iteration.
+        /// </summary>
+        /// <remarks>
+        /// Must be called from within the <see cref="OnIterationStart"/> function of a class
+        /// inheriting from <see cref="Randomizer" />.
+        /// </remarks>
+        public void DelayIteration()
+        {
+            m_ShouldDelayIteration = true;
         }
     }
 }

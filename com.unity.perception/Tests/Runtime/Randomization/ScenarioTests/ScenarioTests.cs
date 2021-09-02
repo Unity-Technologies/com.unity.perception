@@ -156,7 +156,7 @@ namespace RandomizationTests.ScenarioTests
 
 
         [UnityTest]
-        public IEnumerator IterationSuccessfullyDelays()
+        public IEnumerator IterationCorrectlyDelays()
         {
             yield return CreateNewScenario(5, 1, new Randomizer[]
             {

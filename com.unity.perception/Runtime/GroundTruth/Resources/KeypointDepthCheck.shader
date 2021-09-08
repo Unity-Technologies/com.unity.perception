@@ -16,10 +16,9 @@ Shader "Perception/KeypointDepthCheck"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    //#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     //enable GPU instancing support
-    #pragma multi_compile HDRP_ENABLED HDRP_DISABLED
     #pragma multi_compile_instancing
 
     ENDHLSL
@@ -40,7 +39,7 @@ Shader "Perception/KeypointDepthCheck"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 vulkan metal
+//            #pragma only_renderers d3d11 vulkan metal
             #pragma target 4.5
             #pragma vertex Vert
             #pragma fragment Frag
@@ -105,7 +104,7 @@ Shader "Perception/KeypointDepthCheck"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers d3d11 vulkan metal
+            //#pragma only_renderers d3d11 vulkan metal
             #pragma target 4.5
             #pragma vertex Vert
             #pragma fragment Frag

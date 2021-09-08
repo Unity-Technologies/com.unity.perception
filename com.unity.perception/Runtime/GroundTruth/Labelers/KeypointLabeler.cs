@@ -146,16 +146,9 @@ namespace UnityEngine.Perception.GroundTruth
 
             var shaderVariantCollection = new ShaderVariantCollection();
             m_MaterialDepthCheck = new Material(depthCheckShader);
-            string keyword;
-            if (SRPSupport.GetCurrentPipelineRenderingType() == RenderingPipelineType.HDRP)
-                keyword = "HDRP_ENABLED";
-            else
-                keyword = "HDRP_DISABLED";
-
-            m_MaterialDepthCheck.EnableKeyword(keyword);
 
             shaderVariantCollection.Add(
-                new ShaderVariantCollection.ShaderVariant(depthCheckShader, PassType.ScriptableRenderPipeline, keyword));
+                new ShaderVariantCollection.ShaderVariant(depthCheckShader, PassType.ScriptableRenderPipeline));
             shaderVariantCollection.WarmUp();
 
             perceptionCamera.attachedCamera.depthTextureMode = DepthTextureMode.Depth;

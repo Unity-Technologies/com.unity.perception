@@ -14,6 +14,7 @@ namespace GroundTruthTests
     public class KeyPointGroundTruthTests : GroundTruthTestBase, IPrebuildSetup, IPostBuildCleanup
     {
         private const string kAnimatedCubeScenePath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/AnimatedCubeScene.unity";
+        private const string kCubeScenePath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/CubeScene.unity";
         private const double k_Delta = .01;
 
         public void Setup()
@@ -21,6 +22,7 @@ namespace GroundTruthTests
 #if UNITY_EDITOR
             var scenes = UnityEditor.EditorBuildSettings.scenes.ToList();
             scenes.Add(new UnityEditor.EditorBuildSettingsScene(kAnimatedCubeScenePath, true));
+            scenes.Add(new UnityEditor.EditorBuildSettingsScene(kCubeScenePath, true));
             UnityEditor.EditorBuildSettings.scenes = scenes.ToArray();
 #endif
         }
@@ -29,9 +31,15 @@ namespace GroundTruthTests
         {
 #if UNITY_EDITOR
             var scenes = UnityEditor.EditorBuildSettings.scenes;
-            scenes = scenes.Where(s => s.path != kAnimatedCubeScenePath).ToArray();
+            scenes = scenes.Where(s => s.path != kAnimatedCubeScenePath && s.path != kCubeScenePath).ToArray();
             UnityEditor.EditorBuildSettings.scenes = scenes;
 #endif
+        }
+
+        [UnitySetUp]
+        public IEnumerator SetupTest()
+        {
+            foreach (var p in LoadCubeScene()) yield return p;
         }
 
         static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<int, List<KeypointLabeler.KeypointEntry>> computeListener, RenderTexture renderTexture = null, KeypointObjectFilter keypointObjectFilter = KeypointObjectFilter.Visible)
@@ -306,7 +314,7 @@ namespace GroundTruthTests
                 incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
+            var cube = SetupLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -360,7 +368,7 @@ namespace GroundTruthTests
                 incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
+            var cube = SetupLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
             var labeling = cube.GetComponent<Labeling>();
 
@@ -427,7 +435,7 @@ namespace GroundTruthTests
                 incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             });
 
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
+            var cube = SetupLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
 
             cube.transform.position = new Vector3(-1000, -1000, 0);
@@ -478,7 +486,7 @@ namespace GroundTruthTests
             }, texture);
             cam.GetComponent<PerceptionCamera>().showVisualizations = false;
 
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
+            var cube = SetupLabeledCube(scale: 6, z: 8);
             SetupCubeJoint(cube, "Center", 0, 0, -.5f);
 
             cube.SetActive(true);
@@ -530,7 +538,7 @@ namespace GroundTruthTests
                 incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
+            var cube = SetupLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
             cube.transform.position += Vector3.right * 13.5f;
 
@@ -584,7 +592,7 @@ namespace GroundTruthTests
                 incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
+            var cube = SetupLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -697,7 +705,7 @@ namespace GroundTruthTests
 
         private void CreateFullyOccludedScene(KeypointTemplate template, GameObject cam)
         {
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
+            var cube = SetupLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
 
             var blocker = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -726,7 +734,7 @@ namespace GroundTruthTests
                 incoming.Add(data);
             }, texture, keypointObjectFilter);
 
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: -100);
+            var cube = SetupLabeledCube(scale: 6, z: -100);
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -757,7 +765,7 @@ namespace GroundTruthTests
                 incoming.Add(data);
             }, texture, KeypointObjectFilter.All);
 
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: -20);
+            var cube = SetupLabeledCube(scale: 6, z: -20);
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -802,7 +810,7 @@ namespace GroundTruthTests
                 incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
             }, texture);
 
-            var cube = TestHelper.CreateLabeledCube(scale: 6, z: 8);
+            var cube = SetupLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
 
             var blocker = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -974,7 +982,7 @@ namespace GroundTruthTests
 
 
             //For some reason the back of this cube is being resolved to 7.5 away from the camera, but on the CPU side it is being recorded as 18.34375
-            var cube = TestHelper.CreateLabeledCube(scale: args.scale, z: 0);
+            var cube = SetupLabeledCube(scale: args.scale, z: 0);
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -1161,8 +1169,8 @@ namespace GroundTruthTests
                 camComponent.orthographic = true;
                 camComponent.orthographicSize = .5f;
             }
-
-            var cube = TestHelper.CreateLabeledCube(scale: 1f, x: args.origin.x, y: args.origin.y, z: args.origin.z);
+            var cube = GameObject.Find("Cube");
+            TestHelper.SetupLabeledCube(cube, scale: 1f, x: args.origin.x, y: args.origin.y, z: args.origin.z);
             cube.transform.localScale = args.objectScale;
             cube.transform.localRotation = args.rotation;
             var localSelfOcclusionDistance = args.checkDistanceType == CheckDistanceType.JointLabel ? (float?)args.checkDistance : null;
@@ -1185,6 +1193,13 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.AreEqual(args.expectOccluded ? 1 : 2, t.keypoints[8].state);
+        }
+
+        private IEnumerable LoadCubeScene()
+        {
+            SceneManager.LoadScene("CubeScene", LoadSceneMode.Additive);
+            AddSceneForCleanup("CubeScene");
+            yield return null;
         }
 
 
@@ -1242,7 +1257,8 @@ namespace GroundTruthTests
             camComponent.orthographicSize = 100f;
             cam.transform.localPosition = new Vector3(0, 0, -95f);
 
-            var cube = TestHelper.CreateLabeledCube(scale: 1f);
+            var cube = GameObject.Find("Cube");
+            TestHelper.SetupLabeledCube(cube, scale: 1f);
             cube.transform.localScale = args.objectScale;
             cube.transform.localRotation = args.rotation;
             SetupCubeJoint(cube, "Center", args.pointLocalPosition.x, args.pointLocalPosition.y, args.pointLocalPosition.z, args.checkDistance);
@@ -1332,7 +1348,7 @@ namespace GroundTruthTests
             camComponent.orthographicSize = 100f;
             cam.transform.localPosition = new Vector3(0, 0, -95f);
 
-            var cube = TestHelper.CreateLabeledCube(scale: 1f);
+            var cube = SetupLabeledCube(scale: 1f);
             cube.transform.localScale = args.objectScale;
             cube.transform.localRotation = args.rotation;
             SetupCubeJoint(cube, "Center", args.pointLocalPosition.x, args.pointLocalPosition.y, args.pointLocalPosition.z, args.checkDistance);
@@ -1359,6 +1375,12 @@ namespace GroundTruthTests
             Assert.AreEqual(args.expectOccluded ? 1 : 2, t.keypoints[8].state);
         }
 
+        public static GameObject SetupLabeledCube(float scale = 10, string label = "label", float x = 0, float y = 0,
+            float z = 0, float roll = 0, float pitch = 0, float yaw = 0)
+        {
+            return TestHelper.SetupLabeledCube(GameObject.Find("Cube"), scale, label, x, y, z, roll, pitch, yaw);
+        }
+
         [UnityTest]
         public IEnumerator ManyObjects_LabelsCorrectly()
         {
@@ -1374,11 +1396,14 @@ namespace GroundTruthTests
 
             void PlaceObjects(Rect rect, float z, Vector2Int count)
             {
+                var cubeBase = GameObject.Find("Cube");
                 for (int x = 0; x < count.x; x++)
                 {
                     for (int y = 0; y < count.y; y++)
                     {
-                        var cube = TestHelper.CreateLabeledCube(
+                        var cube = GameObject.Instantiate(cubeBase);
+                        TestHelper.SetupLabeledCube(
+                            cube,
                             scale: rect.width / count.x - .001f,
                             x: rect.width / count.x * x + rect.xMin,
                             y: rect.height / count.y * y + rect.yMin,

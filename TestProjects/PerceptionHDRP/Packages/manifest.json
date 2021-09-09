@@ -14,6 +14,7 @@
     "com.unity.test-framework": "1.1.27",
     "com.unity.testtools.codecoverage": "1.1.0",
     "com.unity.textmeshpro": "3.0.6",
+    "com.unity.toolchain.win-x86_64-linux-x86_64": "0.1.21-preview",
     "com.unity.ugui": "1.0.0",
     "nuget.moq": "1.0.0",
     "com.unity.modules.ai": "1.0.0",

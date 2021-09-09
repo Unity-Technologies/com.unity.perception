@@ -31,6 +31,12 @@ namespace GroundTruthTests
         public static GameObject CreateLabeledCube(float scale = 10, string label = "label", float x = 0, float y = 0, float z = 0, float roll = 0, float pitch = 0, float yaw = 0)
         {
             var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+            return SetupLabeledCube(cube, scale, label, x, y, z, roll, pitch, yaw);
+        }
+
+        public static GameObject SetupLabeledCube(GameObject cube, float scale = 10, string label = "label", float x = 0, float y = 0, float z = 0, float roll = 0, float pitch = 0, float yaw = 0)
+        {
             cube.transform.SetPositionAndRotation(new Vector3(x, y, z), Quaternion.Euler(pitch, yaw, roll));
             cube.transform.localScale = new Vector3(scale, scale, scale);
             var labeling = cube.AddComponent<Labeling>();

@@ -390,7 +390,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             var positionsPixeldata = new NativeArray<half>(textureDimensions.x * textureDimensions.y * 2, Allocator.Temp);
             var depthPixeldata = new NativeArray<half>(textureDimensions.x * textureDimensions.y, Allocator.Temp);
-            var depthTexture = Shader.GetGlobalTexture("_CameraDepthTexture");
+            //var depthTexture = Shader.GetGlobalTexture("_CameraDepthTexture");
 
             for (int i = 0; i < checkLocations.Length; i++)
             {
@@ -410,7 +410,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_MaterialDepthCheck.SetTexture("_Positions", m_KeypointPositionsTexture);
             m_MaterialDepthCheck.SetTexture("_KeypointCheckDepth", m_KeypointCheckDepthTexture);
-            m_MaterialDepthCheck.SetTexture("_CameraDepthTexture", depthTexture);
+            //m_MaterialDepthCheck.SetTexture("_CameraDepthTexture", depthTexture);
             commandBuffer.Blit(null, m_ResultsBuffer, m_MaterialDepthCheck);
 
             scriptableRenderContext.ExecuteCommandBuffer(commandBuffer);

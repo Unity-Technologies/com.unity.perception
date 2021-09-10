@@ -31,6 +31,13 @@ Continue reading for more details concerning the primary components driving rand
 4. Parameters
 5. Samplers
 
+<br>
+<p align="center">
+<img src="Images/randomization_uml.png" width="900"/>
+  <br><i>Class diagram for the randomization framework included in the Perception package</i>
+</p>
+
+
 
 ## Scenarios
 

@@ -41,8 +41,8 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
   commands:
     - git submodule update --init --recursive
     - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
-    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results --category=!Performance -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
-    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform playmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results --category=!Performance -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport; assemblyFilters:Unity.Perception.Editor;Unity.Perception.Runtime;Unity.Perception.Sensors;
+    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results --category=!Performance -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;assemblyFilters:+Unity.Perception.Runtime
+    - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -testPlatform playmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results --category=!Performance -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;assemblyFilters:+Unity.Perception.Runtime
   #  - .\.Editor\Unity.exe -projectPath ./TestProjects/PerceptionHDRP -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;
   artifacts:
     logs:
@@ -62,7 +62,7 @@ codecoverage_windows_{{suite.name}}_{{editor.version}}:
   agent:
     type: Unity::VM::GPU
     model: rtx2080
-    image: cds-ops/ubuntu-18.04-base:latest
+    image: cds-ops/ubuntu-18.04-base:stable
     flavor: b1.large
   variables:
     PATH: /root/.local/bin:/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin

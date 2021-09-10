@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
@@ -30,11 +33,20 @@ namespace RandomizationTests.ScenarioTests
         }
 
         // TODO: update this function once the perception camera doesn't skip the first frame
-        IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration)
+        IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration, Randomizer[] randomizers = null)
         {
             m_Scenario = m_TestObject.AddComponent<TestFixedLengthScenario>();
             m_Scenario.constants.totalIterations = totalIterations;
             m_Scenario.constants.framesPerIteration = framesPerIteration;
+
+            if (randomizers != null)
+            {
+                foreach (var rnd in randomizers)
+                {
+                    m_Scenario.AddRandomizer(rnd);
+                }
+            }
+
             yield return null; // Skip first frame
             yield return null; // Skip first Update() frame
         }
@@ -75,11 +87,11 @@ namespace RandomizationTests.ScenarioTests
 
             // Serialize some values
             m_Scenario.constants = constants;
-            var serializedConfig = m_Scenario.SerializeToJson();
+            m_Scenario.configuration = new TextAsset(m_Scenario.SerializeToJson());
 
             // Change the values
             m_Scenario.constants = changedConstants;
-            m_Scenario.DeserializeFromJson(serializedConfig);
+            m_Scenario.DeserializeConfigurationInternal();
 
             // Check if the values reverted correctly
             Assert.AreEqual(m_Scenario.constants.framesPerIteration, constants.framesPerIteration);
@@ -140,6 +152,43 @@ namespace RandomizationTests.ScenarioTests
             yield return null;
             for (var i = 0; i < 3; i++)
                 Assert.AreNotEqual(seeds[i], SamplerState.NextRandomState());
+        }
+
+
+        [UnityTest]
+        public IEnumerator IterationCorrectlyDelays()
+        {
+            yield return CreateNewScenario(5, 1, new Randomizer[]
+            {
+                // Delays every other iteration
+                new ExampleDelayRandomizer(2)
+            });
+
+            // State: currentIteration = 0
+            Assert.AreEqual(0, m_Scenario.currentIteration);
+            yield return null;
+            // State: currentIteration = 1
+            Assert.AreEqual(1, m_Scenario.currentIteration);
+            yield return null;
+            // State: currentIteration = 2
+            // Action: ExampleDelayRandomizer will delay the iteration
+            Assert.AreEqual(2, m_Scenario.currentIteration);
+            yield return null;
+            // State: currentIteration = 2
+            Assert.AreEqual(2, m_Scenario.currentIteration);
+            yield return null;
+            // State: currentIteration = 3;
+            Assert.AreEqual(3, m_Scenario.currentIteration);
+            yield return null;
+            // State: currentIteration = 4
+            // Action: ExampleDelayRandomizer will delay the iteration
+            Assert.AreEqual(4, m_Scenario.currentIteration);
+            yield return null;
+            // State: currentIteration = 4
+            Assert.AreEqual(4, m_Scenario.currentIteration);
+            yield return null;
+            // State: currentIteration = 5
+            Assert.AreEqual(5, m_Scenario.currentIteration);
         }
 
         PerceptionCamera SetupPerceptionCamera()

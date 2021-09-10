@@ -29,7 +29,11 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The <see cref="IdLabelConfig"/> which associates objects with labels.
         /// </summary>
-        public IdLabelConfig labelConfig => m_LabelConfig;
+        public IdLabelConfig labelConfig
+        {
+            get => m_LabelConfig;
+            set => m_LabelConfig = value;
+        }
 
         /// <summary>
         /// Fired when the object counts are computed for a frame.

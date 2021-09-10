@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.UIElements;
@@ -24,6 +25,13 @@ namespace UnityEditor.Perception.Randomization
             m_SerializedObject = new SerializedObject(m_Scenario);
             m_Root = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 $"{StaticData.uxmlDir}/ScenarioBaseElement.uxml").CloneTree();
+
+#if !ENABLE_SCENARIO_APP_PARAM_CONFIG
+            var configuration = m_Root.Q<PropertyField>("configuration-asset");
+            configuration.style.display = DisplayStyle.None;
+            m_Scenario.configuration = null;
+            EditorUtility.SetDirty(m_Scenario);
+#endif
 
             m_RandomizerListPlaceholder = m_Root.Q<VisualElement>("randomizer-list-placeholder");
 
@@ -52,7 +60,10 @@ namespace UnityEditor.Perception.Randomization
                 if (string.IsNullOrEmpty(filePath))
                     return;
                 Undo.RecordObject(m_Scenario, "Deserialized scenario configuration");
-                m_Scenario.DeserializeFromFile(filePath);
+                var originalConfig = m_Scenario.configuration;
+                m_Scenario.LoadConfigurationFromFile(filePath);
+                m_Scenario.DeserializeConfigurationInternal();
+                m_Scenario.configuration = originalConfig;
                 Debug.Log($"Deserialized scenario configuration from {Path.GetFullPath(filePath)}. " +
                     "Using undo in the editor will revert these changes to your scenario.");
                 PlayerPrefs.SetString(k_ConfigFilePlayerPrefKey, filePath);
@@ -85,6 +96,8 @@ namespace UnityEditor.Perception.Randomization
                     case "constants":
                         m_HasConstantsField = true;
                         UIElementsEditorUtilities.CreatePropertyFields(iterator.Copy(), m_ConstantsListVisualContainer);
+                        break;
+                    case "configuration":
                         break;
                     default:
                     {

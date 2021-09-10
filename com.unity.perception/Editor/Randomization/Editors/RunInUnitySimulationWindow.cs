@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -11,21 +9,26 @@ using Unity.Simulation.Client;
 using UnityEditor.Build.Reporting;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using ZipUtility;
+using Random = System.Random;
 
 namespace UnityEditor.Perception.Randomization
 {
     class RunInUnitySimulationWindow : EditorWindow
     {
+        private const string m_SupportedGPUString = "Tesla";
+
         string m_BuildDirectory;
         string m_BuildZipPath;
         SysParamDefinition[] m_SysParamDefinitions;
         IntegerField m_InstanceCountField;
         TextField m_RunNameField;
         IntegerField m_TotalIterationsField;
+        UIntField m_RandomSeedField;
         ToolbarMenu m_SysParamMenu;
         int m_SysParamIndex;
         ObjectField m_ScenarioConfigField;
@@ -33,9 +36,15 @@ namespace UnityEditor.Perception.Randomization
         Label m_PrevRunNameLabel;
         Label m_ProjectIdLabel;
         Label m_PrevExecutionIdLabel;
+        Label m_PrevRandomSeedLabel;
         RunParameters m_RunParameters;
+        const string  k_SupportedGPUString = "NVIDIA";
 
-        const string  m_SupportedGPUString = "NVIDIA";
+        EnumField m_BuildTypeMenu;
+        VisualElement m_BuildSelectControls;
+        TextField m_BuildPathField;
+        TextField m_SelectedBuildPathTextField;
+        TextField m_BuildIdField;
 
         [MenuItem("Window/Run in Unity Simulation")]
         static void ShowWindow()
@@ -86,6 +95,13 @@ namespace UnityEditor.Perception.Randomization
             }
         }
 
+        enum BuildIdKind
+        {
+            BuildPlayer,
+            ExistingBuildID,
+            ExistingBuildZip
+        }
+
         void CreateRunInUnitySimulationUI()
         {
             var root = rootVisualElement;
@@ -95,6 +111,15 @@ namespace UnityEditor.Perception.Randomization
             m_RunNameField = root.Q<TextField>("run-name");
             m_TotalIterationsField = root.Q<IntegerField>("total-iterations");
             m_InstanceCountField = root.Q<IntegerField>("instance-count");
+            m_RandomSeedField = root.Q<UIntField>("random-seed");
+
+            var randomizeSeedButton = root.Q<Button>("randomize-seed");
+            randomizeSeedButton.clicked += () =>
+            {
+                var bytes = new byte[4];
+                new Random().NextBytes(bytes);
+                m_RandomSeedField.value = BitConverter.ToUInt32(bytes, 0);
+            };
 
             m_SysParamDefinitions = API.GetSysParams();
             m_SysParamMenu = root.Q<ToolbarMenu>("sys-param");
@@ -123,6 +148,7 @@ namespace UnityEditor.Perception.Randomization
             m_PrevRunNameLabel = root.Q<Label>("prev-run-name");
             m_ProjectIdLabel = root.Q<Label>("project-id");
             m_PrevExecutionIdLabel = root.Q<Label>("execution-id");
+            m_PrevRandomSeedLabel = root.Q<Label>("prev-random-seed");
 
             var copyExecutionIdButton = root.Q<Button>("copy-execution-id");
             copyExecutionIdButton.clicked += () =>
@@ -132,7 +158,54 @@ namespace UnityEditor.Perception.Randomization
             copyProjectIdButton.clicked += () =>
                 EditorGUIUtility.systemCopyBuffer = CloudProjectSettings.projectId;
 
+            var copyPrevRandomSeedButton = root.Q<Button>("copy-prev-random-seed");
+            copyPrevRandomSeedButton.clicked += () =>
+                EditorGUIUtility.systemCopyBuffer = PlayerPrefs.GetString("SimWindow/prevRandomSeed");
+
+
+            m_BuildTypeMenu = root.Q<EnumField>("build-type-menu");
+            m_BuildTypeMenu.Init(BuildIdKind.BuildPlayer);
+            m_BuildTypeMenu.RegisterValueChangedCallback(evt => { UpdateBuildIdElements((BuildIdKind) evt.newValue); });
+
+            m_BuildSelectControls = root.Q<VisualElement>("build-select-controls");
+
+            m_SelectedBuildPathTextField = root.Q<TextField>("selected-build-path");
+            m_SelectedBuildPathTextField.isReadOnly = true;
+
+            m_BuildPathField = root.Q<TextField>("selected-build-path");
+            m_BuildIdField = root.Q<TextField>("build-id");
+
+            UpdateBuildIdElements((BuildIdKind) m_BuildTypeMenu.value);
+
+            var selectBuildButton = root.Q<Button>("select-build-file-button");
+            selectBuildButton.clicked += () =>
+            {
+                var path = EditorUtility.OpenFilePanel("Select build ZIP file", "", "zip");
+                if (path.Length != 0)
+                {
+                    m_SelectedBuildPathTextField.value = path;
+                }
+            };
             SetFieldsFromPlayerPreferences();
+        }
+
+        private void UpdateBuildIdElements(BuildIdKind buildIdKind)
+        {
+            switch (buildIdKind)
+            {
+                case BuildIdKind.ExistingBuildID:
+                    m_BuildSelectControls.SetEnabled(false);
+                    m_BuildIdField.SetEnabled(true);
+                    break;
+                case BuildIdKind.ExistingBuildZip:
+                    m_BuildSelectControls.SetEnabled(true);
+                    m_BuildIdField.SetEnabled(false);
+                    break;
+                case BuildIdKind.BuildPlayer:
+                    m_BuildSelectControls.SetEnabled(false);
+                    m_BuildIdField.SetEnabled(false);
+                    break;
+            }
         }
 
         void SetFieldsFromPlayerPreferences()
@@ -141,10 +214,16 @@ namespace UnityEditor.Perception.Randomization
             m_TotalIterationsField.value = PlayerPrefs.GetInt("SimWindow/totalIterations");
             m_InstanceCountField.value = PlayerPrefs.GetInt("SimWindow/instanceCount");
             m_SysParamIndex = PlayerPrefs.GetInt("SimWindow/sysParamIndex");
+
+            var prevRandomSeed = PlayerPrefs.GetString("SimWindow/prevRandomSeed");
+            m_RandomSeedField.value = string.IsNullOrEmpty(prevRandomSeed)
+                ? SamplerUtility.largePrime : uint.Parse(prevRandomSeed);
+
             m_SysParamMenu.text = m_SysParamDefinitions[m_SysParamIndex].description;
             m_PrevRunNameLabel.text = $"Run Name: {PlayerPrefs.GetString("SimWindow/runName")}";
             m_ProjectIdLabel.text = $"Project ID: {CloudProjectSettings.projectId}";
             m_PrevExecutionIdLabel.text = $"Execution ID: {PlayerPrefs.GetString("SimWindow/prevExecutionId")}";
+            m_PrevRandomSeedLabel.text = $"Random Seed: {PlayerPrefs.GetString("SimWindow/prevRandomSeed")}";
         }
 
         static string IncrementRunName(string runName)
@@ -169,7 +248,7 @@ namespace UnityEditor.Perception.Randomization
         async void RunInUnitySimulation()
         {
             #if PLATFORM_CLOUD_RENDERING
-            if (!m_SysParamDefinitions[m_SysParamIndex].description.Contains(m_SupportedGPUString))
+            if (!m_SysParamDefinitions[m_SysParamIndex].description.Contains(k_SupportedGPUString))
             {
                 EditorUtility.DisplayDialog("Unsupported Sysparam",
                     "The current selection of the Sysparam " + m_SysParamDefinitions[m_SysParamIndex].description +
@@ -182,6 +261,7 @@ namespace UnityEditor.Perception.Randomization
                 runName = m_RunNameField.value,
                 totalIterations = m_TotalIterationsField.value,
                 instanceCount = m_InstanceCountField.value,
+                randomSeed = m_RandomSeedField.value,
                 sysParamIndex = m_SysParamIndex,
                 scenarioConfig = (TextAsset)m_ScenarioConfigField.value,
                 currentOpenScenePath = SceneManager.GetSceneAt(0).path,
@@ -195,16 +275,68 @@ namespace UnityEditor.Perception.Randomization
                 null);
             try
             {
+                m_RunButton.SetEnabled(false);
+
+                // Upload build
+                var cancellationTokenSource = new CancellationTokenSource();
+                var token = cancellationTokenSource.Token;
+
                 ValidateSettings();
-                CreateLinuxBuildAndZip();
-                await StartUnitySimulationRun(runGuid);
+                string buildId = null;
+                var buildIdKind = (BuildIdKind)m_BuildTypeMenu.value;
+                switch (buildIdKind)
+                {
+                    case BuildIdKind.BuildPlayer:
+                        if (CreateLinuxBuildAndZip())
+                        {
+                            buildId = await UploadBuild(cancellationTokenSource, token);
+                        }
+                        break;
+                    case BuildIdKind.ExistingBuildZip:
+                        m_BuildZipPath = m_BuildPathField.value;
+                        buildId = await UploadBuild(cancellationTokenSource, token);
+                        break;
+                    case BuildIdKind.ExistingBuildID:
+                        buildId = m_BuildIdField.value;
+                        break;
+                }
+                if (buildId == null)
+                    return;
+
+                StartUnitySimulationRun(runGuid, buildId);
             }
             catch (Exception e)
             {
-                EditorUtility.ClearProgressBar();
                 PerceptionEditorAnalytics.ReportRunInUnitySimulationFailed(runGuid, e.Message);
                 throw;
             }
+            finally
+            {
+                m_RunButton.SetEnabled(true);
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        private async Task<string> UploadBuild(CancellationTokenSource cancellationTokenSource, CancellationToken token)
+        {
+            var buildId = await API.UploadBuildAsync(
+                m_RunParameters.runName,
+                m_BuildZipPath,
+                null, null,
+                cancellationTokenSource,
+                progress =>
+                {
+                    EditorUtility.DisplayProgressBar(
+                        "Unity Simulation Run", "Uploading build...", progress * 0.90f);
+                });
+            if (token.IsCancellationRequested)
+            {
+                Debug.Log("The build upload process has been cancelled. Aborting Unity Simulation launch.");
+                EditorUtility.ClearProgressBar();
+                return null;
+            }
+
+            return buildId;
         }
 
         void ValidateSettings()
@@ -215,8 +347,6 @@ namespace UnityEditor.Perception.Randomization
                 throw new NotSupportedException("Invalid instance count specified");
             if (m_RunParameters.totalIterations <= 0)
                 throw new NotSupportedException("Invalid total iteration count specified");
-            if (string.IsNullOrEmpty(m_RunParameters.currentOpenScenePath))
-                throw new MissingFieldException("Invalid scene path");
             if (m_RunParameters.currentScenario == null)
                 throw new MissingFieldException(
                     "There is not a Unity Simulation compatible scenario present in the scene");
@@ -228,16 +358,54 @@ namespace UnityEditor.Perception.Randomization
                 Path.GetExtension(m_RunParameters.scenarioConfigAssetPath) != ".json")
                 throw new NotSupportedException(
                     "Scenario configuration must be a JSON text asset");
+
+            if (((BuildIdKind)m_BuildTypeMenu.value) == BuildIdKind.ExistingBuildZip &&
+                  !File.Exists(m_SelectedBuildPathTextField.value))
+            {
+                throw new NotSupportedException(
+                    "Selected build path does not exist");
+            }
+            if (((BuildIdKind)m_BuildTypeMenu.value) == BuildIdKind.ExistingBuildID &&
+                String.IsNullOrEmpty(m_BuildIdField.value))
+            {
+                throw new NotSupportedException("Empty Build ID");
+            }
         }
 
-        void CreateLinuxBuildAndZip()
+        bool CreateLinuxBuildAndZip()
         {
+            List<string> scenes = new List<string>();
+            foreach(var scene in EditorBuildSettings.scenes)
+            {
+                if(scene.enabled)
+                    scenes.Add(scene.path);
+            }
+
+            if (scenes.Count == 0)
+            {
+                if (EditorUtility.DisplayDialog("No Scenes Found", "Could not find any enabled Scenes in build settings. Open File -> Build Settings and add all your required Scenes.", "Use Currently Open Scene", "Cancel Build"))
+                {
+                    var currentOpenScenePath = SceneManager.GetSceneAt(0).path;
+                    if (string.IsNullOrEmpty(currentOpenScenePath))
+                    {
+                        EditorUtility.DisplayDialog("Build Failed", "Could not find an active Scene.", "OK");
+                        throw new Exception($"Could not find an active Scene.");
+                    }
+                    scenes.Add(currentOpenScenePath);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
             var projectBuildDirectory = $"{m_BuildDirectory}/{m_RunParameters.runName}";
             if (!Directory.Exists(projectBuildDirectory))
                 Directory.CreateDirectory(projectBuildDirectory);
+
             var buildPlayerOptions = new BuildPlayerOptions
             {
-                scenes = new[] { m_RunParameters.currentOpenScenePath },
+                scenes = scenes.ToArray(),
                 locationPathName = Path.Combine(projectBuildDirectory, $"{m_RunParameters.runName}.x86_64"),
 #if PLATFORM_CLOUD_RENDERING
                 target = BuildTarget.CloudRendering,
@@ -253,6 +421,8 @@ namespace UnityEditor.Perception.Randomization
             EditorUtility.DisplayProgressBar("Unity Simulation Run", "Zipping Linux build...", 0f);
             Zip.DirectoryContents(projectBuildDirectory, m_RunParameters.runName);
             m_BuildZipPath = projectBuildDirectory + ".zip";
+
+            return true;
         }
 
         List<AppParam> UploadAppParam()
@@ -265,6 +435,7 @@ namespace UnityEditor.Perception.Randomization
             var constants = configuration["constants"];
             constants["totalIterations"] = m_RunParameters.totalIterations;
             constants["instanceCount"] = m_RunParameters.instanceCount;
+            constants["randomSeed"] = m_RunParameters.randomSeed;
 
             var appParamName = $"{m_RunParameters.runName}";
             var appParamsString = JsonConvert.SerializeObject(configuration, Formatting.Indented);
@@ -278,30 +449,8 @@ namespace UnityEditor.Perception.Randomization
             return appParamIds;
         }
 
-        async Task StartUnitySimulationRun(Guid runGuid)
+        void StartUnitySimulationRun(Guid runGuid, string buildId)
         {
-            m_RunButton.SetEnabled(false);
-
-            // Upload build
-            var cancellationTokenSource = new CancellationTokenSource();
-            var token = cancellationTokenSource.Token;
-            var buildId = await API.UploadBuildAsync(
-                m_RunParameters.runName,
-                m_BuildZipPath,
-                null, null,
-                cancellationTokenSource,
-                progress =>
-                {
-                    EditorUtility.DisplayProgressBar(
-                        "Unity Simulation Run", "Uploading build...", progress * 0.90f);
-                });
-            if (token.IsCancellationRequested)
-            {
-                Debug.Log("The build upload process has been cancelled. Aborting Unity Simulation launch.");
-                EditorUtility.ClearProgressBar();
-                return;
-            }
-
             // Generate and upload app-params
             EditorUtility.DisplayProgressBar("Unity Simulation Run", "Uploading app-params...", 0.90f);
             var appParams = UploadAppParam();
@@ -322,8 +471,6 @@ namespace UnityEditor.Perception.Randomization
             run.Execute();
 
             // Cleanup
-            m_RunButton.SetEnabled(true);
-            EditorUtility.ClearProgressBar();
             PerceptionEditorAnalytics.ReportRunInUnitySimulationSucceeded(runGuid, run.executionId);
 
             // Set new Player Preferences
@@ -331,6 +478,7 @@ namespace UnityEditor.Perception.Randomization
             PlayerPrefs.SetString("SimWindow/prevExecutionId", run.executionId);
             PlayerPrefs.SetInt("SimWindow/totalIterations", m_RunParameters.totalIterations);
             PlayerPrefs.SetInt("SimWindow/instanceCount", m_RunParameters.instanceCount);
+            PlayerPrefs.SetString("SimWindow/prevRandomSeed", m_RunParameters.randomSeed.ToString());
             PlayerPrefs.SetInt("SimWindow/sysParamIndex", m_RunParameters.sysParamIndex);
             PlayerPrefs.SetString("SimWindow/scenarioConfig",
                 m_RunParameters.scenarioConfig != null ? m_RunParameters.scenarioConfigAssetPath : string.Empty);
@@ -343,6 +491,7 @@ namespace UnityEditor.Perception.Randomization
             public string runName;
             public int totalIterations;
             public int instanceCount;
+            public uint randomSeed;
             public int sysParamIndex;
             public TextAsset scenarioConfig;
             public string currentOpenScenePath;

@@ -43,9 +43,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf4fa374b134b1680755f8280ae8e7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  templateInformation:
-  - template: {fileID: 11400000, guid: 90217544e06a7b1408543cd72382ccbb, type: 2}
-    label: FrontBottomRight
+  templateInformation: []
+  labels:
+  - FrontBottomRight
+  selfOcclusionDistanceSource: 0
+  selfOcclusionDistance: 0.4
 --- !u!1 &3710685714022253438
 GameObject:
   m_ObjectHideFlags: 0
@@ -89,9 +91,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf4fa374b134b1680755f8280ae8e7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  templateInformation:
-  - template: {fileID: 11400000, guid: 90217544e06a7b1408543cd72382ccbb, type: 2}
-    label: BackBottomRight
+  templateInformation: []
+  labels:
+  - BackBottomRight
+  selfOcclusionDistanceSource: 0
+  selfOcclusionDistance: 0.15
 --- !u!1 &3710685714250655251
 GameObject:
   m_ObjectHideFlags: 0
@@ -135,9 +139,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf4fa374b134b1680755f8280ae8e7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  templateInformation:
-  - template: {fileID: 11400000, guid: 90217544e06a7b1408543cd72382ccbb, type: 2}
-    label: BackTopRight
+  templateInformation: []
+  labels:
+  - BackTopRight
+  selfOcclusionDistanceSource: 0
+  selfOcclusionDistance: 0.15
 --- !u!1 &3710685714462346527
 GameObject:
   m_ObjectHideFlags: 0
@@ -181,9 +187,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf4fa374b134b1680755f8280ae8e7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  templateInformation:
-  - template: {fileID: 11400000, guid: 90217544e06a7b1408543cd72382ccbb, type: 2}
-    label: FrontTopLeft
+  templateInformation: []
+  labels:
+  - FrontTopLeft
+  selfOcclusionDistanceSource: 0
+  selfOcclusionDistance: 0.15
 --- !u!1 &3710685714481788901
 GameObject:
   m_ObjectHideFlags: 0
@@ -227,9 +235,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf4fa374b134b1680755f8280ae8e7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  templateInformation:
-  - template: {fileID: 11400000, guid: 90217544e06a7b1408543cd72382ccbb, type: 2}
-    label: BackBottomLeft
+  templateInformation: []
+  labels:
+  - BackBottomLeft
+  selfOcclusionDistanceSource: 0
+  selfOcclusionDistance: 0.15
 --- !u!1 &3710685714524957768
 GameObject:
   m_ObjectHideFlags: 0
@@ -273,9 +283,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf4fa374b134b1680755f8280ae8e7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  templateInformation:
-  - template: {fileID: 11400000, guid: 90217544e06a7b1408543cd72382ccbb, type: 2}
-    label: FrontTopRight
+  templateInformation: []
+  labels:
+  - FrontTopRight
+  selfOcclusionDistanceSource: 0
+  selfOcclusionDistance: 0.15
 --- !u!1 &3710685714572991348
 GameObject:
   m_ObjectHideFlags: 0
@@ -319,9 +331,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf4fa374b134b1680755f8280ae8e7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  templateInformation:
-  - template: {fileID: 11400000, guid: 90217544e06a7b1408543cd72382ccbb, type: 2}
-    label: BackTopLeft
+  templateInformation: []
+  labels:
+  - BackTopLeft
+  selfOcclusionDistanceSource: 0
+  selfOcclusionDistance: 0.15
 --- !u!1 &3710685714995308732
 GameObject:
   m_ObjectHideFlags: 0
@@ -437,7 +451,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   labels:
-  - Crate
+  - Crate24
   useAutoLabeling: 0
   autoLabelingSchemeType: 
 --- !u!1 &3710685715225028277
@@ -483,6 +497,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8cf4fa374b134b1680755f8280ae8e7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  templateInformation:
-  - template: {fileID: 11400000, guid: 90217544e06a7b1408543cd72382ccbb, type: 2}
-    label: FrontBottomLeft
+  templateInformation: []
+  labels:
+  - FrontBottomLeft
+  selfOcclusionDistanceSource: 0
+  selfOcclusionDistance: 0.4

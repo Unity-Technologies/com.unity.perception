@@ -379,17 +379,15 @@ namespace GroundTruthTests
             var simulationDeltaTime = 0.05f;
             var sensorHandle = DatasetCapture.RegisterSensor(ego, "cam", "", 0, CaptureTriggerMode.Manual, simulationDeltaTime, 0, true);
 
-            var framesToCaptureOn = new List<int>();
-
-            var startFrame = Time.frameCount;
-            var startTime = Time.time;
-
-            while (framesToCaptureOn.Count < 10)
+            var framesToCaptureOn = new List<int>()
             {
-                var randomFrame = Random.Range(startFrame, startFrame + 100);
-                if(!framesToCaptureOn.Contains(randomFrame))
-                    framesToCaptureOn.Add(randomFrame);
-            }
+                Time.frameCount + 3,
+                Time.frameCount + 5,
+                Time.frameCount + 6,
+                Time.frameCount + 10,
+                Time.frameCount + 15,
+                Time.frameCount + 25,
+            };
 
             framesToCaptureOn.Sort();
 
@@ -397,7 +395,7 @@ namespace GroundTruthTests
 
             for (int i = 0; i < sequenceTimesExpected.Length; i++)
             {
-                sequenceTimesExpected[i] = (framesToCaptureOn[i] - startFrame) * simulationDeltaTime;
+                sequenceTimesExpected[i] = (framesToCaptureOn[i] - Time.frameCount) * simulationDeltaTime;
             }
 
             var frameIndex = 0;

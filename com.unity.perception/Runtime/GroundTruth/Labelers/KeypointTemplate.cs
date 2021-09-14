@@ -9,6 +9,7 @@ namespace UnityEngine.Perception.GroundTruth
     [Serializable]
     public class KeypointDefinition
     {
+        internal const float defaultSelfOcclusionDistance = 0.15f;
         /// <summary>
         /// The name of the keypoint
         /// </summary>
@@ -25,6 +26,11 @@ namespace UnityEngine.Perception.GroundTruth
         /// The color of the keypoint in the visualization
         /// </summary>
         public Color color = Color.blue;
+        /// <summary>
+        /// The max distance the keypoint can be behind an object before it is considered occluded. Distance is computed
+        /// in the local space of the joint, so object scale is computed
+        /// </summary>
+        public float selfOcclusionDistance = defaultSelfOcclusionDistance;
     }
 
     /// <summary>

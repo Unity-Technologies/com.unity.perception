@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37a7d6f1a40c45a2981a6291f0d03337, type: 3}
   m_Name: CocoKeypointTemplate
   m_EditorClassIdentifier: 
+  templateID: 4a7b253a-334e-460c-bc81-3f4e2c4871c0
   templateName: Coco
   jointTexture: {fileID: 2800000, guid: e381cbaaf29614168bafc8f7ec5dbfe9, type: 3}
   skeletonTexture: {fileID: 2800000, guid: e381cbaaf29614168bafc8f7ec5dbfe9, type: 3}
@@ -20,74 +21,92 @@ MonoBehaviour:
     associateToRig: 0
     rigLabel: 0
     color: {r: 1, g: 0, b: 0, a: 1}
+    selfOcclusionDistance: 0.15
   - label: neck
     associateToRig: 1
     rigLabel: 9
     color: {r: 1, g: 0.3397382, b: 0, a: 1}
+    selfOcclusionDistance: 0.15
   - label: right_shoulder
     associateToRig: 1
     rigLabel: 14
     color: {r: 1, g: 0.5694697, b: 0, a: 1}
+    selfOcclusionDistance: 0.185
   - label: right_elbow
     associateToRig: 1
     rigLabel: 16
     color: {r: 1, g: 0.8258381, b: 0, a: 1}
+    selfOcclusionDistance: 0.15
   - label: right_wrist
     associateToRig: 1
     rigLabel: 18
     color: {r: 0.6454141, g: 1, b: 0, a: 1}
+    selfOcclusionDistance: 0.15
   - label: left_shoulder
     associateToRig: 1
     rigLabel: 13
     color: {r: 0.33125544, g: 1, b: 0, a: 1}
+    selfOcclusionDistance: 0.185
   - label: left_elbow
     associateToRig: 1
     rigLabel: 15
     color: {r: 0.04907012, g: 1, b: 0, a: 1}
+    selfOcclusionDistance: 0.15
   - label: left_wrist
     associateToRig: 1
     rigLabel: 17
     color: {r: 0, g: 1, b: 0.16702724, a: 1}
+    selfOcclusionDistance: 0.15
   - label: right_hip
     associateToRig: 1
     rigLabel: 2
     color: {r: 0, g: 1, b: 0.36656523, a: 1}
+    selfOcclusionDistance: 0.18
   - label: right_knee
     associateToRig: 1
     rigLabel: 4
     color: {r: 0, g: 1, b: 0.58708096, a: 1}
+    selfOcclusionDistance: 0.15
   - label: right_ankle
     associateToRig: 1
     rigLabel: 6
     color: {r: 0, g: 1, b: 0.7695224, a: 1}
+    selfOcclusionDistance: 0.15
   - label: left_hip
     associateToRig: 1
     rigLabel: 1
     color: {r: 0, g: 1, b: 1, a: 1}
+    selfOcclusionDistance: 0.2
   - label: left_knee
     associateToRig: 1
     rigLabel: 3
     color: {r: 0, g: 0.63836884, b: 1, a: 1}
+    selfOcclusionDistance: 0.15
   - label: left_ankle
     associateToRig: 1
     rigLabel: 5
     color: {r: 0, g: 0.29786587, b: 1, a: 1}
+    selfOcclusionDistance: 0.15
   - label: right_eye
     associateToRig: 1
     rigLabel: 22
     color: {r: 0.45002556, g: 0, b: 1, a: 1}
+    selfOcclusionDistance: 0.033
   - label: left_eye
     associateToRig: 1
     rigLabel: 21
     color: {r: 0.9471822, g: 0, b: 1, a: 1}
+    selfOcclusionDistance: 0.033
   - label: right_ear
     associateToRig: 0
     rigLabel: 22
     color: {r: 1, g: 0, b: 0.6039734, a: 1}
+    selfOcclusionDistance: 0.05
   - label: left_ear
     associateToRig: 0
     rigLabel: 21
     color: {r: 1, g: 0, b: 0.11927748, a: 1}
+    selfOcclusionDistance: 0.05
   skeleton:
   - joint1: 0
     joint2: 1

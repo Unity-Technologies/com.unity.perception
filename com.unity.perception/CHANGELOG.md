@@ -49,6 +49,14 @@ Added support for 'step' button in editor.
 
 Added random seed field to the Run in Unity Simulation Window.
 
+Added support for keypoint self occlusion.
+
+Added the ability to adjust keypoint self occlusion tolerance per keypoint in keypoint template file.
+
+Added the ability to adjust keypoint self occlusion tolerance on a user defined joint using the joint label.
+
+Added a Keypoint Occlusion Override component which allows a user to universally scale all of the keypoint tolerances for a model.
+
 ### Changed
 
 Increased color variety in instance segmentation images.

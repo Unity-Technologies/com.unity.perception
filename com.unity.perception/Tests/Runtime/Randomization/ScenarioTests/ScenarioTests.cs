@@ -2,13 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Perception;
 using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.RandomizationTests.ScenarioTests;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
@@ -108,6 +111,7 @@ namespace RandomizationTests.ScenarioTests
                 Assert.AreEqual(0, m_Scenario.currentIteration);
                 yield return null;
             }
+
             Assert.AreEqual(1, m_Scenario.currentIteration);
         }
 
@@ -121,6 +125,7 @@ namespace RandomizationTests.ScenarioTests
                 Assert.True(m_Scenario.state == ScenarioBase.State.Playing);
                 yield return null;
             }
+
             Assert.True(m_Scenario.state == ScenarioBase.State.Idle);
         }
 
@@ -153,7 +158,6 @@ namespace RandomizationTests.ScenarioTests
             for (var i = 0; i < 3; i++)
                 Assert.AreNotEqual(seeds[i], SamplerState.NextRandomState());
         }
-
 
         [UnityTest]
         public IEnumerator IterationCorrectlyDelays()
@@ -189,6 +193,209 @@ namespace RandomizationTests.ScenarioTests
             yield return null;
             // State: currentIteration = 5
             Assert.AreEqual(5, m_Scenario.currentIteration);
+        [Test]
+
+        public void ScenarioCompletedAnalyticsSerializesCorrectly()
+        {
+            // Setup test randomizer
+            var testRandomizer = new AllMembersAndParametersTestRandomizer();
+            testRandomizer.colorRgbCategoricalParam.SetOptions(new (Color, float)[]
+            {
+                (Color.black, 0.4f),
+                (Color.blue, 0.93f),
+                (Color.red, 0.23f)
+            });
+            var randomizerData =
+                PerceptionEngineAnalytics.RandomizerData.FromRandomizer(testRandomizer);
+
+            Assert.IsTrue(randomizerData != null);
+
+            // Parameters
+            var expectedSerializedValue =
+                new PerceptionEngineAnalytics.RandomizerData()
+                {
+                    name = nameof(AllMembersAndParametersTestRandomizer),
+                    members = new[]
+                    {
+                        new PerceptionEngineAnalytics.MemberData()
+                        {
+                            name = "booleanMember",
+                            type = "System.Boolean",
+                            value = "False"
+                        },
+                        new PerceptionEngineAnalytics.MemberData()
+                        {
+                            name = "intMember",
+                            type = "System.Int32",
+                            value = "4"
+                        },
+                        new PerceptionEngineAnalytics.MemberData()
+                        {
+                            name = "uintMember",
+                            type = "System.UInt32",
+                            value = "2"
+                        },
+                        new PerceptionEngineAnalytics.MemberData()
+                        {
+                            name = "floatMember",
+                            type = "System.Single",
+                            value = "5"
+                        },
+                        new PerceptionEngineAnalytics.MemberData()
+                        {
+                            name = "vector2Member",
+                            type = "UnityEngine.Vector2",
+                            value = "(4.0, 7.0)"
+                        },
+                        new PerceptionEngineAnalytics.MemberData()
+                        {
+                            name = "unsupportedMember",
+                            type = "UnityEngine.Perception.PerceptionEngineAnalytics+MemberData",
+                            value = "UnityEngine.Perception.PerceptionEngineAnalytics+MemberData"
+                        }
+                    },
+                    parameters = new[]
+                    {
+                        new PerceptionEngineAnalytics.ParameterData()
+                        {
+                            name = "booleanParam",
+                            type = "BooleanParameter",
+                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            {
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Constant",
+                                    name = "value",
+                                    value = 1
+                                },
+                            }
+                        },
+                        new PerceptionEngineAnalytics.ParameterData()
+                        {
+                            name = "floatParam",
+                            type = "FloatParameter",
+                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            {
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "AnimationCurve",
+                                    name = "value",
+                                }
+                            }
+                        },
+                        new PerceptionEngineAnalytics.ParameterData()
+                        {
+                            name = "integerParam",
+                            type = "IntegerParameter",
+                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            {
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Uniform",
+                                    name = "value",
+                                    rangeMinimum = -3, rangeMaximum = 7
+                                }
+                            }
+                        },
+                        new PerceptionEngineAnalytics.ParameterData()
+                        {
+                            name = "vector2Param",
+                            type = "Vector2Parameter",
+                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            {
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Constant",
+                                    name = "x",
+                                    value = 2
+                                },
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Uniform",
+                                    name = "y",
+                                    rangeMinimum = -4, rangeMaximum = 8
+                                }
+                            }
+                        },
+                        new PerceptionEngineAnalytics.ParameterData()
+                        {
+                            name = "vector3Param",
+                            type = "Vector3Parameter",
+                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            {
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Normal",
+                                    name = "x",
+                                    rangeMinimum = -5, rangeMaximum = 9,
+                                    mean = 4, stdDev = 2
+                                },
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Constant",
+                                    name = "y",
+                                    value = 3
+                                },
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "AnimationCurve",
+                                    name = "z",
+                                }
+                            }
+                        },
+                        new PerceptionEngineAnalytics.ParameterData()
+                        {
+                            name = "vector4Param",
+                            type = "Vector4Parameter",
+                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            {
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Normal",
+                                    name = "x",
+                                    rangeMinimum = -5, rangeMaximum = 9,
+                                    mean = 4, stdDev = 2
+                                },
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Constant",
+                                    name = "y",
+                                    value = 3
+                                },
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "AnimationCurve",
+                                    name = "z",
+                                },
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Uniform",
+                                    name = "w",
+                                    rangeMinimum = -12, rangeMaximum = 42
+                                }
+                            }
+                        },
+                        new PerceptionEngineAnalytics.ParameterData()
+                        {
+                            name = "colorRgbCategoricalParam",
+                            type = "ColorRgbCategoricalParameter",
+                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            {
+                                new PerceptionEngineAnalytics.ParameterField()
+                                {
+                                    distribution = "Categorical",
+                                    name = "values",
+                                    categoricalParameterCount = 3
+                                }
+                            }
+                        }
+                    }
+                };
+
+            var expectedSerializedValueJson = JsonConvert.SerializeObject(expectedSerializedValue);
+            var serializedValueJson = JsonConvert.SerializeObject(randomizerData);
+
+            Assert.AreEqual(expectedSerializedValueJson, serializedValueJson);
         }
 
         PerceptionCamera SetupPerceptionCamera()

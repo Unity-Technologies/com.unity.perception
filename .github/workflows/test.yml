@@ -1,0 +1,20 @@
+name: GitHub Jira Update
+on: issue_comment
+jobs:
+    On-Issue-Comment:
+        runs-on: ubuntu-latest
+        name: Issue Comment
+        if: ${{!github.event.issue.pull_request}}
+        steps:
+            - run: echo "Comment on issue #${{github.event.issue.number}}"
+            - run :
+                AIVTS-19 #comment Issue on comment Testing github action
+
+    On-Issue-Labeled:
+        runs-on: ubuntu-latest
+        name: Issue Labeled
+        if: ${{!github.event.issue.pull_request}}
+        steps:
+            - run: echo "Issue Labeled #${{github.event.issue.number}}"
+            - run :
+                AIVTS-19 #comment Issue on Label Testing github action

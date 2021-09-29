@@ -20,29 +20,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         MetricDefinition m_IterationMetricDefinition;
 
-        /// <summary>
-        /// The scriptable render pipeline hook used to capture perception data skips the first frame of the simulation
-        /// when running locally, so this flag is used to track whether the first frame has been skipped yet.
-        /// </summary>
-        protected bool m_SkippedFirstFrame;
-
-        /// <inheritdoc/>
-        protected override bool isScenarioReadyToStart
-        {
-            get
-            {
-                if (!m_SkippedFirstFrame)
-                {
-                    m_SkippedFirstFrame = true;
-                    return false;
-                }
-                return true;
-            }
-        }
+        protected override bool isScenarioReadyToStart => Time.frameCount >= 2;
 
         /// <inheritdoc/>
         protected override void OnAwake()
         {
+            foreach (var perceptionCamera in FindObjectsOfType<PerceptionCamera>())
+                perceptionCamera.enabled = false;
             m_IterationMetricDefinition = DatasetCapture.RegisterMetricDefinition(
                 "scenario_iteration", "Iteration information for dataset sequences",
                 Guid.Parse(k_ScenarioIterationMetricDefinitionId));
@@ -51,6 +35,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <inheritdoc/>
         protected override void OnStart()
         {
+            foreach (var perceptionCamera in FindObjectsOfType<PerceptionCamera>())
+                perceptionCamera.enabled = true;
             var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
                 "random-seed",
                 "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.",

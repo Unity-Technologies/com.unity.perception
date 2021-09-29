@@ -1,9 +1,11 @@
+using UnityEngine.Perception.Analytics;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
 
-namespace UnityEngine.Perception.RandomizationTests.ScenarioTests
+namespace UnityEngine.Perception
 {
+    [AddRandomizerMenu("Test/All Members And Parameters")]
     public class AllMembersAndParametersTestRandomizer: Randomizer
     {
         // Members
@@ -12,8 +14,7 @@ namespace UnityEngine.Perception.RandomizationTests.ScenarioTests
         public uint uintMember = 2;
         public float floatMember = 5;
         public Vector2 vector2Member = new Vector2(4, 7);
-        public UniformSampler unsupportedMember = new UniformSampler();
-
+        public MemberData unsupportedMember = new MemberData();
         // Parameters
         public BooleanParameter booleanParam = new BooleanParameter()
         {

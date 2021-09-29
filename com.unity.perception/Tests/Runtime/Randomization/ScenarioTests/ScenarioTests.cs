@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception;
+using UnityEngine.Perception.Analytics;
 using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.GroundTruth;
@@ -22,6 +23,9 @@ namespace RandomizationTests.ScenarioTests
     {
         GameObject m_TestObject;
         TestFixedLengthScenario m_Scenario;
+
+        static string RemoveWhitespace(string str) =>
+            string.Join("", str.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
 
         [SetUp]
         public void Setup()
@@ -60,9 +64,6 @@ namespace RandomizationTests.ScenarioTests
             m_TestObject = new GameObject();
             m_Scenario = m_TestObject.AddComponent<TestFixedLengthScenario>();
             m_Scenario.AddRandomizer(new RotationRandomizer());
-
-            string RemoveWhitespace(string str) =>
-                string.Join("", str.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
 
             var expectedConfigAsset = (TextAsset)Resources.Load("SampleScenarioConfiguration");
             var expectedText = RemoveWhitespace(expectedConfigAsset.text);
@@ -206,48 +207,49 @@ namespace RandomizationTests.ScenarioTests
                 (Color.red, 0.23f)
             });
             var randomizerData =
-                PerceptionEngineAnalytics.RandomizerData.FromRandomizer(testRandomizer);
+                RandomizerData.FromRandomizer(testRandomizer);
 
             Assert.IsTrue(randomizerData != null);
 
+            /*
             // Parameters
             var expectedSerializedValue =
-                new PerceptionEngineAnalytics.RandomizerData()
+                new RandomizerData()
                 {
                     name = nameof(AllMembersAndParametersTestRandomizer),
                     members = new[]
                     {
-                        new PerceptionEngineAnalytics.MemberData()
+                        new MemberData()
                         {
                             name = "booleanMember",
                             type = "System.Boolean",
                             value = "False"
                         },
-                        new PerceptionEngineAnalytics.MemberData()
+                        new MemberData()
                         {
                             name = "intMember",
                             type = "System.Int32",
                             value = "4"
                         },
-                        new PerceptionEngineAnalytics.MemberData()
+                        new MemberData()
                         {
                             name = "uintMember",
                             type = "System.UInt32",
                             value = "2"
                         },
-                        new PerceptionEngineAnalytics.MemberData()
+                        new MemberData()
                         {
                             name = "floatMember",
                             type = "System.Single",
                             value = "5"
                         },
-                        new PerceptionEngineAnalytics.MemberData()
+                        new MemberData()
                         {
                             name = "vector2Member",
                             type = "UnityEngine.Vector2",
                             value = "(4.0, 7.0)"
                         },
-                        new PerceptionEngineAnalytics.MemberData()
+                        new MemberData()
                         {
                             name = "unsupportedMember",
                             type = "UnityEngine.Perception.PerceptionEngineAnalytics+MemberData",
@@ -256,13 +258,13 @@ namespace RandomizationTests.ScenarioTests
                     },
                     parameters = new[]
                     {
-                        new PerceptionEngineAnalytics.ParameterData()
+                        new ParameterData()
                         {
                             name = "booleanParam",
                             type = "BooleanParameter",
-                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            fields = new List<ParameterField>()
                             {
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Constant",
                                     name = "value",
@@ -270,26 +272,26 @@ namespace RandomizationTests.ScenarioTests
                                 },
                             }
                         },
-                        new PerceptionEngineAnalytics.ParameterData()
+                        new ParameterData()
                         {
                             name = "floatParam",
                             type = "FloatParameter",
-                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            fields = new List<ParameterField>()
                             {
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "AnimationCurve",
                                     name = "value",
                                 }
                             }
                         },
-                        new PerceptionEngineAnalytics.ParameterData()
+                        new ParameterData()
                         {
                             name = "integerParam",
                             type = "IntegerParameter",
-                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            fields = new List<ParameterField>()
                             {
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Uniform",
                                     name = "value",
@@ -297,19 +299,19 @@ namespace RandomizationTests.ScenarioTests
                                 }
                             }
                         },
-                        new PerceptionEngineAnalytics.ParameterData()
+                        new ParameterData()
                         {
                             name = "vector2Param",
                             type = "Vector2Parameter",
-                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            fields = new List<ParameterField>()
                             {
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Constant",
                                     name = "x",
                                     value = 2
                                 },
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Uniform",
                                     name = "y",
@@ -317,57 +319,57 @@ namespace RandomizationTests.ScenarioTests
                                 }
                             }
                         },
-                        new PerceptionEngineAnalytics.ParameterData()
+                        new ParameterData()
                         {
                             name = "vector3Param",
                             type = "Vector3Parameter",
-                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            fields = new List<ParameterField>()
                             {
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Normal",
                                     name = "x",
                                     rangeMinimum = -5, rangeMaximum = 9,
                                     mean = 4, stdDev = 2
                                 },
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Constant",
                                     name = "y",
                                     value = 3
                                 },
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "AnimationCurve",
                                     name = "z",
                                 }
                             }
                         },
-                        new PerceptionEngineAnalytics.ParameterData()
+                        new ParameterData()
                         {
                             name = "vector4Param",
                             type = "Vector4Parameter",
-                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            fields = new List<ParameterField>()
                             {
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Normal",
                                     name = "x",
                                     rangeMinimum = -5, rangeMaximum = 9,
                                     mean = 4, stdDev = 2
                                 },
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Constant",
                                     name = "y",
                                     value = 3
                                 },
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "AnimationCurve",
                                     name = "z",
                                 },
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Uniform",
                                     name = "w",
@@ -375,13 +377,13 @@ namespace RandomizationTests.ScenarioTests
                                 }
                             }
                         },
-                        new PerceptionEngineAnalytics.ParameterData()
+                        new ParameterData()
                         {
                             name = "colorRgbCategoricalParam",
                             type = "ColorRgbCategoricalParameter",
-                            fields = new List<PerceptionEngineAnalytics.ParameterField>()
+                            fields = new List<ParameterField>()
                             {
-                                new PerceptionEngineAnalytics.ParameterField()
+                                new ParameterField()
                                 {
                                     distribution = "Categorical",
                                     name = "values",
@@ -391,9 +393,10 @@ namespace RandomizationTests.ScenarioTests
                         }
                     }
                 };
+            */
 
-            var expectedSerializedValueJson = JsonConvert.SerializeObject(expectedSerializedValue);
-            var serializedValueJson = JsonConvert.SerializeObject(randomizerData);
+            var expectedSerializedValueJson = RemoveWhitespace(((TextAsset)Resources.Load("randomizerAnalyticsSerializationExample")).text);
+            var serializedValueJson = RemoveWhitespace(JsonConvert.SerializeObject(randomizerData));
 
             Assert.AreEqual(expectedSerializedValueJson, serializedValueJson);
         }

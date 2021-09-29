@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Perception.Analytics;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
@@ -526,7 +527,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 .Select(obj => obj.GetComponentInChildren<PerceptionCamera>())
                 .FirstOrDefault(x => x != null);
 
-            PerceptionEngineAnalytics.ReportScenarioCompleted(
+            PerceptionAnalytics.ReportScenarioCompleted(
                 perceptionCamera,
                 activeScenario.randomizers
             );

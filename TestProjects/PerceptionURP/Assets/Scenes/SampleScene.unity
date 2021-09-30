@@ -153,42 +153,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d50076aff0af4515b4422166496fdd5e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Randomizers:
-  - id: 0
-  configuration: {fileID: 0}
+  m_Randomizers: []
+  quitOnComplete: 1
+  serializedConstantsFileName: constants
   constants:
-    randomSeed: 539662031
     totalIterations: 100
     instanceCount: 1
     instanceIndex: 0
     framesPerIteration: 1
   references:
     version: 1
-    00000000:
-      type: {class: ForegroundObjectPlacementRandomizer, ns: UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers,
-        asm: Unity.Perception.Runtime}
-      data:
-        m_Enabled: 1
-        collapsed: 0
-        depth: 0
-        separationDistance: 2
-        placementArea: {x: 10, y: 10}
-        prefabs:
-          collapsed: 0
-          probabilities:
-          - 1
-          uniform: 1
-          m_Sampler:
-            id: 1
-          m_Categories:
-          - {fileID: 4885438799896782722, guid: 15f5240909c302347a9d146de3bbb903, type: 3}
-    00000001:
-      type: {class: UniformSampler, ns: UnityEngine.Perception.Randomization.Samplers,
-        asm: Unity.Perception.Runtime}
-      data:
-        range:
-          minimum: 0
-          maximum: 1
 --- !u!4 &85886258
 Transform:
   m_ObjectHideFlags: 0
@@ -203,7 +177,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &324708166
+--- !u!1 &411238276
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -211,12 +185,12 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 324708172}
-  - component: {fileID: 324708171}
-  - component: {fileID: 324708170}
-  - component: {fileID: 324708169}
-  - component: {fileID: 324708168}
-  - component: {fileID: 324708167}
+  - component: {fileID: 411238281}
+  - component: {fileID: 411238280}
+  - component: {fileID: 411238279}
+  - component: {fileID: 411238278}
+  - component: {fileID: 411238277}
+  - component: {fileID: 411238282}
   m_Layer: 0
   m_Name: Crate
   m_TagString: Untagged
@@ -224,26 +198,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &324708167
+--- !u!114 &411238277
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 324708166}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 673a227032a8e4940b9828c5b6f852ab, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yDegreesPerSecond: 180
---- !u!114 &324708168
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 324708166}
+  m_GameObject: {fileID: 411238276}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8b33f0bc2b78db642a758f07826d0dd0, type: 3}
@@ -253,26 +214,26 @@ MonoBehaviour:
   - Crate
   useAutoLabeling: 0
   autoLabelingSchemeType: 
---- !u!65 &324708169
+--- !u!65 &411238278
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 324708166}
+  m_GameObject: {fileID: 411238276}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &324708170
+--- !u!23 &411238279
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 324708166}
+  m_GameObject: {fileID: 411238276}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -281,7 +242,6 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -306,22 +266,21 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &324708171
+--- !u!33 &411238280
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 324708166}
+  m_GameObject: {fileID: 411238276}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &324708172
+--- !u!4 &411238281
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 324708166}
+  m_GameObject: {fileID: 411238276}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 121.42, y: 72.4, z: -161.73}
   m_LocalScale: {x: 15, y: 15, z: 15}
@@ -329,6 +288,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &411238282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 411238276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 673a227032a8e4940b9828c5b6f852ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yDegreesPerSecond: 180
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -626,9 +598,9 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.22882287, y: -0.124299996, z: 0.029464606, w: 0.96505}
-  m_LocalPosition: {x: 116.5285, y: 91.11087, z: -194.8544}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0.22882307, y: 0.124303445, z: -0.029468497, w: -0.96504945}
+  m_LocalPosition: {x: 116.52855, y: 91.11087, z: -194.85445}
+  m_LocalScale: {x: 36.249973, y: 36.249973, z: 36.249973}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -645,18 +617,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4467405dbcbd3d64ab4363e9ae8bb813, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  description: The main camera
+  period: 0.0166
+  startTime: 0
+  captureRgbImages: 1
   m_Labelers:
   - id: 0
   - id: 1
   - id: 2
   - id: 3
-  description: The main camera
-  captureRgbImages: 1
-  firstCaptureFrame: 0
-  captureTriggerMode: 0
-  manualSensorAffectSimulationTiming: 0
-  simulationDeltaTime: 0.0166
-  framesBetweenCaptures: 0
   showVisualizations: 1
   references:
     version: 1

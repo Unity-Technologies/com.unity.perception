@@ -6,8 +6,8 @@
 
 [![license badge](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
 
-<img src="https://img.shields.io/badge/unity-2019.4-green.svg?style=flat-square" alt="unity 2019.4">
-<img src="https://img.shields.io/badge/unity-2020.2-green.svg?style=flat-square" alt="unity 2020.3">
+<img src="https://img.shields.io/badge/unity-2020.3-green.svg?style=flat-square" alt="unity 2020.3">
+<img src="https://img.shields.io/badge/unity-2021.2-green.svg?style=flat-square" alt="unity 2021.2">
 
 > `com.unity.perception` is in active development. Its features and API are subject to significant change as development progresses.
 
@@ -77,7 +77,7 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 
 ## Known issues
 
-* The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1
+* The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.3.
 
 ## License
 * [License](com.unity.perception/LICENSE.md)

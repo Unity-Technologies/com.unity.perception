@@ -154,9 +154,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Randomizers: []
-  quitOnComplete: 1
-  serializedConstantsFileName: constants
+  configuration: {fileID: 0}
   constants:
+    randomSeed: 539662031
     totalIterations: 100
     instanceCount: 1
     instanceIndex: 0
@@ -242,6 +242,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -266,6 +267,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &411238280
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -617,15 +619,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4467405dbcbd3d64ab4363e9ae8bb813, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  description: The main camera
-  period: 0.0166
-  startTime: 0
-  captureRgbImages: 1
   m_Labelers:
   - id: 0
   - id: 1
   - id: 2
   - id: 3
+  description: The main camera
+  captureRgbImages: 1
+  firstCaptureFrame: 0
+  captureTriggerMode: 0
+  manualSensorAffectSimulationTiming: 0
+  simulationDeltaTime: 0.0166
+  framesBetweenCaptures: 0
   showVisualizations: 1
   references:
     version: 1

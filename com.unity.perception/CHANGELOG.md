@@ -57,6 +57,8 @@ Added the ability to adjust keypoint self occlusion tolerance on a user defined 
 
 Added a Keypoint Occlusion Override component which allows a user to universally scale all of the keypoint tolerances for a model.
 
+Make IdLabelConfig.GetAnnotationSpecification() public.
+
 ### Changed
 
 Increased color variety in instance segmentation images.

@@ -2,20 +2,20 @@
 upmci_registry: https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
 
 coverage_editors:
-#   - version: 2019.4.18f1
   - version: 2020.3.19f1
+  - version: 2021.1.23f1
 
 per_commit_editors:
-#   - version: 2019.4.18f1
   - version: 2020.3.19f1
+  - version: 2021.1.23f1
 
 performance_editors:
-#   - version: 2019.4.18f1
   - version: 2020.3.19f1
+  - version: 2021.1.23f1
 
 complete_editors:
-#  - version: 2019.4.18f1
   - version: 2020.3.19f1
+  - version: 2021.1.23f1
 
 publish_platforms:
   - name: win

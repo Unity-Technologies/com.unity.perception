@@ -53,6 +53,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     {
         public double min;
         public double max;
+        public double minAllowed;
+        public double maxAllowed;
+        public bool shouldCheckValidRange;
     }
 
     class NormalSampler : ISamplerOption
@@ -61,11 +64,17 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public double max;
         public double mean;
         public double stddev;
+        public double minAllowed;
+        public double maxAllowed;
+        public bool shouldCheckValidRange;
     }
 
     class ConstantSampler : ISamplerOption
     {
         public double value;
+        public double minAllowed;
+        public double maxAllowed;
+        public bool shouldCheckValidRange;
     }
     #endregion
 
@@ -85,6 +94,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     class DoubleScalarValue : IScalarValue
     {
         public double num;
+        public double minAllowed;
+        public double maxAllowed;
+        public bool shouldCheckValidRange;
     }
 
     class BooleanScalarValue : IScalarValue

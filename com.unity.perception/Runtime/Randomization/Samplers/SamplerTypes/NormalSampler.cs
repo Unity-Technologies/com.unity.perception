@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -34,6 +35,25 @@ namespace UnityEngine.Perception.Randomization.Samplers
             standardDeviation = 1;
         }
 
+        ///<inheritdoc/>
+#if !SCENARIO_CONFIG_POWER_USER
+        [field: HideInInspector]
+#endif
+        [field: SerializeField]
+        public float minAllowed { get; set; }
+        ///<inheritdoc/>
+#if !SCENARIO_CONFIG_POWER_USER
+        [field: HideInInspector]
+#endif
+        [field: SerializeField]
+        public float maxAllowed { get; set; }
+        ///<inheritdoc/>
+#if !SCENARIO_CONFIG_POWER_USER
+        [field: HideInInspector]
+#endif
+        [field: SerializeField]
+        public bool shouldCheckValidRange { get; set; }
+
         /// <summary>
         /// Constructs a normal distribution sampler
         /// </summary>
@@ -41,12 +61,18 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// <param name="max">The largest value contained within the range</param>
         /// <param name="mean">The mean of the normal distribution to sample from</param>
         /// <param name="standardDeviation">The standard deviation of the normal distribution to sample from</param>
+        /// <param name="shouldCheckValidRange">Whether the provided <see cref="minAllowed"/> and <see cref="maxAllowed"/> values should be used to validate the range provided with <see cref="minimum"/> and <see cref="maximum"/></param>
+        /// <param name="minAllowed">The smallest min value allowed for this range</param>
+        /// <param name="maxAllowed">The largest max value allowed for this range</param>
         public NormalSampler(
-            float min, float max, float mean, float standardDeviation)
+            float min, float max, float mean, float standardDeviation, bool shouldCheckValidRange = false, float minAllowed = 0, float maxAllowed = 0)
         {
             range = new FloatRange(min, max);
             this.mean = mean;
             this.standardDeviation = standardDeviation;
+            this.shouldCheckValidRange = shouldCheckValidRange;
+            this.minAllowed = minAllowed;
+            this.maxAllowed = maxAllowed;
         }
 
         /// <summary>
@@ -66,6 +92,17 @@ namespace UnityEngine.Perception.Randomization.Samplers
         public void Validate()
         {
             range.Validate();
+            CheckAgainstValidRange();
+        }
+
+        public void CheckAgainstValidRange()
+        {
+            if (shouldCheckValidRange)
+            {
+                Debug.LogError($"The provided min and max values for a {GetType().Name} exceed the allowed valid range. Clamping to valid range.");
+                range.minimum = Mathf.Clamp(range.minimum, minAllowed, maxAllowed);
+                range.maximum = Mathf.Clamp(range.maximum, minAllowed, maxAllowed);
+            }
         }
     }
 }

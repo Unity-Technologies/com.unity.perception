@@ -35,6 +35,14 @@ namespace UnityEngine.Perception.Randomization.Randomizers
         }
 
         /// <summary>
+        /// Some Randomizers should not be disabled by the user as they are critical to the project. E.g. We might want to mark this as false for a foreground objects placement randomizer in some projects
+        /// </summary>
+#if !SCENARIO_CONFIG_POWER_USER
+        [HideInInspector]
+#endif
+        public bool canBeDisabledByUser = true;
+
+        /// <summary>
         /// Returns the scenario containing this Randomizer
         /// </summary>
         public ScenarioBase scenario => ScenarioBase.activeScenario;

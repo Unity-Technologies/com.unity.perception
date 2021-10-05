@@ -182,6 +182,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 scalar.value  = new BooleanScalarValue { boolean = value["bool"].Value<bool>() };
             else
                 throw new KeyNotFoundException("No valid ScalarValue key type found");
+
             return scalar;
         }
     }

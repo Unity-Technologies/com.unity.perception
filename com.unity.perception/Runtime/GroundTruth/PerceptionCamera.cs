@@ -49,6 +49,8 @@ namespace UnityEngine.Perception.GroundTruth
         SensorHandle m_SensorHandle;
         Vector2 m_ScrollPosition;
 
+        internal Action<AsyncRequest<CaptureCamera.CaptureState>> RgbCaptureReadback = null;
+
 #if URP_PRESENT
         // only used to confirm that GroundTruthRendererFeature is present in URP
         bool m_IsGroundTruthRendererFeaturePresent;
@@ -464,11 +466,13 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             };
 
+            AsyncRequest<CaptureCamera.CaptureState> request;
 #if SIMULATION_CAPTURE_0_0_10_PREVIEW_16_OR_NEWER
-            CaptureCamera.Capture(cam, colorFunctor, forceFlip: ForceFlip.None);
+            request = CaptureCamera.Capture(cam, colorFunctor, forceFlip: ForceFlip.None);
 #else
-            CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
+            request = CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
 #endif
+            RgbCaptureReadback?.Invoke(request);
 
             Profiler.EndSample();
         }

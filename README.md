@@ -78,7 +78,7 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 ## Known issues
 
 * The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1.
-* When opening the Perception project in Linux Editor, a package dependency on Python will be added and will cause compile errors. This can be fixed by changing the package.json file manually.
+* When opening the "Visualizer Tool" of perception camera in Linux Editor, a package dependency on Python will be added and cause compile errors.
 
 ## License
 * [License](com.unity.perception/LICENSE.md)

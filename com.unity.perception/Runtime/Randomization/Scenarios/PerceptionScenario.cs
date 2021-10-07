@@ -20,25 +20,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         MetricDefinition m_IterationMetricDefinition;
 
-        /// <summary>
-        /// The scriptable render pipeline hook used to capture perception data skips the first frame of the simulation
-        /// when running locally, so this flag is used to track whether the first frame has been skipped yet.
-        /// </summary>
-        protected bool m_SkippedFirstFrame;
-
         /// <inheritdoc/>
-        protected override bool isScenarioReadyToStart
-        {
-            get
-            {
-                if (!m_SkippedFirstFrame)
-                {
-                    m_SkippedFirstFrame = true;
-                    return false;
-                }
-                return true;
-            }
-        }
+        protected override bool isScenarioReadyToStart => Time.frameCount >= 1;
 
         /// <inheritdoc/>
         protected override void OnAwake()

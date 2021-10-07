@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using NUnit.Framework;
 using Unity.Simulation;
 using UnityEngine;
@@ -10,168 +8,28 @@ using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 #if URP_PRESENT
 using UnityEngine.Rendering.Universal;
-#elif HDRP_PRESENT
+#endif
+#if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 #endif
 
-namespace GroundTruthTests
+namespace GroundTruthTests.RgbOutputTests
 {
-    /// <summary>
-    /// Tests the captured RGB images across different Graphics/Editor/Project settings.
-    /// </summary>
-    /// <remarks>
-    /// Notes on adding new variations:
-    ///     1. URP and HDRP variations are handled independently (using conditional compilation)
-    ///        as each of them has a separate RenderPipelineAsset (which contains project settings)
-    ///     2. OneTimeSetup and Teardown are used "reset" project values back to their original value
-    ///        as changes to the Quality/Graphics settings would persist even after playmode and across tests.
-    ///     3. The <see cref="s_SceneVariations" /> dictionary maps names (so different variations show up clearly
-    ///        in the TestRunner UI) to functors which change certain settings before a RGB Capture is requested.
-    ///     4. NUnit parallelizes the test runs which does not work well with Global Settings. You can use
-    ///        "[[Parallelizable(ParallelScope.None)]" to prevent that
-    /// </remarks>
-    public class RGBOutputTests : GroundTruthTestBase
+    public abstract class RgbOutputTestBase : GroundTruthTestBase
     {
-        static readonly Color32 k_ClearPixelValue = new Color32(0, 0, 0, 0);
-        PerceptionCamera m_PerceptionCamera;
-
-        #region Common
-        [UnitySetUp]
-        public IEnumerator Setup()
-        {
-            SetupCamera((cam =>
-            {
-                cam.captureRgbImages = true;
-                cam.captureTriggerMode = CaptureTriggerMode.Manual;
-
-                m_PerceptionCamera = cam;
-            }));
-            AddTestObjectForCleanup(TestHelper.CreateLabeledCube());
-            yield return null;
-        }
-
-        static string GetSrpPrefix()
-        {
-            #if URP_PRESENT
-            return "[URP]";
-            #elif URP_PRESENT
-            return "[HDRP]";
-            #else
-            return "[Unknown]";
-            #endif
-        }
-        #endregion
-
-        #region URP Configuration
-#if URP_PRESENT
-        // Project Settings (URP)
-        static UniversalRenderPipelineAsset s_UrpAsset;
-        static MsaaQuality s_InitialMsaaQuality;
-
-        [OneTimeSetUp]
-        public void OneTimeSetup()
-        {
-            s_UrpAsset = GetRpAsset();
-            s_InitialMsaaQuality = (MsaaQuality) s_UrpAsset.msaaSampleCount;
-        }
+        internal static readonly Color32 clearPixelValue = new Color32(0, 0, 0, 0);
+        internal PerceptionCamera perceptionCamera;
 
         [UnityTearDown]
-        public IEnumerator RpTeardown()
-        {
-            TearDown();
-            // Reset project settings
-            s_UrpAsset.msaaSampleCount = (int) s_InitialMsaaQuality;
-            DatasetCapture.ResetSimulation();
-            yield return null;
-        }
-
-        static Dictionary<string, Action<PerceptionCamera>> s_SceneVariations = new Dictionary<string, Action<PerceptionCamera>>()
-        {
-            ["Default Project Setup"] = ((camera) =>
-            {
-                s_UrpAsset.msaaSampleCount = (int)s_InitialMsaaQuality;
-            }),
-            ["MSAA 2x"] = ((camera) =>
-            {
-                s_UrpAsset.msaaSampleCount = (int)MsaaQuality._2x;
-            }),
-            ["MSAA Disabled"] = ((camera) =>
-            {
-                s_UrpAsset.msaaSampleCount = (int)MsaaQuality.Disabled;
-            })
-        };
-        static string[] sceneVariationKeys => s_SceneVariations.Keys.ToArray();
-
-        static UniversalRenderPipelineAsset GetRpAsset()
-        {
-            var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
-            if (urpAsset == null)
-                Debug.LogError("URP Asset is null. Failing RGB Output tests.");
-
-            return urpAsset;
-        }
-#endif
-#endregion
-
-        #region HDRP Configuration
-#if HDRP_PRESENT
-        // Project Settings (HDRP)
-        static HDRenderPipelineAsset s_HdrpAsset;
-
-        [OneTimeSetUp]
-        public void OneTimeSetup()
-        {
-            s_HdrpAsset = GetRpAsset();
-            // No variations for HDRP at the moment.
-        }
-
-        [TearDown]
-        public void RpTeardown()
+        public IEnumerator Teardown()
         {
             base.TearDown();
-            // No variations for HDRP at the moment.
+            yield return new WaitForSeconds(2f);
         }
 
-        static Dictionary<string, Action<PerceptionCamera>> s_SceneVariations = new Dictionary<string, Action<PerceptionCamera>>()
-        {
-            ["Default Project Setup"] = ((camera) => { }),
-        };
-        static string[] sceneVariationKeys => s_SceneVariations.Keys.ToArray();
-
-        static HDRenderPipelineAsset GetRpAsset()
-        {
-            var hdrpAsset = GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
-            if (hdrpAsset == null)
-                Debug.LogError("HDRP Asset is null. Failing RGB Output tests.");
-
-            return hdrpAsset;
-        }
-#endif
-#endregion
-
-        #region Tests
-        [UnityTest]
-        public IEnumerator RgbOutput_WithProjectSettingVariations_IsNotEmpty(
-            [ValueSource(nameof(sceneVariationKeys))]
-            string variationName
+        internal IEnumerator GenerateRgbOutputAndValidateData(
+            Action<AsyncRequest<CaptureCamera.CaptureState>> validator = null
         )
-        {
-            var variationFunctor = s_SceneVariations[variationName];
-            yield return RgbOutput_ParametricTest(cam =>
-            {
-                variationFunctor?.Invoke(cam);
-            }, captureState =>
-            {
-                var colorBuffer = ArrayUtilities.Cast<byte>(captureState.data.colorBuffer as Array);
-                var imageToColorDistance = ImageToColorDistance(k_ClearPixelValue, colorBuffer, 0);
-
-                Assert.IsFalse(imageToColorDistance == 0, $"{GetSrpPrefix()} RGB Output was empty for variation: {variationName}");
-            });
-        }
-        #endregion
-
-        #region Test Setup & Helpers
-        IEnumerator RgbOutput_ParametricTest(Action<PerceptionCamera> initSetup, Action<AsyncRequest<CaptureCamera.CaptureState>> validator)
         {
             // Setup the readback
             AsyncRequest<CaptureCamera.CaptureState> captureState = null;
@@ -181,22 +39,13 @@ namespace GroundTruthTests
                 captureState = request;
             }
 
-            m_PerceptionCamera.RgbCaptureReadback += RgbCaptureReadback;
+            perceptionCamera.RgbCaptureReadback += RgbCaptureReadback;
 
             // Initialize camera and request a frame for readback
-            initSetup?.Invoke(m_PerceptionCamera);
+            perceptionCamera.RequestCapture();
+            yield return null;
 
-            // Need to do this for the updated ScriptableRenderPipelineAsset to take effect..
-            yield return new WaitForFixedUpdate();
-            m_PerceptionCamera.RequestCapture();
-
-            // Wait for the readback
-            while (captureState == null || captureState.completed == false)
-            {
-                yield return null;
-            }
-
-            m_PerceptionCamera.RgbCaptureReadback -= RgbCaptureReadback;
+            // perceptionCamera.RgbCaptureReadback -= RgbCaptureReadback;
 
             // Preliminary check on capture
             Assert.IsTrue(captureState.error == false, "Capture Request had an error.");
@@ -205,7 +54,7 @@ namespace GroundTruthTests
             validator?.Invoke(captureState);
         }
 
-        static int ImageToColorDistance(Color32 exemplar, byte[] inputs, int deviation)
+        internal static int ImageToColorDistance(Color32 exemplar, byte[] inputs, int deviation)
         {
             var numItems = ArrayUtilities.Count(inputs);
             var count = 0;
@@ -226,7 +75,124 @@ namespace GroundTruthTests
 
             return count;
         }
-        #endregion
-
     }
+
+#if URP_PRESENT
+    public class UrpRgbOutputTests : RgbOutputTestBase
+    {
+        static UniversalRenderPipelineAsset urpAsset => GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+
+        // Initial Project Settings
+        static int s_InitialMsaaSampleCount;
+
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            s_InitialMsaaSampleCount = urpAsset.msaaSampleCount;
+        }
+        [UnityTearDown]
+        public IEnumerator UrpTeardown()
+        {
+            base.TearDown();
+
+            // Reset project settings
+            urpAsset.msaaSampleCount = s_InitialMsaaSampleCount;
+
+            DatasetCapture.ResetSimulation();
+            yield return null;
+        }
+
+        #region MSAA Test
+        static MsaaQuality[] s_MSAAVariations = {
+            MsaaQuality.Disabled,
+            MsaaQuality._2x,
+            MsaaQuality._8x
+        };
+        [UnityTest]
+        public IEnumerator RgbOutput_MsaaVariation_IsNotEmpty(
+            [ValueSource(nameof(s_MSAAVariations))]
+            MsaaQuality msaa
+        )
+        {
+            // Setup the camera and scene
+            var camera = SetupCamera((cam =>
+            {
+                cam.captureRgbImages = true;
+                cam.captureTriggerMode = CaptureTriggerMode.Manual;
+                perceptionCamera = cam;
+
+                // Change the MSAA Graphics setting
+                urpAsset.msaaSampleCount = (int)msaa;
+            }));
+            AddTestObjectForCleanup(camera);
+            AddTestObjectForCleanup(TestHelper.CreateLabeledCube());
+
+            // Validate RGB output image by checking if its empty
+            yield return GenerateRgbOutputAndValidateData(
+                validator: (captureState) =>
+                {
+                    // Check if color buffer is all zeros
+                    var colorBuffer = ArrayUtilities.Cast<byte>(captureState.data.colorBuffer as Array);
+                    var imageToColorDistance = ImageToColorDistance(clearPixelValue, colorBuffer, 0);
+                    Assert.IsFalse(imageToColorDistance == 0, $"[URP] RGB Output was empty for MSAA (${msaa.ToString()})");
+                }
+            );
+        }
+        #endregion
+    }
+#endif
+
+#if HDRP_PRESENT
+    public class HdrpRgbOutputTests : RgbOutputTestBase
+    {
+        static HDRenderPipelineAsset urpAsset => GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;
+
+        // Initial Project Settings
+
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+
+        }
+        [UnityTearDown]
+        public IEnumerator UrpTeardown()
+        {
+            base.TearDown();
+
+            // Reset project settings
+
+            DatasetCapture.ResetSimulation();
+            yield return null;
+        }
+
+        #region Blank Image Test
+
+        [UnityTest]
+        public IEnumerator RgbOutput_DefaultProjectSettings_IsNotEmpty()
+        {
+            // Setup the camera and scene
+            var camera = SetupCamera((cam =>
+            {
+                cam.captureRgbImages = true;
+                cam.captureTriggerMode = CaptureTriggerMode.Manual;
+                perceptionCamera = cam;
+            }));
+            AddTestObjectForCleanup(camera);
+            AddTestObjectForCleanup(TestHelper.CreateLabeledCube());
+
+            // Validate RGB output image by checking if its empty
+            yield return GenerateRgbOutputAndValidateData(
+                validator: (captureState) =>
+                {
+                    // Check if color buffer is all zeros
+                    var colorBuffer = ArrayUtilities.Cast<byte>(captureState.data.colorBuffer as Array);
+                    var imageToColorDistance = ImageToColorDistance(clearPixelValue, colorBuffer, 0);
+                    Assert.IsFalse(imageToColorDistance == 0, $"[HDRP] RGB Output was empty for default project settings.");
+                }
+            );
+        }
+        #endregion
+    }
+#endif
+
 }

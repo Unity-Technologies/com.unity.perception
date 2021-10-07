@@ -40,7 +40,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers
 #if !SCENARIO_CONFIG_POWER_USER
         [HideInInspector]
 #endif
-        public bool canBeDisabledByUser = true;
+        public bool enabledStateCanBeSwitchedByUser = true;
 
         /// <summary>
         /// Returns the scenario containing this Randomizer

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Simulation;
 using UnityEngine.Analytics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -131,44 +132,25 @@ namespace UnityEngine.Perception.Analytics
         /// <summary>
         /// Which labelers will be identified and included in the analytics information.
         /// </summary>
-        public static readonly Type[] labelerAllowList = new[]
+        public static readonly string[] labelerAllowList = new[]
         {
-            typeof(BoundingBox3DLabeler), typeof(BoundingBox2DLabeler), typeof(InstanceSegmentationLabeler),
-            typeof(KeypointLabeler), typeof(ObjectCountLabeler), typeof(SemanticSegmentationLabeler)
+            "BoundingBox3DLabeler", "BoundingBox2DLabeler", "InstanceSegmentationLabeler",
+            "KeypointLabeler", "ObjectCountLabeler", "SemanticSegmentationLabeler", "RenderedObjectInfoLabeler"
         };
 
-        internal static void ReportScenarioCompleted(PerceptionCamera cam, IEnumerable<Randomizer> randomizers)
+
+
+        internal static void ReportScenarioCompleted(
+            PerceptionCamera cam,
+            IEnumerable<Randomizer> randomizers
+        )
         {
             try
             {
                 if (!TryRegisterEvent(k_EventScenarioInformation))
                     return;
 
-                var data = new ScenarioCompletedData();
-                if (cam != null)
-                {
-                    // Perception Camera Data
-                    data.perceptionCamera = new PerceptionCameraData()
-                    {
-                        captureTriggerMode = cam.captureTriggerMode.ToString(),
-                        startAtFrame = cam.firstCaptureFrame,
-                        framesBetweenCaptures = cam.framesBetweenCaptures
-                    };
-
-                    // Labeler Data
-                    data.labelers = cam.labelers
-                        .Select(LabelerData.FromLabeler)
-                        .Where(labeler => labeler != null).ToArray();
-                }
-
-                var randomizerList = randomizers.ToArray();
-                if (randomizerList.Any())
-                {
-                    data.randomizers = randomizerList
-                        .Select(RandomizerData.FromRandomizer)
-                        .Where(x => x != null).ToArray();
-                }
-
+                var data = ScenarioCompletedData.FromCameraAndRandomizers(cam, randomizers);
                 SendEvent(k_EventScenarioInformation, data);
             }
             catch

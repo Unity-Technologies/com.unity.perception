@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using Unity.Collections;
 using UnityEngine;
-using UnityEngine.Perception;
 using UnityEngine.Perception.Analytics;
 using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
 using UnityEngine.Perception.Randomization.Samplers;
@@ -172,33 +171,68 @@ namespace RandomizationTests.ScenarioTests
             // State: currentIteration = 0
             Assert.AreEqual(0, m_Scenario.currentIteration);
             yield return null;
+
             // State: currentIteration = 1
             Assert.AreEqual(1, m_Scenario.currentIteration);
             yield return null;
+
             // State: currentIteration = 2
             // Action: ExampleDelayRandomizer will delay the iteration
             Assert.AreEqual(2, m_Scenario.currentIteration);
             yield return null;
+
             // State: currentIteration = 2
             Assert.AreEqual(2, m_Scenario.currentIteration);
             yield return null;
+
             // State: currentIteration = 3;
             Assert.AreEqual(3, m_Scenario.currentIteration);
             yield return null;
+
             // State: currentIteration = 4
             // Action: ExampleDelayRandomizer will delay the iteration
             Assert.AreEqual(4, m_Scenario.currentIteration);
             yield return null;
+
             // State: currentIteration = 4
             Assert.AreEqual(4, m_Scenario.currentIteration);
             yield return null;
+
             // State: currentIteration = 5
             Assert.AreEqual(5, m_Scenario.currentIteration);
-        [Test]
+        }
 
-        public void ScenarioCompletedAnalyticsSerializesCorrectly()
+        [UnityTest]
+        public IEnumerator ScenarioCompletedAnalyticsSerializesCorrectly()
         {
-            // Setup test randomizer
+            // Perception Camera Serialization
+            var perceptionCamera = m_TestObject.AddComponent<PerceptionCamera>();
+            perceptionCamera.captureTriggerMode = CaptureTriggerMode.Scheduled;
+            perceptionCamera.firstCaptureFrame = 2;
+            perceptionCamera.framesBetweenCaptures = 10;
+
+            // Labeler serialization
+            var sampleIdLabelConfig = Resources.Load<IdLabelConfig>("sampleIdLabelConfig");
+            var sampleAnimationPoseConfig = Resources.Load<AnimationPoseConfig>("sampleAnimationPoseConfig");
+            var emptyKeypointTemplate = ScriptableObject.CreateInstance<KeypointTemplate>();
+            emptyKeypointTemplate.keypoints = new KeypointDefinition[] { };
+            emptyKeypointTemplate.skeleton = new SkeletonDefinition[] { };
+
+            perceptionCamera.AddLabeler(new BoundingBox2DLabeler(sampleIdLabelConfig));
+            perceptionCamera.AddLabeler(new RenderedObjectInfoLabeler(sampleIdLabelConfig));
+            perceptionCamera.AddLabeler(new KeypointLabeler()
+            {
+                idLabelConfig = sampleIdLabelConfig,
+                objectFilter = KeypointObjectFilter.Visible,
+                activeTemplate = emptyKeypointTemplate,
+                animationPoseConfigs = new List<AnimationPoseConfig>()
+                {
+                    sampleAnimationPoseConfig, sampleAnimationPoseConfig
+                }
+            });
+
+            // Randomizer Serialization
+            var randomizers = new List<Randomizer>();
             var testRandomizer = new AllMembersAndParametersTestRandomizer();
             testRandomizer.colorRgbCategoricalParam.SetOptions(new (Color, float)[]
             {
@@ -206,199 +240,18 @@ namespace RandomizationTests.ScenarioTests
                 (Color.blue, 0.93f),
                 (Color.red, 0.23f)
             });
-            var randomizerData =
-                RandomizerData.FromRandomizer(testRandomizer);
+            randomizers.Add(testRandomizer);
 
-            Assert.IsTrue(randomizerData != null);
+            yield return null;
 
-            /*
-            // Parameters
-            var expectedSerializedValue =
-                new RandomizerData()
-                {
-                    name = nameof(AllMembersAndParametersTestRandomizer),
-                    members = new[]
-                    {
-                        new MemberData()
-                        {
-                            name = "booleanMember",
-                            type = "System.Boolean",
-                            value = "False"
-                        },
-                        new MemberData()
-                        {
-                            name = "intMember",
-                            type = "System.Int32",
-                            value = "4"
-                        },
-                        new MemberData()
-                        {
-                            name = "uintMember",
-                            type = "System.UInt32",
-                            value = "2"
-                        },
-                        new MemberData()
-                        {
-                            name = "floatMember",
-                            type = "System.Single",
-                            value = "5"
-                        },
-                        new MemberData()
-                        {
-                            name = "vector2Member",
-                            type = "UnityEngine.Vector2",
-                            value = "(4.0, 7.0)"
-                        },
-                        new MemberData()
-                        {
-                            name = "unsupportedMember",
-                            type = "UnityEngine.Perception.PerceptionEngineAnalytics+MemberData",
-                            value = "UnityEngine.Perception.PerceptionEngineAnalytics+MemberData"
-                        }
-                    },
-                    parameters = new[]
-                    {
-                        new ParameterData()
-                        {
-                            name = "booleanParam",
-                            type = "BooleanParameter",
-                            fields = new List<ParameterField>()
-                            {
-                                new ParameterField()
-                                {
-                                    distribution = "Constant",
-                                    name = "value",
-                                    value = 1
-                                },
-                            }
-                        },
-                        new ParameterData()
-                        {
-                            name = "floatParam",
-                            type = "FloatParameter",
-                            fields = new List<ParameterField>()
-                            {
-                                new ParameterField()
-                                {
-                                    distribution = "AnimationCurve",
-                                    name = "value",
-                                }
-                            }
-                        },
-                        new ParameterData()
-                        {
-                            name = "integerParam",
-                            type = "IntegerParameter",
-                            fields = new List<ParameterField>()
-                            {
-                                new ParameterField()
-                                {
-                                    distribution = "Uniform",
-                                    name = "value",
-                                    rangeMinimum = -3, rangeMaximum = 7
-                                }
-                            }
-                        },
-                        new ParameterData()
-                        {
-                            name = "vector2Param",
-                            type = "Vector2Parameter",
-                            fields = new List<ParameterField>()
-                            {
-                                new ParameterField()
-                                {
-                                    distribution = "Constant",
-                                    name = "x",
-                                    value = 2
-                                },
-                                new ParameterField()
-                                {
-                                    distribution = "Uniform",
-                                    name = "y",
-                                    rangeMinimum = -4, rangeMaximum = 8
-                                }
-                            }
-                        },
-                        new ParameterData()
-                        {
-                            name = "vector3Param",
-                            type = "Vector3Parameter",
-                            fields = new List<ParameterField>()
-                            {
-                                new ParameterField()
-                                {
-                                    distribution = "Normal",
-                                    name = "x",
-                                    rangeMinimum = -5, rangeMaximum = 9,
-                                    mean = 4, stdDev = 2
-                                },
-                                new ParameterField()
-                                {
-                                    distribution = "Constant",
-                                    name = "y",
-                                    value = 3
-                                },
-                                new ParameterField()
-                                {
-                                    distribution = "AnimationCurve",
-                                    name = "z",
-                                }
-                            }
-                        },
-                        new ParameterData()
-                        {
-                            name = "vector4Param",
-                            type = "Vector4Parameter",
-                            fields = new List<ParameterField>()
-                            {
-                                new ParameterField()
-                                {
-                                    distribution = "Normal",
-                                    name = "x",
-                                    rangeMinimum = -5, rangeMaximum = 9,
-                                    mean = 4, stdDev = 2
-                                },
-                                new ParameterField()
-                                {
-                                    distribution = "Constant",
-                                    name = "y",
-                                    value = 3
-                                },
-                                new ParameterField()
-                                {
-                                    distribution = "AnimationCurve",
-                                    name = "z",
-                                },
-                                new ParameterField()
-                                {
-                                    distribution = "Uniform",
-                                    name = "w",
-                                    rangeMinimum = -12, rangeMaximum = 42
-                                }
-                            }
-                        },
-                        new ParameterData()
-                        {
-                            name = "colorRgbCategoricalParam",
-                            type = "ColorRgbCategoricalParameter",
-                            fields = new List<ParameterField>()
-                            {
-                                new ParameterField()
-                                {
-                                    distribution = "Categorical",
-                                    name = "values",
-                                    categoricalParameterCount = 3
-                                }
-                            }
-                        }
-                    }
-                };
-            */
+            // Scenario Completed Serialization
+            var scenarioCompletedData = ScenarioCompletedData.FromCameraAndRandomizers(perceptionCamera, randomizers);
+            var expectedRandomizerJson = RemoveWhitespace(((TextAsset)Resources.Load("analyticsSerializationExample")).text);
+            var actualRandomizerJson = RemoveWhitespace(JsonConvert.SerializeObject(scenarioCompletedData));
 
-            var expectedSerializedValueJson = RemoveWhitespace(((TextAsset)Resources.Load("randomizerAnalyticsSerializationExample")).text);
-            var serializedValueJson = RemoveWhitespace(JsonConvert.SerializeObject(randomizerData));
+            Assert.AreEqual(expectedRandomizerJson, actualRandomizerJson);
 
-            Assert.AreEqual(expectedSerializedValueJson, serializedValueJson);
+            Object.DestroyImmediate(emptyKeypointTemplate);
         }
 
         PerceptionCamera SetupPerceptionCamera()

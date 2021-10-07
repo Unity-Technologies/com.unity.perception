@@ -1,0 +1,224 @@
+{
+  "platform": "OSXEditor",
+  "perceptionCamera": {
+    "captureTriggerMode": "Scheduled",
+    "startAtFrame": 2,
+    "framesBetweenCaptures": 10
+  },
+  "labelers": [
+    { "name":  "BoundingBox2DLabeler", "labelConfigCount": 3, "objectFilter": "", "animationPoseCount":  0 },
+    { "name":  "RenderedObjectInfoLabeler", "labelConfigCount": 3, "objectFilter": "", "animationPoseCount":  0  },
+    { "name":  "KeypointLabeler", "labelConfigCount": 3, "objectFilter": "Visible", "animationPoseCount": 2 }
+  ],
+  "randomizers": [
+    {
+      "name": "AllMembersAndParametersTestRandomizer",
+      "members": [
+        {
+          "name": "booleanMember",
+          "value": "False",
+          "type": "System.Boolean"
+        },
+        {
+          "name": "intMember",
+          "value": "4",
+          "type": "System.Int32"
+        },
+        {
+          "name": "uintMember",
+          "value": "2",
+          "type": "System.UInt32"
+        },
+        {
+          "name": "floatMember",
+          "value": "5",
+          "type": "System.Single"
+        },
+        {
+          "name": "vector2Member",
+          "value": "(4.0, 7.0)",
+          "type": "UnityEngine.Vector2"
+        },
+        {
+          "name": "unsupportedMember",
+          "value": "UnityEngine.Perception.Randomization.Samplers.UniformSampler",
+          "type": "UnityEngine.Perception.Randomization.Samplers.UniformSampler"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "booleanParam",
+          "type": "BooleanParameter",
+          "fields": [
+            {
+              "name": "value",
+              "distribution": "Constant",
+              "value": 1.0,
+              "rangeMinimum": 0.0,
+              "rangeMaximum": 0.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            }
+          ]
+        },
+        {
+          "name": "floatParam",
+          "type": "FloatParameter",
+          "fields": [
+            {
+              "name": "value",
+              "distribution": "AnimationCurve",
+              "value": 0.0,
+              "rangeMinimum": 0.0,
+              "rangeMaximum": 0.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            }
+          ]
+        },
+        {
+          "name": "integerParam",
+          "type": "IntegerParameter",
+          "fields": [
+            {
+              "name": "value",
+              "distribution": "Uniform",
+              "value": 0.0,
+              "rangeMinimum": -3.0,
+              "rangeMaximum": 7.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            }
+          ]
+        },
+        {
+          "name": "vector2Param",
+          "type": "Vector2Parameter",
+          "fields": [
+            {
+              "name": "x",
+              "distribution": "Constant",
+              "value": 2.0,
+              "rangeMinimum": 0.0,
+              "rangeMaximum": 0.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            },
+            {
+              "name": "y",
+              "distribution": "Uniform",
+              "value": 0.0,
+              "rangeMinimum": -4.0,
+              "rangeMaximum": 8.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            }
+          ]
+        },
+        {
+          "name": "vector3Param",
+          "type": "Vector3Parameter",
+          "fields": [
+            {
+              "name": "x",
+              "distribution": "Normal",
+              "value": 0.0,
+              "rangeMinimum": -5.0,
+              "rangeMaximum": 9.0,
+              "mean": 4.0,
+              "stdDev": 2.0,
+              "categoricalParameterCount": 0
+            },
+            {
+              "name": "y",
+              "distribution": "Constant",
+              "value": 3.0,
+              "rangeMinimum": 0.0,
+              "rangeMaximum": 0.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            },
+            {
+              "name": "z",
+              "distribution": "AnimationCurve",
+              "value": 0.0,
+              "rangeMinimum": 0.0,
+              "rangeMaximum": 0.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            }
+          ]
+        },
+        {
+          "name": "vector4Param",
+          "type": "Vector4Parameter",
+          "fields": [
+            {
+              "name": "x",
+              "distribution": "Normal",
+              "value": 0.0,
+              "rangeMinimum": -5.0,
+              "rangeMaximum": 9.0,
+              "mean": 4.0,
+              "stdDev": 2.0,
+              "categoricalParameterCount": 0
+            },
+            {
+              "name": "y",
+              "distribution": "Constant",
+              "value": 3.0,
+              "rangeMinimum": 0.0,
+              "rangeMaximum": 0.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            },
+            {
+              "name": "z",
+              "distribution": "AnimationCurve",
+              "value": 0.0,
+              "rangeMinimum": 0.0,
+              "rangeMaximum": 0.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            },
+            {
+              "name": "w",
+              "distribution": "Uniform",
+              "value": 0.0,
+              "rangeMinimum": -12.0,
+              "rangeMaximum": 42.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 0
+            }
+          ]
+        },
+        {
+          "name": "colorRgbCategoricalParam",
+          "type": "ColorRgbCategoricalParameter",
+          "fields": [
+            {
+              "name": "values",
+              "distribution": "Categorical",
+              "value": 0.0,
+              "rangeMinimum": 0.0,
+              "rangeMaximum": 0.0,
+              "mean": 0.0,
+              "stdDev": 0.0,
+              "categoricalParameterCount": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

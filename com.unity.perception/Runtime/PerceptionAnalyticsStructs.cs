@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Unity.Simulation;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
@@ -34,7 +35,6 @@ namespace UnityEngine.Perception.Analytics
     #endregion
 
     #region Scenario Information
-
     [Serializable]
     public class PerceptionCameraData
     {
@@ -48,18 +48,19 @@ namespace UnityEngine.Perception.Analytics
     {
         public string name;
         public int labelConfigCount;
-        public string objectFilter;
+        public string objectFilter = "";
         public int animationPoseCount;
 
         public static LabelerData FromLabeler(CameraLabeler labeler)
         {
             var labelerType = labeler.GetType();
-            if (!PerceptionAnalytics.labelerAllowList.Contains(labelerType))
+            var labelerName = labelerType.Name;
+            if (!PerceptionAnalytics.labelerAllowList.Contains(labelerName))
                 return null;
 
             var labelerData = new LabelerData()
             {
-                name = labeler.GetType().Name
+                name = labelerName
             };
 
             switch (labeler)
@@ -84,6 +85,12 @@ namespace UnityEngine.Perception.Analytics
                 case SemanticSegmentationLabeler ssl:
                     labelerData.labelConfigCount = ssl.labelConfig.labelEntries.Count;
                     break;
+                case RenderedObjectInfoLabeler rol:
+                    labelerData.labelConfigCount = rol.idLabelConfig.labelEntries.Count;
+                    break;
+                default:
+                    labelerData = null;
+                    break;
             }
 
             return labelerData;
@@ -103,12 +110,12 @@ namespace UnityEngine.Perception.Analytics
     {
         public string name;
         public string distribution;
-        public float value = int.MinValue;
-        public float rangeMinimum = int.MinValue;
-        public float rangeMaximum = int.MinValue;
-        public float mean = int.MinValue;
-        public float stdDev = int.MinValue;
-        public int categoricalParameterCount = int.MinValue;
+        public float value;
+        public float rangeMinimum;
+        public float rangeMaximum;
+        public float mean;
+        public float stdDev;
+        public int categoricalParameterCount;
 
         public static ParameterField ExtractSamplerInformation(ISampler sampler, string fieldName = "value")
         {
@@ -277,6 +284,47 @@ namespace UnityEngine.Perception.Analytics
         public PerceptionCameraData perceptionCamera;
         public LabelerData[] labelers;
         public RandomizerData[] randomizers;
+
+        internal static ScenarioCompletedData FromCameraAndRandomizers(
+            PerceptionCamera cam,
+            IEnumerable<Randomizer> randomizers
+        )
+        {
+            var data = new ScenarioCompletedData()
+            {
+                platform = (Configuration.Instance.IsSimulationRunningInCloud()) ? "USim": Application.platform.ToString()
+            };
+
+            if (cam != null)
+            {
+                // Perception Camera Data
+                data.perceptionCamera = new PerceptionCameraData()
+                {
+                    captureTriggerMode = cam.captureTriggerMode.ToString(),
+                    startAtFrame = cam.firstCaptureFrame,
+                    framesBetweenCaptures = cam.framesBetweenCaptures
+                };
+
+                // Labeler Data
+                data.labelers = cam.labelers
+                    .Select(LabelerData.FromLabeler)
+                    .Where(labeler => labeler != null).ToArray();
+            }
+
+            var randomizerList = randomizers.ToArray();
+            if (randomizerList.Any())
+            {
+                data.randomizers = randomizerList
+                    .Select(RandomizerData.FromRandomizer)
+                    .Where(x => x != null).ToArray();
+            }
+            else
+            {
+                data.randomizers = new RandomizerData[] { };
+            }
+
+            return data;
+        }
     }
 
     #endregion

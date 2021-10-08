@@ -250,7 +250,7 @@ namespace RandomizationTests.ScenarioTests
             #region expectedRandomizerJson
             var expectedRandomizerJson = RemoveWhitespace($@"
 {{
-  ""platform"": ""${Application.platform}"",
+  ""platform"": ""{Application.platform}"",
   ""perceptionCamera"": {{
     ""captureTriggerMode"": ""Scheduled"",
     ""startAtFrame"": 2,

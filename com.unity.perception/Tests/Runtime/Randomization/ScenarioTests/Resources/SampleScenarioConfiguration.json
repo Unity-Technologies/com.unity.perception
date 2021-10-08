@@ -14,6 +14,10 @@
           "description": "",
           "imageLink": ""
         },
+        "state": {
+          "enabled": true,
+          "canBeSwitchedByUser": true
+        },
         "items": {
           "rotation": {
             "param": {
@@ -32,7 +36,10 @@
                     },
                     "uniform": {
                       "min": 0.0,
-                      "max": 360.0
+                      "max": 360.0,
+                      "minAllowed": 0.0,
+                      "maxAllowed": 0.0,
+                      "shouldCheckValidRange": false
                     }
                   }
                 },
@@ -45,7 +52,10 @@
                     },
                     "uniform": {
                       "min": 0.0,
-                      "max": 360.0
+                      "max": 360.0,
+                      "minAllowed": 0.0,
+                      "maxAllowed": 0.0,
+                      "shouldCheckValidRange": false
                     }
                   }
                 },
@@ -58,10 +68,25 @@
                     },
                     "uniform": {
                       "min": 0.0,
-                      "max": 360.0
+                      "max": 360.0,
+                      "minAllowed": 0.0,
+                      "maxAllowed": 0.0,
+                      "shouldCheckValidRange": false
                     }
                   }
                 }
+              }
+            }
+          },
+          "enabledStateCanBeSwitchedByUser": {
+            "scalar": {
+              "metadata": {
+                "name": "",
+                "description": "",
+                "imageLink": ""
+              },
+              "value": {
+                "bool": true
               }
             }
           }

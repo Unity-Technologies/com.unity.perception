@@ -84,11 +84,11 @@ namespace UnityEditor.Perception.Randomization
                 return null;
 
             var attributes = originalField.GetCustomAttributes(true).ToList();
-            var tooltipAttribute = attributes.Find(att => att.GetType() == typeof(TooltipAttribute));
+            var tooltipAttribute = attributes.Find(att => att is TooltipAttribute);
             if (tooltipAttribute != null)
                 propertyField.tooltip = (tooltipAttribute as TooltipAttribute)?.tooltip;
 
-            var hideInspectorAttribute = attributes.Find(att => att.GetType() == typeof(TooltipAttribute));
+            var hideInspectorAttribute = attributes.Find(att => att is HideInInspector);
             if (hideInspectorAttribute != null)
                 propertyField.style.display = DisplayStyle.None;
 

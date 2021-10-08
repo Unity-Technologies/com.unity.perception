@@ -194,7 +194,7 @@ namespace UnityEngine.Perception.Analytics
 
             var randomizerType = randomizer.GetType();
 
-            // Only looks for randomizers included by the Perception package.
+            // Filter out randomizers which could be considered personally identifiable.
             if (randomizerType.Namespace == null || !randomizerType.Namespace.StartsWith("UnityEngine.Perception"))
                 return null;
 

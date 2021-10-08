@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Simulation;
 using UnityEngine.Analytics;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Randomizers;
 #if UNITY_EDITOR
@@ -36,12 +37,20 @@ namespace UnityEngine.Perception.Analytics
             public string name { get; private set; }
             public AnalyticsEventType type { get; private set; }
             public int versionId { get; private set; }
+            public string prefix { get; private set; }
 
-            public AnalyticsEvent(string name, AnalyticsEventType type, int versionId)
+            public AnalyticsEvent(string name, AnalyticsEventType type, int versionId, string prefix = "")
             {
                 this.name = name;
                 this.type = type;
                 this.versionId = versionId;
+                this.prefix = prefix;
+
+                // Make sure prefix is defined if the event is a runtime event
+                if (this.type == AnalyticsEventType.RuntimeAndEditor || this.type == AnalyticsEventType.Runtime)
+                {
+                    Assert.IsTrue(!string.IsNullOrWhiteSpace(this.prefix));
+                }
             }
         }
 
@@ -53,7 +62,8 @@ namespace UnityEngine.Perception.Analytics
 
         #region Event Definition
         static readonly AnalyticsEvent k_EventScenarioInformation = new AnalyticsEvent(
-            "perceptionScenarioInformation", AnalyticsEventType.RuntimeAndEditor, 1
+            "perceptionScenarioInformation", AnalyticsEventType.RuntimeAndEditor, 1,
+            "ai.cv"
         );
         static readonly AnalyticsEvent k_EventRunInUnitySimulation = new AnalyticsEvent(
             "runinunitysimulation", AnalyticsEventType.Editor, 1
@@ -94,11 +104,11 @@ namespace UnityEngine.Perception.Analytics
 #if UNITY_EDITOR
             var status = EditorAnalytics.RegisterEventWithLimit(theEvent.name, k_MaxEventsPerHour, k_MaxElementsInStruct, k_VendorKey);
 #else
-            var status = Analytics.Analytics.RegisterEvent(theEvent.name, k_MaxEventsPerHour, k_MaxElementsInStruct, k_VendorKey);
+            var status = UnityEngine.Analytics.Analytics.RegisterEvent(theEvent.name, k_MaxEventsPerHour, k_MaxElementsInStruct, k_VendorKey);
 #endif
             s_EventRegistrationStatus[theEvent] &= status == AnalyticsResult.Ok;
 
-            Debug.Log($"Registering event {theEvent.name}. Operation {(s_EventRegistrationStatus[theEvent] ? "" : "un")}successful.");
+            // Debug.Log($"Registering event {theEvent.name}. Operation {(s_EventRegistrationStatus[theEvent] ? "" : "un")}successful.");
 
             return s_EventRegistrationStatus[theEvent];
         }
@@ -109,20 +119,20 @@ namespace UnityEngine.Perception.Analytics
         /// </summary>
         /// <param name="theEvent">The analytics event.</param>
         /// <param name="data">Payload of the event.</param>
-        /// <param name="prefix">If Runtime event, what is the prefix ("domain.schema")?</param>
-        static void SendEvent(AnalyticsEvent theEvent, object data, string prefix = "")
+        static void SendEvent(AnalyticsEvent theEvent, object data)
         {
-            Debug.Log($"Reporting {theEvent.name}.");
+            // Debug.Log($"Reporting {theEvent.name}.");
 #if UNITY_EDITOR
             if (theEvent.type == AnalyticsEventType.Editor || theEvent.type == AnalyticsEventType.RuntimeAndEditor)
             {
                 EditorAnalytics.SendEventWithLimit(theEvent.name, data, theEvent.versionId);
             }
-#endif
+#else
             if (theEvent.type == AnalyticsEventType.Runtime || theEvent.type == AnalyticsEventType.RuntimeAndEditor)
             {
-                UnityEngine.Analytics.Analytics.SendEvent(theEvent.name, data, theEvent.versionId, prefix);
+                UnityEngine.Analytics.Analytics.SendEvent(theEvent.name, data, theEvent.versionId, theEvent.prefix);
             }
+#endif
         }
 
         #endregion
@@ -137,8 +147,6 @@ namespace UnityEngine.Perception.Analytics
             "BoundingBox3DLabeler", "BoundingBox2DLabeler", "InstanceSegmentationLabeler",
             "KeypointLabeler", "ObjectCountLabeler", "SemanticSegmentationLabeler", "RenderedObjectInfoLabeler"
         };
-
-
 
         internal static void ReportScenarioCompleted(
             PerceptionCamera cam,

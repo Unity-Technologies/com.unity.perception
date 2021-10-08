@@ -21,38 +21,11 @@ namespace UnityEngine.Perception.Analytics
     /// 1. Create a constant with the name of the event (eg: <see cref="k_EventScenarioInformation"/>)
     /// 2. Add the constant to <see cref="allEvents" />
     /// 3. Create a function that will report data for the event and at the start of it call
-    /// <see cref="TryRegisterEvent" /> with the event name defined in step 1.
+    /// <see cref="TryRegisterPerceptionAnalyticsEvent" /> with the event name defined in step 1.
     /// Note: Remember to use the conditional "#if UNITY_EDITOR" if adding editor analytics.
     /// </remarks>
     public static class PerceptionAnalytics
     {
-        enum AnalyticsEventType
-        {
-            Runtime,
-            Editor,
-            RuntimeAndEditor
-        }
-        struct AnalyticsEvent
-        {
-            public string name { get; private set; }
-            public AnalyticsEventType type { get; private set; }
-            public int versionId { get; private set; }
-            public string prefix { get; private set; }
-
-            public AnalyticsEvent(string name, AnalyticsEventType type, int versionId, string prefix = "")
-            {
-                this.name = name;
-                this.type = type;
-                this.versionId = versionId;
-                this.prefix = prefix;
-
-                // Make sure prefix is defined if the event is a runtime event
-                if (this.type == AnalyticsEventType.RuntimeAndEditor || this.type == AnalyticsEventType.Runtime)
-                {
-                    Assert.IsTrue(!string.IsNullOrWhiteSpace(this.prefix));
-                }
-            }
-        }
 
         const string k_VendorKey = "unity.perception";
         const int k_MaxElementsInStruct = 100;
@@ -60,7 +33,7 @@ namespace UnityEngine.Perception.Analytics
 
         static Dictionary<AnalyticsEvent, bool> s_EventRegistrationStatus = new Dictionary<AnalyticsEvent, bool>();
 
-        #region Event Definition
+        #region Event Definitions
         static readonly AnalyticsEvent k_EventScenarioInformation = new AnalyticsEvent(
             "perceptionScenarioInformation", AnalyticsEventType.RuntimeAndEditor, 1,
             "ai.cv"
@@ -68,9 +41,10 @@ namespace UnityEngine.Perception.Analytics
         static readonly AnalyticsEvent k_EventRunInUnitySimulation = new AnalyticsEvent(
             "runinunitysimulation", AnalyticsEventType.Editor, 1
         );
+
         /// <summary>
         /// All supported events. If an event does not exist in this list, an error will be thrown during
-        /// <see cref="TryRegisterEvent" />.
+        /// <see cref="TryRegisterPerceptionAnalyticsEvent" />.
         /// </summary>
         static IEnumerable<AnalyticsEvent> allEvents => new[]
         {
@@ -87,7 +61,7 @@ namespace UnityEngine.Perception.Analytics
         /// </summary>
         /// <param name="theEvent">The name of the event.</param>
         /// <returns>Whether the event was successfully registered/</returns>
-        static bool TryRegisterEvent(AnalyticsEvent theEvent)
+        static bool TryRegisterPerceptionAnalyticsEvent(AnalyticsEvent theEvent)
         {
             if (!s_EventRegistrationStatus.ContainsKey(theEvent))
             {
@@ -119,7 +93,7 @@ namespace UnityEngine.Perception.Analytics
         /// </summary>
         /// <param name="theEvent">The analytics event.</param>
         /// <param name="data">Payload of the event.</param>
-        static void SendEvent(AnalyticsEvent theEvent, object data)
+        static void SendPerceptionAnalyticsEvent(AnalyticsEvent theEvent, object data)
         {
             // Debug.Log($"Reporting {theEvent.name}.");
 #if UNITY_EDITOR
@@ -153,18 +127,11 @@ namespace UnityEngine.Perception.Analytics
             IEnumerable<Randomizer> randomizers
         )
         {
-            try
-            {
-                if (!TryRegisterEvent(k_EventScenarioInformation))
-                    return;
+            if (!TryRegisterPerceptionAnalyticsEvent(k_EventScenarioInformation))
+                return;
 
-                var data = ScenarioCompletedData.FromCameraAndRandomizers(cam, randomizers);
-                SendEvent(k_EventScenarioInformation, data);
-            }
-            catch
-            {
-                //ignored
-            }
+            var data = ScenarioCompletedData.FromCameraAndRandomizers(cam, randomizers);
+            SendPerceptionAnalyticsEvent(k_EventScenarioInformation, data);
         }
 
         #endregion
@@ -172,7 +139,7 @@ namespace UnityEngine.Perception.Analytics
         #region Event: Run In Unity Simulation
         public static void ReportRunInUnitySimulationStarted(Guid runId, int totalIterations, int instanceCount, string existingBuildId)
         {
-            if (!TryRegisterEvent(k_EventRunInUnitySimulation))
+            if (!TryRegisterPerceptionAnalyticsEvent(k_EventRunInUnitySimulation))
                 return;
 
             var data = new RunInUnitySimulationData
@@ -184,12 +151,12 @@ namespace UnityEngine.Perception.Analytics
                 runStatus = RunStatus.Started.ToString()
             };
 
-            SendEvent(k_EventRunInUnitySimulation, data);
+            SendPerceptionAnalyticsEvent(k_EventRunInUnitySimulation, data);
         }
 
         public static void ReportRunInUnitySimulationFailed(Guid runId, string errorMessage)
         {
-            if (!TryRegisterEvent(k_EventRunInUnitySimulation))
+            if (!TryRegisterPerceptionAnalyticsEvent(k_EventRunInUnitySimulation))
                 return;
 
             var data = new RunInUnitySimulationData
@@ -199,12 +166,12 @@ namespace UnityEngine.Perception.Analytics
                 runStatus = RunStatus.Failed.ToString()
             };
 
-            SendEvent(k_EventRunInUnitySimulation, data);
+            SendPerceptionAnalyticsEvent(k_EventRunInUnitySimulation, data);
         }
 
         public static void ReportRunInUnitySimulationSucceeded(Guid runId, string runExecutionId)
         {
-            if (!TryRegisterEvent(k_EventRunInUnitySimulation))
+            if (!TryRegisterPerceptionAnalyticsEvent(k_EventRunInUnitySimulation))
                 return;
 
             var data = new RunInUnitySimulationData
@@ -214,7 +181,7 @@ namespace UnityEngine.Perception.Analytics
                 runStatus = RunStatus.Succeeded.ToString()
             };
 
-            SendEvent(k_EventRunInUnitySimulation, data);
+            SendPerceptionAnalyticsEvent(k_EventRunInUnitySimulation, data);
         }
 
         #endregion

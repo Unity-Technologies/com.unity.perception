@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Unity.Simulation;
+using UnityEngine.Assertions;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
@@ -10,6 +11,38 @@ using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Analytics
 {
+    #region Common
+
+    enum AnalyticsEventType
+    {
+        Runtime,
+        Editor,
+        RuntimeAndEditor
+    }
+    struct AnalyticsEvent
+    {
+        public string name { get; private set; }
+        public AnalyticsEventType type { get; private set; }
+        public int versionId { get; private set; }
+        public string prefix { get; private set; }
+
+        public AnalyticsEvent(string name, AnalyticsEventType type, int versionId, string prefix = "")
+        {
+            this.name = name;
+            this.type = type;
+            this.versionId = versionId;
+            this.prefix = prefix;
+
+            // Make sure prefix is defined if the event is a runtime event
+            if (this.type == AnalyticsEventType.RuntimeAndEditor || this.type == AnalyticsEventType.Runtime)
+            {
+                Assert.IsTrue(!string.IsNullOrWhiteSpace(this.prefix));
+            }
+        }
+    }
+
+    #endregion
+
     #region Run In Unity Simulation
 
     [Serializable]
@@ -35,6 +68,7 @@ namespace UnityEngine.Perception.Analytics
     #endregion
 
     #region Scenario Information
+
     [Serializable]
     public class PerceptionCameraData
     {

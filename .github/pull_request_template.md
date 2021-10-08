@@ -1,7 +1,7 @@
 # Peer Review Information:
 
 ## Editor / Package versioning:
-**Editor Version Target**: 2019.4
+**Editor Version Target**: 2020.3
 
 ## Dev Testing:
 **Tests Added**: 
@@ -11,6 +11,6 @@
 **At Risk Areas**: 
 
 ## Checklist
-- [ ] - Updated docs
-- [ ] - Updated changelog
-- [ ] - Updated test rail
+- [ ] Updated docs
+- [ ] Updated changelog
+- [ ] Updated test rail

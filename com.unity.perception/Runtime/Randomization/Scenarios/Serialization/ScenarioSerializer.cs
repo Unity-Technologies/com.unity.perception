@@ -60,7 +60,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             foreach (var randomizer in randomizers)
             {
                 var randomizerData = SerializeRandomizer(randomizer);
-                if (randomizerData.items.Count == 0)
+                if (randomizerData.items.Count == 0 && !randomizerData.state.canBeSwitchedByUser)
                     continue;
                 serializedRandomizers.Add(randomizer.GetType().Name, randomizerData);
             }
@@ -70,6 +70,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         static Group SerializeRandomizer(Randomizer randomizer)
         {
             var randomizerData = new Group();
+            randomizerData.state.enabled = randomizer.enabled;
+            randomizerData.state.canBeSwitchedByUser = randomizer.enabledStateCanBeSwitchedByUser;
+
             var fields = randomizer.GetType().GetFields();
             foreach (var field in fields)
             {
@@ -90,28 +93,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                         randomizerData.items.Add(field.Name, new Scalar { value = scalarValue });
                 }
             }
-
-            var properties = randomizer.GetType().GetProperties();
-            foreach (var property  in properties)
-            {
-                if (property.PropertyType.IsSubclassOf(typeof(Randomization.Parameters.Parameter)))
-                {
-                    if (!IsSubclassOfRawGeneric(typeof(NumericParameter<>), property.PropertyType))
-                        continue;
-                    var parameter = (Randomization.Parameters.Parameter)property.GetValue(randomizer);
-                    var parameterData = SerializeParameter(parameter);
-                    if (parameterData.items.Count == 0)
-                        continue;
-                    randomizerData.items.Add(property.Name, parameterData);
-                }
-                else
-                {
-                    var scalarValue = ScalarFromProperty(property, randomizer);
-                    if (scalarValue != null)
-                        randomizerData.items.Add(property.Name, new Scalar { value = scalarValue });
-                }
-            }
-
             return randomizerData;
         }
 
@@ -205,20 +186,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
             return null;
         }
-
-        static IScalarValue ScalarFromProperty(PropertyInfo property, object obj)
-        {
-            if (property.PropertyType == typeof(string))
-                return new StringScalarValue { str = (string)property.GetValue(obj) };
-            if (property.PropertyType == typeof(bool))
-                return new BooleanScalarValue { boolean = (bool)property.GetValue(obj) };
-            if (property.PropertyType == typeof(float) || property.PropertyType == typeof(double) || property.PropertyType == typeof(int))
-                return new DoubleScalarValue { num = Convert.ToDouble(property.GetValue(obj)) };
-
-            //Properties cannot have a Range attribute like fields so no need to check for it here (see function similar to this for fields)
-
-            return null;
-        }
         #endregion
 
         #region Deserialization
@@ -260,26 +227,17 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
         static void DeserializeRandomizer(Randomizer randomizer, Group randomizerData)
         {
+            randomizer.enabled = randomizerData.state.enabled;
+
             foreach (var pair in randomizerData.items)
             {
                 var field = randomizer.GetType().GetField(pair.Key);
-                if (field != null)
-                {
-                    if (pair.Value is Parameter parameterData)
-                        DeserializeParameter((Randomization.Parameters.Parameter)field.GetValue(randomizer), parameterData);
-                    else
-                        DeserializeScalarValue(randomizer, field, (Scalar)pair.Value);
+                if (field == null)
                     continue;
-                }
-
-                var property = randomizer.GetType().GetProperty(pair.Key);
-                if (property != null)
-                {
-                    if (pair.Value is Parameter parameterData)
-                        DeserializeParameter((Randomization.Parameters.Parameter)property.GetValue(randomizer), parameterData);
-                    else
-                        DeserializeScalarValue(randomizer, property, (Scalar)pair.Value);
-                }
+                if (pair.Value is Parameter parameterData)
+                    DeserializeParameter((Randomization.Parameters.Parameter)field.GetValue(randomizer), parameterData);
+                else
+                    DeserializeScalarValue(randomizer, field, (Scalar)pair.Value);
             }
         }
 

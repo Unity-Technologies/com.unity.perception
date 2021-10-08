@@ -26,9 +26,16 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public string imageLink = string.Empty;
     }
 
+    class RandomizerStateData
+    {
+        public bool enabled;
+        public bool canBeSwitchedByUser;
+    }
+
     class Group
     {
         public StandardMetadata metadata = new StandardMetadata();
+        public RandomizerStateData state = new RandomizerStateData();
         [JsonConverter(typeof(GroupItemsConverter))]
         public Dictionary<string, IGroupItem> items = new Dictionary<string, IGroupItem>();
     }

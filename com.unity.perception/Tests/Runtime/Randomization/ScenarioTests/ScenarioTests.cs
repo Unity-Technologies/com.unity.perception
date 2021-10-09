@@ -47,7 +47,7 @@ namespace RandomizationTests.ScenarioTests
                 }
             }
 
-            yield return null; // Skip first frame
+            // yield return null; // Skip first frame
             yield return null; // Skip first Update() frame
         }
 

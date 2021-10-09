@@ -25,12 +25,12 @@ namespace RandomizationTests.RandomizerTests
         }
 
         // TODO: update this function once the perception camera doesn't skip the first frame
-        IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration)
+        void CreateNewScenario(int totalIterations, int framesPerIteration)
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
             m_Scenario.constants.totalIterations = totalIterations;
             m_Scenario.constants.framesPerIteration = framesPerIteration;
-            yield return null; // Skip first frame
+            // yield return null; // Skip first frame
         }
 
         [Test]
@@ -44,7 +44,7 @@ namespace RandomizationTests.RandomizerTests
         [UnityTest]
         public IEnumerator OnUpdateExecutesEveryFrame()
         {
-            yield return CreateNewScenario(10, 1);
+            CreateNewScenario(10, 1);
             m_Scenario.AddRandomizer(new ExampleTransformRandomizer());
             var transform = m_TestObject.transform;
             var initialPosition = Vector3.zero;
@@ -63,7 +63,7 @@ namespace RandomizationTests.RandomizerTests
         [UnityTest]
         public IEnumerator OnIterationStartExecutesEveryIteration()
         {
-            yield return CreateNewScenario(10, 2);
+            CreateNewScenario(10, 2);
             m_Scenario.AddRandomizer(new ExampleTransformRandomizer());
             var transform = m_TestObject.transform;
             var initialRotation = Quaternion.identity;

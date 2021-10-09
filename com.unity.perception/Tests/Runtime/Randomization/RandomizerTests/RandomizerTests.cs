@@ -30,7 +30,6 @@ namespace RandomizationTests.RandomizerTests
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
             m_Scenario.constants.totalIterations = totalIterations;
             m_Scenario.constants.framesPerIteration = framesPerIteration;
-            // yield return null; // Skip first frame
         }
 
         [Test]

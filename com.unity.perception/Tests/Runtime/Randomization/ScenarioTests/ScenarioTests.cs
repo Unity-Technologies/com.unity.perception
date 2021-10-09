@@ -46,8 +46,6 @@ namespace RandomizationTests.ScenarioTests
                     m_Scenario.AddRandomizer(rnd);
                 }
             }
-
-            // yield return null; // Skip first frame
             yield return null; // Skip first Update() frame
         }
 

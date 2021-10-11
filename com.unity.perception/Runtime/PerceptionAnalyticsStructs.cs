@@ -32,12 +32,6 @@ namespace UnityEngine.Perception.Analytics
             this.type = type;
             this.versionId = versionId;
             this.prefix = prefix;
-
-            // Make sure prefix is defined if the event is a runtime event
-            if (this.type == AnalyticsEventType.RuntimeAndEditor || this.type == AnalyticsEventType.Runtime)
-            {
-                Assert.IsTrue(!string.IsNullOrWhiteSpace(this.prefix));
-            }
         }
     }
 
@@ -73,6 +67,7 @@ namespace UnityEngine.Perception.Analytics
     public class PerceptionCameraData
     {
         public string captureTriggerMode;
+        // same as "firstCaptureFrame" of the Perception Camera
         public int startAtFrame;
         public int framesBetweenCaptures;
     }

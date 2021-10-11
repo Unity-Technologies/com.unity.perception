@@ -31,12 +31,14 @@ namespace UnityEngine.Perception.Analytics
         const int k_MaxElementsInStruct = 100;
         const int k_MaxEventsPerHour = 100;
 
+        /// <summary>
+        /// Stores whether each event has been registered successfully or not.
+        /// </summary>
         static Dictionary<AnalyticsEvent, bool> s_EventRegistrationStatus = new Dictionary<AnalyticsEvent, bool>();
 
         #region Event Definitions
         static readonly AnalyticsEvent k_EventScenarioInformation = new AnalyticsEvent(
-            "perceptionScenarioInformation", AnalyticsEventType.RuntimeAndEditor, 1,
-            "ai.cv"
+            "perceptionScenarioInformation", AnalyticsEventType.RuntimeAndEditor, 1
         );
         static readonly AnalyticsEvent k_EventRunInUnitySimulation = new AnalyticsEvent(
             "runinunitysimulation", AnalyticsEventType.Editor, 1
@@ -53,7 +55,7 @@ namespace UnityEngine.Perception.Analytics
         };
         #endregion
 
-        #region Common
+        #region Helpers
 
         /// <summary>
         /// Tries to register an event and returns whether it was registered successfully. The result is also cached in
@@ -63,6 +65,7 @@ namespace UnityEngine.Perception.Analytics
         /// <returns>Whether the event was successfully registered/</returns>
         static bool TryRegisterPerceptionAnalyticsEvent(AnalyticsEvent theEvent)
         {
+            // Make sure the event exists in the dictionary
             if (!s_EventRegistrationStatus.ContainsKey(theEvent))
             {
                 if (allEvents.Contains(theEvent))
@@ -71,9 +74,11 @@ namespace UnityEngine.Perception.Analytics
                     Debug.LogError($"Unrecognized event {theEvent} not included in {nameof(allEvents)}.");
             }
 
+            // If registered previously, return true
             if (s_EventRegistrationStatus[theEvent])
                 return true;
 
+            // Try registering the event and update the dictionary accordingly
             s_EventRegistrationStatus[theEvent] = true;
 #if UNITY_EDITOR
             var status = EditorAnalytics.RegisterEventWithLimit(theEvent.name, k_MaxEventsPerHour, k_MaxElementsInStruct, k_VendorKey);
@@ -81,8 +86,6 @@ namespace UnityEngine.Perception.Analytics
             var status = UnityEngine.Analytics.Analytics.RegisterEvent(theEvent.name, k_MaxEventsPerHour, k_MaxElementsInStruct, k_VendorKey);
 #endif
             s_EventRegistrationStatus[theEvent] &= status == AnalyticsResult.Ok;
-
-            // Debug.Log($"Registering event {theEvent.name}. Operation {(s_EventRegistrationStatus[theEvent] ? "" : "un")}successful.");
 
             return s_EventRegistrationStatus[theEvent];
         }
@@ -95,18 +98,24 @@ namespace UnityEngine.Perception.Analytics
         /// <param name="data">Payload of the event.</param>
         static void SendPerceptionAnalyticsEvent(AnalyticsEvent theEvent, object data)
         {
-            // Debug.Log($"Reporting {theEvent.name}.");
-#if UNITY_EDITOR
-            if (theEvent.type == AnalyticsEventType.Editor || theEvent.type == AnalyticsEventType.RuntimeAndEditor)
+            try
             {
-                EditorAnalytics.SendEventWithLimit(theEvent.name, data, theEvent.versionId);
-            }
+#if UNITY_EDITOR
+                if (theEvent.type == AnalyticsEventType.Editor || theEvent.type == AnalyticsEventType.RuntimeAndEditor)
+                {
+                    EditorAnalytics.SendEventWithLimit(theEvent.name, data, theEvent.versionId);
+                }
 #else
             if (theEvent.type == AnalyticsEventType.Runtime || theEvent.type == AnalyticsEventType.RuntimeAndEditor)
             {
                 UnityEngine.Analytics.Analytics.SendEvent(theEvent.name, data, theEvent.versionId, theEvent.prefix);
             }
 #endif
+            }
+            catch (Exception exc)
+            {
+                Debug.Log($"Unable to report ${theEvent.name}: {exc.Message}");
+            }
         }
 
         #endregion

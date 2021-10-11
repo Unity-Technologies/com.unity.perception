@@ -76,8 +76,8 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 * To allow navigating to code in all packages included in your project, in your Unity Editor, navigate to `Edit -> Preferences... -> External Tools` and check `Generate all .csproj files.` 
 
 ## Known issues
-
-* The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.3.
+* The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1.
+* Projects that use the Perception package on Windows or OS X will have a dependency for Python for Unity added to their manifest, in order for the new Dataset Visualizer tool to work. This tool and Python for Unity are not supported on Linux, therefore this dependency should be removed from the project's manifest file if the project is saved on Windows or OSX and opened on Linux.
 
 ## License
 * [License](com.unity.perception/LICENSE.md)

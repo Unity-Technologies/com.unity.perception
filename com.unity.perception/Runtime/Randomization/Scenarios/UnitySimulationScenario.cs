@@ -12,8 +12,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     public abstract class UnitySimulationScenario<T> : PerceptionScenario<T>
         where T : UnitySimulationScenarioConstants, new()
     {
-        /// <inheritdoc/>
-        protected override bool isScenarioReadyToStart => !Application.isEditor || Configuration.Instance.IsSimulationRunningInCloud() || Time.frameCount > 1;
 
         /// <inheritdoc/>
         protected sealed override bool isScenarioComplete => currentIteration >= constants.totalIterations;

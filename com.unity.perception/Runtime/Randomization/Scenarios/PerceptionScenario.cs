@@ -21,7 +21,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         MetricDefinition m_IterationMetricDefinition;
 
         /// <inheritdoc/>
-        protected override bool isScenarioReadyToStart => Time.frameCount >= 1;
+        protected override bool isScenarioReadyToStart => PerceptionCamera.captureFrameCount >= 0;
 
         /// <inheritdoc/>
         protected override void OnAwake()

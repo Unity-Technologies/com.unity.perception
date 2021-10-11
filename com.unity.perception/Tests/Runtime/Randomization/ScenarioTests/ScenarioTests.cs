@@ -46,7 +46,11 @@ namespace RandomizationTests.ScenarioTests
                     m_Scenario.AddRandomizer(rnd);
                 }
             }
-            yield return null; // Skip first Update() frame
+
+            if (PerceptionCamera.captureFrameCount < 0)
+            {
+                yield return null;
+            }
         }
 
         [Test]

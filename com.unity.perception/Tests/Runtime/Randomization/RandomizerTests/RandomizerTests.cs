@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using NUnit.Framework;
+using RandomizationTests.ScenarioTests;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.TestTools;
 
@@ -25,12 +28,24 @@ namespace RandomizationTests.RandomizerTests
         }
 
         // TODO: update this function once the perception camera doesn't skip the first frame
-        IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration)
+        IEnumerator CreateNewScenario(int totalIterations, int framesPerIteration, Randomizer[] randomizers = null)
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
             m_Scenario.constants.totalIterations = totalIterations;
             m_Scenario.constants.framesPerIteration = framesPerIteration;
-            yield return null; // Skip first frame
+
+            if (randomizers != null)
+            {
+                foreach (var rnd in randomizers)
+                {
+                    m_Scenario.AddRandomizer(rnd);
+                }
+            }
+
+            if (PerceptionCamera.captureFrameCount < 0)
+            {
+                yield return null;
+            }
         }
 
         [Test]
@@ -44,8 +59,7 @@ namespace RandomizationTests.RandomizerTests
         [UnityTest]
         public IEnumerator OnUpdateExecutesEveryFrame()
         {
-            yield return CreateNewScenario(10, 1);
-            m_Scenario.AddRandomizer(new ExampleTransformRandomizer());
+            yield return CreateNewScenario(10, 1, new Randomizer[] { new ExampleTransformRandomizer() });
             var transform = m_TestObject.transform;
             var initialPosition = Vector3.zero;
             transform.position = initialPosition;
@@ -63,11 +77,13 @@ namespace RandomizationTests.RandomizerTests
         [UnityTest]
         public IEnumerator OnIterationStartExecutesEveryIteration()
         {
-            yield return CreateNewScenario(10, 2);
-            m_Scenario.AddRandomizer(new ExampleTransformRandomizer());
+            yield return CreateNewScenario(10, 2, new Randomizer[] { new ExampleTransformRandomizer() });
             var transform = m_TestObject.transform;
             var initialRotation = Quaternion.identity;
             transform.rotation = initialRotation;
+
+            // Wait one frame so the next iteration can begin
+            yield return null;
 
             yield return null;
             Assert.AreNotEqual(initialRotation, transform.rotation);

@@ -47,8 +47,10 @@ namespace RandomizationTests.ScenarioTests
                 }
             }
 
-            yield return null; // Skip first frame
-            yield return null; // Skip first Update() frame
+            if (PerceptionCamera.captureFrameCount < 0)
+            {
+                yield return null;
+            }
         }
 
         [Test]

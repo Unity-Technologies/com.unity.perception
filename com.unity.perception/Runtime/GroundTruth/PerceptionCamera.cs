@@ -32,6 +32,15 @@ namespace UnityEngine.Perception.GroundTruth
 
         static PerceptionCamera s_VisualizedPerceptionCamera;
 
+        /// <summary>
+        /// The number of capture-able frames that have been generated
+        /// </summary>
+#if UNITY_EDITOR
+        public static int captureFrameCount => Time.frameCount - 2;
+#else
+        public static int captureFrameCount => Time.frameCount - 1;
+#endif
+
         //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
         internal string rgbDirectory { get; } = $"RGB{Guid.NewGuid()}";
         internal HUDPanel hudPanel;

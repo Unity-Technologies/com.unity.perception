@@ -9,6 +9,7 @@
         "Unity.Perception.Runtime",
         "Unity.Perception.Editor",
         "Unity.Simulation.Core",
+        "Unity.Simulation.Capture",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Universal.Runtime"
     ],

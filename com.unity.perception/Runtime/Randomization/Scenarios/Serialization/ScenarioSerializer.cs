@@ -127,18 +127,22 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 samplerData.defaultSampler = new ConstantSampler
                 {
                     value = constantSampler.value,
-                    minAllowed = constantSampler.minAllowed,
-                    maxAllowed = constantSampler.maxAllowed,
-                    shouldCheckValidRange = constantSampler.shouldCheckValidRange
+                    limits = new Limits {
+                        min = constantSampler.minAllowed,
+                        max = constantSampler.maxAllowed,
+                        shouldValidateRange = constantSampler.shouldCheckValidRange
+                    }
                 };
             else if (sampler is Samplers.UniformSampler uniformSampler)
                 samplerData.defaultSampler = new UniformSampler
                 {
                     min = uniformSampler.range.minimum,
                     max = uniformSampler.range.maximum,
-                    minAllowed = uniformSampler.minAllowed,
-                    maxAllowed = uniformSampler.maxAllowed,
-                    shouldCheckValidRange = uniformSampler.shouldCheckValidRange
+                    limits = new Limits {
+                        min = uniformSampler.minAllowed,
+                        max = uniformSampler.maxAllowed,
+                        shouldValidateRange = uniformSampler.shouldCheckValidRange
+                    }
                 };
             else if (sampler is Samplers.NormalSampler normalSampler)
                 samplerData.defaultSampler = new NormalSampler
@@ -147,9 +151,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     max = normalSampler.range.maximum,
                     mean = normalSampler.mean,
                     stddev = normalSampler.standardDeviation,
-                    minAllowed = normalSampler.minAllowed,
-                    maxAllowed = normalSampler.maxAllowed,
-                    shouldCheckValidRange = normalSampler.shouldCheckValidRange
+                    limits = new Limits {
+                        min = normalSampler.minAllowed,
+                        max = normalSampler.maxAllowed,
+                        shouldValidateRange = normalSampler.shouldCheckValidRange
+                    }
                 };
             else
                 throw new ArgumentException($"Invalid sampler type ({sampler.GetType()})");
@@ -178,9 +184,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 return new DoubleScalarValue
                 {
                     num = Convert.ToDouble(field.GetValue(obj)),
-                    minAllowed = minAllowed,
-                    maxAllowed = maxAllowed,
-                    shouldCheckValidRange = shouldCheckValidRange
+                    limits = new Limits {
+                        min = minAllowed,
+                        max = maxAllowed,
+                        shouldValidateRange = shouldCheckValidRange
+                    }
                 };
             }
 
@@ -261,9 +269,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 return new Samplers.ConstantSampler
                 {
                     value = (float)constantSampler.value,
-                    minAllowed = (float)constantSampler.minAllowed,
-                    maxAllowed = (float)constantSampler.maxAllowed,
-                    shouldCheckValidRange = constantSampler.shouldCheckValidRange
+                    minAllowed = (float)constantSampler.limits.min,
+                    maxAllowed = (float)constantSampler.limits.max,
+                    shouldCheckValidRange = constantSampler.limits.shouldValidateRange
                 };
             if (samplerOption is UniformSampler uniformSampler)
                 return new Samplers.UniformSampler
@@ -273,9 +281,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                         minimum = (float)uniformSampler.min,
                         maximum = (float)uniformSampler.max,
                     },
-                    minAllowed = (float)uniformSampler.minAllowed,
-                    maxAllowed = (float)uniformSampler.maxAllowed,
-                    shouldCheckValidRange = uniformSampler.shouldCheckValidRange
+                    minAllowed = (float)uniformSampler.limits.min,
+                    maxAllowed = (float)uniformSampler.limits.max,
+                    shouldCheckValidRange = uniformSampler.limits.shouldValidateRange
                 };
             if (samplerOption is NormalSampler normalSampler)
                 return new Samplers.NormalSampler
@@ -287,9 +295,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     },
                     mean = (float)normalSampler.mean,
                     standardDeviation = (float)normalSampler.stddev,
-                    minAllowed = (float)normalSampler.minAllowed,
-                    maxAllowed = (float)normalSampler.maxAllowed,
-                    shouldCheckValidRange = normalSampler.shouldCheckValidRange
+                    minAllowed = (float)normalSampler.limits.min,
+                    maxAllowed = (float)normalSampler.limits.max,
+                    shouldCheckValidRange = normalSampler.limits.shouldValidateRange
                 };
             throw new ArgumentException($"Cannot deserialize unsupported sampler type {samplerOption.GetType()}");
         }

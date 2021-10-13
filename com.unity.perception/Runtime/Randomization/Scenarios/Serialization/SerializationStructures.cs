@@ -32,6 +32,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public bool canBeSwitchedByUser;
     }
 
+    class Limits
+    {
+        public double min;
+        public double max;
+        public bool shouldValidateRange;
+    }
+
     class Group
     {
         public StandardMetadata metadata = new StandardMetadata();
@@ -60,9 +67,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     {
         public double min;
         public double max;
-        public double minAllowed;
-        public double maxAllowed;
-        public bool shouldCheckValidRange;
+        public Limits limits;
     }
 
     class NormalSampler : ISamplerOption
@@ -71,17 +76,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public double max;
         public double mean;
         public double stddev;
-        public double minAllowed;
-        public double maxAllowed;
-        public bool shouldCheckValidRange;
+        public Limits limits;
     }
 
     class ConstantSampler : ISamplerOption
     {
         public double value;
-        public double minAllowed;
-        public double maxAllowed;
-        public bool shouldCheckValidRange;
+        public Limits limits;
     }
     #endregion
 
@@ -101,9 +102,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     class DoubleScalarValue : IScalarValue
     {
         public double num;
-        public double minAllowed;
-        public double maxAllowed;
-        public bool shouldCheckValidRange;
+        public Limits limits;
     }
 
     class BooleanScalarValue : IScalarValue

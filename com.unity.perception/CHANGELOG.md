@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+Added new configuration options to the Scenario JSON configuration. These include a `limits` block on numerical Scalars and Samplers to denote a valid range, and a `state` block on the Randomizers for enabling/disabling them from the config.
+
 The user can now choose the base folder location to store their generated datasets.
 
 Added the AssetSource class for loading assets from generic sources inside randomizers.

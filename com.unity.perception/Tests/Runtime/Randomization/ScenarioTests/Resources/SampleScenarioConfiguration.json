@@ -83,18 +83,6 @@
                 }
               }
             }
-          },
-          "enabledStateCanBeSwitchedByUser": {
-            "scalar": {
-              "metadata": {
-                "name": "",
-                "description": "",
-                "imageLink": ""
-              },
-              "value": {
-                "bool": true
-              }
-            }
           }
         }
       }

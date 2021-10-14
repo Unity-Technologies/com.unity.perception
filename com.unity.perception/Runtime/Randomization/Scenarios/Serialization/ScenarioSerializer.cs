@@ -236,6 +236,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         static void DeserializeRandomizer(Randomizer randomizer, Group randomizerData)
         {
             randomizer.enabled = randomizerData.state.enabled;
+            randomizer.enabledStateCanBeSwitchedByUser = randomizerData.state.canBeSwitchedByUser;
 
             foreach (var pair in randomizerData.items)
             {

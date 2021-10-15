@@ -11,6 +11,6 @@
 **At Risk Areas**: 
 
 ## Checklist
-- [ ] - Updated docs
-- [ ] - Updated changelog
-- [ ] - Updated test rail
+- [ ] Updated docs
+- [ ] Updated changelog
+- [ ] Updated test rail

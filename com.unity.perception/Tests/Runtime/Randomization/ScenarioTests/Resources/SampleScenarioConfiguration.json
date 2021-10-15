@@ -36,12 +36,7 @@
                     },
                     "uniform": {
                       "min": 0.0,
-                      "max": 360.0,
-                      "limits": {
-                        "min": 0.0,
-                        "max": 0.0,
-                        "shouldValidateRange": false
-                      }
+                      "max": 360.0
                     }
                   }
                 },
@@ -54,12 +49,7 @@
                     },
                     "uniform": {
                       "min": 0.0,
-                      "max": 360.0,
-                      "limits": {
-                        "min": 0.0,
-                        "max": 0.0,
-                        "shouldValidateRange": false
-                      }
+                      "max": 360.0
                     }
                   }
                 },
@@ -72,12 +62,7 @@
                     },
                     "uniform": {
                       "min": 0.0,
-                      "max": 360.0,
-                      "limits": {
-                        "min": 0.0,
-                        "max": 0.0,
-                        "shouldValidateRange": false
-                      }
+                      "max": 360.0
                     }
                   }
                 }

@@ -36,7 +36,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     {
         public double min;
         public double max;
-        public bool shouldValidateRange;
     }
 
     class Group

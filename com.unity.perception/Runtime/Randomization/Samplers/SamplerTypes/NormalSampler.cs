@@ -97,7 +97,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
 
         public void CheckAgainstValidRange()
         {
-            if (shouldCheckValidRange)
+            if (shouldCheckValidRange && (range.minimum < minAllowed || range.maximum > maxAllowed))
             {
                 Debug.LogError($"The provided min and max values for a {GetType().Name} exceed the allowed valid range. Clamping to valid range.");
                 range.minimum = Mathf.Clamp(range.minimum, minAllowed, maxAllowed);

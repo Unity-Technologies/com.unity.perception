@@ -70,7 +70,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// </summary>
         public void Validate()
         {
-            Assert.IsTrue(!shouldCheckValidRange || value >= minAllowed && value <= maxAllowed);
+            CheckAgainstValidRange();
         }
 
         public void CheckAgainstValidRange()

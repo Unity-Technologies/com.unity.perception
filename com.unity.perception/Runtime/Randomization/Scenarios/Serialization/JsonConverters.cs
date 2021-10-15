@@ -28,7 +28,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 if (itemValue is Parameter)
                     newObj["param"] = JObject.FromObject(itemValue);
                 else
-                    newObj["scalar"] = JObject.FromObject(itemValue);
+                    newObj["scalar"] = JObject.FromObject(itemValue, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
                 output[itemKey] = newObj;
             }
             output.WriteTo(writer);
@@ -130,7 +130,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 key = "normal";
             else
                 throw new TypeAccessException($"Cannot serialize type ${options.defaultSampler.GetType()}");
-            output[key] = JObject.FromObject(options.defaultSampler);
+            output[key] = JObject.FromObject(options.defaultSampler, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
             output.WriteTo(writer);
         }
 
@@ -177,7 +177,14 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             if (value.ContainsKey("str"))
                 scalar.value = new StringScalarValue { str = value["str"].Value<string>() };
             else if (value.ContainsKey("num"))
-                scalar.value  = new DoubleScalarValue { num = value["num"].Value<double>() };
+            {
+                Limits limits = null;
+                if (value.ContainsKey("limits"))
+                {
+                    limits = value["limits"].ToObject<Limits>();
+                }
+                scalar.value = new DoubleScalarValue { num = value["num"].Value<double>(), limits = limits};
+            }
             else if (value.ContainsKey("bool"))
                 scalar.value  = new BooleanScalarValue { boolean = value["bool"].Value<bool>() };
             else

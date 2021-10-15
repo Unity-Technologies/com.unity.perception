@@ -4,15 +4,16 @@ using System.Linq;
 using Unity.Simulation;
 using UnityEngine.Analytics;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Scenarios;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 namespace UnityEngine.Perception.Analytics
 {
+
     /// <summary>
     /// Editor and Runtime analytics for the Perception package.
     /// </summary>
@@ -26,10 +27,27 @@ namespace UnityEngine.Perception.Analytics
     /// </remarks>
     public static class PerceptionAnalytics
     {
-
         const string k_VendorKey = "unity.perception";
         const int k_MaxElementsInStruct = 100;
         const int k_MaxEventsPerHour = 100;
+
+        #region Setup
+        [RuntimeInitializeOnLoadMethod]
+        static void OnInitializeOnLoad()
+        {
+            Manager.Instance.ShutdownNotification += OnSimulationShutdown;
+        }
+
+        static void OnSimulationShutdown()
+        {
+            var perceptionCamera = Object.FindObjectOfType<PerceptionCamera>();
+            ReportScenarioInformation(
+                perceptionCamera,
+                ScenarioBase.activeScenario
+            );
+        }
+
+        #endregion
 
         /// <summary>
         /// Stores whether each event has been registered successfully or not.
@@ -71,7 +89,7 @@ namespace UnityEngine.Perception.Analytics
                 if (allEvents.Contains(theEvent))
                     s_EventRegistrationStatus[theEvent] = false;
                 else
-                    Debug.LogError($"Unrecognized event {theEvent} not included in {nameof(allEvents)}.");
+                    throw new NotSupportedException($"Unrecognized event {theEvent} not included in {nameof(allEvents)}.");
             }
 
             // If registered previously, return true
@@ -131,14 +149,15 @@ namespace UnityEngine.Perception.Analytics
             "KeypointLabeler", "ObjectCountLabeler", "SemanticSegmentationLabeler", "RenderedObjectInfoLabeler"
         };
 
-        internal static void ReportScenarioCompleted(
+        static void ReportScenarioInformation(
             PerceptionCamera cam,
-            IEnumerable<Randomizer> randomizers
+            ScenarioBase scenario
         )
         {
             if (!TryRegisterPerceptionAnalyticsEvent(k_EventScenarioInformation))
                 return;
 
+            var randomizers = scenario ? scenario.activeRandomizers : new List<Randomizer>();
             var data = ScenarioCompletedData.FromCameraAndRandomizers(cam, randomizers);
             SendPerceptionAnalyticsEvent(k_EventScenarioInformation, data);
         }

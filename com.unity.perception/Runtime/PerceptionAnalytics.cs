@@ -116,24 +116,17 @@ namespace UnityEngine.Perception.Analytics
         /// <param name="data">Payload of the event.</param>
         static void SendPerceptionAnalyticsEvent(AnalyticsEvent theEvent, object data)
         {
-            try
-            {
 #if UNITY_EDITOR
-                if (theEvent.type == AnalyticsEventType.Editor || theEvent.type == AnalyticsEventType.RuntimeAndEditor)
-                {
-                    EditorAnalytics.SendEventWithLimit(theEvent.name, data, theEvent.versionId);
-                }
+            if (theEvent.type == AnalyticsEventType.Editor || theEvent.type == AnalyticsEventType.RuntimeAndEditor)
+            {
+                EditorAnalytics.SendEventWithLimit(theEvent.name, data, theEvent.versionId);
+            }
 #else
             if (theEvent.type == AnalyticsEventType.Runtime || theEvent.type == AnalyticsEventType.RuntimeAndEditor)
             {
                 UnityEngine.Analytics.Analytics.SendEvent(theEvent.name, data, theEvent.versionId, theEvent.prefix);
             }
 #endif
-            }
-            catch (Exception exc)
-            {
-                Debug.Log($"Unable to report ${theEvent.name}: {exc.Message}");
-            }
         }
 
         #endregion

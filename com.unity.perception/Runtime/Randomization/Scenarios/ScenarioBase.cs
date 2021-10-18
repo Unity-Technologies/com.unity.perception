@@ -1,12 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Unity.Simulation;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Perception.Analytics;
+using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.Randomization.Scenarios.Serialization;
+using UnityEngine.SceneManagement;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -345,6 +350,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             {
                 foreach (var randomizer in activeRandomizers)
                     randomizer.ScenarioComplete();
+
                 OnComplete();
                 state = State.Idle;
                 OnIdle();

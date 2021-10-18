@@ -9,6 +9,8 @@ using Unity.Simulation.Client;
 using UnityEditor.Build.Reporting;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Perception;
+using UnityEngine.Perception.Analytics;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.SceneManagement;
@@ -268,7 +270,7 @@ namespace UnityEditor.Perception.Randomization
                 currentScenario = FindObjectOfType<ScenarioBase>()
             };
             var runGuid = Guid.NewGuid();
-            PerceptionEditorAnalytics.ReportRunInUnitySimulationStarted(
+            PerceptionAnalytics.ReportRunInUnitySimulationStarted(
                 runGuid,
                 m_RunParameters.totalIterations,
                 m_RunParameters.instanceCount,
@@ -307,7 +309,7 @@ namespace UnityEditor.Perception.Randomization
             }
             catch (Exception e)
             {
-                PerceptionEditorAnalytics.ReportRunInUnitySimulationFailed(runGuid, e.Message);
+                PerceptionAnalytics.ReportRunInUnitySimulationFailed(runGuid, e.Message);
                 throw;
             }
             finally
@@ -471,7 +473,7 @@ namespace UnityEditor.Perception.Randomization
             run.Execute();
 
             // Cleanup
-            PerceptionEditorAnalytics.ReportRunInUnitySimulationSucceeded(runGuid, run.executionId);
+            PerceptionAnalytics.ReportRunInUnitySimulationSucceeded(runGuid, run.executionId);
 
             // Set new Player Preferences
             PlayerPrefs.SetString("SimWindow/runName", m_RunParameters.runName);

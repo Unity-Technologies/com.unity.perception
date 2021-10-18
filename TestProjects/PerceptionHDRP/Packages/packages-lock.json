@@ -10,12 +10,10 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.collab-proxy": {
-      "version": "1.7.1",
+      "version": "1.9.0",
       "depth": 0,
       "source": "registry",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "2.0.0"
-      },
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.collections": {
@@ -54,7 +52,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.vscode": {
-      "version": "1.2.3",
+      "version": "1.2.4",
       "depth": 0,
       "source": "registry",
       "dependencies": {},
@@ -77,7 +75,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.nuget.newtonsoft-json": {
-      "version": "2.0.0",
+      "version": "2.0.0-preview",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -101,13 +99,13 @@
         "com.unity.collections": "0.9.0-preview.6",
         "com.unity.nuget.newtonsoft-json": "1.1.2",
         "com.unity.render-pipelines.core": "7.1.6",
-        "com.unity.simulation.capture": "0.0.10-preview.20",
+        "com.unity.simulation.capture": "0.0.10-preview.24",
         "com.unity.simulation.client": "0.0.10-preview.10",
-        "com.unity.simulation.core": "0.0.10-preview.22"
+        "com.unity.simulation.core": "0.0.10-preview.25"
       }
     },
     "com.unity.render-pipelines.core": {
-      "version": "10.5.1",
+      "version": "10.6.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -116,23 +114,23 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.render-pipelines.high-definition": {
-      "version": "10.5.1",
+      "version": "10.6.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.render-pipelines.core": "10.5.1",
-        "com.unity.shadergraph": "10.5.1",
-        "com.unity.visualeffectgraph": "10.5.1",
-        "com.unity.render-pipelines.high-definition-config": "10.5.1"
+        "com.unity.render-pipelines.core": "10.6.0",
+        "com.unity.shadergraph": "10.6.0",
+        "com.unity.visualeffectgraph": "10.6.0",
+        "com.unity.render-pipelines.high-definition-config": "10.6.0"
       },
       "url": "https://packages.unity.com"
     },
     "com.unity.render-pipelines.high-definition-config": {
-      "version": "10.5.1",
+      "version": "10.6.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.render-pipelines.core": "10.5.1"
+        "com.unity.render-pipelines.core": "10.6.0"
       },
       "url": "https://packages.unity.com"
     },
@@ -151,17 +149,17 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.shadergraph": {
-      "version": "10.5.1",
+      "version": "10.6.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.render-pipelines.core": "10.5.1",
+        "com.unity.render-pipelines.core": "10.6.0",
         "com.unity.searcher": "4.3.2"
       },
       "url": "https://packages.unity.com"
     },
     "com.unity.simulation.capture": {
-      "version": "0.0.10-preview.23",
+      "version": "0.0.10-preview.24",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -202,7 +200,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
-      "version": "1.1.27",
+      "version": "1.1.29",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -261,12 +259,12 @@
       }
     },
     "com.unity.visualeffectgraph": {
-      "version": "10.5.1",
+      "version": "10.6.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.shadergraph": "10.5.1",
-        "com.unity.render-pipelines.core": "10.5.1"
+        "com.unity.shadergraph": "10.6.0",
+        "com.unity.render-pipelines.core": "10.6.0"
       },
       "url": "https://packages.unity.com"
     },

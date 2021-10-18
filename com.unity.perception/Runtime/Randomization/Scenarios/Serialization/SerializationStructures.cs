@@ -16,7 +16,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     #region GroupedObjects
     class TemplateConfigurationOptions
     {
-        public List<Group> groups = new List<Group>();
+        public List<Group> randomizerGroups = new List<Group>();
     }
 
     class StandardMetadata
@@ -40,7 +40,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
     class Group
     {
-        public string className;
+        public string randomizerId;
         public StandardMetadata metadata = new StandardMetadata();
         public RandomizerStateData state = new RandomizerStateData();
         [JsonConverter(typeof(GroupItemsConverter))]

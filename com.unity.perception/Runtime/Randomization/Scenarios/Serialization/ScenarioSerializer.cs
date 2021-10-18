@@ -50,7 +50,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         {
             return new TemplateConfigurationOptions
             {
-                groups = SerializeRandomizers(scenario.randomizers)
+                randomizerGroups = SerializeRandomizers(scenario.randomizers)
             };
         }
 
@@ -75,7 +75,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             randomizerData.state.canBeSwitchedByUser = randomizer.enabledStateCanBeSwitchedByUser;
 
             var fields = randomizer.GetType().GetFields();
-            randomizerData.className = randomizer.GetType().Name;
+            randomizerData.randomizerId = randomizer.GetType().Name;
             foreach (var field in fields)
             {
                 if (field.FieldType.IsSubclassOf(typeof(Randomization.Parameters.Parameter)))
@@ -213,7 +213,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
         static void DeserializeTemplateIntoScenario(ScenarioBase scenario, TemplateConfigurationOptions template)
         {
-            DeserializeRandomizers(scenario.randomizers, template.groups);
+            DeserializeRandomizers(scenario.randomizers, template.randomizerGroups);
         }
 
         static void DeserializeRandomizers(IEnumerable<Randomizer> randomizers, List<Group> groups)
@@ -224,9 +224,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
             foreach (var randomizerData in groups)
             {
-                if (!randomizerTypeMap.ContainsKey(randomizerData.className))
+                if (!randomizerTypeMap.ContainsKey(randomizerData.randomizerId))
                     continue;
-                var randomizer = randomizerTypeMap[randomizerData.className];
+                var randomizer = randomizerTypeMap[randomizerData.randomizerId];
                 DeserializeRandomizer(randomizer, randomizerData);
             }
         }

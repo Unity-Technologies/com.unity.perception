@@ -70,8 +70,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         static Group SerializeRandomizer(Randomizer randomizer)
         {
             var randomizerData = new Group();
-            randomizerData.state.enabled = randomizer.enabled;
-            randomizerData.state.canBeSwitchedByUser = randomizer.enabledStateCanBeSwitchedByUser;
+            randomizerData.state = new RandomizerStateData
+            {
+                enabled = randomizer.enabled,
+                canBeSwitchedByUser = randomizer.enabledStateCanBeSwitchedByUser
+            };
 
             var fields = randomizer.GetType().GetFields();
             foreach (var field in fields)
@@ -231,8 +234,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
         static void DeserializeRandomizer(Randomizer randomizer, Group randomizerData)
         {
-            randomizer.enabled = randomizerData.state.enabled;
-            randomizer.enabledStateCanBeSwitchedByUser = randomizerData.state.canBeSwitchedByUser;
+            if (randomizerData.state != null)
+            {
+                randomizer.enabled = randomizerData.state.enabled;
+                randomizer.enabledStateCanBeSwitchedByUser = randomizerData.state.canBeSwitchedByUser;
+            }
 
             foreach (var pair in randomizerData.items)
             {

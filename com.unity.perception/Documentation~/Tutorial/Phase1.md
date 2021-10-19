@@ -406,9 +406,9 @@ The output dataset includes a variety of information about different aspects of 
 
 Reviewing the individual files in the dataset can be error-prone and take a long time. Instead, you can use our Dataset Visualizer to efficiently visualize the captured frames along with Labeler outputs overlaid on them, as well as inspect the JSON data attached to each frame.
 
-* **:green_circle: Action**: Open _**Window**_ -> _**Dataset Visualizer**_ -> _**Open**_. 
+* **:green_circle: Action**: Open _**Window**_ -> _**Dataset Visualizer**_ -> _**Open**_. (This is also accessible from the `Perception Camera`)
 
-This will first install the visualizer and then run it. The visualizer is a Python based tool that runs in the browser. Once the tool is installed, a browser window will open to the address `http://localhost:8501/`. 
+This will first install the visualizer and then run it. The visualizer is a Python based tool that runs in the browser. It may take a few minutes to install the tool for the first time. Once it is installed, a browser window will open to the address `http://localhost:8501/`. 
 
 In certain circumstances, the tool may run but the browser window may not open. To alleviate this, once the tool is running you will get a prompt in Unity Editor, asking whether the browser window opened successfully. If it did not, you can force it to open by clicking **Manually Open**.
 
@@ -426,7 +426,7 @@ The left sidebar also contains switches for enabling the visualization of each L
 <img src="Images/visualizer_sample_synthdet.png" width = "800"/>
 </p>
 
-* **:green_circle: Action**: Click _**Expand Frame** for the first image.
+* **:green_circle: Action**: Click _**Expand Frame**_ for the first image.
 
 In expanded mode, the image is enlarged and the JSON data attached to it are displayed, as seen in the screenshot below.
 

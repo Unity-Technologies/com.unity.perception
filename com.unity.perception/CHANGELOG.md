@@ -5,33 +5,33 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [0.9.0-preview.1] - 2021-10-25
 
 ### Upgrade Notes
+
+Scenario JSON configurations that were generated using previous versions will need to be manually updated due to updates to serialization and deserialization of scenarios.
 
 ### Known Issues
 
 ### Added
 
-Added new configuration options to the Scenario JSON configuration. These include a `limits` block on numerical Scalars and Samplers to denote a valid range, and a `state` block on the Randomizers for enabling/disabling them from the config.
-
-The user can now choose the base folder location to store their generated datasets.
-
-Added the AssetSource class for loading assets from generic sources inside randomizers.
-
-Users can now choose the base folder location to store their generated datasets.
-
-Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
+Added support for multiple cameras capturing simultaneously (visualization not yet supported)
 
 Users can now delay the current iteration for one frame from within randomizers by calling the `DelayIteration` function of the active scenario.
 
-Added support for multiple cameras capturing simultaneously (visualization not yet supported)
+Users can now choose the base folder location to store their generated datasets.
+
+Added new configuration options to the Scenario JSON configuration. These include a `limits` block on numerical Scalars and Samplers to denote a valid range, and a `state` block on the Randomizers for enabling/disabling them from the config.
+
+Added the AssetSource class for loading assets from generic sources inside randomizers.
+
+Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
 
 ### Changed
 
 Upgraded capture package dependency to 0.0.10-preview.24. This fixes an issue where RGB images were blank on OSX when MSAA was enabled & post-processing was disabled.
 
-Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scneario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.
+Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev".
 
 ### Deprecated
 

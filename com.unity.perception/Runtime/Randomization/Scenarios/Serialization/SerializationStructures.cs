@@ -41,7 +41,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     class Group
     {
         public StandardMetadata metadata = new StandardMetadata();
-        public RandomizerStateData state = new RandomizerStateData();
+        public RandomizerStateData state = null;
         [JsonConverter(typeof(GroupItemsConverter))]
         public Dictionary<string, IGroupItem> items = new Dictionary<string, IGroupItem>();
     }

@@ -33,7 +33,7 @@ Step by step instructions for using the keypoint, pose, and animation randomizat
 Check out our FAQ for a list of common questions, tips, tricks, and some sample code.
 
 **[Verifying Datasets with Dataset Insights](com.unity.perception/Documentation~/DatasetInsights.md)**  
-Introduction to downloading Unity's Python based Dataset Insights package and using it to verify your dataset's statistics.
+Introduction to Unity's [Dataset Insights](https://github.com/Unity-Technologies/datasetinsights) – a python package for downloading, parsing and analyzing synthetic datasets.
 
 ## Documentation
 In-depth documentation on individual components of the package. 

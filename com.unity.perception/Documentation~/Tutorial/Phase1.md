@@ -14,7 +14,7 @@ Steps included in this phase of the tutorial:
 * [Step 5: Set Up Background Randomizers](#step-5)
 * [Step 6: Set Up Foreground Randomizers](#step-6)
 * [Step 7: Inspect Generated Synthetic Data](#step-7)
-* [Step 8: Verify Data Using Dataset Insights](#step-8)
+* [Step 8: Explore and Visualize Your Dataset](#step-8)
 
 
 > :information_source: If you face any problems while following this tutorial, please create a post on the **[Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/)** or the **[GitHub issues](https://github.com/Unity-Technologies/com.unity.perception/issues)** page and include as much detail as possible.
@@ -402,47 +402,40 @@ The output dataset includes a variety of information about different aspects of 
 
 * **:green_circle: Action**: Review the JSON meta-data and the images captured for the first annotated frame, and verify that the objects within them match. 
 
-### <a name="step-8">Step 8: Verify Data Using Dataset Insights</a> 
+### <a name="step-8">Step 8: Explore and Visualize Your Dataset</a> 
 
+Reviewing individual files in the dataset can be tedious and error-prone. Instead, you can use our Dataset Visualizer to efficiently visualize the captured frames along with Labeler outputs overlaid on them, as well as inspect the JSON data attached to each frame.
 
-To verify and analyze a variety of metrics for the generated data, such as number of foreground objects in each frame and degree of representation for each foreground object (label), we will now use Unity's Dataset Insights framework. This will involve running a Jupyter notebook which is conveniently packaged within a Docker file that you can download from Unity. 
+* **:green_circle: Action**: Open _**Window**_ -> _**Dataset Visualizer**_ -> _**Open**_. (This is also accessible from the `Perception Camera`)
 
-* **:green_circle: Action**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop)
-* **:green_circle: Action**: Open a command line interface (Command Prompt on Windows, Terminal on Mac OS, etc.) and type the following command to run the Dataset Insights Docker image: 
-`docker run -p 8888:8888 -v <path to synthetic data>:/data -t unitytechnologies/datasetinsights:latest`, where the path to data is what we looked at earlier. You can copy the path using the _**Copy Path**_ button in the `Perception Camera` UI.
+This will first install the visualizer and then run it. The visualizer is a Python based tool that runs in the browser. It may take a few minutes to install the tool for the first time. Once it is installed, a browser window will open to the address `http://localhost:8501/`. 
 
-> :information_source: If you get an error about the format of the command, try the command again **with quotation marks** around the folder mapping argument, i.e. `"<path to synthetic data>:/data"`.
-
-This will download a Docker image from Unity. If you get an error regarding the path to your dataset, make sure you have not included the enclosing `<` and `>` in the path and that the spaces are properly escaped.
-
-* **:green_circle: Action**: The image is now running on your computer. Open a web browser and navigate to `http://localhost:8888` to open the Jupyter notebook:
+In certain circumstances, the tool may run but the browser window may not open. To alleviate this, once the tool is running you will get a prompt in Unity Editor, asking whether the browser window opened successfully. If it did not, you can force it to open by clicking **Manually Open**.
 
 <p align="center">
-<img src="Images/jupyter1.png" width="800"/>
+<img src="Images/did_visualizer_open.png" width = "300"/>
 </p>
 
-* **:green_circle: Action**: To make sure your data is properly mounted, navigate to the `data` folder. If you see the dataset's folders there, we are good to go.
-* **:green_circle: Action**: Navigate to the `datasetinsights/notebooks` folder and open `Perception_Statistics.ipynb`.
-* **:green_circle: Action**: Once in the notebook, remove the `/<GUID>` part of the `data_root = /data/<GUID>` path. Since the dataset root is already mapped to `/data`, you can use this path directly.
+> :information_source: The visualizer is a standalone tool that may be updated outside of the normal release cycles of the Perception package. You can use _**Window**_ -> _**Dataset Visualizer**_ -> _**Check For Updates**_ to check for and install updates.
+
+Once the browser window is open, the tool will automatically try to open the latest dataset generated using the Unity project from which you opened the visualizer. You can also open other datasets using the ***Open Dataset*** button on the left side of the screen.
+
+The left sidebar also contains switches for enabling the visualization of each Labeler in the dataset. The image below shows a sample dataset opened in the visualizer, with the 2D bounding boxes overlay enabled.
 
 <p align="center">
-<img src="Images/jupyter2.png" width="800"/>
+<img src="Images/visualizer_sample_synthdet.png" width = "800"/>
 </p>
 
-This notebook contains a variety of functions for generating plots, tables, and bounding box images that help you analyze your generated dataset. Certain parts of this notebook are currently not of use to us, such as the code meant for downloading data generated through Unity Simulation (coming later in this tutorial).
+* **:green_circle: Action**: Click _**Expand Frame**_ for the first image.
 
-Each of the code blocks in this notebook can be executed by clicking on them to select them, and then clicking the _**Run**_  button at the top of the notebook. When you run a code block, an **asterisk (\*)** will be shown next to it on the left side, until the code finishes executing.
-
-Below, you can see a sample plot generated by the Dataset Insights notebook, depicting the number of times each of the 10 foreground objects appeared in the dataset. As shown in the histogram, there is a high level of uniformity between the labels, which is a desirable outcome. 
-
+In expanded mode, the image is enlarged and the JSON data attached to it are displayed, as seen in the screenshot below.
 
 <p align="center">
-<img src="Images/object_count_plot.png" width="600"/>
+<img src="Images/vis_expanded.png" width = "800"/>
 </p>
 
+To further analyze your dataset and verify statistics such as number of objects in each frame and more, you can use Unity's Dataset Insights, which is a Python package created for processing Perception datasets. [This guide](DatasetInsights.md) can get you started.
 
-* **:green_circle: Action**: Follow the instructions laid out in the notebook and run each code block to view its outputs.
-
-This concludes Phase 1 of the Perception Tutorial. In the next phase, you will dive a little bit into randomization code and learn how to build your own custom Randomizer. 
+This concludes Phase 1 of the Perception Tutorial. In the next phase, we will dive a little bit into randomization code and learn how to build custom Randomizers. 
 
 **[Continue to Phase 2: Custom Randomizations](Phase2.md)**

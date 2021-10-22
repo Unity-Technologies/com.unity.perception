@@ -404,7 +404,7 @@ The output dataset includes a variety of information about different aspects of 
 
 ### <a name="step-8">Step 8: Explore and Visualize Your Dataset</a> 
 
-Reviewing the individual files in the dataset can be error-prone and take a long time. Instead, you can use our Dataset Visualizer to efficiently visualize the captured frames along with Labeler outputs overlaid on them, as well as inspect the JSON data attached to each frame.
+Reviewing individual files in the dataset can be tedious and error-prone. Instead, you can use our Dataset Visualizer to efficiently visualize the captured frames along with Labeler outputs overlaid on them, as well as inspect the JSON data attached to each frame.
 
 * **:green_circle: Action**: Open _**Window**_ -> _**Dataset Visualizer**_ -> _**Open**_. (This is also accessible from the `Perception Camera`)
 

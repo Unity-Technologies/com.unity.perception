@@ -203,7 +203,7 @@ public class MyLightRandomizer : Randomizer
 }
 ```
 
-Notice how we now utilize the `SetIntensity` fucntion of `MyLightRandomizerTag` components of the tagged objects, instead of directly setting the intensity of the `Light` components.
+Notice how we now utilize the `SetIntensity` function of `MyLightRandomizerTag` components of the tagged objects, instead of directly setting the intensity of the `Light` components.
 
 * **:green_circle: Action**: Run your simulation, then pause it. Go to the _**Scene**_ view and inspect the color and intensity of each of the lights. Try turning each on and off to see how they affect the current frame. 
 

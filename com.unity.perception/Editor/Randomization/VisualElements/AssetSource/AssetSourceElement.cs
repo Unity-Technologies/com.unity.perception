@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEngine.Perception.Randomization;
 using UnityEngine.UIElements;
 
-namespace Editor.Randomization.VisualElements.AssetSource
+namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
 {
     class AssetSourceElement : VisualElement
     {

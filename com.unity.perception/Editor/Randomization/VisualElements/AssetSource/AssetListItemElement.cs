@@ -4,7 +4,7 @@ using UnityEditor.Perception.Randomization;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
-namespace Editor.Randomization.VisualElements.AssetSource
+namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
 {
     class AssetListItemElement : VisualElement
     {

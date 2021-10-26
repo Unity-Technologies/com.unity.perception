@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
-using UnityEditor;
-using UnityEditor.Perception.Randomization;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Editor.Randomization.VisualElements.AssetSource
+namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
 {
     class AssetListElement : VisualElement
     {

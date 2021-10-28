@@ -27,6 +27,8 @@ Added the AssetSource class for loading assets from generic sources inside rando
 
 Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
 
+Added usage analytics for simulation runs. For more information, refer to the Release Notes for package version 0.9.0.preview.1.
+
 ### Changed
 
 Upgraded capture package dependency to 0.0.10-preview.24. This fixes an issue where RGB images were blank on OSX when MSAA was enabled & post-processing was disabled.

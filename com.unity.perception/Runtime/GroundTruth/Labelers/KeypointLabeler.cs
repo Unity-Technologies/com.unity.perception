@@ -132,6 +132,8 @@ namespace UnityEngine.Perception.GroundTruth
             m_AnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition("keypoints", new []{TemplateToJson(activeTemplate)},
                 "pixel coordinates of keypoints in a model, along with skeletal connectivity data", id: new Guid(annotationId));
 
+            visualizationEnabled = supportsVisualization;
+
             // Texture to use in case the template does not contain a texture for the joints or the skeletal connections
             m_MissingTexture = new Texture2D(1, 1);
 

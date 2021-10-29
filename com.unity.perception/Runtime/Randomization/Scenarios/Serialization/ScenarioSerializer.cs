@@ -50,19 +50,20 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         {
             return new TemplateConfigurationOptions
             {
-                groups = SerializeRandomizers(scenario.randomizers)
+                randomizerGroups = SerializeRandomizers(scenario.randomizers)
             };
         }
 
-        static Dictionary<string, Group> SerializeRandomizers(IEnumerable<Randomizer> randomizers)
+        static List<Group> SerializeRandomizers(IEnumerable<Randomizer> randomizers)
         {
-            var serializedRandomizers = new Dictionary<string, Group>();
+            var serializedRandomizers = new List<Group>();
             foreach (var randomizer in randomizers)
             {
                 var randomizerData = SerializeRandomizer(randomizer);
                 if (randomizerData.items.Count == 0 && !randomizerData.state.canBeSwitchedByUser)
                     continue;
-                serializedRandomizers.Add(randomizer.GetType().Name, randomizerData);
+
+                serializedRandomizers.Add(randomizerData);
             }
             return serializedRandomizers;
         }
@@ -77,6 +78,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             };
 
             var fields = randomizer.GetType().GetFields();
+            randomizerData.randomizerId = randomizer.GetType().Name;
             foreach (var field in fields)
             {
                 if (field.FieldType.IsSubclassOf(typeof(Randomization.Parameters.Parameter)))
@@ -214,21 +216,21 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
         static void DeserializeTemplateIntoScenario(ScenarioBase scenario, TemplateConfigurationOptions template)
         {
-            DeserializeRandomizers(scenario.randomizers, template.groups);
+            DeserializeRandomizers(scenario.randomizers, template.randomizerGroups);
         }
 
-        static void DeserializeRandomizers(IEnumerable<Randomizer> randomizers, Dictionary<string, Group> groups)
+        static void DeserializeRandomizers(IEnumerable<Randomizer> randomizers, List<Group> groups)
         {
             var randomizerTypeMap = new Dictionary<string, Randomizer>();
             foreach (var randomizer in randomizers)
                 randomizerTypeMap.Add(randomizer.GetType().Name, randomizer);
 
-            foreach (var randomizerPair in groups)
+            foreach (var randomizerData in groups)
             {
-                if (!randomizerTypeMap.ContainsKey(randomizerPair.Key))
+                if (!randomizerTypeMap.ContainsKey(randomizerData.randomizerId))
                     continue;
-                var randomizer = randomizerTypeMap[randomizerPair.Key];
-                DeserializeRandomizer(randomizer, randomizerPair.Value);
+                var randomizer = randomizerTypeMap[randomizerData.randomizerId];
+                DeserializeRandomizer(randomizer, randomizerData);
             }
         }
 

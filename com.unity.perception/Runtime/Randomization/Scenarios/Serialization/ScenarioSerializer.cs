@@ -340,6 +340,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                         var clamped = Mathf.Clamp((float)num, rangeAttribute.min, rangeAttribute.max);
                         field.SetValue(obj, Convert.ChangeType(clamped, field.FieldType));
                     }
+                    else
+                        field.SetValue(obj, Convert.ChangeType(readScalar.Item1, field.FieldType));
+
                 }
                 else
                 {

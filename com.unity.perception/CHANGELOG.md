@@ -35,6 +35,8 @@ Upgraded capture package dependency to 0.0.10-preview.24. This fixes an issue wh
 
 Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev".
 
+Changed the JSON serialization of Randomizers in a scenario to an array of groups rather than a dictionary.
+
 ### Deprecated
 
 ### Removed

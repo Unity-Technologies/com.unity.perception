@@ -325,7 +325,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 if (rangeAttribute != null)
                 {
                     if (readScalar.Item2 != null &&
-                        (Math.Abs(rangeAttribute.min - readScalar.Item2.max) > tolerance || Math.Abs(rangeAttribute.max - readScalar.Item2.max) > tolerance))
+                        (Math.Abs(rangeAttribute.min - readScalar.Item2.min) > tolerance || Math.Abs(rangeAttribute.max - readScalar.Item2.max) > tolerance))
                     {
                         //the field has a range attribute and the json has a limits block for this field, but the numbers don't match
                         Debug.LogError($"The limits provided in the Scenario JSON for the field \"{field.Name}\" of \"{obj.GetType().Name}\" do not match this field's range set in the code. Ranges for scalar fields can only be set in code using the Range attribute and not from the Scenario JSON.");
@@ -348,6 +348,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     if (readScalar.Item2 != null)
                         //the field does not have a range attribute but the json has a limits block for this field
                         Debug.LogError($"The provided Scenario JSON specifies limits for the field \"{field.Name}\" of \"{obj.GetType().Name}\", but the field has no Range attribute in code. Ranges for scalar fields can only be set in code using the Range attribute and not from the Scenario JSON.");
+
+                    field.SetValue(obj, Convert.ChangeType(readScalar.Item1, field.FieldType));
                 }
 
             }

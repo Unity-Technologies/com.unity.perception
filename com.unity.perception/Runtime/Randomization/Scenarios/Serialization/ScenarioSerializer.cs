@@ -351,7 +351,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             }
             else
             {
-                field.SetValue(obj, Convert.ChangeType(readScalar, field.FieldType));
+                field.SetValue(obj, Convert.ChangeType(readScalar.Item1, field.FieldType));
             }
         }
 

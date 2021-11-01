@@ -5,7 +5,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.9.0-preview.1] - 2021-10-25
+## [0.9.0-preview.2] - 2021-11-01
 
 ### Upgrade Notes
 
@@ -27,7 +27,7 @@ Added the AssetSource class for loading assets from generic sources inside rando
 
 Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
 
-Added usage analytics for simulation runs. For more information, refer to the Release Notes for package version 0.9.0.preview.1.
+Added usage analytics for the scenario configuration. For more information, refer to the Release Notes for package version 0.9.0.preview.2.
 
 ### Changed
 

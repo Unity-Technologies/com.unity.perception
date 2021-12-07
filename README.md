@@ -18,6 +18,10 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 Visit the [Unity Computer Vision](https://unity.com/computer-vision) page for more information on our tools and offerings!
 
+---
+Help build our roadmap for computer vision at Unity by filling out this [survey](https://unitysoftware.co1.qualtrics.com/jfe/form/SV_7OQIIIJgs3PlmeO).
+---
+
 ## Getting Started
 
 **[Quick Installation Instructions](com.unity.perception/Documentation~/SetupSteps.md)**  

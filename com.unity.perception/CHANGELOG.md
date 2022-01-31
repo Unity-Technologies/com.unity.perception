@@ -35,6 +35,8 @@ Changed the JSON serialization key of Normal Sampler's standard deviation proper
 
 Fixed an indexing issue with the IdLabelConfig editor. When a new label was added to an empty Id Label Config with Auto Assign IDs enabled, the starting id (0 or 1) was ignored and the new label would always have an id of 0.
 
+Updated documentation to reflect that the 3D Bounding Box Labeler does not support Skinned Mesh Renderers.
+
 ## [0.8.0-preview.4] - 2021-07-05
 
 ### Upgrade Notes

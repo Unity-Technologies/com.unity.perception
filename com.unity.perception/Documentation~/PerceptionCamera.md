@@ -66,8 +66,8 @@ The BoundingBox2DLabeler produces 2D bounding boxes for each visible object with
 
 ### Bounding Box 3D Labeler
 
-The Bounding Box 3D Ground Truth Labeler produces 3D ground truth bounding boxes for each labeled game object in the scene. Unlike the 2D bounding boxes, 3D bounding boxes are calculated from the labeled meshes in the scene and all objects (independent of their occlusion state) are recorded.  
-***Note:*** The Bounding Box 3D Labeler does not support SkinnedMeshRenderer gameobjects, they will be ignored
+The Bounding Box 3D Ground Truth Labeler produces 3D ground truth bounding boxes for each labeled GameObject in the Scene. Unlike the 2D bounding boxes, 3D bounding boxes are calculated from the labeled meshes in the scene and all objects (independent of their occlusion state) are recorded.  
+***Note:*** The Bounding Box 3D Labeler does not support GameObjects with Skinned Mesh Renderers, they will be ignored  
 
 ### Object Count Labeler
 

@@ -71,7 +71,7 @@ This is due to a common graphics problem called *z-fighting*. This occurs when t
 <details>
   <summary><strong>Q: Why aren't my character models labeled by the 3D Bounding Box Labeler?</strong></summary><br>
 
-Most human character models use skinned mesh renderers. Unfortunately, at this time, gameobjects using skinned mesh renderers are not supported by the 3D Bounding Box Labeler.
+Most human character models use Skinned Mesh Renderers. Unfortunately, at this time, GameObjects using this type of renderer are not supported by the 3D Bounding Box Labeler.
 
 ---
 </details>

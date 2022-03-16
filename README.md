@@ -16,11 +16,12 @@
 
 The Perception package provides a toolkit for generating large-scale datasets for computer vision training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
 
-Visit the [Unity Computer Vision](https://unity.com/computer-vision) page for more information on our tools and offerings!
+---
 
----
-Help build our roadmap for computer vision at Unity by filling out this [survey](https://unitysoftware.co1.qualtrics.com/jfe/form/SV_7OQIIIJgs3PlmeO).
----
+Visit the [Unity Computer Vision](https://unity.com/computer-vision) page for more information on our tools and offerings.
+
+[Join our mailing list](https://create.unity.com/computer-vision-newsletter-sign-up). Sign up now to stay up to date on our latest product feature release, upcoming community events, though-leadership blog posts, and more!
+
 
 ## Getting Started
 

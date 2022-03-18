@@ -32,6 +32,9 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
         {
 #endif
+            if (targetCamera != hdCamera.camera)
+                return;
+
             CoreUtils.SetRenderTarget(cmd, targetTexture, ClearFlag.All);
             m_InstanceSegmentationCrossPipelinePass.Execute(renderContext, cmd, hdCamera.camera, cullingResult);
         }

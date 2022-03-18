@@ -1,18 +1,22 @@
 ﻿{
   "constants": {
+    "startIteration": 0,
+    "iterationCount": 100,
     "framesPerIteration": 1,
-    "totalIterations": 100,
-    "instanceCount": 1,
-    "instanceIndex": 0,
     "randomSeed": 539662031
   },
   "randomizers": {
-    "groups": {
-      "RotationRandomizer": {
+    "randomizerGroups": [
+      {
+        "randomizerId": "RotationRandomizer",
         "metadata": {
           "name": "",
           "description": "",
           "imageLink": ""
+        },
+        "state": {
+          "enabled": true,
+          "canBeSwitchedByUser": true
         },
         "items": {
           "rotation": {
@@ -67,6 +71,6 @@
           }
         }
       }
-    }
+    ]
   }
 }

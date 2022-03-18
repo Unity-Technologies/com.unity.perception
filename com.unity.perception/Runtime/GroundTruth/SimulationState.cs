@@ -1,24 +1,47 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
+using System.ComponentModel;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Unity.Collections;
-using Unity.Simulation;
 using UnityEngine;
-using UnityEngine.Profiling;
+using UnityEngine.Perception.GroundTruth.Consumers;
+using UnityEngine.Perception.GroundTruth.DataModel;
 
 namespace UnityEngine.Perception.GroundTruth
 {
-    partial class SimulationState
+    class SimulationState
     {
+        public const string lastEndpointTypeKey = "LastEndpointTypeKey";
+        public const string lastFileSystemPathKey = "LastFileSystemPathKey";
+
+        internal enum ExecutionStateType
+        {
+            NotStarted,
+            Starting,
+            Running,
+            Complete
+        }
+
+        internal bool IsRunning()
+        {
+            return !IsNotRunning();
+        }
+
+        internal bool IsNotRunning()
+        {
+            return ExecutionState == ExecutionStateType.NotStarted || ExecutionState == ExecutionStateType.Complete;
+        }
+
+        internal ExecutionStateType ExecutionState { get; private set; }
+
         HashSet<SensorHandle> m_ActiveSensors = new HashSet<SensorHandle>();
-        Dictionary<SensorHandle, SensorData> m_Sensors = new Dictionary<SensorHandle, SensorData>();
-        HashSet<EgoHandle> m_Egos = new HashSet<EgoHandle>();
-        HashSet<Guid> m_Ids = new HashSet<Guid>();
-        Guid m_SequenceId = Guid.NewGuid();
+        IDictionary<SensorHandle, SensorData> m_Sensors = new ConcurrentDictionary<SensorHandle, SensorData>();
+
+        internal IConsumerEndpoint consumerEndpoint { get; }
+
+        int m_SequenceId = 0;
+
+        HashSet<string> m_Ids = new HashSet<string>();
 
         // Always use the property SequenceTimeMs instead
         int m_FrameCountLastUpdatedSequenceTime;
@@ -26,128 +49,359 @@ namespace UnityEngine.Perception.GroundTruth
         float m_UnscaledSequenceTimeDoNotUse;
 
         int m_FrameCountLastStepIncremented = -1;
+        int m_TotalFrames = 0;
         int m_Step = -1;
 
-        bool m_HasStarted;
-        int m_CaptureFileIndex;
-        List<AdditionalInfoTypeData> m_AdditionalInfoTypeData = new List<AdditionalInfoTypeData>();
-        List<PendingCapture> m_PendingCaptures = new List<PendingCapture>(k_MinPendingCapturesBeforeWrite + 10);
-        List<PendingMetric> m_PendingMetrics = new List<PendingMetric>(k_MinPendingMetricsBeforeWrite + 10);
+        Dictionary<int, FrameId> m_FrameToPendingIdMap = new Dictionary<int, FrameId>();
+        Dictionary<FrameId, int> m_PendingIdToFrameMap = new Dictionary<FrameId, int>();
+        SortedDictionary<FrameId, PendingFrame> m_PendingFrames = new SortedDictionary<FrameId, PendingFrame>();
 
-        int m_MetricsFileIndex;
-        int m_NextMetricId = 1;
-
-        CustomSampler m_SerializeCapturesSampler = CustomSampler.Create("SerializeCaptures");
-        CustomSampler m_SerializeCapturesAsyncSampler = CustomSampler.Create("SerializeCapturesAsync");
-        CustomSampler m_JsonToStringSampler = CustomSampler.Create("JsonToString");
-        CustomSampler m_WriteToDiskSampler = CustomSampler.Create("WriteJsonToDisk");
-        CustomSampler m_SerializeMetricsSampler = CustomSampler.Create("SerializeMetrics");
-        CustomSampler m_SerializeMetricsAsyncSampler = CustomSampler.Create("SerializeMetricsAsync");
-        CustomSampler m_GetOrCreatePendingCaptureForThisFrameSampler = CustomSampler.Create("GetOrCreatePendingCaptureForThisFrame");
         float m_LastTimeScale;
-        readonly string m_OutputDirectoryName;
-        string m_OutputDirectoryPath;
-        public const string userBaseDirectoryKey = "userBaseDirectory";
-        public const string latestOutputDirectoryKey = "latestOutputDirectory";
-        public const string defaultOutputBaseDirectory = "defaultOutputBaseDirectory";
 
-        public bool IsRunning { get; private set; }
-
-        public string OutputDirectory
+        struct FrameId : IComparable<FrameId>
         {
-            get
+            internal FrameId(int sequence, int step)
             {
-                if (m_OutputDirectoryPath == null)
-                    m_OutputDirectoryPath = Manager.Instance.GetDirectoryFor(m_OutputDirectoryName);
+                this.sequence = sequence;
+                this.step = step;
+            }
 
-                return m_OutputDirectoryPath;
+            internal int sequence { get; private set; }
+            internal int step { get; private set; }
+
+            public override string ToString()
+            {
+                return $"({sequence},{step})";
+            }
+
+            internal static FrameId FromPendingId(PendingId id)
+            {
+                return new FrameId
+                {
+                    sequence = id.Sequence,
+                    step = id.Step
+                };
+            }
+
+            public int CompareTo(FrameId other)
+            {
+                var sequenceComparison = sequence.CompareTo(other.sequence);
+                return sequenceComparison != 0 ? sequenceComparison : step.CompareTo(other.step);
             }
         }
 
         //A sensor will be triggered if sequenceTime is within includeThreshold seconds of the next trigger
         const float k_SimulationTimingAccuracy = 0.01f;
-        const int k_MinPendingCapturesBeforeWrite = 150;
-        const int k_MinPendingMetricsBeforeWrite = 150;
 
-        public SimulationState(string outputDirectory)
+        internal SimulationState(IConsumerEndpoint endpoint)
         {
-            PlayerPrefs.SetString(defaultOutputBaseDirectory, Configuration.Instance.GetStorageBasePath());
-            m_OutputDirectoryName = outputDirectory;
-            var basePath = PlayerPrefs.GetString(userBaseDirectoryKey, string.Empty);
+            ExecutionState = ExecutionStateType.NotStarted;
 
-            if (basePath != string.Empty)
+            m_SimulationMetadata = new SimulationMetadata()
             {
-                if (Directory.Exists(basePath))
-                {
-                    Configuration.localPersistentDataPath = basePath;
-                }
-                else
-                {
-                    Debug.LogWarning($"Passed in directory to store simulation artifacts: {basePath}, does not exist. Using default directory {Configuration.localPersistentDataPath} instead.");
-                    basePath = Configuration.localPersistentDataPath;
-                }
-            }
+                unityVersion = Application.unityVersion,
+                perceptionVersion = DatasetCapture.perceptionVersion,
+            };
 
-            PlayerPrefs.SetString(latestOutputDirectoryKey, Manager.Instance.GetDirectoryFor("", basePath));
-            IsRunning = true;
+            consumerEndpoint = endpoint;
         }
 
-        /// <summary>
-        /// A self-sufficient container for all information about a reported capture. Capture writing should not depend on any
-        /// state outside of this container, as other state may have changed since the capture was reported.
-        /// </summary>
-        class PendingCapture
-        {
-            public Guid Id;
-            public SensorHandle SensorHandle;
-            public SensorData SensorData;
-            public string Path;
-            public SensorSpatialData SensorSpatialData;
-            public int FrameCount;
-            public int Step;
-            public float Timestamp;
-            public Guid SequenceId;
-            public (string, object)[] AdditionalSensorValues;
-            public List<(Annotation, AnnotationData)> Annotations = new List<(Annotation, AnnotationData)>();
-            public bool CaptureReported;
+        bool readyToShutdown => !m_PendingFrames.Any();
 
-            public PendingCapture(Guid id, SensorHandle sensorHandle, SensorData sensorData, Guid sequenceId, int frameCount, int step, float timestamp)
+        internal (int sequence, int step) GetSequenceAndStepFromFrame(int frame)
+        {
+            return m_FrameToPendingIdMap.TryGetValue(frame, out var penId) ? (penId.sequence, penId.step) : (-1, -1);
+        }
+
+        (PendingFrame, PendingId) GetPendingFrameForMetric(MetricDefinition definition)
+        {
+            if (definition == null)
+                throw new ArgumentNullException(nameof(definition));
+
+            var metricId = PendingId.CreateMetricId(m_SequenceId, AcquireStep(), definition.id);
+
+            var frameId = new FrameId(m_SequenceId, AcquireStep());
+
+            var pendingFrame = GetOrCreatePendingFrame(frameId);
+
+            if (pendingFrame == null)
+                throw new InvalidOperationException($"Could not get or create a pending frame for {frameId}");
+
+            return (pendingFrame, metricId);
+        }
+
+        #region Metadata Reporting
+
+        public void ReportMetadata(string key, int value)
+        {
+            m_SimulationMetadata.Add(key, value);
+        }
+        public void ReportMetadata(string key, uint value)
+        {
+            m_SimulationMetadata.Add(key, value);
+        }
+
+        public void ReportMetadata(string key, float value)
+        {
+            m_SimulationMetadata.Add(key, value);
+        }
+
+        public void ReportMetadata(string key, string value)
+        {
+            m_SimulationMetadata.Add(key, value);
+        }
+
+        public void ReportMetadata(string key, bool value)
+        {
+            m_SimulationMetadata.Add(key, value);
+        }
+
+        public void ReportMetadata(string key, int[] value)
+        {
+            m_SimulationMetadata.Add(key, value);
+        }
+
+        public void ReportMetadata(string key, float[] value)
+        {
+            m_SimulationMetadata.Add(key, value);
+        }
+
+        public void ReportMetadata(string key, string[] value)
+        {
+            m_SimulationMetadata.Add(key, value);
+        }
+
+        public void ReportMetadata(string key, bool[] value)
+        {
+            m_SimulationMetadata.Add(key, value);
+        }
+        #endregion
+
+        class PendingSensor
+        {
+            public PendingSensor(PendingId id)
             {
-                SensorHandle = sensorHandle;
-                FrameCount = frameCount;
-                Step = step;
-                SequenceId = sequenceId;
-                Timestamp = timestamp;
-                Id = id;
-                SensorData = sensorData;
+                if (!id.IsValidSensorId) throw new ArgumentException("Passed in wrong ID type");
+
+                m_Id = id;
+                m_SensorData = null;
+                Annotations = new ConcurrentDictionary<PendingId, Annotation>();
+            }
+
+            public PendingSensor(PendingId id, Sensor sensorData) : this(id)
+            {
+                if (!id.IsValidSensorId) throw new ArgumentException("Passed in wrong ID type");
+                m_SensorData = sensorData;
+            }
+
+            public Sensor ToSensor()
+            {
+                if (!IsReadyToReport()) return null;
+                m_SensorData.annotations = Annotations.Select(kvp => kvp.Value).ToList();
+                return m_SensorData;
+            }
+
+            PendingId m_Id;
+            Sensor m_SensorData;
+            public IDictionary<PendingId, Annotation> Annotations { get; private set; }
+
+            public bool IsPending<T>(AsyncFuture<T> asyncFuture) where T : DataModelElement
+            {
+                switch (asyncFuture.futureType)
+                {
+                    case FutureType.Sensor:
+                        return m_SensorData == null;
+                    case FutureType.Annotation:
+                    {
+                        var id = asyncFuture.pendingId;
+
+                        if (!id.IsValidAnnotationId)
+                            throw new InvalidOperationException("Passed in ID was not correct type for annotation");
+
+                        if (!Annotations.ContainsKey(id))
+                            throw new InvalidOperationException("");
+
+                        return
+                            Annotations[id] == null;
+                    }
+                    case FutureType.Metric:
+                    {
+                        throw new InvalidOperationException("Metrics should not be registered with sensors");
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            public bool ReportAsyncResult<T>(AsyncFuture<T> asyncFuture, object result) where T : DataModelElement
+            {
+                switch (asyncFuture.futureType)
+                {
+                    case FutureType.Sensor:
+                        if (!(result is Sensor sensor))
+                        {
+                            throw new InvalidOperationException("Tried to report a non-sensor value with an async sensor");
+                        }
+                        m_SensorData = sensor;
+                        return true;
+
+                    case FutureType.Annotation:
+                    {
+                        var id = asyncFuture.pendingId;
+
+                        if (!id.IsValidAnnotationId)
+                            throw new InvalidOperationException("Passed in ID was not correct type for annotation");
+
+                        if (!Annotations.ContainsKey(id))
+                            throw new InvalidOperationException("");
+
+                        if (!(result is Annotation annotation))
+                        {
+                            throw new InvalidOperationException("Tried to report a non-annotation value with an async annotation");
+                        }
+
+                        Annotations[id] = annotation;
+                        return true;
+                    }
+                    case FutureType.Metric:
+                    {
+                        Debug.LogError("Metrics should not be sent to sensors");
+                        return false;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+
+            public bool IsReadyToReport()
+            {
+                return
+                    m_SensorData != null &&
+                    Annotations.All(i => i.Value != null);
             }
         }
 
-        struct PendingMetric
+        class PendingFrame
         {
-            public PendingMetric(MetricDefinition metricDefinition, int metricId, SensorHandle sensorHandle, Guid captureId, Annotation annotation, Guid sequenceId, int step, JToken values = null)
+            public FrameId pendingId { get; }
+            public float timestamp { get; }
+
+            public IDictionary<string, PendingSensor> m_Sensors;
+            public IDictionary<string, Metric> m_Metrics;
+
+            public IEnumerable<PendingSensor> sensors => m_Sensors.Values;
+            public IEnumerable<Metric> metrics => m_Metrics.Values;
+
+            public bool CaptureReported { get; set; } = false;
+            public PendingFrame(FrameId pendingFrameId, float timestamp)
             {
-                MetricDefinition = metricDefinition;
-                MetricId = metricId;
-                SensorHandle = sensorHandle;
-                Annotation = annotation;
-                SequenceId = sequenceId;
-                Step = step;
-                CaptureId = captureId;
-                Values = values;
+                pendingId = pendingFrameId;
+                this.timestamp = timestamp;
+                m_Sensors = new ConcurrentDictionary<string, PendingSensor>();
+                m_Metrics = new ConcurrentDictionary<string, Metric>();
             }
 
-            // ReSharper disable NotAccessedField.Local
-            public readonly SensorHandle SensorHandle;
-            public readonly MetricDefinition MetricDefinition;
-            public readonly int MetricId;
-            public readonly Guid CaptureId;
-            public readonly Annotation Annotation;
-            public readonly Guid SequenceId;
-            public readonly int Step;
-            public JToken Values;
+            public bool IsReadyToReport()
+            {
+                return
+                    m_Metrics.All(i => i.Value != null) &&
+                    m_Sensors.All(sensor => sensor.Value.IsReadyToReport());
+            }
 
-            public bool IsAssigned => Values != null;
+            public PendingSensor GetOrCreatePendingSensor(PendingId sensorId)
+            {
+                if (!sensorId.IsValidSensorId)
+                    throw new ArgumentException("Passed in a non-sensor ID");
+                return GetOrCreatePendingSensor(sensorId, out var _);
+            }
+
+            PendingSensor GetOrCreatePendingSensor(PendingId id, out bool created)
+            {
+                created = false;
+
+                if (!id.IsValidSensorId)
+                {
+                    throw new ArgumentException("Passed in an invalid sensor ID");
+                }
+
+                if (!m_Sensors.TryGetValue(id.SensorId, out var pendingSensor))
+                {
+                    pendingSensor = new PendingSensor(id);
+                    m_Sensors[id.SensorId] = pendingSensor;
+                    created = true;
+                }
+
+                return pendingSensor;
+            }
+
+            public bool IsPending<T>(AsyncFuture<T> asyncFuture) where T : DataModelElement
+            {
+                var id = asyncFuture.pendingId;
+
+                if (id == null)
+                    throw new InvalidOperationException("Async future did not have an ID");
+
+                if (asyncFuture.futureType == FutureType.Metric)
+                {
+                    if (!id.IsValidMetricId)
+                    {
+                        throw new InvalidEnumArgumentException("AsyncFuture has the wrong ID type for a metric");
+                    }
+
+                    var metricId = id.MetricId;
+                    return m_Metrics.ContainsKey(metricId) && m_Metrics[metricId] == null;
+                }
+
+                if (!id.IsValidSensorId)
+                    throw new InvalidOperationException("Pending ID is not a valid sensor ID");
+
+                return
+                    m_Sensors.TryGetValue(id.SensorId, out var pendingSensor) &&
+                    pendingSensor.IsPending(asyncFuture);
+            }
+
+            public bool ReportAsyncResult<T>(AsyncFuture<T> asyncFuture, T result) where T : DataModelElement
+            {
+                var id = asyncFuture.pendingId;
+
+                if (id == null)
+                    throw new InvalidOperationException("Async future did not have an ID");
+
+                if (asyncFuture.futureType == FutureType.Metric)
+                {
+                    if (!(result is Metric metric))
+                        throw new InvalidOperationException("Future is associated with a non-metric result");
+
+                    if (!id.IsValidMetricId)
+                    {
+                        throw new InvalidEnumArgumentException("AsyncFuture has the wrong ID type for a metric");
+                    }
+
+                    metric.sensorId = id.SensorId;
+                    metric.annotationId = id.annotationId;
+
+                    m_Metrics[id.MetricId] = metric;
+                    return true;
+                }
+
+                if (!id.IsValidSensorId)
+                    throw new InvalidOperationException("Pending ID is not a valid sensor ID");
+
+                var sensor = GetOrCreatePendingSensor(id);
+                return sensor.ReportAsyncResult(asyncFuture, result);
+            }
+
+            public void AddSensor(PendingId id, Sensor sensor)
+            {
+                if (!id.IsValidSensorId) throw new ArgumentException("Passed in ID is not a valid sensor ID");
+                m_Sensors[id.SensorId] = new PendingSensor(id, sensor);
+            }
+
+            public void AddMetric(PendingId id, Metric metric)
+            {
+                if (!id.IsValidMetricId) throw new ArgumentException("Passed in ID is not a valid metric ID");
+                m_Metrics[id.MetricId] = metric;
+             }
         }
 
         public struct SensorData
@@ -163,118 +417,6 @@ namespace UnityEngine.Perception.GroundTruth
             public float sequenceTimeOfNextCapture;
             public float sequenceTimeOfNextRender;
             public int lastCaptureFrameCount;
-            public EgoHandle egoHandle;
-        }
-
-        struct AnnotationData
-        {
-            public readonly AnnotationDefinition AnnotationDefinition;
-            public string Path;
-            public JArray ValuesJson;
-            public bool IsAssigned => Path != null || ValuesJson != null;
-
-            public AnnotationData(AnnotationDefinition annotationDefinition, string path, JArray valuesJson)
-                : this()
-            {
-                AnnotationDefinition = annotationDefinition;
-                Path = path;
-                ValuesJson = valuesJson;
-            }
-        }
-
-        enum AdditionalInfoKind
-        {
-            Metric,
-            Annotation
-        }
-
-        struct AdditionalInfoTypeData : IEquatable<AdditionalInfoTypeData>
-        {
-            public string name;
-            public string description;
-            public string format;
-            public Guid id;
-            public Array specValues;
-            public AdditionalInfoKind additionalInfoKind;
-
-            public override string ToString()
-            {
-                return $"{nameof(name)}: {name}, {nameof(description)}: {description}, {nameof(format)}: {format}, {nameof(id)}: {id}";
-            }
-
-            public bool Equals(AdditionalInfoTypeData other)
-            {
-                var areMembersEqual = additionalInfoKind == other.additionalInfoKind &&
-                    string.Equals(name, other.name, StringComparison.InvariantCulture) &&
-                    string.Equals(description, other.description, StringComparison.InvariantCulture) &&
-                    string.Equals(format, other.format, StringComparison.InvariantCulture) &&
-                    id.Equals(other.id);
-
-                if (!areMembersEqual)
-                    return false;
-
-                if (specValues == other.specValues)
-                    return true;
-                if (specValues == null || other.specValues == null)
-                    return false;
-                if (specValues.Length != other.specValues.Length)
-                    return false;
-
-                for (var i = 0; i < specValues.Length; i++)
-                {
-                    if (!specValues.GetValue(i).Equals(other.specValues.GetValue(i)))
-                        return false;
-                }
-
-                return true;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj is AdditionalInfoTypeData other && Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    // ReSharper disable NonReadonlyMemberInGetHashCode
-                    var hashCode = (name != null ? StringComparer.InvariantCulture.GetHashCode(name) : 0);
-                    hashCode = (hashCode * 397) ^ (description != null ? StringComparer.InvariantCulture.GetHashCode(description) : 0);
-                    hashCode = (hashCode * 397) ^ (format != null ? StringComparer.InvariantCulture.GetHashCode(format) : 0);
-                    hashCode = (hashCode * 397) ^ id.GetHashCode();
-                    return hashCode;
-                }
-            }
-        }
-
-        internal void ReportCapture(SensorHandle sensorHandle, string filename, SensorSpatialData sensorSpatialData, params(string, object)[] additionalSensorValues)
-        {
-            var sensorData = m_Sensors[sensorHandle];
-            var pendingCapture = GetOrCreatePendingCaptureForThisFrame(sensorHandle, out _);
-
-            if (pendingCapture.CaptureReported)
-                throw new InvalidOperationException($"Capture for frame {Time.frameCount} already reported for sensor {this}");
-
-            pendingCapture.CaptureReported = true;
-            pendingCapture.Path = filename;
-            pendingCapture.AdditionalSensorValues = additionalSensorValues;
-            pendingCapture.SensorSpatialData = sensorSpatialData;
-
-            sensorData.lastCaptureFrameCount = Time.frameCount;
-            m_Sensors[sensorHandle] = sensorData;
-        }
-
-        static string GetFormatFromFilename(string filename)
-        {
-            var ext = Path.GetExtension(filename);
-            if (ext == null)
-                return null;
-
-            if (ext.StartsWith("."))
-                ext = ext.Substring(1);
-
-            return ext.ToUpperInvariant();
         }
 
         /// <summary>
@@ -288,8 +430,6 @@ namespace UnityEngine.Perception.GroundTruth
             return m_Step;
         }
 
-        // ReSharper restore InconsistentNaming
-
         /// <summary>
         /// The simulation time that has elapsed since the beginning of the sequence.
         /// </summary>
@@ -298,7 +438,7 @@ namespace UnityEngine.Perception.GroundTruth
             get
             {
                 //TODO: Can this be replaced with Time.time - sequenceTimeStart?
-                if (!m_HasStarted)
+                if (ExecutionState != ExecutionStateType.Running)
                     return 0;
 
                 EnsureSequenceTimingsUpdated();
@@ -310,12 +450,12 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The unscaled simulation time that has elapsed since the beginning of the sequence. This is the time that should be used for scheduling sensors
         /// </summary>
-        public float UnscaledSequenceTime
+        float UnscaledSequenceTime
         {
             get
             {
                 //TODO: Can this be replaced with Time.time - sequenceTimeStart?
-                if (!m_HasStarted)
+                if (ExecutionState != ExecutionStateType.Running)
                     return 0;
 
                 EnsureSequenceTimingsUpdated();
@@ -323,11 +463,9 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        public string GetOutputDirectoryNoCreate() => Path.Combine(Configuration.Instance.GetStoragePath(), m_OutputDirectoryName);
-
         void EnsureSequenceTimingsUpdated()
         {
-            if (!m_HasStarted)
+            if (ExecutionState != ExecutionStateType.Running)
             {
                 ResetTimings();
             }
@@ -360,10 +498,21 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
+        bool m_DataCaptured = false;
+
         public void StartNewSequence()
         {
             ResetTimings();
             m_FrameCountLastStepIncremented = -1;
+            if (!m_DataCaptured)
+            {
+                m_SequenceId = 0;
+                m_DataCaptured = true;
+            }
+            else
+            {
+                m_SequenceId++;
+            }
             m_Step = -1;
             foreach (var kvp in m_Sensors.ToArray())
             {
@@ -372,8 +521,6 @@ namespace UnityEngine.Perception.GroundTruth
                 sensorData.sequenceTimeOfNextRender = 0;
                 m_Sensors[kvp.Key] = sensorData;
             }
-
-            m_SequenceId = Guid.NewGuid();
         }
 
         void ResetTimings()
@@ -384,25 +531,49 @@ namespace UnityEngine.Perception.GroundTruth
             m_LastTimeScale = Time.timeScale;
         }
 
-        public void AddSensor(EgoHandle egoHandle, string modality, string description, float firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float renderingDeltaTime, int framesBetweenCaptures, bool manualSensorAffectSimulationTiming, SensorHandle sensor)
+        string RegisterId(string requestedId)
+        {
+            var id = requestedId;
+            var i = 0;
+            while (m_Ids.Contains(id))
+            {
+                id = $"{requestedId}_{i++}";
+            }
+
+            m_Ids.Add(id);
+            return id;
+        }
+
+        public SensorHandle AddSensor(SensorDefinition sensor, float renderingDeltaTime)
         {
             var sensorData = new SensorData()
             {
-                modality = modality,
-                description = description,
-                firstCaptureTime = UnscaledSequenceTime + firstCaptureFrame * renderingDeltaTime,
-                captureTriggerMode = captureTriggerMode,
+                modality = sensor.modality,
+                description = sensor.description,
+                firstCaptureTime = UnscaledSequenceTime + sensor.firstCaptureFrame * renderingDeltaTime,
+                captureTriggerMode = sensor.captureTriggerMode,
                 renderingDeltaTime = renderingDeltaTime,
-                framesBetweenCaptures = framesBetweenCaptures,
-                manualSensorAffectSimulationTiming = manualSensorAffectSimulationTiming,
-                egoHandle = egoHandle,
+                framesBetweenCaptures = sensor.framesBetweenCaptures,
+                manualSensorAffectSimulationTiming = sensor.manualSensorsAffectTiming,
                 lastCaptureFrameCount = -1
             };
             sensorData.sequenceTimeOfNextCapture = GetSequenceTimeOfNextCapture(sensorData);
             sensorData.sequenceTimeOfNextRender = UnscaledSequenceTime;
-            m_ActiveSensors.Add(sensor);
-            m_Sensors.Add(sensor, sensorData);
-            m_Ids.Add(sensor.Id);
+
+            sensor.id = RegisterId(sensor.id);
+            var sensorHandle = new SensorHandle(sensor.id);
+
+            m_ActiveSensors.Add(sensorHandle);
+            m_Sensors.Add(sensorHandle, sensorData);
+
+            consumerEndpoint.SensorRegistered(sensor);
+
+            if (ExecutionState == ExecutionStateType.NotStarted)
+            {
+                ExecutionState = ExecutionStateType.Starting;
+            }
+
+            return sensorHandle;
         }
 
         float GetSequenceTimeOfNextCapture(SensorData sensorData)
@@ -416,14 +587,7 @@ namespace UnityEngine.Perception.GroundTruth
             return sensorData.sequenceTimeOfNextCapture;
         }
 
-        public bool Contains(Guid id) => m_Ids.Contains(id);
-
-        public void AddEgo(EgoHandle egoHandle)
-        {
-            CheckDatasetAllowed();
-            m_Egos.Add(egoHandle);
-            m_Ids.Add(egoHandle.Id);
-        }
+        public bool Contains(string id) => m_Ids.Contains(id);
 
         public bool IsEnabled(SensorHandle sensorHandle) => m_ActiveSensors.Contains(sensorHandle);
 
@@ -443,19 +607,54 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        public void Update()
-        {
-            if (m_ActiveSensors.Count == 0)
-                return;
+        SimulationMetadata m_SimulationMetadata;
 
-            if (!m_HasStarted)
+        internal void Update()
+        {
+            // ReSharper disable once ConvertIfStatementToSwitchStatement
+            if (ExecutionState == ExecutionStateType.NotStarted)
             {
-                //simulation starts now
-                m_FrameCountLastUpdatedSequenceTime = Time.frameCount;
-                m_LastTimeScale = Time.timeScale;
-                m_HasStarted = true;
+                return;
             }
 
+            if (ExecutionState == ExecutionStateType.Starting)
+            {
+                UpdateStarting();
+            }
+
+            if (ExecutionState == ExecutionStateType.Running)
+            {
+                UpdateRunning();
+            }
+
+            if (ExecutionState == ExecutionStateType.Complete)
+            {
+                UpdateComplete();
+            }
+        }
+
+        void UpdateStarting()
+        {
+            m_SimulationMetadata = new SimulationMetadata()
+            {
+                unityVersion = Application.unityVersion,
+                perceptionVersion = DatasetCapture.perceptionVersion,
+            };
+
+            // Add metadata for start time
+            m_SimulationMetadata.Add("simulationStartTime", DateTime.Now.ToString());
+
+            consumerEndpoint.SimulationStarted(m_SimulationMetadata);
+
+            //simulation starts now
+            m_FrameCountLastUpdatedSequenceTime = Time.frameCount;
+            m_LastTimeScale = Time.timeScale;
+
+            ExecutionState = ExecutionStateType.Running;
+        }
+
+        void UpdateRunning()
+        {
             EnsureSequenceTimingsUpdated();
 
             //update the active sensors sequenceTimeNextCapture and lastCaptureFrameCount
@@ -472,6 +671,7 @@ namespace UnityEngine.Perception.GroundTruth
 
                     sensorData.sequenceTimeOfNextRender = UnscaledSequenceTime;
                     sensorData.sequenceTimeOfNextCapture = UnscaledSequenceTime;
+                    m_Sensors[activeSensor] = sensorData;
                 }
 #endif
 
@@ -532,21 +732,94 @@ namespace UnityEngine.Perception.GroundTruth
                 nextFrameDt = 0;
             }
 
-            WritePendingCaptures();
-            WritePendingMetrics();
+            ReportFramesToConsumer();
 
             Time.captureDeltaTime = nextFrameDt;
+        }
+
+        void Shutdown()
+        {
+            if (m_Ids.Count == 0)
+            {
+                ExecutionState = ExecutionStateType.NotStarted;
+                return;
+            }
+
+            ReportFramesToConsumer(true, true);
+
+            Time.captureDeltaTime = 0;
+
+            if (m_Ids.Count == 0)
+                return;
+
+            if (readyToShutdown)
+            {
+                m_SimulationMetadata.Add("totalFrames", m_TotalFrames);
+                m_SimulationMetadata.Add("totalSequences", m_SequenceId + 1);
+
+                var i = 0;
+                var sensors = new string[m_Sensors.Count];
+                foreach (var s in m_Sensors)
+                {
+                    sensors[i++] = s.Key.Id;
+                }
+                m_SimulationMetadata.Add("sensors", sensors);
+
+                var annotators = new List<Metadata>();
+                foreach (var ann in m_AnnotationIds)
+                {
+                    var metadata = new Metadata();
+                    metadata.Add("name", ann.Item1);
+                    metadata.Add("type", ann.Item2);
+                    annotators.Add(metadata);
+                }
+
+                m_SimulationMetadata.Add("annotators", annotators);
+                m_SimulationMetadata.Add("metricCollectors", m_MetricIds);
+
+                // Add metadata for end time
+                m_SimulationMetadata.Add("simulationEndTime", DateTime.Now.ToString());
+
+                consumerEndpoint.SimulationCompleted(m_SimulationMetadata);
+
+                PlayerPrefs.SetString(lastEndpointTypeKey, consumerEndpoint.GetType().ToString());
+
+                if (consumerEndpoint is IFileSystemEndpoint fs)
+                {
+                    PlayerPrefs.SetString(lastFileSystemPathKey, fs.currentPath);
+                }
+
+                ExecutionState = ExecutionStateType.NotStarted;
+
+                VerifyNoMorePendingFrames();
+            }
+        }
+
+        void UpdateComplete()
+        {
+            VerifyNoMorePendingFrames();
+        }
+
+        void VerifyNoMorePendingFrames()
+        {
+            if (m_PendingFrames.Count > 0)
+                Debug.LogError($"Simulation ended with pending {m_PendingFrames.Count} annotations (final id): {m_PendingFrames.Last().Key}");
         }
 
         public void SetNextCaptureTimeToNowForSensor(SensorHandle sensorHandle)
         {
             if (!m_Sensors.ContainsKey(sensorHandle))
+            {
+                Debug.LogError($"Tried to set a capture time for an unregistered sensor: {sensorHandle}");
                 return;
+            }
 
             var data = m_Sensors[sensorHandle];
             data.sequenceTimeOfNextCapture = UnscaledSequenceTime;
             m_Sensors[sensorHandle] = data;
         }
+
+        public int currentFrame => Time.frameCount;
 
         public bool ShouldCaptureThisFrame(SensorHandle sensorHandle)
         {
@@ -559,295 +832,285 @@ namespace UnityEngine.Perception.GroundTruth
 
             return data.sequenceTimeOfNextCapture - UnscaledSequenceTime < k_SimulationTimingAccuracy;
         }
+        internal bool CapturesLeft()
+        {
+            return m_PendingFrames.Count > 0;
+        }
 
         public void End()
         {
-            if (m_Ids.Count == 0)
-                return;
-
-            WritePendingCaptures(true, true);
-            if (m_PendingCaptures.Count > 0)
-                Debug.LogError($"Simulation ended with pending annotations: {string.Join(", ", m_PendingCaptures.Select(c => $"id:{c.SensorHandle.Id} frame:{c.FrameCount}"))}");
-
-            WritePendingMetrics(true);
-            if (m_PendingMetrics.Count > 0)
-                Debug.LogError($"Simulation ended with pending metrics: {string.Join(", ", m_PendingMetrics.Select(c => $"id:{c.MetricId} step:{c.Step}"))}");
-
-            WriteReferences();
-
             Time.captureDeltaTime = 0;
-            IsRunning = false;
+            Shutdown();
+            ExecutionState = ExecutionStateType.Complete;
         }
 
-        public AnnotationDefinition RegisterAnnotationDefinition<TSpec>(string name, TSpec[] specValues, string description, string format, Guid id)
-        {
-            if (id == Guid.Empty)
-                id = Guid.NewGuid();
+        List<(string, string)> m_AnnotationIds = new List<(string, string)>();
 
-            RegisterAdditionalInfoType(name, specValues, description, format, id, AdditionalInfoKind.Annotation);
-
-            return new AnnotationDefinition(id);
-        }
-
-        public MetricDefinition RegisterMetricDefinition<TSpec>(string name, TSpec[] specValues, string description, Guid id)
-        {
-            if (id == Guid.Empty)
-                id = Guid.NewGuid();
-
-            RegisterAdditionalInfoType(name, specValues, description, null, id, AdditionalInfoKind.Metric);
-
-            return new MetricDefinition(id);
-        }
-
-        void RegisterAdditionalInfoType<TSpec>(string name, TSpec[] specValues, string description, string format, Guid id, AdditionalInfoKind additionalInfoKind)
+        public void RegisterAnnotationDefinition(AnnotationDefinition definition)
         {
             CheckDatasetAllowed();
-            var annotationDefinitionInfo = new AdditionalInfoTypeData()
+
+            definition.id = RegisterId(definition.id);
+            m_AnnotationIds.Add((definition.id, definition.modelType));
+            consumerEndpoint.AnnotationRegistered(definition);
+        }
+
+        List<string> m_MetricIds = new List<string>();
+
+        public void RegisterMetric(MetricDefinition definition)
+        {
+            CheckDatasetAllowed();
+
+            definition.id = RegisterId(definition.id);
+            m_MetricIds.Add(definition.id);
+            consumerEndpoint.MetricRegistered(definition);
+        }
+
+        internal PendingId ReportSensor(SensorHandle handle, Sensor sensor)
+        {
+            var step = AcquireStep();
+            var id = PendingId.CreateSensorId(m_SequenceId, step, handle.Id);
+            var pendingFrame = GetOrCreatePendingFrame(id);
+            pendingFrame.AddSensor(id, sensor);
+            return id;
+        }
+
+        internal PendingId ReportAnnotation(SensorHandle sensorHandle, AnnotationDefinition definition, Annotation annotation)
+        {
+            var step = AcquireStep();
+            var sensorId = PendingId.CreateSensorId(m_SequenceId, step, sensorHandle.Id);
+
+            var pendingFrame = GetOrCreatePendingFrame(sensorId);
+            var sensor = pendingFrame.GetOrCreatePendingSensor(sensorId);
+
+            var annotationId = PendingId.CreateAnnotationId(m_SequenceId, step, sensorHandle.Id, definition.id);
+
+            sensor.Annotations[annotationId] = annotation;
+            return annotationId;
+        }
+
+        PendingFrame GetOrCreatePendingFrame(PendingId pendingId)
+        {
+            var frameId = FrameId.FromPendingId(pendingId);
+            return GetOrCreatePendingFrame(frameId);
+        }
+
+        PendingFrame GetOrCreatePendingFrame(FrameId frameId)
+        {
+            return GetOrCreatePendingFrame(frameId, out var _);
+        }
+
+        PendingFrame GetOrCreatePendingFrame(FrameId frameId, out bool created)
+        {
+            m_DataCaptured = true;
+
+            created = false;
+            EnsureStepIncremented();
+
+            if (!m_PendingFrames.TryGetValue(frameId, out var pendingFrame))
             {
-                additionalInfoKind = additionalInfoKind,
-                name = name,
-                description = description,
-                format = format,
-                id = id,
-                specValues = specValues
+                pendingFrame = new PendingFrame(frameId, SequenceTime);
+                m_PendingFrames[frameId] = pendingFrame;
+
+                m_PendingIdToFrameMap[frameId] = Time.frameCount;
+                m_FrameToPendingIdMap[Time.frameCount] = frameId;
+
+                created = true;
+            }
+
+            return pendingFrame;
+        }
+
+        internal AsyncFuture<Annotation> ReportAnnotationAsync(AnnotationDefinition annotationDefinition, SensorHandle sensorHandle)
+        {
+            return AsyncFuture<Annotation>.CreateAnnotationFuture(ReportAnnotation(sensorHandle, annotationDefinition, null), this);
+        }
+
+        internal AsyncFuture<Sensor> ReportSensorAsync(SensorHandle handle)
+        {
+            return AsyncFuture<Sensor>.CreateSensorFuture(ReportSensor(handle, null), this);
+        }
+
+        internal bool IsPending<T>(AsyncFuture<T> asyncFuture) where T : DataModelElement
+        {
+            var frameId = FrameId.FromPendingId(asyncFuture.pendingId);
+
+            return
+                m_PendingFrames.TryGetValue(frameId, out var pendingFrame) &&
+                pendingFrame.IsPending(asyncFuture);
+        }
+
+        PendingFrame GetPendingFrame<T>(AsyncFuture<T> future) where T : DataModelElement
+        {
+            return GetPendingFrame(FrameId.FromPendingId(future.pendingId));
+        }
+
+        PendingFrame GetPendingFrame(FrameId id)
+        {
+            return m_PendingFrames[id];
+        }
+
+        public bool ReportAsyncResult<T>(AsyncFuture<T> asyncFuture, T result) where T : DataModelElement
+        {
+            if (!asyncFuture.IsPending()) return false;
+
+            var pendingFrame = GetPendingFrame(asyncFuture);
+
+            if (pendingFrame == null) return false;
+
+            return pendingFrame.ReportAsyncResult<T>(asyncFuture, result);
+        }
+
+        public AsyncFuture<Metric> CreateAsyncMetric(MetricDefinition metricDefinition, SensorHandle sensorHandle = default, AnnotationHandle annotationHandle = default)
+        {
+            EnsureStepIncremented();
+            var sensorId = sensorHandle.IsValid ? sensorHandle.Id : default;
+            var annotationId = annotationHandle.IsValid() ? annotationHandle.Id : default;
+            var pendingId = ReportMetric(metricDefinition, null, sensorId, annotationId);
+            return AsyncFuture<Metric>.CreateMetricFuture(pendingId, this);
+        }
+
+        internal PendingId ReportMetric(MetricDefinition definition, Metric metric, string sensorId, string annotationId)
+        {
+            if (definition == null)
+                throw new ArgumentNullException(nameof(definition));
+
+            var pendingId = PendingId.CreateMetricId(m_SequenceId, AcquireStep(), sensorId, annotationId, definition.id);
+
+            var pendingFrame = GetOrCreatePendingFrame(pendingId);
+
+            if (pendingFrame == null)
+                throw new InvalidOperationException($"Could not get or create a pending frame for {pendingId}");
+
+            if (metric != null)
+            {
+                metric.sensorId = sensorId;
+                metric.annotationId = annotationId;
+            }
+
+            pendingFrame.AddMetric(pendingId, metric);
+
+            return pendingId;
+        }
+
+        PendingId ReportMetric(SensorHandle sensor, MetricDefinition definition, Metric metric, AnnotationHandle annotation)
+        {
+            if (definition == null)
+                throw new ArgumentNullException(nameof(metric));
+
+            var pendingId = PendingId.CreateMetricId(m_SequenceId, AcquireStep(), sensor.Id, annotation.Id, definition.id);
+            var pendingFrame = GetOrCreatePendingFrame(pendingId);
+
+            if (pendingFrame == null)
+                throw new InvalidOperationException($"Could not get or create a pending frame for {pendingId}");
+
+            pendingFrame.AddMetric(pendingId, metric);
+
+            return pendingId;
+        }
+
+        Dictionary<int, int> m_SequenceMap = new Dictionary<int, int>();
+
+        Queue<KeyValuePair<FrameId, PendingFrame>> m_PendingFramesToReport = new Queue<KeyValuePair<FrameId, PendingFrame>>();
+
+        static List<Sensor> ConvertToSensors(PendingFrame frame, SimulationState simulationState)
+        {
+            return frame.sensors.Where(s => s.IsReadyToReport()).Select(s => s.ToSensor()).ToList();
+        }
+
+        Frame ConvertToFrameData(PendingFrame pendingFrame, SimulationState simState)
+        {
+            var frameId = m_PendingIdToFrameMap[pendingFrame.pendingId];
+
+            var frame = new Frame(frameId, pendingFrame.pendingId.sequence, pendingFrame.pendingId.step, pendingFrame.timestamp)
+            {
+                sensors = ConvertToSensors(pendingFrame, simState)
             };
 
-            if (!m_Ids.Add(id))
+            foreach (var metric in pendingFrame.metrics)
             {
-                foreach (var existingAnnotationDefinition in m_AdditionalInfoTypeData)
-                {
-                    if (existingAnnotationDefinition.id == id)
-                    {
-                        if (existingAnnotationDefinition.Equals(annotationDefinitionInfo))
-                        {
-                            return;
-                        }
+                frame.metrics.Add(metric);
+            }
 
-                        throw new ArgumentException($"{id} has already been registered to an AnnotationDefinition or MetricDefinition with different information.\nExisting: {existingAnnotationDefinition}");
-                    }
+            return frame;
+        }
+
+        void ReportFramesToConsumer(bool flush = false, bool writeCapturesFromThisFrame = false)
+        {
+            m_PendingFramesToReport.Clear();
+            var remainingPendingFrames = new List<KeyValuePair<FrameId, PendingFrame>>();
+
+            // Write out each frame until we reach one that is not ready to write yet, this is in order to
+            // assure that all reports happen in sequential order
+            foreach (var frame in m_PendingFrames)
+            {
+                var recordedFrame = m_PendingIdToFrameMap[frame.Key];
+
+                if ((writeCapturesFromThisFrame || recordedFrame < currentFrame) &&
+                    frame.Value.IsReadyToReport())
+                {
+                    m_PendingFramesToReport.Enqueue(frame);
                 }
-
-                throw new ArgumentException($"Id {id} is already in use. Ids must be unique.");
-            }
-
-            m_AdditionalInfoTypeData.Add(annotationDefinitionInfo);
-        }
-
-        public Annotation ReportAnnotationFile(AnnotationDefinition annotationDefinition, SensorHandle sensorHandle, string filename)
-        {
-            var annotation = new Annotation(sensorHandle, AcquireStep());
-            var pendingCapture = GetOrCreatePendingCaptureForThisFrame(sensorHandle);
-            pendingCapture.Annotations.Add((annotation, new AnnotationData(annotationDefinition, filename, null)));
-            return annotation;
-        }
-
-        public Annotation ReportAnnotationValues<T>(AnnotationDefinition annotationDefinition, SensorHandle sensorHandle, T[] values)
-        {
-            var annotation = new Annotation(sensorHandle, AcquireStep());
-            var pendingCapture = GetOrCreatePendingCaptureForThisFrame(sensorHandle);
-            var valuesJson = new JArray();
-            foreach (var value in values)
-            {
-                valuesJson.Add(DatasetJsonUtility.ToJToken(value));
-            }
-            pendingCapture.Annotations.Add((annotation, new AnnotationData(annotationDefinition, null, valuesJson)));
-            return annotation;
-        }
-
-        PendingCapture GetOrCreatePendingCaptureForThisFrame(SensorHandle sensorHandle)
-        {
-            return GetOrCreatePendingCaptureForThisFrame(sensorHandle, out var _);
-        }
-
-        PendingCapture GetOrCreatePendingCaptureForThisFrame(SensorHandle sensorHandle, out bool created)
-        {
-            created = false;
-            m_GetOrCreatePendingCaptureForThisFrameSampler.Begin();
-            EnsureStepIncremented();
-
-            //Following is this converted to code: m_PendingCaptures.FirstOrDefault(c => c.SensorHandle == sensorHandle && c.FrameCount == Time.frameCount);
-            //We also start at the end, since the pending capture list can get long as we await writing to disk
-            PendingCapture pendingCapture = null;
-            for (var i = m_PendingCaptures.Count - 1; i >= 0; i--)
-            {
-                var c = m_PendingCaptures[i];
-                if (c.SensorHandle == sensorHandle && c.FrameCount == Time.frameCount)
+                else if (flush)
                 {
-                    pendingCapture = c;
+                    remainingPendingFrames.Add(frame);
+                }
+                else
+                {
                     break;
                 }
             }
 
-            if (pendingCapture == null)
+            foreach (var pf in m_PendingFramesToReport)
             {
-                created = true;
-                pendingCapture = new PendingCapture(Guid.NewGuid(), sensorHandle, m_Sensors[sensorHandle], m_SequenceId, Time.frameCount, AcquireStep(), SequenceTime);
-                m_PendingCaptures.Add(pendingCapture);
+                m_PendingFrames.Remove(pf.Key);
             }
 
-            m_GetOrCreatePendingCaptureForThisFrameSampler.End();
-            return pendingCapture;
-        }
-
-        public AsyncAnnotation ReportAnnotationAsync(AnnotationDefinition annotationDefinition, SensorHandle sensorHandle)
-        {
-            return new AsyncAnnotation(ReportAnnotationFile(annotationDefinition, sensorHandle, null), this);
-        }
-
-        public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, NativeSlice<T> values = default) where T : struct
-        {
-            var jArray = new JArray();
-            foreach (var value in values)
-                jArray.Add(new JRaw(DatasetJsonUtility.ToJToken(value)));
-
-            ReportAsyncAnnotationResult(asyncAnnotation, filename, jArray);
-        }
-
-        public void ReportAsyncAnnotationResult<T>(AsyncAnnotation asyncAnnotation, string filename = null, IEnumerable<T> values = null)
-        {
-            JArray jArray = null;
-
-            if (values != null)
+            if (flush)
             {
-                jArray = new JArray();
-                foreach (var value in values)
+                foreach (var pf in remainingPendingFrames)
                 {
-                    if (value != null)
-                        jArray.Add(new JRaw(DatasetJsonUtility.ToJToken(value)));
+                    var metrics = string.Join(Environment.NewLine,
+                        pf.Value.m_Metrics.Where(kvp => kvp.Value == null).Select(kvp => kvp.Key));
+
+                    var annotations = string.Join(Environment.NewLine,
+                        pf.Value.m_Sensors.SelectMany(s => s.Value.Annotations).Where(kvp => kvp.Value == null).Select(kvp => kvp.Key));
+
+                    var sensors = string.Join(Environment.NewLine,
+                        pf.Value.m_Sensors.Where(kvp => kvp.Value.ToSensor() == null).Select(kvp => kvp.Key));
+
+                    object message = $@"Simulation ended with pending frame {pf.Key}.";
+                    if (!string.IsNullOrEmpty(metrics))
+                        message += Environment.NewLine + $" Unreported metrics: {metrics}";
+
+                    if (!string.IsNullOrEmpty(annotations))
+                        message += Environment.NewLine + $" Unreported annotations: {annotations}";
+
+                    if (!string.IsNullOrEmpty(sensors))
+                        message += Environment.NewLine + $" Unreported sensors: {sensors}";
+
+                    Debug.LogError(message);
+                    m_PendingFrames.Remove(pf.Key);
                 }
             }
 
-            ReportAsyncAnnotationResult(asyncAnnotation, filename, jArray);
-        }
-
-        void ReportAsyncAnnotationResult(AsyncAnnotation asyncAnnotation, string filename, JArray jArray)
-        {
-            if (!asyncAnnotation.IsPending)
-                throw new InvalidOperationException("AsyncAnnotation has already been reported and cannot be reported again.");
-
-            PendingCapture pendingCapture = null;
-            var annotationIndex = -1;
-            foreach (var c in m_PendingCaptures)
+            while (m_PendingFramesToReport.Any())
             {
-                if (c.Step == asyncAnnotation.Annotation.Step && c.SensorHandle == asyncAnnotation.Annotation.SensorHandle)
+                var converted = ConvertToFrameData(m_PendingFramesToReport.Dequeue().Value, this);
+                m_TotalFrames++;
+
+                if (converted == null)
                 {
-                    pendingCapture = c;
-                    annotationIndex = pendingCapture.Annotations.FindIndex(a => a.Item1.Equals(asyncAnnotation.Annotation));
-                    if (annotationIndex != -1)
-                        break;
+                    Debug.LogError("Could not convert frame data");
                 }
-            }
 
-            Debug.Assert(pendingCapture != null && annotationIndex != -1);
-
-            var annotationTuple = pendingCapture.Annotations[annotationIndex];
-            var annotationData = annotationTuple.Item2;
-
-            annotationData.Path = filename;
-            annotationData.ValuesJson = jArray;
-
-            annotationTuple.Item2 = annotationData;
-            pendingCapture.Annotations[annotationIndex] = annotationTuple;
-        }
-
-        public bool IsPending(Annotation annotation)
-        {
-            foreach (var c in m_PendingCaptures)
-            {
-                foreach (var a in c.Annotations)
+                if (consumerEndpoint == null)
                 {
-                    if (a.Item1.Equals(annotation))
-                        return !a.Item2.IsAssigned;
+                    Debug.LogError("Consumer endpoint is null");
                 }
+
+                consumerEndpoint.FrameGenerated(converted);
             }
-
-            return false;
-        }
-
-        public bool IsPending(ref AsyncMetric asyncMetric)
-        {
-            foreach (var m in m_PendingMetrics)
-            {
-                if (m.MetricId == asyncMetric.Id)
-                    return !m.IsAssigned;
-            }
-
-            return false;
-        }
-
-        public void ReportAsyncMetricResult<T>(AsyncMetric asyncMetric, T[] values)
-        {
-            var pendingMetricValues = JArrayFromArray(values);
-            ReportAsyncMetricResult(asyncMetric, pendingMetricValues);
-        }
-
-        public void ReportAsyncMetricResult(AsyncMetric asyncMetric, string valuesJsonArray)
-        {
-            ReportAsyncMetricResult(asyncMetric, new JRaw(valuesJsonArray));
-        }
-
-        void ReportAsyncMetricResult(AsyncMetric asyncMetric, JToken values)
-        {
-            var metricIndex = -1;
-            for (var i = 0; i < m_PendingMetrics.Count; i++)
-            {
-                if (m_PendingMetrics[i].MetricId == asyncMetric.Id)
-                {
-                    metricIndex = i;
-                    break;
-                }
-            }
-
-            if (metricIndex == -1)
-                throw new InvalidOperationException("asyncMetric is invalid or has already been reported");
-
-            var pendingMetric = m_PendingMetrics[metricIndex];
-            if (pendingMetric.IsAssigned)
-                throw new InvalidOperationException("asyncMetric already been reported. ReportAsyncMetricResult may only be called once per AsyncMetric");
-
-            pendingMetric.Values = values;
-            m_PendingMetrics[metricIndex] = pendingMetric;
-        }
-
-        static JArray JArrayFromArray<T>(T[] values)
-        {
-            var jArray = new JArray();
-
-            foreach (var value in values)
-                jArray.Add(DatasetJsonUtility.ToJToken(value));
-
-            return jArray;
-        }
-
-        public AsyncMetric CreateAsyncMetric(MetricDefinition metricDefinition, SensorHandle sensorHandle = default, Annotation annotation = default)
-        {
-            EnsureStepIncremented();
-            var id = m_NextMetricId++;
-            var captureId = Guid.Empty;
-            if (sensorHandle != default)
-            {
-                var capture = GetOrCreatePendingCaptureForThisFrame(sensorHandle);
-                captureId = capture.Id;
-            }
-
-            m_PendingMetrics.Add(new PendingMetric(metricDefinition, id, sensorHandle, captureId, annotation, m_SequenceId, AcquireStep()));
-            return new AsyncMetric(metricDefinition, id, this);
-        }
-
-        public void ReportMetric<T>(MetricDefinition metricDefinition, T[] values, SensorHandle sensorHandle, Annotation annotation)
-        {
-            var jArray = JArrayFromArray(values);
-            ReportMetric(metricDefinition, jArray, sensorHandle, annotation);
-        }
-
-        public void ReportMetric(MetricDefinition metricDefinition, JToken values, SensorHandle sensorHandle, Annotation annotation)
-        {
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
-
-            EnsureStepIncremented();
-            var captureId = sensorHandle.IsNil ? Guid.Empty : GetOrCreatePendingCaptureForThisFrame(sensorHandle).Id;
-            m_PendingMetrics.Add(new PendingMetric(metricDefinition, m_NextMetricId++, sensorHandle, captureId, annotation, m_SequenceId, AcquireStep(), values));
         }
     }
 }

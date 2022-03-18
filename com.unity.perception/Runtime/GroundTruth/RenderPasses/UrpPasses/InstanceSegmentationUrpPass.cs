@@ -12,6 +12,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             m_InstanceSegmentationPass = new InstanceSegmentationCrossPipelinePass(camera);
             ConfigureTarget(targetTexture, targetTexture.depthBuffer);
+            ConfigureClear(ClearFlag.None, Color.black);
             m_InstanceSegmentationPass.Setup();
         }
 

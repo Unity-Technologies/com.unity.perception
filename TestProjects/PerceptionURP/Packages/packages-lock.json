@@ -36,11 +36,11 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
-      "version": "2.0.7",
+      "version": "3.0.7",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.1.1"
+        "com.unity.ext.nunit": "1.0.6"
       },
       "url": "https://packages.unity.com"
     },
@@ -101,28 +101,29 @@
         "com.unity.collections": "0.9.0-preview.6",
         "com.unity.nuget.newtonsoft-json": "1.1.2",
         "com.unity.render-pipelines.core": "7.1.6",
-        "com.unity.simulation.capture": "0.0.10-preview.23",
         "com.unity.simulation.client": "0.0.10-preview.10",
-        "com.unity.simulation.core": "0.0.10-preview.22"
+        "com.unity.simulation.core": "0.0.10-preview.25"
       }
     },
     "com.unity.render-pipelines.core": {
-      "version": "10.6.0",
+      "version": "10.7.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.ugui": "1.0.0"
+        "com.unity.ugui": "1.0.0",
+        "com.unity.modules.physics": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
     "com.unity.render-pipelines.universal": {
-      "version": "10.6.0",
+      "version": "10.7.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.mathematics": "1.1.0",
-        "com.unity.render-pipelines.core": "10.6.0",
-        "com.unity.shadergraph": "10.6.0"
+        "com.unity.render-pipelines.core": "10.7.0",
+        "com.unity.shadergraph": "10.7.0"
       },
       "url": "https://packages.unity.com"
     },
@@ -134,18 +135,18 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.shadergraph": {
-      "version": "10.6.0",
+      "version": "10.7.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.render-pipelines.core": "10.6.0",
+        "com.unity.render-pipelines.core": "10.7.0",
         "com.unity.searcher": "4.3.2"
       },
       "url": "https://packages.unity.com"
     },
     "com.unity.simulation.capture": {
-      "version": "0.0.10-preview.23",
-      "depth": 1,
+      "version": "0.0.10-preview.24",
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.simulation.core": "0.0.10-preview.25"
@@ -160,8 +161,8 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.simulation.core": {
-      "version": "0.0.10-preview.25",
-      "depth": 2,
+      "version": "0.0.10-preview.26",
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "2.0.0-preview"
@@ -215,7 +216,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.timeline": {
-      "version": "1.4.8",
+      "version": "1.5.6",
       "depth": 0,
       "source": "registry",
       "dependencies": {

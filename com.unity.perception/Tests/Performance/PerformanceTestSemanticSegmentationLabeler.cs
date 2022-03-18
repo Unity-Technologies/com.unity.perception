@@ -1,3 +1,4 @@
+#if PERFORMANCE_TESTING_PRESENT
 using NUnit.Framework;
 
 namespace PerformanceTests
@@ -15,8 +16,9 @@ namespace PerformanceTests
     public class PerformanceTestSemanticSegmentationLabeler : PerformanceTester
     {
         public const string Label = "SemanticSegmentationLabeler";
-        
+
         public PerformanceTestSemanticSegmentationLabeler(int resx, int resy, bool capData, bool vizOn)
             : base(resx, resy, capData, vizOn, Label) { }
     }
 }
+#endif

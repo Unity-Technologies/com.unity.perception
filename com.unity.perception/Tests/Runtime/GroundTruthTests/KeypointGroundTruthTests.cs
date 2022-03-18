@@ -42,7 +42,7 @@ namespace GroundTruthTests
             foreach (var p in LoadCubeScene()) yield return p;
         }
 
-        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<int, List<KeypointLabeler.KeypointEntry>> computeListener, RenderTexture renderTexture = null, KeypointObjectFilter keypointObjectFilter = KeypointObjectFilter.Visible)
+        static GameObject SetupCamera(IdLabelConfig config, KeypointTemplate template, Action<int, List<KeypointComponent>> computeListener, RenderTexture renderTexture = null, KeypointObjectFilter keypointObjectFilter = KeypointObjectFilter.Visible)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -305,13 +305,13 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_TestStaticLabeledCube()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var texture = new RenderTexture(1024, 768, 16);
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
@@ -333,39 +333,38 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
+
             Assert.AreEqual(9, t.keypoints.Length);
+            Assert.AreEqual(t.keypoints[0].location.x, t.keypoints[1].location.x);
+            Assert.AreEqual(t.keypoints[2].location.x, t.keypoints[3].location.x);
+            Assert.AreEqual(t.keypoints[4].location.x, t.keypoints[5].location.x);
+            Assert.AreEqual(t.keypoints[6].location.x, t.keypoints[7].location.x);
 
-            Assert.AreEqual(t.keypoints[0].x, t.keypoints[1].x);
-            Assert.AreEqual(t.keypoints[2].x, t.keypoints[3].x);
-            Assert.AreEqual(t.keypoints[4].x, t.keypoints[5].x);
-            Assert.AreEqual(t.keypoints[6].x, t.keypoints[7].x);
-
-            Assert.AreEqual(t.keypoints[0].y, t.keypoints[3].y);
-            Assert.AreEqual(t.keypoints[1].y, t.keypoints[2].y);
-            Assert.AreEqual(t.keypoints[4].y, t.keypoints[7].y);
-            Assert.AreEqual(t.keypoints[5].y, t.keypoints[6].y);
+            Assert.AreEqual(t.keypoints[0].location.y, t.keypoints[3].location.y);
+            Assert.AreEqual(t.keypoints[1].location.y, t.keypoints[2].location.y);
+            Assert.AreEqual(t.keypoints[4].location.y, t.keypoints[7].location.y);
+            Assert.AreEqual(t.keypoints[5].location.y, t.keypoints[6].location.y);
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
             for (var i = 0; i < 4; i++) Assert.AreEqual(2, t.keypoints[i].state);
             for (var i = 4; i < 8; i++) Assert.AreEqual(1, t.keypoints[i].state);
             Assert.Zero(t.keypoints[8].state);
-            Assert.Zero(t.keypoints[8].x);
-            Assert.Zero(t.keypoints[8].y);
+            Assert.Zero(t.keypoints[8].location.x);
+            Assert.Zero(t.keypoints[8].location.y);
         }
 
         [UnityTest]
         public IEnumerator Keypoint_TestStaticLabeledCube_WithDisabledLabeling_AndSwitchingLabelingState()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var texture = new RenderTexture(1024, 768, 16);
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
@@ -398,27 +397,26 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
-            Assert.AreEqual(t.keypoints[0].x, t.keypoints[1].x);
-            Assert.AreEqual(t.keypoints[2].x, t.keypoints[3].x);
-            Assert.AreEqual(t.keypoints[4].x, t.keypoints[5].x);
-            Assert.AreEqual(t.keypoints[6].x, t.keypoints[7].x);
+            Assert.AreEqual(t.keypoints[0].location.x, t.keypoints[1].location.x);
+            Assert.AreEqual(t.keypoints[2].location.x, t.keypoints[3].location.x);
+            Assert.AreEqual(t.keypoints[4].location.x, t.keypoints[5].location.x);
+            Assert.AreEqual(t.keypoints[6].location.x, t.keypoints[7].location.x);
 
-            Assert.AreEqual(t.keypoints[0].y, t.keypoints[3].y);
-            Assert.AreEqual(t.keypoints[1].y, t.keypoints[2].y);
-            Assert.AreEqual(t.keypoints[4].y, t.keypoints[7].y);
-            Assert.AreEqual(t.keypoints[5].y, t.keypoints[6].y);
+            Assert.AreEqual(t.keypoints[0].location.y, t.keypoints[3].location.y);
+            Assert.AreEqual(t.keypoints[1].location.y, t.keypoints[2].location.y);
+            Assert.AreEqual(t.keypoints[4].location.y, t.keypoints[7].location.y);
+            Assert.AreEqual(t.keypoints[5].location.y, t.keypoints[6].location.y);
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
             for (var i = 0; i < 4; i++) Assert.AreEqual(2, t.keypoints[i].state);
             for (var i = 4; i < 8; i++) Assert.AreEqual(1, t.keypoints[i].state);
             Assert.Zero(t.keypoints[8].state);
-            Assert.Zero(t.keypoints[8].x);
-            Assert.Zero(t.keypoints[8].y);
+            Assert.Zero(t.keypoints[8].location.x);
+            Assert.Zero(t.keypoints[8].location.y);
 
             testCase = incoming[2];
             Assert.AreEqual(0, testCase.Count);
@@ -427,12 +425,12 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_TestAllOffScreen()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
 
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             });
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
@@ -459,7 +457,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_TestMovingCube()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
 
             var keypoints = new[]
             {
@@ -482,7 +480,7 @@ namespace GroundTruthTests
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             }, texture);
             cam.GetComponent<PerceptionCamera>().showVisualizations = false;
 
@@ -499,6 +497,7 @@ namespace GroundTruthTests
             cube.transform.localPosition = new Vector3(-1, 0, 0);
             yield return null;
 
+
             //force all async readbacks to complete
             DestroyTestObject(cam);
             texture.Release();
@@ -507,13 +506,12 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(1, t.keypoints.Length);
 
-            Assert.AreEqual(1024 / 2, t.keypoints[0].x);
-            Assert.AreEqual(768 / 2, t.keypoints[0].y);
+            Assert.AreEqual(1024 / 2, t.keypoints[0].location.x);
+            Assert.AreEqual(768 / 2, t.keypoints[0].location.y);
 
             Assert.AreEqual(0, t.keypoints[0].index);
             Assert.AreEqual(2, t.keypoints[0].state);
@@ -522,20 +520,20 @@ namespace GroundTruthTests
             var testCase2 = incoming[1];
             Assert.AreEqual(1, testCase2.Count);
             var t2 = testCase2.First();
-            Assert.AreEqual(416, t2.keypoints[0].x, 1);
-            Assert.AreEqual(768 / 2, t2.keypoints[0].y);
+            Assert.AreEqual(416, t2.keypoints[0].location.x, 1);
+            Assert.AreEqual(768 / 2, t2.keypoints[0].location.y);
         }
 
         [UnityTest]
         public IEnumerator Keypoint_TestPartialOffScreen([Values(1,5)] int framesToRunBeforeAsserting)
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var texture = new RenderTexture(1024, 768, 16);
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
@@ -559,9 +557,8 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
             Assert.NotZero(t.keypoints[0].state);
@@ -576,20 +573,20 @@ namespace GroundTruthTests
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
             Assert.Zero(t.keypoints[8].state);
-            Assert.Zero(t.keypoints[8].x);
-            Assert.Zero(t.keypoints[8].y);
+            Assert.Zero(t.keypoints[8].location.x);
+            Assert.Zero(t.keypoints[8].location.y);
         }
 
         [UnityTest]
         public IEnumerator Keypoint_TestAllOnScreen()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var texture = new RenderTexture(1024, 768, 16);
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
@@ -613,27 +610,26 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
-            Assert.AreEqual(t.keypoints[0].x, t.keypoints[1].x);
-            Assert.AreEqual(t.keypoints[2].x, t.keypoints[3].x);
-            Assert.AreEqual(t.keypoints[4].x, t.keypoints[5].x);
-            Assert.AreEqual(t.keypoints[6].x, t.keypoints[7].x);
+            Assert.AreEqual(t.keypoints[0].location.x, t.keypoints[1].location.x);
+            Assert.AreEqual(t.keypoints[2].location.x, t.keypoints[3].location.x);
+            Assert.AreEqual(t.keypoints[4].location.x, t.keypoints[5].location.x);
+            Assert.AreEqual(t.keypoints[6].location.x, t.keypoints[7].location.x);
 
-            Assert.AreEqual(t.keypoints[0].y, t.keypoints[3].y);
-            Assert.AreEqual(t.keypoints[1].y, t.keypoints[2].y);
-            Assert.AreEqual(t.keypoints[4].y, t.keypoints[7].y);
-            Assert.AreEqual(t.keypoints[5].y, t.keypoints[6].y);
+            Assert.AreEqual(t.keypoints[0].location.y, t.keypoints[3].location.y);
+            Assert.AreEqual(t.keypoints[1].location.y, t.keypoints[2].location.y);
+            Assert.AreEqual(t.keypoints[4].location.y, t.keypoints[7].location.y);
+            Assert.AreEqual(t.keypoints[5].location.y, t.keypoints[6].location.y);
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
             for (var i = 0; i < 4; i++) Assert.AreEqual(2, t.keypoints[i].state);
             for (var i = 4; i < 8; i++) Assert.AreEqual(1, t.keypoints[i].state);
             Assert.Zero(t.keypoints[8].state);
-            Assert.Zero(t.keypoints[8].x);
-            Assert.Zero(t.keypoints[8].y);
+            Assert.Zero(t.keypoints[8].location.x);
+            Assert.Zero(t.keypoints[8].location.y);
 
 
         }
@@ -641,13 +637,13 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_FullyOccluded_DoesNotReport()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var texture = new RenderTexture(1024, 768, 16);
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             }, texture);
 
             CreateFullyOccludedScene(template, cam);
@@ -666,7 +662,7 @@ namespace GroundTruthTests
         public IEnumerator Keypoint_FullyOccluded_WithIncludeOccluded_ReportsProperly(
             [Values(KeypointObjectFilter.VisibleAndOccluded, KeypointObjectFilter.All)] KeypointObjectFilter keypointObjectFilter)
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var texture = new RenderTexture(1024, 768, 16);
             texture.Create();
@@ -689,9 +685,8 @@ namespace GroundTruthTests
 
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
             for (var i = 0; i < 8; i++)
@@ -699,8 +694,8 @@ namespace GroundTruthTests
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
             Assert.Zero(t.keypoints[8].state);
-            Assert.Zero(t.keypoints[8].x);
-            Assert.Zero(t.keypoints[8].y);
+            Assert.Zero(t.keypoints[8].location.x);
+            Assert.Zero(t.keypoints[8].location.y);
         }
 
         private void CreateFullyOccludedScene(KeypointTemplate template, GameObject cam)
@@ -725,7 +720,7 @@ namespace GroundTruthTests
         public IEnumerator Keypoint_Offscreen_DoesNotReport(
             [Values(KeypointObjectFilter.VisibleAndOccluded, KeypointObjectFilter.Visible)] KeypointObjectFilter keypointObjectFilter)
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var texture = new RenderTexture(1024, 768, 16);
             texture.Create();
@@ -756,7 +751,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_Offscreen_WithIncludeAll_ReportsProperly()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var texture = new RenderTexture(1024, 768, 16);
             texture.Create();
@@ -786,28 +781,27 @@ namespace GroundTruthTests
 
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
             for (var i = 0; i < 9; i++)
             {
                 Assert.Zero(t.keypoints[i].state);
-                Assert.Zero(t.keypoints[i].x);
-                Assert.Zero(t.keypoints[i].y);
+                Assert.Zero(t.keypoints[i].location.x);
+                Assert.Zero(t.keypoints[i].location.y);
             }
         }
 
         [UnityTest]
         public IEnumerator Keypoint_TestPartiallyBlockedByOther()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var texture = new RenderTexture(1024, 768, 16);
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
@@ -834,9 +828,8 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
             Assert.AreEqual(2, t.keypoints[0].state);
@@ -851,22 +844,22 @@ namespace GroundTruthTests
 
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
             Assert.Zero(t.keypoints[8].state);
-            Assert.Zero(t.keypoints[8].x);
-            Assert.Zero(t.keypoints[8].y);
+            Assert.Zero(t.keypoints[8].location.x);
+            Assert.Zero(t.keypoints[8].location.y);
         }
 
 
         [UnityTest]
         public IEnumerator Keypoint_AnimatedCube_PositionsCaptured()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
 
             var texture = new RenderTexture(1024, 768, 16);
             texture.Create();
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             }, texture);
 
             var cameraComponent = cam.GetComponent<Camera>();
@@ -907,14 +900,13 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
             //large delta because the animation will already have taken it some distance from the starting location
-            Assert.AreEqual(screenPointCenterExpected.x, t.keypoints[8].x, Screen.width * .1);
-            Assert.AreEqual(screenPointCenterExpected.y, t.keypoints[8].y, Screen.height * .1);
+            Assert.AreEqual(screenPointCenterExpected.x, t.keypoints[8].location.x, Screen.width * .1);
+            Assert.AreEqual(screenPointCenterExpected.y, t.keypoints[8].location.y, Screen.height * .1);
             Assert.AreEqual(8, t.keypoints[8].index);
             Assert.AreEqual(2, t.keypoints[8].state);
         }
@@ -967,7 +959,7 @@ namespace GroundTruthTests
             [ValueSource(nameof(Keypoint_OnBox_ReportsProperCoordinates_TestCases))]
             (float scale, bool expectObject, int expectedStateFront, int expectedStateBack, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight) args)
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
             var frameSize = 1024;
             var texture = new RenderTexture(frameSize, frameSize, 16);
@@ -1007,9 +999,8 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instance_id);
-            Assert.AreEqual(1, t.label_id);
-            Assert.AreEqual(template.templateID.ToString(), t.template_guid);
+            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
             CollectionAssert.AreEqual(Enumerable.Repeat(args.expectedStateFront, 4),
@@ -1018,17 +1009,17 @@ namespace GroundTruthTests
             CollectionAssert.AreEqual(Enumerable.Repeat(args.expectedStateBack, 4),
                 t.keypoints.Skip(4).Take(4).Select(k => k.state),
                 "State mismatch on front");
-            Assert.AreEqual(args.expectedTopLeft.x, t.keypoints[0].x, k_Delta);
-            Assert.AreEqual(args.expectedBottomRight.y, t.keypoints[0].y, k_Delta);
+            Assert.AreEqual(args.expectedTopLeft.x, t.keypoints[0].location.x, k_Delta);
+            Assert.AreEqual(args.expectedBottomRight.y, t.keypoints[0].location.y, k_Delta);
 
-            Assert.AreEqual(args.expectedTopLeft.x, t.keypoints[1].x, k_Delta);
-            Assert.AreEqual(args.expectedTopLeft.y, t.keypoints[1].y, k_Delta);
+            Assert.AreEqual(args.expectedTopLeft.x, t.keypoints[1].location.x, k_Delta);
+            Assert.AreEqual(args.expectedTopLeft.y, t.keypoints[1].location.y, k_Delta);
 
-            Assert.AreEqual(args.expectedBottomRight.x, t.keypoints[2].x, k_Delta);
-            Assert.AreEqual(args.expectedTopLeft.y, t.keypoints[2].y, k_Delta);
+            Assert.AreEqual(args.expectedBottomRight.x, t.keypoints[2].location.x, k_Delta);
+            Assert.AreEqual(args.expectedTopLeft.y, t.keypoints[2].location.y, k_Delta);
 
-            Assert.AreEqual(args.expectedBottomRight.x, t.keypoints[3].x, k_Delta);
-            Assert.AreEqual(args.expectedBottomRight.y, t.keypoints[3].y, k_Delta);
+            Assert.AreEqual(args.expectedBottomRight.x, t.keypoints[3].location.x, k_Delta);
+            Assert.AreEqual(args.expectedBottomRight.y, t.keypoints[3].location.y, k_Delta);
         }
 
         public enum CheckDistanceType
@@ -1150,7 +1141,7 @@ namespace GroundTruthTests
                 float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded) args,
             [Values(ProjectionKind.Orthographic, ProjectionKind.Projection)] ProjectionKind projectionKind)
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var labelerSelfOcclusionDistance =
                 args.checkDistanceType == CheckDistanceType.Global ? args.checkDistance : 0.5f;
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate", selfOcclusionDistance: labelerSelfOcclusionDistance);
@@ -1243,7 +1234,7 @@ namespace GroundTruthTests
             [ValueSource(nameof(Keypoint_OnCorner_OfRotatedScaledBox_RespectsThreshold_TestCases))]
             (Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, bool expectOccluded) args)
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var labelerSelfOcclusionDistance = 0.5f;
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate", labelerSelfOcclusionDistance);
             var frameSize = 1024;
@@ -1334,7 +1325,7 @@ namespace GroundTruthTests
             [ValueSource(nameof(Keypoint_OnCorner_OfRotatedScaledBox_RespectsModelOverrideThreshold_TestCases))]
             (Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, float overrideScalar, bool expectOccluded) args)
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var labelerSelfOcclusionDistance = 0.5f;
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate", labelerSelfOcclusionDistance);
             var frameSize = 1024;
@@ -1384,14 +1375,14 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator ManyObjects_LabelsCorrectly()
         {
-            var incoming = new List<List<KeypointLabeler.KeypointEntry>>();
+            var incoming = new List<List<KeypointComponent>>();
             var labelerSelfOcclusionDistance = 0.5f;
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate", selfOcclusionDistance: labelerSelfOcclusionDistance);
             var frameSize = 1024;
             var texture = new RenderTexture(frameSize, frameSize, 16);
             var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
             {
-                incoming.Add(new List<KeypointLabeler.KeypointEntry>(data));
+                incoming.Add(new List<KeypointComponent>(data));
             }, texture);
 
             void PlaceObjects(Rect rect, float z, Vector2Int count)

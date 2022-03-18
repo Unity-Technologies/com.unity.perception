@@ -6,8 +6,9 @@
 
 [![license badge](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
 
-<img src="https://img.shields.io/badge/unity-2019.4-green.svg?style=flat-square" alt="unity 2019.4">
-<img src="https://img.shields.io/badge/unity-2020.2-green.svg?style=flat-square" alt="unity 2020.3">
+<img src="https://img.shields.io/badge/unity-2020.3-green.svg?style=flat-square" alt="unity 2020.3">
+<img src="https://img.shields.io/badge/unity-2021.1-green.svg?style=flat-square" alt="unity 2021.1">
+<img src="https://img.shields.io/badge/unity-2021.2-red.svg?style=flat-square" alt="unity 2021.2">
 
 > `com.unity.perception` is in active development. Its features and API are subject to significant change as development progresses.
 
@@ -16,12 +17,7 @@
 
 The Perception package provides a toolkit for generating large-scale datasets for computer vision training and validation. It is focused on a handful of camera-based use cases for now and will ultimately expand to other forms of sensors and machine learning tasks.
 
----
-
-Visit the [Unity Computer Vision](https://unity.com/computer-vision) page for more information on our tools and offerings.
-
-[Join our mailing list](https://create.unity.com/computer-vision-newsletter-sign-up). Sign up now to stay up to date on our latest product feature release, upcoming community events, though-leadership blog posts, and more!
-
+Visit the [Unity Computer Vision](https://unity.com/computer-vision) page for more information on our tools and offerings!
 
 ## Getting Started
 
@@ -36,6 +32,9 @@ Step by step instructions for using the keypoint, pose, and animation randomizat
 
 **[FAQ](com.unity.perception/Documentation~/FAQ/FAQ.md)**  
 Check out our FAQ for a list of common questions, tips, tricks, and some sample code.
+
+**[Verifying Datasets with Dataset Insights](com.unity.perception/Documentation~/Tutorial/DatasetInsights.md)**  
+Introduction to Unity's [Dataset Insights](https://github.com/Unity-Technologies/datasetinsights) – a python package for downloading, parsing and analyzing synthetic datasets.
 
 ## Documentation
 In-depth documentation on individual components of the package. 
@@ -62,12 +61,6 @@ For any other questions or feedback, connect directly with the Computer Vision t
 
 [SynthDet](https://github.com/Unity-Technologies/SynthDet) is an end-to-end solution for training a 2D object detection model using synthetic data.
 
-### Unity Simulation Smart Camera example
-<img src="com.unity.perception/Documentation~/images/smartcamera.png"/>
-
-The [Unity Simulation Smart Camera Example](https://github.com/Unity-Technologies/Unity-Simulation-Smart-Camera-Outdoor) illustrates how the Perception package could be used in a smart city or autonomous vehicle simulation. You can generate datasets locally or at scale in [Unity Simulation](https://unity.com/products/unity-simulation).
-
-
 ### Robotics Object Pose Estimation Demo
 <img src="com.unity.perception/Documentation~/images/robotics_pose.png"/>
 
@@ -81,8 +74,7 @@ For closest standards conformity and best experience overall, JetBrains Rider or
 * To allow navigating to code in all packages included in your project, in your Unity Editor, navigate to `Edit -> Preferences... -> External Tools` and check `Generate all .csproj files.` 
 
 ## Known issues
-
-* The Linux Editor 2019.4.7f1 and 2019.4.8f1 might hang when importing HDRP-based Perception projects. For Linux Editor support, use 2019.4.6f1 or 2020.1
+* Projects that use the Perception package on Windows or OS X will have a dependency for Python for Unity added to their manifest, in order for the new Dataset Visualizer tool to work. This tool and Python for Unity are not supported on Linux, therefore this dependency should be removed from the project's manifest file if the project is saved on Windows or OSX and opened on Linux.
 
 ## License
 * [License](com.unity.perception/LICENSE.md)

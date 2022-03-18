@@ -1,6 +1,8 @@
 ﻿using System;
-using Unity.Simulation;
+using System.Collections;
+using System.Linq;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.DataModel;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -11,78 +13,41 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     public abstract class PerceptionScenario<T> : Scenario<T> where T : ScenarioConstants, new()
     {
         /// <summary>
-        /// The guid used to identify this scenario's Iteration Metric Definition
-        /// </summary>
-        const string k_ScenarioIterationMetricDefinitionId = "DB1B258E-D1D0-41B6-8751-16F601A2E230";
-
-        /// <summary>
         /// The metric definition used to report the current scenario iteration
         /// </summary>
         MetricDefinition m_IterationMetricDefinition;
 
-        /// <summary>
-        /// The scriptable render pipeline hook used to capture perception data skips the first frame of the simulation
-        /// when running locally, so this flag is used to track whether the first frame has been skipped yet.
-        /// </summary>
-        protected bool m_SkippedFirstFrame;
+        MetricDefinition m_RandomSeedMetricDefinition;
 
         /// <inheritdoc/>
-        protected override bool isScenarioReadyToStart
-        {
-            get
-            {
-                if (!m_SkippedFirstFrame)
-                {
-                    m_SkippedFirstFrame = true;
-                    return false;
-                }
-                return true;
-            }
-        }
-
-        /// <inheritdoc/>
-        protected override void OnAwake()
-        {
-            m_IterationMetricDefinition = DatasetCapture.RegisterMetricDefinition(
-                "scenario_iteration", "Iteration information for dataset sequences",
-                Guid.Parse(k_ScenarioIterationMetricDefinitionId));
-        }
+        protected override bool isScenarioReadyToStart => PerceptionCamera.captureFrameCount >= 0;
 
         /// <inheritdoc/>
         protected override void OnStart()
         {
-            var randomSeedMetricDefinition = DatasetCapture.RegisterMetricDefinition(
-                "random-seed",
-                "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.",
-                Guid.Parse("14adb394-46c0-47e8-a3f0-99e754483b76"));
-            DatasetCapture.ReportMetric(randomSeedMetricDefinition, new[] { genericConstants.randomSeed });
+            m_IterationMetricDefinition = new MetricDefinition("scenario_iteration", "Iteration information for dataset sequences");
+            DatasetCapture.RegisterMetric(m_IterationMetricDefinition);
+
+            m_RandomSeedMetricDefinition = new MetricDefinition("random-seed", "The random seed used to initialize the random state of the simulation. Only triggered once per simulation.");
+            DatasetCapture.RegisterMetric(m_RandomSeedMetricDefinition);
+
+            DatasetCapture.ReportMetadata("scenarioRandomSeed", genericConstants.randomSeed);
+            DatasetCapture.ReportMetadata("scenarioActiveRandomizers", activeRandomizers.Select(r => r.GetType().Name).ToArray());
         }
 
         /// <inheritdoc/>
         protected override void OnIterationStart()
         {
             DatasetCapture.StartNewSequence();
-            DatasetCapture.ReportMetric(m_IterationMetricDefinition, new[]
-            {
-                new IterationMetricData { iteration = currentIteration }
-            });
+            DatasetCapture.ReportMetric(m_RandomSeedMetricDefinition, new GenericMetric(genericConstants.randomSeed, m_RandomSeedMetricDefinition));
+            DatasetCapture.ReportMetric(m_IterationMetricDefinition, new GenericMetric(currentIteration, m_IterationMetricDefinition));
         }
 
         /// <inheritdoc/>
         protected override void OnComplete()
         {
             DatasetCapture.ResetSimulation();
-            Manager.Instance.Shutdown();
             Quit();
-        }
-
-        /// <summary>
-        /// Used to report a scenario iteration as a perception metric
-        /// </summary>
-        struct IterationMetricData
-        {
-            // ReSharper disable once NotAccessedField.Local
-            public int iteration;
         }
     }
 }

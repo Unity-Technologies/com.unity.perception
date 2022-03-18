@@ -59,7 +59,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 width = width,
                 height = height,
                 minimumRadius = minimumRadius,
-                superSampledPoints = superSampledPoints.AsDeferredJobArray(),
+                superSampledPoints = superSampledPoints,
                 croppedSamples = croppedSamples
             }.Schedule(sampleJob).Complete();
             superSampledPoints.Dispose();
@@ -95,7 +95,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
             public float width;
             public float height;
             public float minimumRadius;
-            [ReadOnly] public NativeArray<float2> superSampledPoints;
+            [ReadOnly] public NativeList<float2> superSampledPoints;
             public NativeList<float2> croppedSamples;
 
             public void Execute()

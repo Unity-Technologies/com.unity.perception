@@ -1,6 +1,5 @@
 ﻿using System;
 using Unity.Collections;
-using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -28,7 +27,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         RenderedObjectInfoGenerator m_RenderedObjectInfoGenerator;
         RenderTexture m_InstanceSegmentationTexture;
-        RenderTextureReader<Color32> m_InstanceSegmentationReader;
 
 #if HDRP_PRESENT || URP_PRESENT
         float? m_LensDistortionIntensityOverride;
@@ -91,16 +89,14 @@ namespace UnityEngine.Perception.GroundTruth
             m_LensDistortionPass.lensDistortionCrossPipelinePass.lensDistortionOverride =
                 m_LensDistortionIntensityOverride;
 #endif
-
-            m_InstanceSegmentationReader = new RenderTextureReader<Color32>(m_InstanceSegmentationTexture);
-
         }
 
         void CaptureInstanceSegmentation(ScriptableRenderContext scriptableRenderContext)
         {
             var width = m_InstanceSegmentationTexture.width;
 
-            m_InstanceSegmentationReader.Capture(scriptableRenderContext,  (frameCount, data, renderTexture) =>
+            RenderTextureReader.Capture<Color32>(
+                scriptableRenderContext, m_InstanceSegmentationTexture, (frameCount, data, renderTexture) =>
             {
                 InstanceSegmentationImageReadback?.Invoke(frameCount, data, m_InstanceSegmentationTexture);
 
@@ -116,10 +112,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         void CleanUpInstanceSegmentation()
         {
-            m_InstanceSegmentationReader?.WaitForAllImages();
-            m_InstanceSegmentationReader?.Dispose();
-            m_InstanceSegmentationReader = null;
-
             if (m_InstanceSegmentationTexture != null)
                 m_InstanceSegmentationTexture.Release();
 

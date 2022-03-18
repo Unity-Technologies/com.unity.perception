@@ -2,11 +2,12 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
+using UnityEngine.Perception.UIElements;
 
 namespace UnityEditor.Perception.Randomization.PropertyDrawers
 {
     [CustomPropertyDrawer(typeof(uint))]
-    class UIntDrawer : PropertyDrawer
+    public class UIntDrawer : PropertyDrawer
     {
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {

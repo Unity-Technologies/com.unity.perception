@@ -52,10 +52,12 @@ namespace UnityEditor.Perception.GroundTruth
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(KeypointTemplate.templateName)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(KeypointTemplate.jointTexture)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(KeypointTemplate.skeletonTexture)));
-
+            
             serializedObject.ApplyModifiedProperties();
-
+            
+            EditorGUILayout.LabelField(L10n.Tr("Key Points"));
             m_KeypointsList.DoLayoutList();
+            EditorGUILayout.LabelField(L10n.Tr("Skeletons"));
             m_SkeletonList.DoLayoutList();
         }
         void OnAddKeypointDefinition(ReorderableList list)

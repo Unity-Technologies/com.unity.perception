@@ -1,3 +1,4 @@
+#if PERFORMANCE_TESTING_PRESENT
 using NUnit.Framework;
 
 namespace PerformanceTests
@@ -15,11 +16,12 @@ namespace PerformanceTests
     public class PerformanceTestAllLabelers : PerformanceTester
     {
         public PerformanceTestAllLabelers(int resx, int resy, bool capData, bool vizOn)
-            : base(resx, resy, capData, vizOn, 
-                PerformanceTestBoundingBoxLabeler.Label, 
-                PerformanceTestObjectCountLabeler.Label, 
+            : base(resx, resy, capData, vizOn,
+                PerformanceTestBoundingBoxLabeler.Label,
+                PerformanceTestObjectCountLabeler.Label,
                 PerformanceTestPixelCountLabeler.Label,
                 PerformanceTestSemanticSegmentationLabeler.Label
                 ) { }
     }
 }
+#endif

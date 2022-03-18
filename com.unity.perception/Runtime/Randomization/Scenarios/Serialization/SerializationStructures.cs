@@ -16,7 +16,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     #region GroupedObjects
     class TemplateConfigurationOptions
     {
-        public Dictionary<string, Group> groups = new Dictionary<string, Group>();
+        public List<Group> randomizerGroups = new List<Group>();
     }
 
     class StandardMetadata
@@ -26,9 +26,23 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public string imageLink = string.Empty;
     }
 
+    class RandomizerStateData
+    {
+        public bool enabled;
+        public bool canBeSwitchedByUser;
+    }
+
+    class Limits
+    {
+        public double min;
+        public double max;
+    }
+
     class Group
     {
+        public string randomizerId;
         public StandardMetadata metadata = new StandardMetadata();
+        public RandomizerStateData state = null;
         [JsonConverter(typeof(GroupItemsConverter))]
         public Dictionary<string, IGroupItem> items = new Dictionary<string, IGroupItem>();
     }
@@ -53,6 +67,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     {
         public double min;
         public double max;
+        public Limits limits;
     }
 
     class NormalSampler : ISamplerOption
@@ -61,11 +76,13 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         public double max;
         public double mean;
         public double stddev;
+        public Limits limits;
     }
 
     class ConstantSampler : ISamplerOption
     {
         public double value;
+        public Limits limits;
     }
     #endregion
 
@@ -85,6 +102,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
     class DoubleScalarValue : IScalarValue
     {
         public double num;
+        public Limits limits;
     }
 
     class BooleanScalarValue : IScalarValue

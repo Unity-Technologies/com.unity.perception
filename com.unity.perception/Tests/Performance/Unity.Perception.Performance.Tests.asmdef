@@ -4,8 +4,7 @@
         "Unity.PerformanceTesting",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Unity.Perception.Runtime",
-        "Unity.Simulation.Core"
+        "Unity.Perception.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -18,6 +17,12 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.test-framework.performance",
+            "expression": "",
+            "define": "PERFORMANCE_TESTING_PRESENT"
+        }
+    ],
     "noEngineReferences": false
 }

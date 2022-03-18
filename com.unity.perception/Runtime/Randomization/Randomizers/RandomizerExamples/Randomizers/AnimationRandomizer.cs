@@ -13,7 +13,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
     [AddRandomizerMenu("Perception/Animation Randomizer")]
     public class AnimationRandomizer : Randomizer
     {
-        FloatParameter m_FloatParameter = new FloatParameter{ value = new UniformSampler(0, 1) };
+        FloatParameter m_FloatParameter = new FloatParameter{ value = new ConstantSampler(0) };
 
         const string k_ClipName = "PlayerIdle";
         const string k_StateName = "Base Layer.RandomState";

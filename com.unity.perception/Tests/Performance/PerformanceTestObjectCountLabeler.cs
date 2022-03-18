@@ -1,3 +1,4 @@
+#if PERFORMANCE_TESTING_PRESENT
 using NUnit.Framework;
 
 namespace PerformanceTests
@@ -15,10 +16,11 @@ namespace PerformanceTests
     public class PerformanceTestObjectCountLabeler : PerformanceTester
     {
         public const string Label = "ObjectCountLabeler";
-        
+
         public PerformanceTestObjectCountLabeler(int resx, int resy, bool capData, bool vizOn)
             : base(resx, resy, capData, vizOn, Label)
         {
         }
     }
 }
+#endif

@@ -50,19 +50,20 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         {
             return new TemplateConfigurationOptions
             {
-                groups = SerializeRandomizers(scenario.randomizers)
+                randomizerGroups = SerializeRandomizers(scenario.randomizers)
             };
         }
 
-        static Dictionary<string, Group> SerializeRandomizers(IEnumerable<Randomizer> randomizers)
+        static List<Group> SerializeRandomizers(IEnumerable<Randomizer> randomizers)
         {
-            var serializedRandomizers = new Dictionary<string, Group>();
+            var serializedRandomizers = new List<Group>();
             foreach (var randomizer in randomizers)
             {
                 var randomizerData = SerializeRandomizer(randomizer);
-                if (randomizerData.items.Count == 0)
+                if (randomizerData.items.Count == 0 && !randomizerData.state.canBeSwitchedByUser)
                     continue;
-                serializedRandomizers.Add(randomizer.GetType().Name, randomizerData);
+
+                serializedRandomizers.Add(randomizerData);
             }
             return serializedRandomizers;
         }
@@ -70,7 +71,14 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
         static Group SerializeRandomizer(Randomizer randomizer)
         {
             var randomizerData = new Group();
+            randomizerData.state = new RandomizerStateData
+            {
+                enabled = randomizer.enabled,
+                canBeSwitchedByUser = randomizer.enabledStateCanBeSwitchedByUser
+            };
+
             var fields = randomizer.GetType().GetFields();
+            randomizerData.randomizerId = randomizer.GetType().Name;
             foreach (var field in fields)
             {
                 if (field.FieldType.IsSubclassOf(typeof(Randomization.Parameters.Parameter)))
@@ -123,13 +131,21 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             if (sampler is Samplers.ConstantSampler constantSampler)
                 samplerData.defaultSampler = new ConstantSampler
                 {
-                    value = constantSampler.value
+                    value = constantSampler.value,
+                    limits = constantSampler.shouldCheckValidRange? new Limits {
+                        min = constantSampler.minAllowed,
+                        max = constantSampler.maxAllowed,
+                    } : null
                 };
             else if (sampler is Samplers.UniformSampler uniformSampler)
                 samplerData.defaultSampler = new UniformSampler
                 {
                     min = uniformSampler.range.minimum,
-                    max = uniformSampler.range.maximum
+                    max = uniformSampler.range.maximum,
+                    limits = uniformSampler.shouldCheckValidRange? new Limits {
+                        min = uniformSampler.minAllowed,
+                        max = uniformSampler.maxAllowed,
+                    } : null
                 };
             else if (sampler is Samplers.NormalSampler normalSampler)
                 samplerData.defaultSampler = new NormalSampler
@@ -137,7 +153,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     min = normalSampler.range.minimum,
                     max = normalSampler.range.maximum,
                     mean = normalSampler.mean,
-                    stddev = normalSampler.standardDeviation
+                    stddev = normalSampler.standardDeviation,
+                    limits = normalSampler.shouldCheckValidRange? new Limits {
+                        min = normalSampler.minAllowed,
+                        max = normalSampler.maxAllowed,
+                    } : null
                 };
             else
                 throw new ArgumentException($"Invalid sampler type ({sampler.GetType()})");
@@ -151,7 +171,28 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             if (field.FieldType == typeof(bool))
                 return new BooleanScalarValue { boolean = (bool)field.GetValue(obj) };
             if (field.FieldType == typeof(float) || field.FieldType == typeof(double) || field.FieldType == typeof(int))
-                return new DoubleScalarValue { num = Convert.ToDouble(field.GetValue(obj)) };
+            {
+                var minAllowed = 0f;
+                var maxAllowed = 0f;
+                var shouldCheckValidRange = false;
+                var rangeAttributes = field.GetCustomAttributes(typeof(RangeAttribute));
+                if (rangeAttributes.Any())
+                {
+                    var rangeAttribute = (RangeAttribute)rangeAttributes.First();
+                    minAllowed = rangeAttribute.min;
+                    maxAllowed = rangeAttribute.max;
+                    shouldCheckValidRange = true;
+                }
+                return new DoubleScalarValue
+                {
+                    num = Convert.ToDouble(field.GetValue(obj)),
+                    limits = shouldCheckValidRange? new Limits {
+                        min = minAllowed,
+                        max = maxAllowed,
+                    } : null
+                };
+            }
+
             return null;
         }
         #endregion
@@ -169,32 +210,37 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
         static void DeserializeConstants(ScenarioConstants constants, JObject constantsData)
         {
-            var serializer = new JsonSerializer();
-            serializer.Populate(constantsData.CreateReader(), constants);
+            JsonUtility.FromJsonOverwrite(constantsData.ToString(), constants);
         }
 
         static void DeserializeTemplateIntoScenario(ScenarioBase scenario, TemplateConfigurationOptions template)
         {
-            DeserializeRandomizers(scenario.randomizers, template.groups);
+            DeserializeRandomizers(scenario.randomizers, template.randomizerGroups);
         }
 
-        static void DeserializeRandomizers(IEnumerable<Randomizer> randomizers, Dictionary<string, Group> groups)
+        static void DeserializeRandomizers(IEnumerable<Randomizer> randomizers, List<Group> groups)
         {
             var randomizerTypeMap = new Dictionary<string, Randomizer>();
             foreach (var randomizer in randomizers)
                 randomizerTypeMap.Add(randomizer.GetType().Name, randomizer);
 
-            foreach (var randomizerPair in groups)
+            foreach (var randomizerData in groups)
             {
-                if (!randomizerTypeMap.ContainsKey(randomizerPair.Key))
+                if (!randomizerTypeMap.ContainsKey(randomizerData.randomizerId))
                     continue;
-                var randomizer = randomizerTypeMap[randomizerPair.Key];
-                DeserializeRandomizer(randomizer, randomizerPair.Value);
+                var randomizer = randomizerTypeMap[randomizerData.randomizerId];
+                DeserializeRandomizer(randomizer, randomizerData);
             }
         }
 
         static void DeserializeRandomizer(Randomizer randomizer, Group randomizerData)
         {
+            if (randomizerData.state != null)
+            {
+                randomizer.enabled = randomizerData.state.enabled;
+                randomizer.enabledStateCanBeSwitchedByUser = randomizerData.state.canBeSwitchedByUser;
+            }
+
             foreach (var pair in randomizerData.items)
             {
                 var field = randomizer.GetType().GetField(pair.Key);
@@ -226,7 +272,10 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
             if (samplerOption is ConstantSampler constantSampler)
                 return new Samplers.ConstantSampler
                 {
-                    value = (float)constantSampler.value
+                    value = (float)constantSampler.value,
+                    minAllowed = constantSampler.limits != null ? (float)constantSampler.limits.min : 0,
+                    maxAllowed = constantSampler.limits != null ? (float)constantSampler.limits.max : 0,
+                    shouldCheckValidRange = constantSampler.limits != null
                 };
             if (samplerOption is UniformSampler uniformSampler)
                 return new Samplers.UniformSampler
@@ -234,8 +283,11 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     range = new FloatRange
                     {
                         minimum = (float)uniformSampler.min,
-                        maximum = (float)uniformSampler.max
-                    }
+                        maximum = (float)uniformSampler.max,
+                    },
+                    minAllowed = uniformSampler.limits != null ? (float)uniformSampler.limits.min : 0,
+                    maxAllowed = uniformSampler.limits != null ? (float)uniformSampler.limits.max : 0,
+                    shouldCheckValidRange = uniformSampler.limits != null
                 };
             if (samplerOption is NormalSampler normalSampler)
                 return new Samplers.NormalSampler
@@ -246,24 +298,87 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                         maximum = (float)normalSampler.max
                     },
                     mean = (float)normalSampler.mean,
-                    standardDeviation = (float)normalSampler.stddev
+                    standardDeviation = (float)normalSampler.stddev,
+                    minAllowed = normalSampler.limits != null ? (float)normalSampler.limits.min : 0,
+                    maxAllowed = normalSampler.limits != null ? (float)normalSampler.limits.max : 0,
+                    shouldCheckValidRange = normalSampler.limits != null
                 };
             throw new ArgumentException($"Cannot deserialize unsupported sampler type {samplerOption.GetType()}");
         }
 
         static void DeserializeScalarValue(object obj, FieldInfo field, Scalar scalar)
         {
+            var rangeAttributes = field.GetCustomAttributes(typeof(RangeAttribute));
+            RangeAttribute rangeAttribute = null;
+
+            if (rangeAttributes.Any())
+            {
+                rangeAttribute = (RangeAttribute) rangeAttributes.First();
+            }
+
+            var readScalar = ReadScalarValue(obj, scalar);
+            var tolerance = 0.00001f;
+
+            if (readScalar.Item1 is double num)
+            {
+                if (rangeAttribute != null)
+                {
+                    if (readScalar.Item2 != null &&
+                        (Math.Abs(rangeAttribute.min - readScalar.Item2.min) > tolerance || Math.Abs(rangeAttribute.max - readScalar.Item2.max) > tolerance))
+                    {
+                        //the field has a range attribute and the json has a limits block for this field, but the numbers don't match
+                        Debug.LogError($"The limits provided in the Scenario JSON for the field \"{field.Name}\" of \"{obj.GetType().Name}\" do not match this field's range set in the code. Ranges for scalar fields can only be set in code using the Range attribute and not from the Scenario JSON.");
+                    }
+                    else if (readScalar.Item2 == null)
+                    {
+                        //the field has a range attribute but the json has no limits block for this field
+                        Debug.LogError($"The provided Scenario JSON specifies limits for the field \"{field.Name}\" of \"{obj.GetType().Name}\", while the field has no Range attribute in the code. Ranges for scalar fields can only be set in code using the Range attribute and not from the Scenario JSON.");
+                    }
+
+                    if (num < rangeAttribute.min || num > rangeAttribute.max)
+                    {
+                        Debug.LogError($"The provided value for the field \"{field.Name}\" of \"{obj.GetType().Name}\" exceeds the allowed valid range. Clamping to valid range.");
+                        var clamped = Mathf.Clamp((float)num, rangeAttribute.min, rangeAttribute.max);
+                        field.SetValue(obj, Convert.ChangeType(clamped, field.FieldType));
+                    }
+                    else
+                        field.SetValue(obj, Convert.ChangeType(readScalar.Item1, field.FieldType));
+
+                }
+                else
+                {
+                    if (readScalar.Item2 != null)
+                        //the field does not have a range attribute but the json has a limits block for this field
+                        Debug.LogError($"The provided Scenario JSON specifies limits for the field \"{field.Name}\" of \"{obj.GetType().Name}\", but the field has no Range attribute in code. Ranges for scalar fields can only be set in code using the Range attribute and not from the Scenario JSON.");
+
+                    field.SetValue(obj, Convert.ChangeType(readScalar.Item1, field.FieldType));
+                }
+
+            }
+            else
+            {
+                field.SetValue(obj, Convert.ChangeType(readScalar.Item1, field.FieldType));
+            }
+        }
+
+        static (object, Limits) ReadScalarValue(object obj, Scalar scalar)
+        {
             object value;
+            Limits limits = null;
             if (scalar.value is StringScalarValue stringValue)
                 value = stringValue.str;
             else if (scalar.value is BooleanScalarValue booleanValue)
                 value = booleanValue.boolean;
             else if (scalar.value is DoubleScalarValue doubleValue)
+            {
                 value = doubleValue.num;
+                limits = doubleValue.limits;
+            }
             else
                 throw new ArgumentException(
                     $"Cannot deserialize unsupported scalar type {scalar.value.GetType()}");
-            field.SetValue(obj, Convert.ChangeType(value, field.FieldType));
+
+            return (value, limits);
         }
         #endregion
 

@@ -1,10 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.DataModel;
 using UnityEngine.TestTools;
 
 #if MOQ_PRESENT
@@ -27,22 +28,16 @@ namespace GroundTruthTests
             //give the screen a chance to resize
             yield return null;
 
-            var jsonExpected = $@"[
-            {{
-              ""label_id"": 100,
-              ""label_name"": ""label"",
-              ""instance_id"": 1,
-              ""x"": 0.0,
-              ""y"": {Screen.height / 4:F1},
-              ""width"": {Screen.width:F1},
-              ""height"": {Screen.height / 2:F1}
-            }}
-          ]";
             var labelingConfiguration = CreateLabelingConfiguration();
             SetupCamera(pc =>
             {
                 pc.AddLabeler(new BoundingBox2DLabeler(labelingConfiguration));
             });
+
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
 
             var plane = TestHelper.CreateLabeledPlane();
             AddTestObjectForCleanup(plane);
@@ -56,16 +51,43 @@ namespace GroundTruthTests
             plane2.transform.localScale = new Vector3(.1f, -1f, .1f);
             plane2.transform.localPosition = new Vector3(0, 0, 5);
             yield return null;
-            DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
-            var capturesJson = File.ReadAllText(capturesPath);
-            StringAssert.Contains(TestHelper.NormalizeJson(jsonExpected, true), TestHelper.NormalizeJson(capturesJson, true));
+            DatasetCapture.ResetSimulation();
+            Assert.AreEqual(1, collector.currentRun.frames.Count);
+            var f = collector.currentRun.frames[0];
+            Assert.NotNull(f);
+
+            Assert.AreEqual(1, f.sensors.Count);
+            var s = f.sensors[0];
+            Assert.NotNull(s);
+
+            Assert.AreEqual(1, s.annotations.Count);
+            var annotation = s.annotations[0];
+            Assert.NotNull(annotation);
+
+            Assert.AreEqual("type.unity.com/unity.solo.BoundingBox2DAnnotation", annotation.modelType);
+            var boxes = (BoundingBoxAnnotation)annotation;
+            Assert.NotNull(boxes);
+
+            Assert.AreEqual(1, boxes.boxes.Count);
+            var box = boxes.boxes[0];
+            Assert.AreEqual(100,box.labelId);
+            Assert.AreEqual("label",box.labelName);
+            Assert.AreEqual(1,box.instanceId);
+            Assert.AreEqual(Screen.width, box.dimension.x);
+            Assert.AreEqual(Screen.height / 2, box.dimension.y);
+            Assert.AreEqual(0, box.origin.x);
+            Assert.AreEqual(Screen.height / 4, box.origin.y);
         }
 
         [UnityTest]
         public IEnumerator EnableSemanticSegmentation_GeneratesCorrectDataset([Values(true, false)] bool enabled)
         {
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
+
             SemanticSegmentationLabeler semanticSegmentationLabeler = null;
             SetupCamera(pc =>
             {
@@ -73,28 +95,36 @@ namespace GroundTruthTests
                 pc.AddLabeler(semanticSegmentationLabeler);
             }, enabled);
 
-            string expectedImageFilename = $"segmentation_{Time.frameCount}.png";
-
-            this.AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
+            AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
             yield return null;
             DatasetCapture.ResetSimulation();
 
             if (enabled)
             {
-                var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
-                var capturesJson = File.ReadAllText(capturesPath);
-                var imagePath = $"{semanticSegmentationLabeler.semanticSegmentationDirectory}/{expectedImageFilename}";
-                StringAssert.Contains(imagePath, capturesJson);
+                Assert.NotNull(collector.currentRun);
+                Assert.AreEqual(1, collector.currentRun.frames.Count);
+                Assert.AreEqual(1, collector.currentRun.frames[0].sensors.Count());
+                var rgb = collector.currentRun.frames[0].sensors.First() as RgbSensor;
+                Assert.NotNull(rgb);
+                Assert.AreEqual(1, rgb.annotations.Count());
+                var ann = rgb.annotations.First() as SemanticSegmentationAnnotation;
+                Assert.NotNull(ann);
+                Assert.NotZero(ann.buffer.Length);
             }
             else
             {
-                DirectoryAssert.DoesNotExist(DatasetCapture.OutputDirectory);
+                Assert.Null(collector.currentRun.frames);
             }
         }
 
         [UnityTest]
         public IEnumerator Disabled_GeneratesCorrectDataset()
         {
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
+
             SemanticSegmentationLabeler semanticSegmentationLabeler = null;
             SetupCamera(pc =>
             {
@@ -102,16 +132,19 @@ namespace GroundTruthTests
                 pc.AddLabeler(semanticSegmentationLabeler);
             });
 
-            string expectedImageFilename = $"segmentation_{Time.frameCount}.png";
-
-            this.AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
+            AddTestObjectForCleanup(TestHelper.CreateLabeledPlane());
             yield return null;
             DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
-            var capturesJson = File.ReadAllText(capturesPath);
-            var imagePath = $"{semanticSegmentationLabeler.semanticSegmentationDirectory}/{expectedImageFilename}";
-            StringAssert.Contains(imagePath, capturesJson);
+            Assert.NotNull(collector.currentRun);
+            Assert.AreEqual(1, collector.currentRun.frames.Count);
+            Assert.AreEqual(1, collector.currentRun.frames[0].sensors.Count());
+            var rgb = collector.currentRun.frames[0].sensors.First() as RgbSensor;
+            Assert.NotNull(rgb);
+            Assert.AreEqual(1, rgb.annotations.Count());
+            var ann = rgb.annotations.First() as SemanticSegmentationAnnotation;
+            Assert.NotNull(ann);
+            Assert.NotZero(ann.buffer.Length);
         }
 
         static IdLabelConfig CreateLabelingConfiguration()

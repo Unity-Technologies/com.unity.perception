@@ -50,6 +50,11 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator VisualizedCamera_SetsUpCanvas()
         {
+            //we are not worried about timing out it has happening because we are not actually making a
+            // capture...
+            LogAssert.ignoreFailingMessages = true;
+            DatasetCapture.ResetSimulation();
+
             var object1 = SetupCameraSemanticSegmentation(nameof(VisualizedCamera_SetsUpCanvas));
             object1.SetActive(true);
             AddTestObjectForCleanup(object1);
@@ -58,10 +63,17 @@ namespace GroundTruthTests
             yield return null;
 
             Assert.IsNotNull(GameObject.Find("overlay_canvas"));
+
+            DatasetCapture.ResetSimulation();
         }
         [UnityTest]
         public IEnumerator TwoCamerasVisualizing_CausesWarningAndDisablesVisualization()
         {
+            //we are not worried about timing out it has happening because we are not actually making a
+            // capture...
+            LogAssert.ignoreFailingMessages = true;
+            DatasetCapture.ResetSimulation();
+
             var object1 = new GameObject();
             object1.name = nameof(TwoCamerasVisualizing_CausesWarningAndDisablesVisualization);
             object1.SetActive(false);
@@ -84,10 +96,17 @@ namespace GroundTruthTests
             LogAssert.ignoreFailingMessages = true;
             object2.SetActive(true);
             yield return null;
+
+            DatasetCapture.ResetSimulation();
         }
         [UnityTest]
         public IEnumerator DestroyCamera_RemovesVisualization()
         {
+            //we are not worried about timing out it has happening because we are not actually making a
+            // capture...
+            LogAssert.ignoreFailingMessages = true;
+            DatasetCapture.ResetSimulation();
+
             var object1 = SetupCameraSemanticSegmentation(nameof(DestroyCamera_RemovesVisualization));
             object1.SetActive(true);
             AddTestObjectForCleanup(object1);
@@ -98,10 +117,17 @@ namespace GroundTruthTests
             //wait a frame to allow objects destroyed via Destroy() to be cleaned up
             yield return null;
             Assert.IsNull(GameObject.Find("overlay_segmentation_canvas"));
+
+            DatasetCapture.ResetSimulation();
         }
         [UnityTest]
         public IEnumerator DestroyAndRecreateCamera_ProperlyVisualizes()
         {
+            //we are not worried about timing out it has happening because we are not actually making a
+            // capture...
+            LogAssert.ignoreFailingMessages = true;
+            DatasetCapture.ResetSimulation();
+
             var object1 = SetupCameraSemanticSegmentation(nameof(DestroyAndRecreateCamera_ProperlyVisualizes));
             object1.SetActive(true);
             AddTestObjectForCleanup(object1);
@@ -117,11 +143,18 @@ namespace GroundTruthTests
             yield return null;
 
             Assert.IsNotNull("overlay_canvas");
+
+            DatasetCapture.ResetSimulation();
         }
 
         [UnityTest]
         public IEnumerator TwoLabelersOfSameType_ProperlyStoredInHud()
         {
+            //we are not worried about timing out it has happening because we are not actually making a
+            // capture...
+            LogAssert.ignoreFailingMessages = true;
+            DatasetCapture.ResetSimulation();
+
             var label = "label";
             var planeObject = TestHelper.CreateLabeledPlane(.1f, label);
             AddTestObjectForCleanup(planeObject);
@@ -147,9 +180,7 @@ namespace GroundTruthTests
             });
 
             var labeler1 = new ObjectCountLabeler(cfg);
-            labeler1.objectCountMetricId = "a1da3c27-369d-4929-aea6-d01614635ce2";
             var labeler2 = new ObjectCountLabeler(cfg);
-            labeler2.objectCountMetricId = "b1da3c27-369d-4929-aea6-d01614635ce2";
 
             perceptionCamera.AddLabeler(labeler1);
             perceptionCamera.AddLabeler(labeler2);
@@ -169,6 +200,7 @@ namespace GroundTruthTests
 
             Assert.AreEqual(perceptionCamera.hudPanel.entryCount, 1);
 
+            DatasetCapture.ResetSimulation();
         }
     }
 }

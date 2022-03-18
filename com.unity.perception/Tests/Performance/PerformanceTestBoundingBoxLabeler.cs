@@ -1,6 +1,5 @@
+#if PERFORMANCE_TESTING_PRESENT
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
-using UnityEngine.UIElements;
 
 namespace PerformanceTests
 {
@@ -17,8 +16,9 @@ namespace PerformanceTests
     public class PerformanceTestBoundingBoxLabeler : PerformanceTester
     {
         public const string Label = "BoundingBoxLabeler";
-        
+
         public PerformanceTestBoundingBoxLabeler(int resx, int resy, bool capData, bool vizOn)
             : base(resx, resy, capData, vizOn, Label) { }
     }
 }
+#endif

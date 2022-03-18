@@ -1,9 +1,5 @@
 using System;
-using Unity.Simulation;
-using UnityEngine.EventSystems;
 using UnityEngine.Rendering;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -18,7 +14,12 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// A human-readable description of the labeler
         /// </summary>
-        public abstract string description { get; protected set; }
+        public abstract string description { get; }
+
+        /// <summary>
+        /// The GUID id to associate with the data produced by this labeler.
+        /// </summary>
+        public abstract string labelerId { get; }
 
         /// <summary>
         /// Whether the CameraLabeler should be set up and called each frame.

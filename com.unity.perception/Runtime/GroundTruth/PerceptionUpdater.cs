@@ -20,7 +20,7 @@
         void LateUpdate()
         {
             LabelManager.singleton.RegisterPendingLabels();
-            DatasetCapture.SimulationState?.Update();
+            DatasetCapture.Update();
         }
     }
 }

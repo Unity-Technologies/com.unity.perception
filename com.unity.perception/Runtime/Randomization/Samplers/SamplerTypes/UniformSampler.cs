@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -13,6 +14,25 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// </summary>
         public FloatRange range;
 
+        ///<inheritdoc/>
+#if !SCENARIO_CONFIG_POWER_USER
+        [field: HideInInspector]
+#endif
+        [field: SerializeField]
+        public float minAllowed { get; set; }
+        ///<inheritdoc/>
+#if !SCENARIO_CONFIG_POWER_USER
+        [field: HideInInspector]
+#endif
+        [field: SerializeField]
+        public float maxAllowed { get; set; }
+        ///<inheritdoc/>
+#if !SCENARIO_CONFIG_POWER_USER
+        [field: HideInInspector]
+#endif
+        [field: SerializeField]
+        public bool shouldCheckValidRange { get; set; }
+
         /// <summary>
         /// Constructs a UniformSampler
         /// </summary>
@@ -26,9 +46,15 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// </summary>
         /// <param name="min">The smallest value contained within the range</param>
         /// <param name="max">The largest value contained within the range</param>
-        public UniformSampler(float min, float max)
+        /// <param name="shouldCheckValidRange">Whether the provided <see cref="minAllowed"/> and <see cref="maxAllowed"/> values should be used to validate the range provided with <see cref="minimum"/> and <see cref="maximum"/></param>
+        /// <param name="minAllowed">The smallest min value allowed for this range</param>
+        /// <param name="maxAllowed">The largest max value allowed for this range</param>
+        public UniformSampler(float min, float max, bool shouldCheckValidRange = false, float minAllowed = 0, float maxAllowed = 0)
         {
             range = new FloatRange(min, max);
+            this.shouldCheckValidRange = shouldCheckValidRange;
+            this.minAllowed = minAllowed;
+            this.maxAllowed = maxAllowed;
         }
 
         /// <summary>
@@ -47,6 +73,17 @@ namespace UnityEngine.Perception.Randomization.Samplers
         public void Validate()
         {
             range.Validate();
+            CheckAgainstValidRange();
+        }
+
+        public void CheckAgainstValidRange()
+        {
+            if (shouldCheckValidRange && (range.minimum < minAllowed || range.maximum > maxAllowed))
+            {
+                Debug.LogError($"The provided min and max values for a {GetType().Name} exceed the allowed valid range. Clamping to valid range.");
+                range.minimum = Mathf.Clamp(range.minimum, minAllowed, maxAllowed);
+                range.maximum = Mathf.Clamp(range.maximum, minAllowed, maxAllowed);
+            }
         }
     }
 }

@@ -1,375 +1,425 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.DataModel;
 using UnityEngine.TestTools;
 // ReSharper disable InconsistentNaming
 // ReSharper disable NotAccessedField.Local
 
 namespace GroundTruthTests
 {
+    public static class AssertUtils
+    {
+        public static void AreEqual(Vector2 first, Vector2 second)
+        {
+            Assert.AreEqual(first.x, second.x);
+            Assert.AreEqual(first.y, second.y);
+        }
+
+        public static void AreEqual(Vector3 first, Vector3 second)
+        {
+            Assert.AreEqual(first.x, second.x);
+            Assert.AreEqual(first.y, second.y);
+            Assert.AreEqual(first.z, second.z);
+        }
+
+        public static void AreEqual(Quaternion first, Quaternion second)
+        {
+            Assert.AreEqual(first.x, second.x);
+            Assert.AreEqual(first.y, second.y);
+            Assert.AreEqual(first.z, second.z);
+            Assert.AreEqual(first.w, second.w);
+        }
+
+        public static void AreEqual(float3x3 first, float3x3 second)
+        {
+            for (var i = 0; i < 9; i++)
+            {
+                Assert.AreEqual(first[i], second[i]);
+            }
+        }
+
+        public static void AreEqual(RgbSensor first, RgbSensor second)
+        {
+            Assert.NotNull(first);
+            Assert.NotNull(second);
+
+            Assert.AreEqual(first.id, second.id);
+            Assert.AreEqual(first.modelType, second.modelType);
+            Assert.AreEqual(first.description, second.description);
+            AreEqual(first.position, second.position);
+            AreEqual(first.rotation, second.rotation);
+            AreEqual(first.velocity, second.velocity);
+            AreEqual(first.acceleration, second.acceleration);
+            Assert.AreEqual(first.matrix, second.matrix);
+            Assert.AreEqual(first.imageEncodingFormat, second.imageEncodingFormat);
+            AreEqual(first.dimension, second.dimension);
+            Assert.Null(first.buffer);
+            Assert.Null(second.buffer);
+        }
+    }
+
     [TestFixture]
     public class DatasetCaptureTests
     {
-        [Test]
-        public void RegisterSensor_ReportsProperJson()
+        static (RgbSensorDefinition, SensorHandle) RegisterSensor(string id, string modality, string sensorDescription, int firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float simDeltaTime, int framesBetween, bool affectTiming = false)
         {
-            var egoDescription = @"the main car driving in simulation";
-            var sensorDescription = "Cam (FL2-14S3M-C)";
-            var modality = "camera";
+            var sensorDefinition = new RgbSensorDefinition(id, modality, sensorDescription)
+            {
+                firstCaptureFrame = firstCaptureFrame,
+                captureTriggerMode = captureTriggerMode,
+                simulationDeltaTime = simDeltaTime,
+                framesBetweenCaptures = framesBetween,
+                manualSensorsAffectTiming = affectTiming
+            };
+            return (sensorDefinition, DatasetCapture.RegisterSensor(sensorDefinition));
+        }
 
-            var egoJsonExpected =
-                $@"{{
-  ""version"": ""{DatasetCapture.SchemaVersion}"",
-  ""egos"": [
-    {{
-      ""id"": <guid>,
-      ""description"": ""{egoDescription}""
-    }}
-  ]
-}}";
-            var sensorJsonExpected =
-                $@"{{
-  ""version"": ""{DatasetCapture.SchemaVersion}"",
-  ""sensors"": [
-    {{
-      ""id"": <guid>,
-      ""ego_id"": <guid>,
-      ""modality"": ""{modality}"",
-      ""description"": ""{sensorDescription}""
-    }}
-  ]
-}}";
+        [UnityTest]
+        public IEnumerator RegisterSensor_ReportsProperJson()
+        {
+            const string id = "camera";
+            const string modality = "camera";
+            const string def = "Cam (FL2-14S3M-C)";
+            const int firstFrame = 1;
+            const CaptureTriggerMode mode = CaptureTriggerMode.Scheduled;
+            const int delta = 1;
+            const int framesBetween = 0;
 
-            var ego = DatasetCapture.RegisterEgo(egoDescription);
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, modality, sensorDescription, 1, CaptureTriggerMode.Scheduled, 1, 0);
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
+
+            var (sensorDef, sensorHandle) = RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
             Assert.IsTrue(sensorHandle.IsValid);
+
+            yield return null;
             DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
 
-            var sensorsPath = Path.Combine(DatasetCapture.OutputDirectory, "sensors.json");
-            var egosPath = Path.Combine(DatasetCapture.OutputDirectory, "egos.json");
+            // Check metadata
+            var meta = collector.currentRun.metadata as SimulationMetadata;
+            Assert.NotNull(meta);
+            Assert.AreEqual(meta.perceptionVersion, DatasetCapture.perceptionVersion);
+            Assert.AreEqual(meta.unityVersion, Application.unityVersion);
 
-            FileAssert.Exists(egosPath);
-            FileAssert.Exists(sensorsPath);
+            // Check sensor data
+            Assert.AreEqual(collector.sensors.Count, 1);
+            var sensor = collector.sensors.First();
+            Assert.NotNull(sensor);
+            Assert.AreEqual(sensor.id, id);
+            Assert.AreEqual(sensor.modality, modality);
+            Assert.AreEqual(sensor.description, def);
+            Assert.AreEqual(sensor.firstCaptureFrame, firstFrame);
+            Assert.AreEqual(sensor.captureTriggerMode, mode);
+            Assert.AreEqual(sensor.simulationDeltaTime, delta);
+            Assert.AreEqual(sensor.framesBetweenCaptures, framesBetween);
+        }
 
-            AssertJsonFileEquals(egoJsonExpected, egosPath);
-            AssertJsonFileEquals(sensorJsonExpected, sensorsPath);
+        static RgbSensor CreateMocRgbCapture(RgbSensorDefinition sensorDef)
+        {
+            var position = new float3(.2f, 1.1f, .3f);
+            var rotation = new Quaternion(.3f, .2f, .1f, .5f);
+            var velocity = new Vector3(.1f, .2f, .3f);
+            var matrix = new float3x3(.1f, .2f, .3f, 1f, 2f, 3f, 10f, 20f, 30f);
+
+            return new RgbSensor(sensorDef, position, rotation, velocity, Vector3.zero)
+            {
+                matrix = matrix
+            };
         }
 
         [Test]
-        public void ReportCapture_ReportsProperJson()
+        public void ResetSimulation_WithUnreportedCaptureAsync_LogsError()
         {
-            var filename = "my/file.png";
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
 
-            var egoPosition = new float3(.02f, .03f, .04f);
-            var egoRotation = new quaternion(.1f, .2f, .3f, .4f);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var f = sensorHandle.ReportSensorAsync();
 
-            var egoVelocity = new Vector3(.1f, .2f, .3f);
+            DatasetCapture.ResetSimulation();
 
-            var position = new float3(.2f, 1.1f, .3f);
-            var rotation = new quaternion(.3f, .2f, .1f, .5f);
-            var intrinsics = new float3x3(.1f, .2f, .3f, 1f, 2f, 3f, 10f, 20f, 30f);
+            LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending frame .*"));
+        }
 
+        [UnityTest]
+        public IEnumerator ReportCaptureAsync_DoesNotError()
+        {
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
 
-            var capturesJsonExpected =
-                $@"{{
-  ""version"": ""{DatasetCapture.SchemaVersion}"",
-  ""captures"": [
-    {{
-      ""id"": <guid>,
-      ""sequence_id"": <guid>,
-      ""step"": 0,
-      ""timestamp"": 0.0,
-      ""sensor"": {{
-        ""sensor_id"": <guid>,
-        ""ego_id"": <guid>,
-        ""modality"": ""camera"",
-        ""translation"": [
-          {Format(position.x)},
-          {Format(position.y)},
-          {Format(position.z)}
-        ],
-        ""rotation"": [
-          {Format(rotation.value.x)},
-          {Format(rotation.value.y)},
-          {Format(rotation.value.z)},
-          {Format(rotation.value.w)}
-        ],
-        ""camera_intrinsic"": [
-          [
-            {Format(intrinsics.c0.x)},
-            {Format(intrinsics.c0.y)},
-            {Format(intrinsics.c0.z)}
-          ],
-          [
-            {Format(intrinsics.c1.x)},
-            {Format(intrinsics.c1.y)},
-            {Format(intrinsics.c1.z)}
-          ],
-          [
-            {Format(intrinsics.c2.x)},
-            {Format(intrinsics.c2.y)},
-            {Format(intrinsics.c2.z)}
-          ]
-        ]
-      }},
-      ""ego"": {{
-        ""ego_id"": <guid>,
-        ""translation"": [
-          {Format(egoPosition.x)},
-          {Format(egoPosition.y)},
-          {Format(egoPosition.z)}
-        ],
-        ""rotation"": [
-          {Format(egoRotation.value.x)},
-          {Format(egoRotation.value.y)},
-          {Format(egoRotation.value.z)},
-          {Format(egoRotation.value.w)}
-        ],
-        ""velocity"": [
-          {Format(egoVelocity.x)},
-          {Format(egoVelocity.y)},
-          {Format(egoVelocity.z)}
-        ],
-        ""acceleration"": null
-      }},
-      ""filename"": ""{filename}"",
-      ""format"": ""PNG""
-    }}
-  ]
-}}";
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var f = sensorHandle.ReportSensorAsync();
 
-            var ego = DatasetCapture.RegisterEgo("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            var sensorSpatialData = new SensorSpatialData(new Pose(egoPosition, egoRotation), new Pose(position, rotation), egoVelocity, null);
-            sensorHandle.ReportCapture(filename, sensorSpatialData, ("camera_intrinsic", intrinsics));
+            yield return null;
+            yield return null;
 
+            f.Report(CreateMocRgbCapture(sensorDef));
+
+            DatasetCapture.ResetSimulation();
+            Assert.AreEqual(1, collector.currentRun.frames.Count);
+        }
+
+        [UnityTest]
+        public IEnumerator ReportCapture_ReportsProperJson()
+        {
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
+
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var sensor = CreateMocRgbCapture(sensorDef);
+            sensorHandle.ReportSensor(sensor);
+
+            yield return null;
             DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
 
-            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
+            Assert.NotNull(collector.currentRun);
+            Assert.AreEqual(collector.currentRun.frames.Count, 1);
+            Assert.NotNull(collector.currentRun.frames.First().sensors);
+            Assert.AreEqual(collector.currentRun.frames.First().sensors.Count(), 1);
 
-            FileAssert.Exists(capturesPath);
+            var rgb = collector.currentRun.frames.First().sensors.First() as RgbSensor;
+            Assert.NotNull(rgb);
 
-            AssertJsonFileEquals(capturesJsonExpected, capturesPath);
+            AssertUtils.AreEqual(rgb, sensor);
         }
 
         [UnityTest]
         public IEnumerator StartNewSequence_ProperlyIncrementsSequence()
         {
-            var timingsExpected = new(int step, int timestamp, bool expectNewSequence)[]
+            var timingsExpected = new(int seq, int step, int timestamp)[]
             {
-                (0, 0, true),
-                (1, 2, false),
-                (0, 0, true),
-                (1, 2, false)
+                (0, 0, 0),
+                (0, 1, 2),
+                (1, 0, 0),
+                (1, 1, 2)
             };
 
-            var ego = DatasetCapture.RegisterEgo("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 2, 0);
-            var sensorSpatialData = new SensorSpatialData(default, default, null, null);
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
+
+            //DatasetCapture.StartNewSequence();
+
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 2, 0);
+            var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
+
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
-            sensorHandle.ReportCapture("f", sensorSpatialData);
+            sensorHandle.ReportSensor(sensor);
             yield return null;
+
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
-            sensorHandle.ReportCapture("f", sensorSpatialData);
+            sensorHandle.ReportSensor(sensor);
             yield return null;
+
             DatasetCapture.StartNewSequence();
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
-            sensorHandle.ReportCapture("f", sensorSpatialData);
+            sensorHandle.ReportSensor(sensor);
             yield return null;
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
-            sensorHandle.ReportCapture("f", sensorSpatialData);
+            sensorHandle.ReportSensor(sensor);
+            yield return null;
 
             DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
 
-            //read all captures from the output directory
-            List<JObject> captures = new List<JObject>();
-            foreach (var capturesPath in Directory.EnumerateFiles(DatasetCapture.OutputDirectory, "captures_*.json"))
+            Debug.Log("after watcher");
+
+            Assert.NotNull(collector.currentRun);
+            Assert.AreEqual(timingsExpected.Length, collector.currentRun.TotalFrames);
+
+            var i = 0;
+            foreach (var (seq, step, timestamp) in timingsExpected)
             {
-                var capturesText = File.ReadAllText(capturesPath);
-                var jObject = JToken.ReadFrom(new JsonTextReader(new StringReader(capturesText)));
-                var captureJArray = (JArray)jObject["captures"];
-                captures.AddRange(captureJArray.Cast<JObject>());
-            }
-
-            Assert.AreEqual(timingsExpected.Length, captures.Count);
-
-            var currentSequenceId = "00";
-            for (int i = 0; i < timingsExpected.Length; i++)
-            {
-                var timingExpected = timingsExpected[i];
-                var text = captures[i];
-                Assert.AreEqual(timingExpected.step, text["step"].Value<int>());
-                Assert.AreEqual(timingExpected.timestamp, text["timestamp"].Value<int>());
-                var newSequenceId = text["sequence_id"].ToString();
-
-                if (timingExpected.expectNewSequence)
-                    Assert.AreNotEqual(newSequenceId, currentSequenceId, $"Expected new sequence in frame {i}, but was same");
-                else
-                    Assert.AreEqual(newSequenceId, currentSequenceId, $"Expected same sequence in frame {i}, but was new");
-
-                currentSequenceId = newSequenceId;
+                var collected = collector.currentRun.frames[i++];
+                Assert.AreEqual(seq, collected.sequence);
+                Assert.AreEqual(step, collected.step);
+                Assert.AreEqual(timestamp, collected.timestamp);
             }
         }
 
-        //Format a float to match Newtonsoft.Json formatting
-        string Format(float value)
+        [UnityTest]
+        public IEnumerator ReportAnnotation_AddsProperJsonToCapture()
         {
-            var result = value.ToString("R", CultureInfo.InvariantCulture);
-            if (!result.Contains("."))
-                return result + ".0";
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
 
-            return result;
-        }
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
+            sensorHandle.ReportSensor(sensor);
 
-        [Test]
-        public void ReportAnnotation_AddsProperJsonToCapture()
-        {
-            var filename = "my/file.png";
-            var annotationDefinitionGuid = Guid.NewGuid();
+            var def = new SemanticSegmentationDefinition("labeler", Array.Empty<SemanticSegmentationDefinitionEntry>());
+            var annotation = new SemanticSegmentationAnnotation(
+                def, sensorHandle.Id, ImageEncodingFormat.Png, Vector2.zero, new List<SemanticSegmentationDefinitionEntry>(), Array.Empty<byte>());
 
-            var annotationDefinitionsJsonExpected =
-                $@"{{
-  ""version"": ""{DatasetCapture.SchemaVersion}"",
-  ""annotation_definitions"": [
-    {{
-      ""id"": <guid>,
-      ""name"": ""semantic segmentation"",
-      ""description"": ""pixel-wise semantic segmentation label"",
-      ""format"": ""PNG""
-    }}
-  ]
-}}";
-            var annotationsJsonExpected =
-                $@"      ""annotations"": [
-        {{
-          ""id"": <guid>,
-          ""annotation_definition"": <guid>,
-          ""filename"": ""annotations/semantic_segmentation_000.png""
-        }}
-      ]";
+            DatasetCapture.RegisterAnnotationDefinition(def);
+            sensorHandle.ReportAnnotation(def, annotation);
 
-            var ego = DatasetCapture.RegisterEgo("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            sensorHandle.ReportCapture(filename, default);
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("semantic segmentation", "pixel-wise semantic segmentation label", "PNG", annotationDefinitionGuid);
-            sensorHandle.ReportAnnotationFile(annotationDefinition, "annotations/semantic_segmentation_000.png");
-
+            yield return null;
             DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
 
-            var annotationDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, "annotation_definitions.json");
-            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
+            Assert.NotNull(collector.currentRun);
+            Assert.AreEqual(collector.currentRun.frames.Count, 1);
+            Assert.NotNull(collector.currentRun.frames.First().sensors);
+            Assert.AreEqual(collector.currentRun.frames.First().sensors.Count(), 1);
 
+            var rgb = collector.currentRun.frames.First().sensors.First() as RgbSensor;
+            Assert.NotNull(rgb);
 
-            AssertJsonFileEquals(annotationDefinitionsJsonExpected, annotationDefinitionsPath);
+            AssertUtils.AreEqual(rgb, sensor);
 
-            FileAssert.Exists(capturesPath);
-            StringAssert.Contains(TestHelper.NormalizeJson(annotationsJsonExpected), EscapeGuids(File.ReadAllText(capturesPath)));
+            Assert.NotNull(rgb.annotations);
+            Assert.AreEqual(1, rgb.annotations.Count());
+            var seg = rgb.annotations.First() as SemanticSegmentationAnnotation;
+            Assert.NotNull(seg);
         }
 
-        [Test]
-        public void ReportAnnotationValues_ReportsProperJson()
+        class TestDef : AnnotationDefinition
         {
-            var values = new[]
+            public override string modelType => "TestDef";
+            public override string description => "description";
+            public TestDef() : base("annotation_test") { }
+        }
+
+        class TestDef2 : AnnotationDefinition
+        {
+            public override string modelType => "TestDef2";
+            public override string description => "description";
+            public TestDef2() : base("test2") { }
+        }
+
+        class TestAnnotation : Annotation
+        {
+            public override string modelType => "Test";
+            public struct Entry
             {
-                new TestValues()
+                public string a;
+                public int b;
+            }
+
+            public List<Entry> entries = new List<Entry>();
+
+            public TestAnnotation(TestDef def, string sensorId, string annotationType)
+                : base(def, sensorId) { }
+
+            public TestAnnotation()
+                : base(new TestDef(), "") { }
+        }
+
+        [UnityTest]
+        public IEnumerator ReportAnnotationValues_ReportsProperJson()
+        {
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
+
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
+            sensorHandle.ReportSensor(sensor);
+
+            var def = new TestDef();
+            var ann = new TestAnnotation()
+            {
+                entries = new List<TestAnnotation.Entry>()
                 {
-                    a = "a string",
-                    b = 10
-                },
-                new TestValues()
-                {
-                    a = "a second string",
-                    b = 20
-                },
+                    new TestAnnotation.Entry { a = "a string", b = 10 },
+                    new TestAnnotation.Entry { a = "a second string", b = 20 }
+                }
             };
 
-            var expectedAnnotation = $@"      ""annotations"": [
-        {{
-          ""id"": <guid>,
-          ""annotation_definition"": <guid>,
-          ""values"": [
-            {{
-              ""a"": ""a string"",
-              ""b"": 10
-            }},
-            {{
-              ""a"": ""a second string"",
-              ""b"": 20
-            }}
-          ]
-        }}
-      ]";
+            DatasetCapture.RegisterAnnotationDefinition(def);
+            sensorHandle.ReportAnnotation(def, ann);
 
-            var ego = DatasetCapture.RegisterEgo("");
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-
-            sensorHandle.ReportAnnotationValues(annotationDefinition, values);
+            yield return null;
             DatasetCapture.ResetSimulation();
+            Assert.IsFalse(sensorHandle.IsValid);
 
-            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
+            var rgb = collector.currentRun.frames.First().sensors.First() as RgbSensor;
+            Assert.NotNull(rgb);
 
-            FileAssert.Exists(capturesPath);
-            StringAssert.Contains(TestHelper.NormalizeJson(expectedAnnotation), EscapeGuids(File.ReadAllText(capturesPath)));
+            Assert.NotNull(rgb.annotations);
+            Assert.AreEqual(1, rgb.annotations.Count());
+            var tAnn = rgb.annotations.First() as TestAnnotation;
+            Assert.NotNull(tAnn);
+
+            Assert.AreEqual(2, tAnn.entries.Count);
+
+            Assert.AreEqual("a string", tAnn.entries[0].a);
+            Assert.AreEqual(10, tAnn.entries[0].b);
+            Assert.AreEqual("a second string", tAnn.entries[1].a);
+            Assert.AreEqual(20, tAnn.entries[1].b);
         }
 
         [Test]
         public void ReportAnnotationFile_WhenCaptureNotExpected_Throws()
         {
-            var ego = DatasetCapture.RegisterEgo("");
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
-            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationFile(annotationDefinition, ""));
+            var def = new TestDef();
+            DatasetCapture.RegisterAnnotationDefinition(def);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotation(def, null));
+
+            DatasetCapture.ResetSimulation();
         }
 
         [Test]
         public void ReportAnnotationValues_WhenCaptureNotExpected_Throws()
         {
-            var ego = DatasetCapture.RegisterEgo("");
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
-            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationValues(annotationDefinition, new int[0]));
+            var def = new TestDef();
+            DatasetCapture.RegisterAnnotationDefinition(def);
+            var ann = new TestAnnotation()
+            {
+                entries = new List<TestAnnotation.Entry>()
+                {
+                    new TestAnnotation.Entry { a = "a string", b = 10 },
+                    new TestAnnotation.Entry { a = "a second string", b = 20 }
+                }
+            };
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotation(def, ann));
+            DatasetCapture.ResetSimulation();
         }
 
         [Test]
         public void ReportAnnotationAsync_WhenCaptureNotExpected_Throws()
         {
-            var ego = DatasetCapture.RegisterEgo("");
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
-            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationAsync(annotationDefinition));
-        }
-
-        [Test]
-        public void ResetSimulation_WithUnreportedAnnotationAsync_LogsError()
-        {
-            var ego = DatasetCapture.RegisterEgo("");
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            sensorHandle.ReportAnnotationAsync(annotationDefinition);
-            DatasetCapture.ResetSimulation();
-            LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending .*"));
+            var def = new TestDef();
+            DatasetCapture.RegisterAnnotationDefinition(def);
+            var ann = new TestAnnotation()
+            {
+                entries = new List<TestAnnotation.Entry>()
+                {
+                    new TestAnnotation.Entry { a = "a string", b = 10 },
+                    new TestAnnotation.Entry { a = "a second string", b = 20 }
+                }
+            };
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationAsync(def));
         }
 
         [Test]
         public void ResetSimulation_CallsSimulationEnding()
         {
-            int timesCalled = 0;
+            var timesCalled = 0;
             DatasetCapture.SimulationEnding += () => timesCalled++;
             DatasetCapture.ResetSimulation();
             DatasetCapture.ResetSimulation();
@@ -377,123 +427,114 @@ namespace GroundTruthTests
         }
 
         [Test]
+        public void ResetSimulation_WithUnreportedAnnotationAsync_LogsError()
+        {
+            var def = new TestDef();
+            DatasetCapture.RegisterAnnotationDefinition(def);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var asyncAnnotation = sensorHandle.ReportAnnotationAsync(def);
+            Assert.IsTrue(asyncAnnotation.IsValid());
+
+            DatasetCapture.ResetSimulation();
+            LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending .*"));
+        }
+
+        [Test]
+        public void ResetSimulation_WithUnreportedMetricAsync_LogsError()
+        {
+            var def = new TestMetricDef();
+            DatasetCapture.RegisterMetric(def);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            sensorHandle.ReportMetricAsync(def);
+            DatasetCapture.ResetSimulation();
+            LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending .*"));
+        }
+
+        [Test]
         public void AnnotationAsyncIsValid_ReturnsProperValue()
         {
-            LogAssert.ignoreFailingMessages = true; //we aren't worried about "Simulation ended with pending..."
-
-            var ego = DatasetCapture.RegisterEgo("");
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
-
-            Assert.IsTrue(asyncAnnotation.IsValid);
-            DatasetCapture.ResetSimulation();
-            Assert.IsFalse(asyncAnnotation.IsValid);
-        }
-
-        [Test]
-        public void AnnotationAsyncReportFile_ReportsProperJson()
-        {
-            var expectedAnnotation = $@"      ""annotations"": [
-        {{
-          ""id"": <guid>,
-          ""annotation_definition"": <guid>,
-          ""filename"": ""annotations/output.png""
-        }}
-      ]";
-
-            var ego = DatasetCapture.RegisterEgo("");
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
-
-            Assert.IsTrue(asyncAnnotation.IsPending);
-            asyncAnnotation.ReportFile("annotations/output.png");
-            Assert.IsFalse(asyncAnnotation.IsPending);
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
+            LogAssert.ignoreFailingMessages = true; //we are not worried about timing out
 
-            FileAssert.Exists(capturesPath);
-            StringAssert.Contains(TestHelper.NormalizeJson(expectedAnnotation), EscapeGuids(File.ReadAllText(capturesPath)));
+            var def = new TestDef();
+            DatasetCapture.RegisterAnnotationDefinition(def);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var asyncAnnotation = sensorHandle.ReportAnnotationAsync(def);
+            Assert.IsTrue(asyncAnnotation.IsValid());
+
+            DatasetCapture.ResetSimulation();
+            Assert.IsFalse(asyncAnnotation.IsValid());
         }
 
-        public struct TestValues
+        [UnityTest]
+        public IEnumerator AnnotationAsyncReportValue_ReportsProperJson()
         {
-            public string a;
-            public int b;
-        }
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
 
-        [Test]
-        public void AnnotationAsyncReportValues_ReportsProperJson()
-        {
-            var values = new[]
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
+            sensorHandle.ReportSensor(sensor);
+
+            var def = new TestDef();
+            var ann = new TestAnnotation()
             {
-                new TestValues()
+                entries = new List<TestAnnotation.Entry>()
                 {
-                    a = "a string",
-                    b = 10
-                },
-                new TestValues()
-                {
-                    a = "a second string",
-                    b = 20
-                },
+                    new TestAnnotation.Entry { a = "a string", b = 10 },
+                    new TestAnnotation.Entry { a = "a second string", b = 20 }
+                }
             };
 
-            var expectedAnnotation = $@"      ""annotations"": [
-        {{
-          ""id"": <guid>,
-          ""annotation_definition"": <guid>,
-          ""values"": [
-            {{
-  ""a"": ""a string"",
-  ""b"": 10
-}},
-            {{
-  ""a"": ""a second string"",
-  ""b"": 20
-}}
-          ]
-        }}
-      ]";
+            DatasetCapture.RegisterAnnotationDefinition(def);
+            var asyncFuture = sensorHandle.ReportAnnotationAsync(def);
 
-            var ego = DatasetCapture.RegisterEgo("");
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
-
-            Assert.IsTrue(asyncAnnotation.IsPending);
-            asyncAnnotation.ReportValues(values);
-            Assert.IsFalse(asyncAnnotation.IsPending);
+            Assert.IsTrue(asyncFuture.IsPending());
+            asyncFuture.Report(ann);
+            Assert.IsFalse(asyncFuture.IsPending());
+            yield return null;                            // TODO why does removing this cause us to spiral out for eternity
             DatasetCapture.ResetSimulation();
 
-            var capturesPath = Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json");
+            Assert.IsFalse(sensorHandle.IsValid);
 
-            FileAssert.Exists(capturesPath);
-            StringAssert.Contains(TestHelper.NormalizeJson(expectedAnnotation), EscapeGuids(File.ReadAllText(capturesPath)));
+            var rgb = collector.currentRun.frames.First().sensors.First() as RgbSensor;
+            Assert.NotNull(rgb);
+
+            Assert.NotNull(rgb.annotations);
+            Assert.AreEqual(1, rgb.annotations.Count());
+            var tAnn = rgb.annotations.First() as TestAnnotation;
+            Assert.NotNull(tAnn);
+
+            Assert.AreEqual(2, tAnn.entries.Count);
+
+            Assert.AreEqual("a string", tAnn.entries[0].a);
+            Assert.AreEqual(10, tAnn.entries[0].b);
+            Assert.AreEqual("a second string", tAnn.entries[1].a);
+            Assert.AreEqual(20, tAnn.entries[1].b);
         }
 
         [UnityTest]
         public IEnumerator AnnotationAsyncReportResult_FindsCorrectPendingCaptureAfterStartingNewSequence()
         {
-            const string fileName = "my/file.png";
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
 
-            var value = new[]
-            {
-                new TestValues()
-                {
-                    a = "a string",
-                    b = 10
-                }
-            };
+            var def = new TestDef();
+            DatasetCapture.RegisterAnnotationDefinition(def);
 
-            var ego = DatasetCapture.RegisterEgo("");
-            var annotationDefinition = DatasetCapture.RegisterAnnotationDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
 
             // Record one capture for this frame
-            sensorHandle.ReportCapture(fileName, default);
+            var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
+            sensorHandle.ReportSensor(sensor);
 
             // Wait one frame
             yield return null;
@@ -502,120 +543,116 @@ namespace GroundTruthTests
             DatasetCapture.StartNewSequence();
 
             // Record a new capture on different frame that has the same step (0) as the first capture
-            sensorHandle.ReportCapture(fileName, default);
+            sensorHandle.ReportSensor(sensor);
+
+            var ann = new TestAnnotation()
+            {
+                entries = new List<TestAnnotation.Entry>()
+                {
+                    new TestAnnotation.Entry { a = "a string", b = 10 },
+                    new TestAnnotation.Entry { a = "a second string", b = 20 }
+                }
+            };
 
             // Confirm that the annotation correctly skips the first pending capture to write to the second
-            var asyncAnnotation = sensorHandle.ReportAnnotationAsync(annotationDefinition);
-            Assert.DoesNotThrow(() => asyncAnnotation.ReportValues(value));
+            var asyncAnnotation = sensorHandle.ReportAnnotationAsync(def);
+            Assert.DoesNotThrow(() => asyncAnnotation.Report(ann));
+            sensorHandle.ReportSensor(sensor);
             DatasetCapture.ResetSimulation();
+
         }
+
 
         [Test]
         public void CreateAnnotation_MultipleTimes_WritesProperTypeOnce()
         {
-            var annotationDefinitionGuid = new Guid(10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
+            DatasetCapture.ResetSimulation();
 
-            var annotationDefinitionsJsonExpected =
-                $@"{{
-  ""version"": ""{DatasetCapture.SchemaVersion}"",
-  ""annotation_definitions"": [
-    {{
-      ""id"": ""{annotationDefinitionGuid}"",
-      ""name"": ""name"",
-      ""format"": ""json""
-    }}
-  ]
-}}";
-            var annotationDefinition1 = DatasetCapture.RegisterAnnotationDefinition("name", id: annotationDefinitionGuid);
-            var annotationDefinition2 = DatasetCapture.RegisterAnnotationDefinition("name", id: annotationDefinitionGuid);
+            var def1 = new TestDef();
+            var def2 = new TestDef();
+            DatasetCapture.RegisterAnnotationDefinition(def1);
+            DatasetCapture.RegisterAnnotationDefinition(def2);
 
             DatasetCapture.ResetSimulation();
 
-            var annotationDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, "annotation_definitions.json");
+            Assert.AreNotEqual(def1.id, def2.id);
+            Assert.AreEqual("annotation_test", def1.id);
+            Assert.AreEqual("annotation_test_0", def2.id);
 
-            Assert.AreEqual(annotationDefinition1, annotationDefinition2);
-            Assert.AreEqual(annotationDefinitionGuid, annotationDefinition1.Id);
-            Assert.AreEqual(annotationDefinitionGuid, annotationDefinition2.Id);
-            AssertJsonFileEquals(annotationDefinitionsJsonExpected, annotationDefinitionsPath, false);
+            Assert.AreEqual(2, collector.annotationDefinitions.Count);
+            Assert.AreEqual(def1.id, collector.annotationDefinitions[0].id);
+            Assert.AreEqual(def2.id, collector.annotationDefinitions[1].id);
         }
 
         [Test]
         public void CreateAnnotation_MultipleTimesWithDifferentParameters_WritesProperTypes()
         {
-            var annotationDefinitionGuid = new Guid(10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
-            var annotationDefinitionsJsonExpected =
-                $@"{{
-  ""version"": ""{DatasetCapture.SchemaVersion}"",
-  ""annotation_definitions"": [
-    {{
-      ""id"": <guid>,
-      ""name"": ""name"",
-      ""format"": ""json""
-    }},
-    {{
-      ""id"": <guid>,
-      ""name"": ""name2"",
-      ""description"": ""description"",
-      ""format"": ""json""
-    }}
-  ]
-}}";
-            var annotationDefinition1 = DatasetCapture.RegisterAnnotationDefinition("name", id: annotationDefinitionGuid);
-            var annotationDefinition2 = DatasetCapture.RegisterAnnotationDefinition("name2", description: "description");
-
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var annotationDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, "annotation_definitions.json");
+            var def1 = new TestDef();
+            var def2 = new TestDef2();
 
-            Assert.AreEqual(annotationDefinitionGuid, annotationDefinition1.Id);
-            Assert.AreNotEqual(default(Guid), annotationDefinition2.Id);
+            DatasetCapture.RegisterAnnotationDefinition(def1);
+            DatasetCapture.RegisterAnnotationDefinition(def2);
 
-            AssertJsonFileEquals(annotationDefinitionsJsonExpected, annotationDefinitionsPath);
+            DatasetCapture.ResetSimulation();
+            Assert.AreNotEqual(def1.id, def2.id);
+            Assert.AreEqual("annotation_test", def1.id);
+            Assert.AreEqual("test2", def2.id);
+
+            Assert.AreEqual(2, collector.annotationDefinitions.Count);
+            Assert.AreEqual(def1.id, collector.annotationDefinitions[0].id);
+            Assert.AreEqual(def2.id, collector.annotationDefinitions[1].id);
+        }
+
+        class TestMetricDef : MetricDefinition
+        {
+            public TestMetricDef() : base("test", "counting things") {}
         }
 
         [Test]
         public void ReportMetricValues_WhenCaptureNotExpected_Throws()
         {
-            var ego = DatasetCapture.RegisterEgo("");
-            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
-            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetric(metricDefinition, new int[0]));
+            var def = new TestMetricDef();
+            DatasetCapture.RegisterMetric(def);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            var metric = new GenericMetric(1, def);
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetric(def, metric));
         }
 
         [Test]
         public void ReportMetricAsync_WhenCaptureNotExpected_Throws()
         {
-            var ego = DatasetCapture.RegisterEgo("");
-            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
-            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetricAsync(metricDefinition));
-        }
-
-        [Test]
-        public void ResetSimulation_WithUnreportedMetricAsync_LogsError()
-        {
-            var ego = DatasetCapture.RegisterEgo("");
-            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            sensorHandle.ReportMetricAsync(metricDefinition);
-            DatasetCapture.ResetSimulation();
-            LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending .*"));
+            var def = new TestMetricDef();
+            DatasetCapture.RegisterMetric(def);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetricAsync(def));
         }
 
         [Test]
         public void MetricAsyncIsValid_ReturnsProperValue()
         {
-            LogAssert.ignoreFailingMessages = true; //we aren't worried about "Simulation ended with pending..."
-
-            var ego = DatasetCapture.RegisterEgo("");
-            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensorHandle = DatasetCapture.RegisterSensor(ego, "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            var asyncMetric = sensorHandle.ReportMetricAsync(metricDefinition);
-
-            Assert.IsTrue(asyncMetric.IsValid);
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
-            Assert.IsFalse(asyncMetric.IsValid);
+
+            LogAssert.ignoreFailingMessages = true; //we are not worried about timing out
+
+            var def = new TestMetricDef();
+            DatasetCapture.RegisterMetric(def);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var asyncMetric = sensorHandle.ReportMetricAsync(def);
+            Assert.IsTrue(asyncMetric.IsValid());
+
+            DatasetCapture.ResetSimulation();
+            Assert.IsFalse(asyncMetric.IsValid());
         }
 
         public enum MetricTarget
@@ -628,179 +665,289 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator MetricReportValues_WithNoReportsInFrames_DoesNotIncrementStep()
         {
-            var values = new[] { 1 };
-
-            var expectedLine = @"""step"": 0";
-
-            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-
-            yield return null;
-            yield return null;
-            yield return null;
-            DatasetCapture.ReportMetric(metricDefinition, values);
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
             DatasetCapture.ResetSimulation();
 
-            var text = File.ReadAllText(Path.Combine(DatasetCapture.OutputDirectory, "metrics_000.json"));
-            StringAssert.Contains(expectedLine, text);
+            var def = new TestMetricDef();
+            DatasetCapture.RegisterMetric(def);
+
+            var boolDef = new MetricDefinition("bool_def", "bool_def");
+            var boolDef2 = new MetricDefinition("bool_def2", "bool_def2");
+            var boolArrayDef = new MetricDefinition("bool_array_def", "bool_array_def");
+            var vec3Def = new MetricDefinition("vec3_def", "vec3_def");
+
+            var sensorHandle = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+
+            yield return null;
+            yield return null;
+            yield return null;
+
+            var metric = new GenericMetric(1, def);
+            DatasetCapture.ReportMetric(def, metric);
+
+            var m2 = new GenericMetric(true, boolDef);
+            DatasetCapture.ReportMetric(boolDef, m2);
+
+            var m3 = new GenericMetric(new[] {true, true, false}, boolArrayDef);
+            DatasetCapture.ReportMetric(boolArrayDef, m3);
+
+            var m4 = new GenericMetric(new Vector3(20f, 80f, 111f), vec3Def);
+            DatasetCapture.ReportMetric(vec3Def, m4);
+
+            var m5 = new GenericMetric(false, boolDef2);
+            DatasetCapture.ReportMetric(boolDef2, m5);
+
+            DatasetCapture.ResetSimulation();
+
+            Assert.AreEqual(1, collector.currentRun.frames.Count);
+            var f = collector.currentRun.frames.First();
+            Assert.AreEqual(5, f.metrics.Count);
+
+            foreach (var m in f.metrics)
+            {
+                switch (m.id)
+                {
+                    case "test":
+                        Assert.AreEqual(1, m.GetValues<int>().Length);
+                        break;
+                    case "bool_def":
+                        Assert.AreEqual(1, m.GetValues<bool>().Length);
+                        Assert.IsTrue(m.GetValues<bool>().First());
+                        break;
+                    case "bool_def2":
+                        Assert.AreEqual(1, m.GetValues<bool>().Length);
+                        Assert.IsFalse(m.GetValues<bool>().First());
+                        break;
+                    case "bool_array_def":
+                        Assert.AreEqual(3, m.GetValues<bool>().Length);
+                        var vals = m.GetValues<bool>();
+                        Assert.AreEqual(3, vals.Length);
+                        Assert.IsTrue(vals[0]);
+                        Assert.IsTrue(vals[1]);
+                        Assert.IsFalse(vals[2]);
+                        break;
+                    case "vec3_def":
+                        var vals2 = m.GetValues<float>();
+                        Assert.AreEqual(3, vals2.Length);
+                        Assert.AreEqual(20f, vals2[0]);
+                        Assert.AreEqual(80f, vals2[1]);
+                        Assert.AreEqual(111f, vals2[2]);
+                        break;
+                }
+            }
         }
 
         [UnityTest]
         public IEnumerator SensorHandleReportMetric_BeforeReportCapture_ReportsProperJson()
         {
-            var values = new[] { 1 };
-
-            var expectedLine = @"""step"": 0";
-
-            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensor = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-
-            yield return null;
-            sensor.ReportMetric(metricDefinition, values);
-            sensor.ReportCapture("file", new SensorSpatialData(Pose.identity, Pose.identity, null, null));
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
             DatasetCapture.ResetSimulation();
 
-            var metricsTest = File.ReadAllText(Path.Combine(DatasetCapture.OutputDirectory, "metrics_000.json"));
-            var captures = File.ReadAllText(Path.Combine(DatasetCapture.OutputDirectory, "captures_000.json"));
-            StringAssert.Contains(expectedLine, metricsTest);
-            StringAssert.Contains(expectedLine, captures);
+            // DatasetCapture.automaticShutdown = false;
+
+            var def = new TestMetricDef();
+            DatasetCapture.RegisterMetric(def);
+
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+
+
+
+
+
+            // var values = new[] { 1 };
+            //
+            // var expectedLine = @"""step"": 0";
+
+            // var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
+            // var sensor = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+
+            yield return null;
+            var metric = new GenericMetric(1, def);
+            sensorHandle.ReportMetric(def, metric);
+            var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
+            sensorHandle.ReportSensor(sensor);
+
+
+            //sensorHandle.ReportCapture("file", new SensorSpatialData(Pose.identity, Pose.identity, null, null));
+            DatasetCapture.ResetSimulation();
+
+            var first = collector.currentRun.frames.First();
+            Assert.NotNull(first);
+            Assert.NotNull(first.metrics);
+            Assert.NotZero(first.metrics.Count());
         }
 
-        [Test]
-        public void MetricAsyncReportValues_ReportsProperJson(
-            [Values(MetricTarget.Global, MetricTarget.Capture, MetricTarget.Annotation)] MetricTarget metricTarget,
-            [Values(true, false)] bool async,
-            [Values(true, false)] bool asStringJsonArray)
+        class TestMetric2Entry : IMessageProducer
         {
-            var values = new[]
+            public string a;
+            public int b;
+            public void ToMessage(IMessageBuilder builder)
             {
-                new TestValues()
+                builder.AddString("a", a);
+                builder.AddInt("b", b);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator MetricAsyncReportValues_ReportsProperJson(
+            [Values(MetricTarget.Global, MetricTarget.Capture, MetricTarget.Annotation)] MetricTarget metricTarget,
+            [Values(true, false)] bool async)
+        {
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            DatasetCapture.ResetSimulation();
+
+            var metDef = new TestMetricDef();
+
+            var values = new IMessageProducer[]
+            {
+                new TestMetric2Entry
                 {
                     a = "a string",
                     b = 10
                 },
-                new TestValues()
+                new TestMetric2Entry
                 {
                     a = "a second string",
                     b = 20
                 },
             };
 
-            var expectedMetric = $@"{{
-  ""version"": ""0.0.1"",
-  ""metrics"": [
-    {{
-      ""capture_id"": {(metricTarget == MetricTarget.Annotation || metricTarget == MetricTarget.Capture ? "<guid>" : "null")},
-      ""annotation_id"": {(metricTarget == MetricTarget.Annotation ? "<guid>" : "null")},
-      ""sequence_id"": <guid>,
-      ""step"": 0,
-      ""metric_definition"": <guid>,
-      ""values"": [
-        {{
-          ""a"": ""a string"",
-          ""b"": 10
-        }},
-        {{
-          ""a"": ""a second string"",
-          ""b"": 20
-        }}
-      ]
-    }}
-  ]
-}}";
+            var metric = new GenericMetric(values, metDef);
 
-            var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            var sensor = DatasetCapture.RegisterSensor(DatasetCapture.RegisterEgo(""), "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            var annotation = sensor.ReportAnnotationFile(DatasetCapture.RegisterAnnotationDefinition(""), "");
-            var valuesJsonArray = JArray.FromObject(values).ToString(Formatting.Indented);
+            DatasetCapture.RegisterMetric(metDef);
+            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var annDef = new TestDef();
+            DatasetCapture.RegisterAnnotationDefinition(annDef);
+
+            var ann = new TestAnnotation()
+            {
+                entries = new List<TestAnnotation.Entry>()
+                {
+                    new TestAnnotation.Entry { a = "a string", b = 10 },
+                    new TestAnnotation.Entry { a = "a second string", b = 20 }
+                }
+            };
+
+            var annotationHandle = sensorHandle.ReportAnnotation(annDef, ann);
+            var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
+            sensorHandle.ReportSensor(sensor);
+
             if (async)
             {
-                AsyncMetric asyncMetric;
+                AsyncFuture<Metric> asyncMetric;
                 switch (metricTarget)
                 {
                     case MetricTarget.Global:
-                        asyncMetric = DatasetCapture.ReportMetricAsync(metricDefinition);
+                        asyncMetric = DatasetCapture.ReportMetric(metDef);
                         break;
                     case MetricTarget.Capture:
-                        asyncMetric = sensor.ReportMetricAsync(metricDefinition);
+                        asyncMetric = sensorHandle.ReportMetricAsync(metDef);
                         break;
                     case MetricTarget.Annotation:
-                        asyncMetric = annotation.ReportMetricAsync(metricDefinition);
+                        asyncMetric = annotationHandle.ReportMetricAsync(metDef);
                         break;
                     default:
                         throw new Exception("unsupported");
                 }
 
-                Assert.IsTrue(asyncMetric.IsPending);
-                if (asStringJsonArray)
-                    asyncMetric.ReportValues(valuesJsonArray);
-                else
-                    asyncMetric.ReportValues(values);
-
-                Assert.IsFalse(asyncMetric.IsPending);
+                Assert.IsTrue(asyncMetric.IsPending());
+                asyncMetric.Report(metric);
+                Assert.IsFalse(asyncMetric.IsPending());
             }
             else
             {
                 switch (metricTarget)
                 {
                     case MetricTarget.Global:
-                        if (asStringJsonArray)
-                            DatasetCapture.ReportMetric(metricDefinition, valuesJsonArray);
-                        else
-                            DatasetCapture.ReportMetric(metricDefinition, values);
+                        DatasetCapture.ReportMetric(metDef, metric);
                         break;
                     case MetricTarget.Capture:
-                        if (asStringJsonArray)
-                            sensor.ReportMetric(metricDefinition, valuesJsonArray);
-                        else
-                            sensor.ReportMetric(metricDefinition, values);
+                        sensorHandle.ReportMetric(metDef, metric);
                         break;
                     case MetricTarget.Annotation:
-                        if (asStringJsonArray)
-                            annotation.ReportMetric(metricDefinition, valuesJsonArray);
-                        else
-                            annotation.ReportMetric(metricDefinition, values);
+                        annotationHandle.ReportMetric(metDef, metric);
                         break;
                     default:
                         throw new Exception("unsupported");
                 }
             }
+
+            yield return null; // Need to advance one frame to allow for the simulation state to start
             DatasetCapture.ResetSimulation();
 
-            AssertJsonFileEquals(expectedMetric, Path.Combine(DatasetCapture.OutputDirectory, "metrics_000.json"), escapeGuids: true, ignoreFormatting: true);
+            var first = collector.currentRun.frames.First();
+            Assert.NotNull(first);
+            var foundSensor = first.sensors.First();
+            Assert.NotNull(first.metrics);
+            Assert.NotZero(first.metrics.Count);
+
+            var m = first.metrics.First();
+            Assert.NotNull(m);
+
+            switch (metricTarget)
+            {
+                case MetricTarget.Global:
+                    Assert.IsTrue(string.IsNullOrEmpty(m.sensorId));
+                    Assert.IsTrue(string.IsNullOrEmpty(m.annotationId));
+                    break;
+                case MetricTarget.Capture:
+                    Assert.IsTrue(string.IsNullOrEmpty(m.annotationId));
+                    Assert.AreEqual("camera", m.sensorId);
+                    break;
+                case MetricTarget.Annotation:
+                    Assert.AreEqual("camera", m.sensorId);
+                    Assert.AreEqual("annotation_test", m.annotationId);
+                    break;
+                default:
+                    throw new Exception("unsupported");
+            }
+
+            var metricValues = m.GetValues<TestMetric2Entry>();
+
+            Assert.AreEqual(2, metricValues.Length);
+
+            var v0 = metricValues[0];
+            var v1 = metricValues[1];
+
+            Assert.AreEqual("a string", v0.a);
+            Assert.AreEqual(10, v0.b);
+            Assert.AreEqual("a second string", v1.a);
+            Assert.AreEqual(20, v1.b);
         }
+
+        class MetDef1 : MetricDefinition
+        {
+            public MetDef1()
+                : base("name", "name") { }
+        }
+
+        class MetDef2 : MetricDefinition
+        {
+            public MetDef2()
+                : base("name2", "name2") { }
+        }
+
 
         [Test]
         public void CreateMetric_MultipleTimesWithDifferentParameters_WritesProperTypes()
         {
-            var metricDefinitionGuid = new Guid(10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            var md1 = new MetDef1();
+            var md2 = new MetDef2();
+            var md3 = new MetDef1();
 
-            var metricDefinitionsJsonExpected =
-                $@"{{
-  ""version"": ""{DatasetCapture.SchemaVersion}"",
-  ""metric_definitions"": [
-    {{
-      ""id"": <guid>,
-      ""name"": ""name""
-    }},
-    {{
-      ""id"": <guid>,
-      ""name"": ""name2"",
-      ""description"": ""description""
-    }}
-  ]
-}}";
-            var metricDefinition1 = DatasetCapture.RegisterMetricDefinition("name", id: metricDefinitionGuid);
-            var metricDefinition2 = DatasetCapture.RegisterMetricDefinition("name2", description: "description");
+            DatasetCapture.RegisterMetric(md1);
+            DatasetCapture.RegisterMetric(md3);
+            DatasetCapture.RegisterMetric(md2);
 
             DatasetCapture.ResetSimulation();
 
-            var metricDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, "metric_definitions.json");
-
-            Assert.AreEqual(metricDefinitionGuid, metricDefinition1.Id);
-            Assert.AreNotEqual(default(Guid), metricDefinition2.Id);
-
-            AssertJsonFileEquals(metricDefinitionsJsonExpected, metricDefinitionsPath);
+            Assert.AreEqual("name", md1.id);
+            Assert.AreEqual("name2", md2.id);
+            Assert.AreNotEqual("name", md3.id);
+            Assert.AreEqual("name_0", md3.id);
         }
 
         struct TestSpec
@@ -814,6 +961,23 @@ namespace GroundTruthTests
         {
             Annotation,
             Metric
+        }
+
+        class A1 : AnnotationDefinition
+        {
+            public override string modelType => "A1";
+            public override string description => "description";
+            public TestSpec[] specValues;
+
+            public A1() : base("id") { }
+        }
+
+        class M1 : MetricDefinition
+        {
+            public TestSpec[] specValues;
+
+            public M1()
+                : base("id", "description") { }
         }
 
         [Test]
@@ -836,79 +1000,72 @@ namespace GroundTruthTests
                 }
             };
 
-            string filename;
-            string jsonContainerName;
+            var collector = new CollectEndpoint();
+            DatasetCapture.OverrideEndpoint(collector);
+            DatasetCapture.ResetSimulation();
+
             if (additionalInfoKind == AdditionalInfoKind.Annotation)
             {
-                DatasetCapture.RegisterAnnotationDefinition("name", specValues);
-                filename = "annotation_definitions.json";
-                jsonContainerName = "annotation_definitions";
+                var ad = new A1
+                {
+                    specValues = specValues
+                };
+                DatasetCapture.RegisterAnnotationDefinition(ad);
             }
             else
             {
-                DatasetCapture.RegisterMetricDefinition("name", specValues);
-                filename = "metric_definitions.json";
-                jsonContainerName = "metric_definitions";
-            }
-            var additionalInfoString = (additionalInfoKind == AdditionalInfoKind.Annotation ? @"
-      ""format"": ""json""," : null);
+                var md = new M1
+                {
+                    specValues = specValues
+                };
 
-            var annotationDefinitionsJsonExpected =
-                $@"{{
-  ""version"": ""{DatasetCapture.SchemaVersion}"",
-  ""{jsonContainerName}"": [
-    {{
-      ""id"": <guid>,
-      ""name"": ""name"",{additionalInfoString}
-      ""spec"": [
-        {{
-          ""label_id"": 1,
-          ""label_name"": ""sky"",
-          ""pixel_value"": [
-            1,
-            2,
-            3
-          ]
-        }},
-        {{
-          ""label_id"": 2,
-          ""label_name"": ""sidewalk"",
-          ""pixel_value"": [
-            4,
-            5,
-            6
-          ]
-        }}
-      ]
-    }}
-  ]
-}}";
+                DatasetCapture.RegisterMetric(md);
+            }
+
             DatasetCapture.ResetSimulation();
 
-            var annotationDefinitionsPath = Path.Combine(DatasetCapture.OutputDirectory, filename);
+            if (additionalInfoKind == AdditionalInfoKind.Annotation)
+            {
+                Assert.AreEqual(1, collector.annotationDefinitions.Count);
+                var a = collector.annotationDefinitions.First() as A1;
+                Assert.NotNull(a);
+                Assert.AreEqual(2, a.specValues.Length);
 
-            AssertJsonFileEquals(annotationDefinitionsJsonExpected, annotationDefinitionsPath);
-        }
+                Assert.AreEqual(1, a.specValues[0].label_id);
+                Assert.AreEqual("sky", a.specValues[0].label_name);
+                Assert.AreEqual(3, a.specValues[0].pixel_value.Count());
+                Assert.AreEqual(1, a.specValues[0].pixel_value[0]);
+                Assert.AreEqual(2, a.specValues[0].pixel_value[1]);
+                Assert.AreEqual(3, a.specValues[0].pixel_value[2]);
 
-        static void AssertJsonFileEquals(string jsonExpected, string jsonPath, bool escapeGuids = true, bool ignoreFormatting = false)
-        {
-            FileAssert.Exists(jsonPath);
-            var jsonActual = File.ReadAllText(jsonPath);
-            if (escapeGuids)
-                jsonActual = EscapeGuids(jsonActual);
+                Assert.AreEqual(2, a.specValues[1].label_id);
+                Assert.AreEqual("sidewalk", a.specValues[1].label_name);
+                Assert.AreEqual(3, a.specValues[1].pixel_value.Count());
+                Assert.AreEqual(4, a.specValues[1].pixel_value[0]);
+                Assert.AreEqual(5, a.specValues[1].pixel_value[1]);
+                Assert.AreEqual(6, a.specValues[1].pixel_value[2]);
+            }
+            else
+            {
+                Assert.AreEqual(1, collector.metricDefinitions.Count);
+                var a = collector.metricDefinitions.First() as M1;
+                Assert.NotNull(a);
+                Assert.AreEqual(2, a.specValues.Length);
 
+                Assert.AreEqual(1, a.specValues[0].label_id);
+                Assert.AreEqual("sky", a.specValues[0].label_name);
+                Assert.AreEqual(3, a.specValues[0].pixel_value.Count());
+                Assert.AreEqual(1, a.specValues[0].pixel_value[0]);
+                Assert.AreEqual(2, a.specValues[0].pixel_value[1]);
+                Assert.AreEqual(3, a.specValues[0].pixel_value[2]);
 
-            jsonActual = TestHelper.NormalizeJson(jsonActual, ignoreFormatting);
-            jsonExpected = TestHelper.NormalizeJson(jsonExpected, ignoreFormatting);
-
-            Assert.AreEqual(jsonExpected, jsonActual, $"Expected:\n{jsonExpected}\nActual:\n{jsonActual}");
-        }
-
-        static string EscapeGuids(string text)
-        {
-            var result = Regex.Replace(text, @"""[a-z0-9]*-[a-z0-9]*-[a-z0-9]*-[a-z0-9]*-[a-z0-9]*""", "<guid>");
-            result = TestHelper.NormalizeJson(result);
-            return result;
+                Assert.AreEqual(2, a.specValues[1].label_id);
+                Assert.AreEqual("sidewalk", a.specValues[1].label_name);
+                Assert.AreEqual(3, a.specValues[1].pixel_value.Count());
+                Assert.AreEqual(4, a.specValues[1].pixel_value[0]);
+                Assert.AreEqual(5, a.specValues[1].pixel_value[1]);
+                Assert.AreEqual(6, a.specValues[1].pixel_value[2]);
+            }
         }
     }
 }

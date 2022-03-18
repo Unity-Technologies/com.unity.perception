@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Globalization;
+using UnityEngine.UIElements;
 
-namespace UnityEngine.UIElements
+namespace UnityEngine.Perception.UIElements
 {
     /// <summary>
     ///     <para>Describes a XML int attribute.</para>
     /// </summary>
-    class UxmlUIntAttributeDescription : TypedUxmlAttributeDescription<uint>
+    public class UxmlUIntAttributeDescription : TypedUxmlAttributeDescription<uint>
     {
         /// <summary>
         ///     <para>Constructor.</para>

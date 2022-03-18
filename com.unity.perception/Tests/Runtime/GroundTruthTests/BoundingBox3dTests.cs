@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.TestTools;
 
 namespace GroundTruthTests
@@ -16,12 +17,12 @@ namespace GroundTruthTests
     {
         const float k_Delta = 0.0001f;
 
-        static string PrintBox(BoundingBox3DLabeler.BoxData box)
+        static string PrintBox(BoundingBox3D box)
         {
             var sb = new StringBuilder();
-            sb.Append("label id: " + box.label_id + " ");
-            sb.Append("label_name: " + box.label_name + " ");
-            sb.Append("instance_id: " + box.instance_id + " ");
+            sb.Append("label id: " + box.labelId + " ");
+            sb.Append("label_name: " + box.labelName + " ");
+            sb.Append("instance_id: " + box.instanceId + " ");
             sb.Append("translation: (" + box.translation[0] + ", " + box.translation[1] + ", " + box.translation[2] + ") ");
             sb.Append("size: (" + box.size[0] + ", " + box.size[1] + ", " + box.size[2] + ") ");
             sb.Append("rotation: " + box.rotation[0] + ", " + box.rotation[1] + ", " + box.rotation[2] + ", " + box.rotation[3] + ") ");
@@ -297,7 +298,7 @@ namespace GroundTruthTests
             goCameraParent.transform.localScale = parentedTestData.cameraParentScale;
             goCameraParent.transform.localRotation = parentedTestData.cameraParentRotation;
 
-            var receivedResults = new List<(int, List<BoundingBox3DLabeler.BoxData>)>();
+            var receivedResults = new List<(int, List<BoundingBox3D>)>();
             var cameraObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
             {
                 receivedResults.Add((frame, data));
@@ -392,7 +393,6 @@ namespace GroundTruthTests
             return ExecuteSeenUnseenTest(target, Vector3.zero, quaternion.identity, 0);
         }
 
-
         struct ExpectedResult
         {
             public int labelId;
@@ -405,7 +405,7 @@ namespace GroundTruthTests
 
         IEnumerator ExecuteSeenUnseenTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, int expectedSeen)
         {
-            var receivedResults = new List<(int, List<BoundingBox3DLabeler.BoxData>)>();
+            var receivedResults = new List<(int, List<BoundingBox3D>)>();
             var gameObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
             {
                 receivedResults.Add((frame, data));
@@ -431,7 +431,10 @@ namespace GroundTruthTests
 
         IEnumerator ExecuteTest(GameObject target, Vector3 cameraPos, Quaternion cameraRotation, IList<ExpectedResult> expectations)
         {
-            var receivedResults = new List<(int, List<BoundingBox3DLabeler.BoxData>)>();
+            DatasetCapture.OverrideEndpoint(new CollectEndpoint());
+            DatasetCapture.ResetSimulation(); // Need to run this so that we will create a new sim state with our proper endpoint
+
+            var receivedResults = new List<(int, List<BoundingBox3D>)>();
             var gameObject = SetupCamera(SetupLabelConfig(), (frame, data) =>
             {
                 receivedResults.Add((frame, data));
@@ -444,8 +447,10 @@ namespace GroundTruthTests
         }
 
         private IEnumerator ExecuteTestOnCamera(GameObject target, IList<ExpectedResult> expectations, GameObject cameraObject,
-            List<(int, List<BoundingBox3DLabeler.BoxData>)> receivedResults)
+            List<(int, List<BoundingBox3D>)> receivedResults)
         {
+
+
             AddTestObjectForCleanup(cameraObject);
             AddTestObjectForCleanup(target);
 
@@ -462,9 +467,9 @@ namespace GroundTruthTests
             {
                 var b = receivedResults[0].Item2[i];
 
-                Assert.AreEqual(expectations[i].labelId, b.label_id);
-                Assert.AreEqual(expectations[i].labelName, b.label_name);
-                Assert.AreEqual(expectations[i].instanceId, b.instance_id);
+                Assert.AreEqual(expectations[i].labelId, b.labelId);
+                Assert.AreEqual(expectations[i].labelName, b.labelName);
+                Assert.AreEqual(expectations[i].instanceId, b.instanceId);
                 TestResults(b, expectations[i]);
             }
 
@@ -497,7 +502,7 @@ namespace GroundTruthTests
             return labelConfig;
         }
 
-        static GameObject SetupCamera(IdLabelConfig config, Action<int, List<BoundingBox3DLabeler.BoxData>> computeListener)
+        static GameObject SetupCamera(IdLabelConfig config, Action<int, List<BoundingBox3D>> computeListener)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
@@ -518,7 +523,7 @@ namespace GroundTruthTests
             return cameraObject;
         }
 
-        static void TestResults(BoundingBox3DLabeler.BoxData data, ExpectedResult e)
+        static void TestResults(BoundingBox3D data, ExpectedResult e)
         {
             Assert.IsNotNull(data);
             Assert.AreEqual(e.position[0], data.translation[0], k_Delta);

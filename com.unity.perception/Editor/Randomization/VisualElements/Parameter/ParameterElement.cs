@@ -10,6 +10,7 @@ namespace UnityEditor.Perception.Randomization
 {
     class ParameterElement : VisualElement
     {
+        const string k_DragReceivedClass = "drag__receiving";
         VisualElement m_PropertiesContainer;
         SerializedProperty m_SerializedProperty;
 
@@ -67,8 +68,51 @@ namespace UnityEditor.Perception.Randomization
             listView.style.flexGrow = 1.0f;
             listView.style.height = new StyleLength(listView.itemHeight * 4);
 
-            var uniformToggle = template.Q<Toggle>("uniform");
+            // Enable dragging behavior
+            // When the mouse enters the visual element, show a visual indication that it can be dropped
+            listView.RegisterCallback<DragEnterEvent>((e) =>
+            {
+                listView.AddToClassList(k_DragReceivedClass);
+            });
+            // If the mouse leaves the visual element, remove the visual indication
+            listView.RegisterCallback<DragLeaveEvent>((e) =>
+            {
+                listView.RemoveFromClassList(k_DragReceivedClass);
+                DragAndDrop.visualMode = DragAndDropVisualMode.None;
+            });
+            // DragPerform only gets called if the visual mode is not "None" or "Rejected"
+            listView.RegisterCallback<DragUpdatedEvent>((e) =>
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+            });
+            // When the mouse releases on the visual element, drop the items in
+            listView.RegisterCallback<DragPerformEvent>((e) =>
+            {
+                listView.RemoveFromClassList(k_DragReceivedClass);
+                var acceptedDropType = categoricalParameter.sampleType;
 
+                foreach (var objectReference in DragAndDrop.objectReferences)
+                {
+                    if (objectReference.GetType() == acceptedDropType)
+                    {
+                        probabilitiesProperty.arraySize++;
+                        optionsProperty.arraySize++;
+
+                        var newOption = optionsProperty.GetArrayElementAtIndex(optionsProperty.arraySize - 1);
+                        probabilitiesProperty.GetArrayElementAtIndex(probabilitiesProperty.arraySize - 1).floatValue = 0;
+
+                        newOption.objectReferenceValue = objectReference;
+                    }
+                }
+
+                m_SerializedProperty.serializedObject.ApplyModifiedProperties();
+                listView.itemsSource = categoricalParameter.probabilities;
+                listView.Refresh();
+
+                DragAndDrop.visualMode = DragAndDropVisualMode.None;
+            });
+
+            var uniformToggle = template.Q<Toggle>("uniform");
             VisualElement MakeItem()
             {
                 return new CategoricalOptionElement(

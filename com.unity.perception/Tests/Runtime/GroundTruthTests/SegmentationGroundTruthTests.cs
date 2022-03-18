@@ -1,11 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
-using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Rendering;
@@ -25,28 +23,18 @@ namespace GroundTruthTests
     {
         public RenderTexture source;
         public Camera cameraSource;
-        RenderTextureReader<Color32> m_Reader;
 
         public event Action<int, NativeArray<Color32>> SegmentationImageReceived;
 
         void Awake()
         {
-            m_Reader = new RenderTextureReader<Color32>(source);
-            RenderPipelineManager.endCameraRendering += (context, camera) =>
-                m_Reader.Capture(context,
-                    (frameCount, data, renderTexture) => ImageReadCallback(frameCount, data, renderTexture));
+            RenderPipelineManager.endCameraRendering += (context, cam) =>
+                RenderTextureReader.Capture<Color32>(context, source, ImageReadCallback);
         }
 
         void ImageReadCallback(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)
         {
-            if (SegmentationImageReceived != null)
-                SegmentationImageReceived(frameCount, data);
-        }
-
-        void OnDestroy()
-        {
-            m_Reader.Dispose();
-            m_Reader = null;
+            SegmentationImageReceived?.Invoke(frameCount, data);
         }
     }
 
@@ -62,8 +50,8 @@ namespace GroundTruthTests
     public class SegmentationPassTests : GroundTruthTestBase
     {
         static readonly Color32 k_SemanticPixelValue = new Color32(10, 20, 30, Byte.MaxValue);
-        private static readonly Color32 k_InstanceSegmentationPixelValue = new Color32(255,0,0, 255);
-        private static readonly Color32 k_SkyValue = new Color32(10, 20, 30, 40);
+        static readonly Color32 k_InstanceSegmentationPixelValue = new Color32(255,0,0, 255);
+        static readonly Color32 k_SkyValue = new Color32(10, 20, 30, 40);
 
         public enum SegmentationKind
         {
@@ -161,13 +149,6 @@ namespace GroundTruthTests
             var fLensDistortionEnabled = false;
             var fDone = false;
             var frames = 0;
-#if false
-            var dataBBox = new Color32[]
-            {
-                Color.blue, Color.blue,
-                Color.blue, Color.blue
-            };
-#endif
 
             var boundingBoxWithoutLensDistortion = new Rect();
             var boundingBoxWithLensDistortion = new Rect();
@@ -303,7 +284,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator SemanticSegmentationPass_WithEmptyFrame_ProducesSky([Values(false, true)] bool showVisualizations)
         {
-            int timesSegmentationImageReceived = 0;
+            var timesSegmentationImageReceived = 0;
             var expectedPixelValue = k_SkyValue;
             void OnSegmentationImageReceived(NativeArray<Color32> data)
             {
@@ -311,24 +292,12 @@ namespace GroundTruthTests
                 CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, data.Length), data.ToArray());
             }
 
-            var cameraObject = SetupCameraSemanticSegmentation(a => OnSegmentationImageReceived(a.data), showVisualizations, expectedPixelValue);
+            var cameraObject = SetupCameraSemanticSegmentation(
+                args => OnSegmentationImageReceived(args.data), showVisualizations, expectedPixelValue);
 
-            //TestHelper.LoadAndStartRenderDocCapture(out var gameView);
             yield return null;
-            var segLabeler = (SemanticSegmentationLabeler)cameraObject.GetComponent<PerceptionCamera>().labelers[0];
-            var request = AsyncGPUReadback.Request(segLabeler.targetTexture, callback: r =>
-            {
-                CollectionAssert.AreEqual(Enumerable.Repeat(expectedPixelValue, segLabeler.targetTexture.width * segLabeler.targetTexture.height), r.GetData<Color32>());
-            });
-            AsyncGPUReadback.WaitAllRequests();
 
-            //RenderDoc.EndCaptureRenderDoc(gameView);
-
-            //request.WaitForCompletion();
-            Assert.IsTrue(request.done);
-            Assert.IsFalse(request.hasError);
-
-            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            // Destroy the camera to force all pending segmented image readbacks to finish and events to be fired.
             DestroyTestObject(cameraObject);
             Assert.AreEqual(1, timesSegmentationImageReceived);
         }
@@ -466,72 +435,100 @@ namespace GroundTruthTests
             Assert.AreEqual(1, timesSegmentationImageReceived);
         }
 
+
+        [UnityTest]
+        public IEnumerator SegmentationPass_WithMultiplePerceptionCameras_ProducesCorrectValues(
+            [Values(SegmentationKind.Instance, SegmentationKind.Semantic)] SegmentationKind segmentationKind)
+        {
+            int timesSegmentationImageReceived = 0;
+
+            var color1 = segmentationKind == SegmentationKind.Instance ?
+                k_InstanceSegmentationPixelValue :
+                k_SemanticPixelValue;
+            var color2 = segmentationKind == SegmentationKind.Instance ?
+                new Color32(0, 74, Byte.MaxValue, Byte.MaxValue) :
+                new Color32(0, 0, 0, Byte.MaxValue);
+            void OnCam1SegmentationImageReceived(NativeArray<Color32> data)
+            {
+                CollectionAssert.AreEqual(Enumerable.Repeat(color1, data.Length), data);
+                timesSegmentationImageReceived++;
+            }
+            void OnCam2SegmentationImageReceived(NativeArray<Color32> data)
+            {
+                Assert.AreEqual(color1, data[data.Length / 4]);
+                Assert.AreEqual(color2, data[data.Length * 3 / 4]);
+                timesSegmentationImageReceived++;
+            }
+
+            GameObject cameraObject;
+            GameObject cameraObject2;
+            if (segmentationKind == SegmentationKind.Instance)
+            {
+                cameraObject = SetupCameraInstanceSegmentation((frame, data, renderTexture) => OnCam1SegmentationImageReceived(data));
+                cameraObject2 = SetupCameraInstanceSegmentation((frame, data, renderTexture) => OnCam2SegmentationImageReceived(data));
+            }
+            else
+            {
+                cameraObject = SetupCameraSemanticSegmentation((args) => OnCam1SegmentationImageReceived(args.data), false);
+                cameraObject2 = SetupCameraSemanticSegmentation((args) => OnCam2SegmentationImageReceived(args.data), false);
+            }
+            //position camera to point straight at the top edge of plane1, such that plane1 takes up the bottom half of
+            //the image and plane2 takes up the top half
+            cameraObject2.transform.localPosition = Vector3.up * 10f;
+
+            var plane1 = TestHelper.CreateLabeledPlane(2f);
+            var plane2 = TestHelper.CreateLabeledPlane(2f, "label2");
+            plane2.transform.localPosition = plane2.transform.localPosition + Vector3.up * 20f;
+            AddTestObjectForCleanup(plane1);
+            AddTestObjectForCleanup(plane2);
+            yield return null;
+
+            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            DestroyTestObject(cameraObject);
+            DestroyTestObject(cameraObject2);
+            Assert.AreEqual(2, timesSegmentationImageReceived);
+        }
+
         [UnityTest]
         public IEnumerator SegmentationPassProducesCorrectValuesEachFrame(
             [Values(SegmentationKind.Instance, SegmentationKind.Semantic)] SegmentationKind segmentationKind)
         {
-            int timesSegmentationImageReceived = 0;
-            Dictionary<int, object> expectedLabelAtFrame = null;
-
-            //TestHelper.LoadAndStartRenderDocCapture(out var gameView);
-
-            void OnSegmentationImageReceived<T>(int frameCount, NativeArray<T> data, RenderTexture tex) where T : struct
-            {
-                if (expectedLabelAtFrame == null || !expectedLabelAtFrame.ContainsKey(frameCount)) return;
-
-                timesSegmentationImageReceived++;
-
-                Debug.Log($"Segmentation image received. FrameCount: {frameCount}");
-
-                try
-                {
-                    CollectionAssert.AreEqual(Enumerable.Repeat(expectedLabelAtFrame[frameCount], data.Length), data.ToArray());
-                }
-
-                // ReSharper disable once RedundantCatchClause
-                catch (Exception)
-                {
-                    //uncomment to get RenderDoc captures while this check is failing
-                    //UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(gameView);
-                    throw;
-                }
-            }
-
-            var cameraObject = segmentationKind == SegmentationKind.Instance ?
-                SetupCameraInstanceSegmentation(OnSegmentationImageReceived) :
-                SetupCameraSemanticSegmentation((a) => OnSegmentationImageReceived(a.frameCount, a.data, a.sourceTexture), false);
-
-            //object expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) new Color32(0, 74, 255, 255) : k_SemanticPixelValue;
-            var expectedPixelValue = segmentationKind == SegmentationKind.Instance ? (object) k_InstanceSegmentationPixelValue : k_SemanticPixelValue;
-
-            expectedLabelAtFrame = new Dictionary<int, object>
+            var timesSegmentationImageReceived = 0;
+            var expectedPixelValue = segmentationKind == SegmentationKind.Instance
+                ? k_InstanceSegmentationPixelValue : k_SemanticPixelValue;
+            var expectedBackgroundPixelColorAtFrame = new Dictionary<int, Color32>
             {
                 {Time.frameCount    , expectedPixelValue},
                 {Time.frameCount + 1, expectedPixelValue},
                 {Time.frameCount + 2, expectedPixelValue}
             };
-            GameObject planeObject;
 
-            //Put a plane in front of the camera
-            planeObject = TestHelper.CreateLabeledPlane();
-            yield return null;
+            void OnSegmentationImageReceived(int frameCount, NativeArray<Color32> data, RenderTexture tex)
+            {
+                if (!expectedBackgroundPixelColorAtFrame.ContainsKey(frameCount))
+                    return;
 
-            //UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(gameView);
-            Object.DestroyImmediate(planeObject);
-            planeObject = TestHelper.CreateLabeledPlane();
+                timesSegmentationImageReceived++;
+                var expectedColor = expectedBackgroundPixelColorAtFrame[frameCount];
+                CollectionAssert.AreEqual(Enumerable.Repeat(expectedColor, data.Length), data.ToArray());
+            }
 
-            //TestHelper.LoadAndStartRenderDocCapture(out gameView);
-            yield return null;
+            var cameraObject = segmentationKind == SegmentationKind.Instance ?
+                SetupCameraInstanceSegmentation(OnSegmentationImageReceived) :
+                SetupCameraSemanticSegmentation(args =>
+                    OnSegmentationImageReceived(args.frameCount, args.data, args.sourceTexture), false);
 
-            //UnityEditorInternal.RenderDoc.EndCaptureRenderDoc(gameView);
-            Object.DestroyImmediate(planeObject);
-            planeObject = TestHelper.CreateLabeledPlane();
-            yield return null;
-            Object.DestroyImmediate(planeObject);
-            yield return null;
+            // Put a plane in front of the camera to force the background of the
+            // segmentation images to be a color other than black.
+            var planeObject = TestHelper.CreateLabeledPlane();
 
-            //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
+            // Wait 3 frames
+            for (var i = 0; i < 3; i++)
+                yield return null;
+
+            // Destroy the camera to force all pending segmentation image readbacks and subsequent callbacks to finish
             DestroyTestObject(cameraObject);
+            Object.DestroyImmediate(planeObject);
 
             Assert.AreEqual(3, timesSegmentationImageReceived);
         }

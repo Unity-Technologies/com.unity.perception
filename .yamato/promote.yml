@@ -53,10 +53,10 @@ promote:
   commands:
     - npm install upm-ci-utils@stable -g --registry {{ upmci_registry }}
     - upm-ci package promote --package-path ./com.unity.perception
-#  triggers:
-#    tags:
-#      only:
-#        - /^(r|R)elease-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
+  triggers:
+    tags:
+      only:
+        - /^(r|R)elease-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
   artifacts:
     artifacts:
       paths:

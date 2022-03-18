@@ -304,8 +304,10 @@ namespace UnityEditor.Perception.GroundTruth
     class ConfigElementLabelPresent : VisualElement
     {
         const string k_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
+#pragma warning disable 169
         VisualElement m_Root;
         ObjectField m_ConfigObjectField;
+#pragma warning restore 169
 
         public Label labelElement;
         public ScriptableObject labelConfig;
@@ -346,8 +348,10 @@ namespace UnityEditor.Perception.GroundTruth
     class ConfigElementLabelNotPresent : VisualElement
     {
         const string k_UxmlDir = "Packages/com.unity.perception/Editor/GroundTruth/Uxml/";
+#pragma warning disable 169
         VisualElement m_Root;
         ObjectField m_ConfigObjectField;
+#pragma warning restore 169
         public Label labelElement;
         public ScriptableObject labelConfig;
 

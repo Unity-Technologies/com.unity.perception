@@ -11,10 +11,10 @@ publish:
   commands:
     - npm install upm-ci-utils@stable -g --registry {{ upmci_registry }}
     - upm-ci package publish --package-path com.unity.perception
-#  triggers:
-#    tags:
-#      only:
-#        - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
+  triggers:
+    tags:
+      only:
+        - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
   artifacts:
     artifacts:
       paths:

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
@@ -153,19 +154,28 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// <param name="commandLineArg">The command line argument to look for</param>
         protected void LoadConfigurationFromCommandLine(string commandLineArg="--scenario-config-file")
         {
-            var args = Environment.GetCommandLineArgs();
             var filePath = string.Empty;
-            for (var i = 0; i < args.Length - 1; i++)
+
+            Debug.Log($"application args {string.Join(" ", Environment.GetCommandLineArgs())}");
+            var args = Environment.GetCommandLineArgs();
+            foreach (var arg in args)
             {
-                if (args[i] != "--scenario-config-file")
-                    continue;
-                filePath = args[i + 1];
-                break;
+                if (arg.Contains(commandLineArg))
+                {
+                    var split = arg.Split('=');
+                    if (split.Length != 2)
+                    {
+                        throw new Exception($"Invalid configuration {string.Join(" ", Environment.GetCommandLineArgs())}");
+                    }
+
+                    filePath = split[1];
+                    break;
+                }
             }
 
             if (string.IsNullOrEmpty(filePath))
             {
-                Debug.Log("No --scenario-config-file command line arg specified. " +
+                Debug.Log($"No {commandLineArg} command line arg specified. " +
                     "Proceeding with editor assigned scenario configuration values.");
                 return;
             }
@@ -178,6 +188,16 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// </summary>
         protected virtual void LoadConfigurationAsset()
         {
+            configuration = null;
+
+#if UNITY_SIMULATION_CORE_PRESENT
+            if (Unity.Simulation.Configuration.Instance.IsSimulationRunningInCloud())
+            {
+                var filePath = new Uri(Unity.Simulation.Configuration.Instance.SimulationConfig.app_param_uri).LocalPath;
+                LoadConfigurationFromFile(filePath);
+                return;
+            }
+#endif
             LoadConfigurationFromCommandLine();
         }
 
@@ -272,10 +292,19 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         void Awake()
         {
             activeScenario = this;
+            try
+            {
 #if !UNITY_EDITOR
-            LoadConfigurationAsset();
+                LoadConfigurationAsset();
 #endif
-            DeserializeConfiguration();
+                DeserializeConfiguration();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.Message);
+                Application.Quit();
+            }
+
             OnAwake();
             foreach (var randomizer in activeRandomizers)
                 randomizer.Awake();
@@ -345,7 +374,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             {
                 foreach (var randomizer in activeRandomizers)
                     randomizer.ScenarioComplete();
+
                 OnComplete();
+
                 state = State.Idle;
                 OnIdle();
                 return;

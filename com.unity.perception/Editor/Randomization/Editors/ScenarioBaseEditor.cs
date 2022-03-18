@@ -35,6 +35,37 @@ namespace UnityEditor.Perception.Randomization
 
             m_RandomizerListPlaceholder = m_Root.Q<VisualElement>("randomizer-list-placeholder");
 
+            var progressArea = m_Root.Q<VisualElement>("progress-area");
+            // Only show progress area for fixed length scenarios that are running
+            progressArea.style.display = DisplayStyle.None;
+
+            if (target is FixedLengthScenario fix)
+            {
+                // Because I can't get the progress bar to load from xml for some reason, I had
+                // to create these elements in script
+                var progressBar = new ProgressBar();
+                progressBar.AddToClassList("progress-bar");
+                progressBar.bindingPath = "m_ProgressPercentage";
+                progressBar.Bind(m_SerializedObject);
+                progressArea.Add(progressBar);
+                progressBar.title = $"Scenario Progress";
+                progressBar.SetEnabled(true);
+
+                if (fix.progressPercentage > 0)
+                    progressArea.style.display = DisplayStyle.Flex;
+
+                var listener = new FloatField();
+                listener.bindingPath = "m_ProgressPercentage";
+                progressArea.Bind(m_SerializedObject);
+                progressArea.Add(listener);
+                listener.style.display = DisplayStyle.None;
+
+                listener.RegisterValueChangedCallback(e =>
+                {
+                    progressArea.style.display = e.newValue > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+                });
+            }
+
             CreatePropertyFields();
             CheckIfConstantsExist();
 

@@ -1,15 +1,14 @@
 {
     "name": "Unity.Perception.Runtime",
+    "rootNamespace": "",
     "references": [
         "Unity.Burst",
         "Unity.Collections",
-        "Unity.Entities",
         "Unity.Jobs",
         "Unity.Mathematics",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Universal.Runtime",
-        "Unity.Simulation.Capture",
         "Unity.Simulation.Core"
     ],
     "includePlatforms": [],
@@ -41,6 +40,11 @@
             "name": "com.unity.render-pipelines.high-definition",
             "expression": "9.0",
             "define": "HDRP_9_OR_NEWER"
+        },
+        {
+            "name": "com.unity.simulation.core",
+            "expression": "",
+            "define": "UNITY_SIMULATION_CORE_PRESENT"
         }
     ],
     "noEngineReferences": false

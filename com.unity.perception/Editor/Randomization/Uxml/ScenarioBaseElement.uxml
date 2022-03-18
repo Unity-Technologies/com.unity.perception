@@ -24,5 +24,6 @@
             </VisualElement>
         </VisualElement>
         <VisualElement name="randomizer-list-placeholder" style = "margin-top: 10px"/>
+        <VisualElement name="progress-area" class="progress__dark-viewport"/>
     </VisualElement>
 </UXML>

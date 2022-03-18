@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Globalization;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace UnityEditor.UIElements
+namespace UnityEngine.Perception.UIElements
 {
     /// <summary>
     ///     <para>Makes a text field for entering an unsigned integer.</para>
     /// </summary>
-    class UIntField : TextValueField<uint>
+    public class UIntField : TextValueField<uint>
     {
         /// <summary>
         ///     <para>USS class name of elements of this type.</para>

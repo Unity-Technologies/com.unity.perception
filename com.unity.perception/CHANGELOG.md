@@ -13,19 +13,106 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-The user can now choose the base folder location to store their generated datasets.
+### Changed
 
-Added the AssetSource class for loading assets from generic sources inside randomizers.
+### Deprecated
 
-Users can now choose the base folder location to store their generated datasets.
+### Removed
 
-Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
+### Fixed
 
-Users can now delay the current iteration for one frame from within randomizers by calling the `DelayIteration` function of the active scenario.
+## [0.10.0-preview.1] - 2022-03-09
+
+### Upgrade Notes
+
+### Known Issues
+
+### Added
+
+Added support for consumer endpoints allowing a user to define how they want to generated data to be serialized.
+
+Added perception project settings to allow for different perception settings to be modified, including the selection of an active endpoint.
+
+Added progress bar to the Fixed Length Scenario.
+
+Added the ability to drag and drop items directly onto the UI for Categorical Parameters.
+
+Added required `labelerId` field for all CameraLabelers.
+
+Added additional generic metrics for bool, bool array, and vector3.
+
+An image file format can now be selected for RGB capture, the instance segmentation labeler, and the semantic segmentation labeler.
 
 ### Changed
 
-Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev". Scneario JSON configurations that were generated using previous versions will need to be manually updated to reflect this change.
+Moved FixedLengthScenario.Constants.framesPerIteration into FixedLengthScenario so that it is only controlled by the application.
+
+Changed the dataset capture package to use consumer endpoints instead of only serializing to the perception format.
+
+Changed dataset capture to report data on a per frame basis.
+
+Upgraded com.unity.collections package dependency version to a non-preview release.
+
+Removed dependency on com.unity.simulation packages.
+
+Changed FixedFrameScenario to no longer be cloud specific.
+
+### Deprecated
+
+### Removed
+
+Removed com.unity.simulation.capture package dependency.
+
+Removed com.unity.simulation.core and related dependencies.
+
+Removed Run in Unity Simulation window.
+
+### Fixed
+
+Handled exception from analytics when labeler had an empty label config.
+
+Updated documentation to reflect that the 3D Bounding Box Labeler does not support Skinned Mesh Renderers.
+
+PoissonDiskSampling will no longer generate empty lists of points for editor versions 2020.3.27f1 and above.
+
+Fixed perception endpoint to support multiple cameras.
+
+Fixed potential race condition with annotations being registered from within asynchronous lambda jobs. Image related annotations will now be registered on the main thread in callbacks executed after ImageEncoder jobs have completed.
+
+The PerceptionCamera UI now shows a warning when a missing/null labeler is detected.
+
+
+## [0.9.0-preview.2] - 2021-11-01
+
+### Upgrade Notes
+
+Scenario JSON configurations that were generated using previous versions will need to be manually updated due to updates to serialization and deserialization of scenarios.
+
+### Known Issues
+
+### Added
+
+Added support for multiple cameras capturing simultaneously (visualization not yet supported)
+
+Users can now delay the current iteration for one frame from within randomizers by calling the `DelayIteration` function of the active scenario.
+
+Users can now choose the base folder location to store their generated datasets.
+
+Added new configuration options to the Scenario JSON configuration. These include a `limits` block on numerical Scalars and Samplers to denote a valid range, and a `state` block on the Randomizers for enabling/disabling them from the config.
+
+Added the AssetSource class for loading assets from generic sources inside randomizers.
+
+Added a `projection` field in the capture.sensor metadata. Values are either "perspective" or "orthographic".
+
+Added usage analytics for the scenario configuration. For more information, refer to the Release Notes for package version 0.9.0.preview.2.
+
+### Changed
+
+Upgraded capture package dependency to 0.0.10-preview.24. This fixes an issue where RGB images were blank on OSX when MSAA was enabled & post-processing was disabled.
+
+Changed the JSON serialization key of Normal Sampler's standard deviation property from "standardDeviation" to "stddev".
+
+Changed the JSON serialization of Randomizers in a scenario to an array of groups rather than a dictionary.
 
 ### Deprecated
 
@@ -34,8 +121,6 @@ Changed the JSON serialization key of Normal Sampler's standard deviation proper
 ### Fixed
 
 Fixed an indexing issue with the IdLabelConfig editor. When a new label was added to an empty Id Label Config with Auto Assign IDs enabled, the starting id (0 or 1) was ignored and the new label would always have an id of 0.
-
-Updated documentation to reflect that the 3D Bounding Box Labeler does not support Skinned Mesh Renderers.
 
 ## [0.8.0-preview.4] - 2021-07-05
 
@@ -82,6 +167,7 @@ Fixed an issue where Simulation Delta Time values larger than 100 seconds in Per
 Fixed an issue where Categorical Parameters sometimes tried to fetch items at `i = categories.Count`, which caused an exception.
 
 ## [0.8.0-preview.3] - 2021-03-24
+
 ### Changed
 
 Expanded documentation on the Keypoint Labeler

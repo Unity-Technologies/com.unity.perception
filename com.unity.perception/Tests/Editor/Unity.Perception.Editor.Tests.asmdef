@@ -7,8 +7,6 @@
         "Unity.Mathematics",
         "Unity.Perception.Editor",
         "Unity.Collections",
-        "Unity.Entities",
-        "Unity.Simulation.Core",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Universal.Runtime"
     ],

@@ -14,6 +14,6 @@ This page provides brief instructions on installing the Perception package. Head
 
 Note that although the Perception package is compatible with both URP and HDRP, Unity Simulation currently only supports URP projects, therefore a URP project is recommended. 
 
-If you want a specific version of the package, append the version to the end of the "git URL". Ex. `com.unity.perception@0.8.0-preview.1`
+If you want a specific version of the package, append the version to the end of the "git URL". Ex. `com.unity.perception@0.10.0-preview.1`
 
 To install from a local clone of the repository, see [installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html) in the Unity manual.

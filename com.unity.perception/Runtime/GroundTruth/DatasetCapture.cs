@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using JetBrains.Annotations;
-using Newtonsoft.Json.Linq;
-using Unity.Collections;
-using Unity.Simulation;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.Settings;
 
 #pragma warning disable 649
 namespace UnityEngine.Perception.GroundTruth
@@ -16,15 +14,30 @@ namespace UnityEngine.Perception.GroundTruth
     /// </summary>
     public static class DatasetCapture
     {
-        static readonly Guid k_DatasetGuid = Guid.NewGuid();
-        internal static SimulationState SimulationState { get; private set; } = CreateSimulationData();
+        static SimulationState m_ActiveSimulation;
 
-        internal static string OutputDirectory => SimulationState.GetOutputDirectoryNoCreate();
+        static DatasetCapture()
+        {
+            Application.wantsToQuit += () =>
+            {
+                ResetSimulation();
+                return true;
+            };
+        }
+
+        internal static SimulationState currentSimulation => m_ActiveSimulation ?? (m_ActiveSimulation = CreateSimulationData());
 
         /// <summary>
         /// The json metadata schema version the DatasetCapture's output conforms to.
         /// </summary>
-        public static string SchemaVersion => "0.0.1";
+        public static string schemaVersion => "0.0.1";
+
+        /// <summary>
+        /// The current perception version
+        /// </summary>
+        public static string perceptionVersion => "0.10.0-preview.1"; // TODO: Can we automate this?
+
+        internal static int currentFrame => currentSimulation.currentFrame;
 
         /// <summary>
         /// Called when the simulation ends. The simulation ends on playmode exit, application exit, or when <see cref="ResetSimulation"/> is called.
@@ -32,175 +45,371 @@ namespace UnityEngine.Perception.GroundTruth
         public static event Action SimulationEnding;
 
         /// <summary>
-        /// Register a new ego. Used along with RegisterSensor to organize sensors under a top-level ego container. <seealso cref="RegisterSensor"/>
+        /// Registers a sensor with the current simulation.
         /// </summary>
-        /// <param name="description">A human-readable description for the ego</param>
-        /// <returns>An <see cref="EgoHandle"/>, which can be used to organize sensors under a common ego.</returns>
-        public static EgoHandle RegisterEgo(string description)
+        /// <param name="sensor">The sensor to register</param>
+        /// <returns>A handle to the registered sensor</returns>
+        public static SensorHandle RegisterSensor(SensorDefinition sensor)
         {
-            var ego = new EgoHandle(Guid.NewGuid(), description);
-            SimulationState.AddEgo(ego);
-            return ego;
+            return currentSimulation.AddSensor(sensor, sensor.simulationDeltaTime);
         }
 
         /// <summary>
-        /// Register a new sensor under the given ego.
+        /// Registers a metric with the running simulation.
         /// </summary>
-        /// <param name="egoHandle">The ego container for the sensor. Sensor orientation will be reported in the context of the given ego.</param>
-        /// <param name="modality">The kind of the sensor (ex. "camera", "lidar")</param>
-        /// <param name="description">A human-readable description of the sensor (ex. "front-left rgb camera")</param>
-        /// <param name="firstCaptureFrame">The offset from the current frame on which this sensor should first be scheduled.</param>
-        /// <param name="captureTriggerMode">The method of triggering captures for this sensor.</param>
-        /// <param name="simulationDeltaTime">The simulation frame time (seconds) requested by this sensor.</param>
-        /// <param name="framesBetweenCaptures">The number of frames to simulate and render between the camera's scheduled captures. Setting this to 0 makes the camera capture every frame.</param>
-        /// <param name="manualSensorAffectSimulationTiming">Have this unscheduled (manual capture) camera affect simulation timings (similar to a scheduled camera) by requesting a specific frame delta time</param>
-        /// <returns>A <see cref="SensorHandle"/>, which should be used to check <see cref="SensorHandle.ShouldCaptureThisFrame"/> each frame to determine whether to capture (or render) that frame.
-        /// It is also used to report captures, annotations, and metrics on the sensor.</returns>
-        /// <exception cref="ArgumentException">Thrown if ego is invalid.</exception>
-        public static SensorHandle RegisterSensor(EgoHandle egoHandle, string modality, string description, float firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float simulationDeltaTime, int framesBetweenCaptures, bool manualSensorAffectSimulationTiming = false)
+        /// <param name="metricDefinition">The metric to register</param>
+        public static void RegisterMetric(MetricDefinition metricDefinition)
         {
-            if (!SimulationState.Contains(egoHandle.Id))
-                throw new ArgumentException("Supplied ego is not part of the simulation.", nameof(egoHandle));
-
-            var sensor = new SensorHandle(Guid.NewGuid());
-            SimulationState.AddSensor(egoHandle, modality, description, firstCaptureFrame, captureTriggerMode, simulationDeltaTime, framesBetweenCaptures, manualSensorAffectSimulationTiming, sensor);
-            return sensor;
+            currentSimulation.RegisterMetric(metricDefinition);
         }
 
         /// <summary>
-        /// Creates a metric type, which can be used to produce metrics during the simulation.
-        /// See <see cref="ReportMetric{T}(MetricDefinition,T[])"/>, <see cref="SensorHandle.ReportMetricAsync(MetricDefinition)"/>, <see cref="SensorHandle.ReportMetric{T}(MetricDefinition,T[])"/>,
-        /// <see cref="SensorHandle.ReportMetricAsync(MetricDefinition)"/>, <see cref="Annotation.ReportMetric{T}(MetricDefinition,T[])"/>, <see cref="Annotation.ReportMetricAsync(MetricDefinition)"/>
+        /// Registers an annotation with the running simulation.
         /// </summary>
-        /// <param name="name">Human readable annotation spec name (e.g. sementic_segmentation, instance_segmentation, etc.)</param>
-        /// <param name="description">Description of the annotation.</param>
-        /// <param name="id">The ID for this metric. This allows metric types to be shared across simulations and sequences.</param>
-        /// <returns>A MetricDefinition, which can be used during this simulation to report metrics.</returns>
-        public static MetricDefinition RegisterMetricDefinition(string name, string description = null, Guid id = default)
+        /// <param name="definition">The annotation to register</param>
+        public static void RegisterAnnotationDefinition(AnnotationDefinition definition)
         {
-            return RegisterMetricDefinition<object>(name, null, description, id);
+            currentSimulation.RegisterAnnotationDefinition(definition);
         }
 
         /// <summary>
-        /// Creates a metric type, which can be used to produce metrics during the simulation.
-        /// See <see cref="ReportMetric{T}(MetricDefinition,T[])"/>, <see cref="SensorHandle.ReportMetricAsync(MetricDefinition)"/>, <see cref="SensorHandle.ReportMetric{T}(MetricDefinition,T[])"/>,
-        /// <see cref="SensorHandle.ReportMetricAsync(MetricDefinition)"/>, <see cref="Annotation.ReportMetric{T}(MetricDefinition,T[])"/>, <see cref="Annotation.ReportMetricAsync(MetricDefinition)"/>
+        /// Retrieves the sequence and step numbers from a simulation frame.
         /// </summary>
-        /// <param name="name">Human readable annotation spec name (e.g. sementic_segmentation, instance_segmentation, etc.)</param>
-        /// <param name="description">Description of the annotation.</param>
-        /// <param name="specValues">Format-specific specification for the metric values. Will be converted to json automatically.</param>
-        /// <param name="id">The ID for this metric. This allows metric types to be shared across simulations and sequences.</param>
-        /// <typeparam name="TSpec">The type of the <see cref="specValues"/> struct to write.</typeparam>
-        /// <returns>A MetricDefinition, which can be used during this simulation to report metrics.</returns>
-        public static MetricDefinition RegisterMetricDefinition<TSpec>(string name, TSpec[] specValues, string description = null, Guid id = default)
+        /// <param name="frame">The simulation frame</param>
+        /// <returns>The sequence and step numbers</returns>
+        public static (int sequence, int step) GetSequenceAndStepFromFrame(int frame)
         {
-            return SimulationState.RegisterMetricDefinition(name, specValues, description, id);
+            return currentSimulation.GetSequenceAndStepFromFrame(frame);
+        }
+
+        public static void ReportMetric(MetricDefinition definition, Metric metric)
+        {
+            currentSimulation.ReportMetric(definition, metric, null, null);
+        }
+
+        public static AsyncFuture<Metric> ReportMetric(MetricDefinition definition)
+        {
+            return currentSimulation.CreateAsyncMetric(definition);
         }
 
         /// <summary>
-        /// Creates an annotation type, which can be used to produce annotations during the simulation.
-        /// See <see cref="SensorHandle.ReportAnnotationFile"/>, <see cref="SensorHandle.ReportAnnotationValues{T}"/> and <see cref="SensorHandle.ReportAnnotationAsync"/>.
+        ///  Report simulation metadata
         /// </summary>
-        /// <param name="name">Human readable annotation spec name (e.g. sementic_segmentation, instance_segmentation, etc.)</param>
-        /// <param name="description">Description of the annotation.</param>
-        /// <param name="format">Optional format name.</param>
-        /// <param name="id">The ID for this annotation type. This allows annotation types to be shared across simulations and sequences.</param>
-        /// <returns>An AnnotationDefinition. If the given <see cref="id"/> has already been defined, its AnnotationDefinition is returned.</returns>
-        public static AnnotationDefinition RegisterAnnotationDefinition(string name, string description = null, string format = "json", Guid id = default)
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
+        public static void ReportMetadata(string key, int value)
         {
-            return RegisterAnnotationDefinition<object>(name, null, description, format, id);
+            currentSimulation.ReportMetadata(key, value);
         }
 
         /// <summary>
-        /// Creates an annotation type, which can be used to produce annotations during the simulation.
-        /// See <see cref="SensorHandle.ReportAnnotationFile"/>, <see cref="SensorHandle.ReportAnnotationValues{T}"/> and <see cref="SensorHandle.ReportAnnotationAsync"/>.
+        ///  Report simulation metadata
         /// </summary>
-        /// <param name="name">Human readable annotation spec name (e.g. sementic_segmentation, instance_segmentation, etc.)</param>
-        /// <param name="description">Description of the annotation.</param>
-        /// <param name="format">Optional format name.</param>
-        /// <param name="specValues">Format-specific specification for the annotation values (ex. label-value mappings for semantic segmentation images)</param>
-        /// <param name="id">The ID for this annotation type. This allows annotation types to be shared across simulations and sequences.</param>
-        /// <typeparam name="TSpec">The type of the values for the spec array in the resulting json.</typeparam>
-        /// <returns>An AnnotationDefinition. If the given <see cref="id"/> has already been defined, its AnnotationDefinition is returned.</returns>
-        public static AnnotationDefinition RegisterAnnotationDefinition<TSpec>(string name, TSpec[] specValues, string description = null, string format = "json", Guid id = default)
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
+        public static void ReportMetadata(string key, float value)
         {
-            return SimulationState.RegisterAnnotationDefinition(name, specValues, description, format, id);
+            currentSimulation.ReportMetadata(key, value);
         }
 
         /// <summary>
-        /// Report a metric not associated with any sensor or annotation.
+        ///  Report simulation metadata
         /// </summary>
-        /// <param name="metricDefinition">The MetricDefinition associated with this metric. <see cref="RegisterMetricDefinition"/></param>
-        /// <param name="values">An array to be converted to json and put in the "values" field of the metric</param>
-        /// <typeparam name="T">The type of the <see cref="values"/> array</typeparam>
-        public static void ReportMetric<T>(MetricDefinition metricDefinition, T[] values)
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
+        public static void ReportMetadata(string key, uint value)
         {
-            SimulationState.ReportMetric(metricDefinition, values, default, default);
+            currentSimulation.ReportMetadata(key, value);
         }
 
         /// <summary>
-        /// Report a metric not associated with any sensor or annotation.
+        ///  Report simulation metadata
         /// </summary>
-        /// <param name="metricDefinition">The MetricDefinition associated with this metric. <see cref="RegisterMetricDefinition"/></param>
-        /// <param name="valuesJsonArray">A string-based JSON array to be placed in the "values" field of the metric</param>
-        public static void ReportMetric(MetricDefinition metricDefinition, string valuesJsonArray)
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
+        public static void ReportMetadata(string key, string value)
         {
-            SimulationState.ReportMetric(metricDefinition, new JRaw(valuesJsonArray), default, default);
+            currentSimulation.ReportMetadata(key, value);
         }
 
         /// <summary>
-        /// Report a metric not associated with any sensor or annotation.
+        ///  Report simulation metadata
         /// </summary>
-        /// <param name="metricDefinition">The metric definition of the metric being reported</param>
-        /// <returns>An <see cref="AsyncMetric"/> which should be used to report the metric values, potentially in a later frame</returns>
-        public static AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition) => SimulationState.CreateAsyncMetric(metricDefinition);
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
+        public static void ReportMetadata(string key, bool value)
+        {
+            currentSimulation.ReportMetadata(key, value);
+        }
+
+        /// <summary>
+        ///  Report simulation metadata
+        /// </summary>
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
+        public static void ReportMetadata(string key, int[] value)
+        {
+            currentSimulation.ReportMetadata(key, value);
+        }
+
+        /// <summary>
+        ///  Report simulation metadata
+        /// </summary>
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
+        public static void ReportMetadata(string key, float[] value)
+        {
+            currentSimulation.ReportMetadata(key, value);
+        }
+
+        /// <summary>
+        ///  Report simulation metadata
+        /// </summary>
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
+        public static void ReportMetadata(string key, string[] value)
+        {
+            currentSimulation.ReportMetadata(key, value);
+        }
+
+        /// <summary>
+        ///  Report simulation metadata
+        /// </summary>
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
+        public static void ReportMetadata(string key, bool[] value)
+        {
+            currentSimulation.ReportMetadata(key, value);
+        }
 
         /// <summary>
         /// Starts a new sequence in the capture.
         /// </summary>
-        public static void StartNewSequence() => SimulationState.StartNewSequence();
+        public static void StartNewSequence() => currentSimulation.StartNewSequence();
 
-        internal static bool IsValid(Guid id) => SimulationState.Contains(id);
+        internal static bool IsValid(string id) => id != null && currentSimulation.Contains(id);
+
+        static IConsumerEndpoint m_OverrideEndpoint;
+
+        internal static void OverrideEndpoint(IConsumerEndpoint endpoint)
+        {
+            m_OverrideEndpoint = endpoint;
+        }
 
         static SimulationState CreateSimulationData()
         {
-            //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
-            return new SimulationState($"Dataset{k_DatasetGuid}");
+            if (m_OverrideEndpoint == null && PerceptionSettings.instance.endpoint == null)
+            {
+                throw new InvalidOperationException("An endpoint has not been set for dataset capture");
+            }
+
+            var endpoint = m_OverrideEndpoint ?? PerceptionSettings.instance.endpoint.Clone();
+            return new SimulationState(endpoint as IConsumerEndpoint);
         }
 
-        [RuntimeInitializeOnLoadMethod]
-        static void OnInitializeOnLoad()
+        internal static void Update()
         {
-            Manager.Instance.ShutdownNotification += ResetSimulation;
+            currentSimulation.Update();
         }
 
         /// <summary>
-        /// Stop the current simulation and start a new one. All pending data is written to disk before returning.
+        /// Shuts down the active simulation and starts a new simulation.
         /// </summary>
         public static void ResetSimulation()
         {
-            //this order ensures that exceptions thrown by End() do not prevent the state from being reset
             SimulationEnding?.Invoke();
-            var oldSimulationState = SimulationState;
-            SimulationState = CreateSimulationData();
-            oldSimulationState.End();
+
+            if (m_ActiveSimulation != null &&  m_ActiveSimulation.IsRunning())
+            {
+                var old = m_ActiveSimulation;
+                m_ActiveSimulation = null;
+                old.End();
+            }
+
+            m_ActiveSimulation = CreateSimulationData();
         }
     }
 
+    class PendingId
+    {
+        internal static PendingId CreateSensorId(int sequence, int step, string sensorId)
+        {
+            return new PendingId(FutureType.Sensor, sequence, step, sensorId, string.Empty,string.Empty);
+        }
+
+        internal static PendingId CreateMetricId(int sequence, int step, string metricId)
+        {
+            return new PendingId(FutureType.Metric, sequence, step, string.Empty, string.Empty, metricId);
+        }
+
+        internal static PendingId CreateMetricId(int sequence, int step, string sensorId, string metricId)
+        {
+            return new PendingId(FutureType.Metric, sequence, step, sensorId, string.Empty, metricId);
+        }
+
+        internal static PendingId CreateMetricId(int sequence, int step, string sensorId, string annotationId, string metricId)
+        {
+            return new PendingId(FutureType.Metric, sequence, step, sensorId, annotationId, metricId);
+        }
+
+        internal static PendingId CreateAnnotationId(int sequence, int step, string sensorId, string annotationId)
+        {
+            return new PendingId(FutureType.Annotation, sequence, step, sensorId, annotationId, string.Empty);
+        }
+
+        PendingId(FutureType futureType, int sequence, int step, string sensorId, string annotationId, string metricId)
+        {
+            FutureType = futureType;
+            Sequence = sequence;
+            Step = step;
+            SensorId = sensorId;
+            this.annotationId = annotationId;
+            MetricId = metricId;
+        }
+
+        internal FutureType FutureType { get; }
+
+        internal int Sequence { get; }
+
+        internal int Step { get; }
+
+        internal string SensorId { get; }
+        internal string annotationId { get; }
+
+        internal string MetricId { get; }
+
+        bool isBaseValid => Sequence > -1 && Step > -1;
+
+        public override string ToString()
+        {
+            return $"{FutureType} {SensorId} {annotationId ?? MetricId}[{Sequence}, {Step}]";
+        }
+
+        internal bool IsValidSensorId =>
+            // Do not check if it's a sensor ID because both annotation and (some) metric IDs can be used to
+            // load sensors
+            isBaseValid && !string.IsNullOrEmpty(SensorId);
+
+        internal bool IsValidMetricId =>
+            isBaseValid &&
+            FutureType == FutureType.Metric &&
+            !string.IsNullOrEmpty(MetricId);
+
+        internal bool IsValidAnnotationId =>
+            isBaseValid &&
+            FutureType == FutureType.Annotation &&
+            !string.IsNullOrEmpty(SensorId) &&
+            !string.IsNullOrEmpty(annotationId);
+
+        public override bool Equals(object obj)
+        {
+            if (obj is PendingId other)
+            {
+                if (other.FutureType != FutureType) return false;
+                if (other.Sequence != Sequence) return false;
+                if (other.Step != Step) return false;
+
+                switch (FutureType)
+                {
+                   case FutureType.Metric:
+                        if (other.MetricId != MetricId) return false;
+                        if (other.annotationId != annotationId) return false;
+                        return other.SensorId == SensorId;
+                   case FutureType.Annotation:
+                        if (other.annotationId != annotationId) return false;
+                        return other.SensorId == SensorId;
+                   case FutureType.Sensor:
+                        return other.SensorId == SensorId;
+                    default:
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            var hc = (Sequence * 397) ^ Step;
+            hc = (SensorId != null ? SensorId.GetHashCode() : 0 * 397) ^ hc;
+            hc = (annotationId != null ? annotationId.GetHashCode() : 0 * 397) ^ hc;
+            return (MetricId != null ? MetricId.GetHashCode() : 0 * 397) ^ hc;
+
+        }
+    }
+
+    enum FutureType
+    {
+        Sensor,
+        Metric,
+        Annotation
+    }
 
     /// <summary>
-    /// Capture trigger modes for sensors.
+    /// A handle back to a result that will be calculated in the future. This class is used to report an asynchronous
+    /// solution.
     /// </summary>
-    public enum CaptureTriggerMode
+    /// <typeparam name="T">The data type of the future (either a sensor, annotation, or metric)</typeparam>
+    public readonly struct AsyncFuture<T> where T : DataModelElement
     {
+        internal static AsyncFuture<Sensor> CreateSensorFuture(PendingId id, SimulationState simState)
+        {
+            return new AsyncFuture<Sensor>(id, simState);
+        }
+
+        internal static AsyncFuture<Metric> CreateMetricFuture(PendingId id, SimulationState simState)
+        {
+            return new AsyncFuture<Metric>(id, simState);
+        }
+
+        internal static AsyncFuture<Annotation> CreateAnnotationFuture(PendingId id, SimulationState simState)
+        {
+            return new AsyncFuture<Annotation>(id, simState);
+        }
+
+        AsyncFuture(PendingId id, SimulationState simulationState)
+        {
+            pendingId = id;
+            this.simulationState = simulationState;
+        }
+
+        SimulationState simulationState { get; }
+        internal PendingId pendingId { get; }
+
+        internal FutureType futureType => pendingId.FutureType;
+
         /// <summary>
-        /// Captures happen automatically based on a start frame and frame delta time.
+        /// Is the future valid?
         /// </summary>
-        Scheduled,
+        /// <returns>Is the future valid?</returns>
+        public bool IsValid()
+        {
+            return simulationState != null && simulationState.IsRunning();
+        }
+
         /// <summary>
-        /// Captures should be triggered manually through calling the manual capture method of the sensor using this trigger mode.
+        /// Is this future still pending?
         /// </summary>
-        Manual
+        /// <returns>Is this future still pending</returns>
+        public bool IsPending()
+        {
+            return simulationState.IsPending(this);
+        }
+
+        /// <summary>
+        /// Report the result that this future has been waiting for.
+        /// </summary>
+        /// <param name="toReport">The value to report</param>
+        public void Report(T toReport)
+        {
+            simulationState.ReportAsyncResult(this, toReport);
+        }
+    }
+
+    public interface IDatasetHandle
+    {
+        string Id { get; }
+        bool IsValid();
     }
 
     /// <summary>
@@ -210,145 +419,133 @@ namespace UnityEngine.Perception.GroundTruth
     public struct SensorHandle : IDisposable, IEquatable<SensorHandle>
     {
         /// <summary>
-        /// The unique ID of the sensor. This ID is used to refer to this sensor in the json metadata.
+        /// The Id of the sensor
         /// </summary>
-        public Guid Id { get; }
+        public string Id { get; }
 
-        internal SensorHandle(Guid id)
+        public bool valid => DatasetCapture.IsValid(Id);
+
+        internal SensorHandle(string id)
         {
-            Id = id;
+            Id = id ?? string.Empty;
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return Id;
         }
 
         /// <summary>
         /// Whether the sensor is currently enabled. When disabled, the DatasetCapture will no longer schedule frames for running captures on this sensor.
         /// </summary>
-        public bool Enabled
+        bool enabled
         {
-            get => DatasetCapture.SimulationState.IsEnabled(this);
+            get => DatasetCapture.currentSimulation.IsEnabled(this);
             set
             {
                 CheckValid();
-                DatasetCapture.SimulationState.SetEnabled(this, value);
+                DatasetCapture.currentSimulation.SetEnabled(this, value);
             }
         }
 
         /// <summary>
-        /// Report a file-based annotation related to this sensor in this frame.
+        /// Reports an annotation for the sensor.
         /// </summary>
-        /// <param name="annotationDefinition">The AnnotationDefinition of this annotation.</param>
-        /// <param name="filename">The path to the file containing the annotation data.</param>
-        /// <returns>A handle to the reported annotation for reporting annotation-based metrics.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if this method is called during a frame where <see cref="ShouldCaptureThisFrame"/> is false.</exception>
-        /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
-        public Annotation ReportAnnotationFile(AnnotationDefinition annotationDefinition, string filename)
+        /// <param name="definition">The annotation definition</param>
+        /// <param name="annotation">The annotation value</param>
+        /// <exception cref="InvalidOperationException">Thrown when an annotation is reported for a frame that should not be captured</exception>
+        /// <exception cref="ArgumentException">Thrown when an annotation is reported with an invalid annotation definition</exception>
+        public AnnotationHandle ReportAnnotation(AnnotationDefinition definition, Annotation annotation)
         {
             if (!ShouldCaptureThisFrame)
                 throw new InvalidOperationException("Annotation reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
-            if (!annotationDefinition.IsValid)
-                throw new ArgumentException("The given annotationDefinition is invalid", nameof(annotationDefinition));
+            if (!definition.IsValid())
+                throw new ArgumentException("The given annotationDefinition is invalid", nameof(definition));
 
-            return DatasetCapture.SimulationState.ReportAnnotationFile(annotationDefinition, this, filename);
-        }
+            DatasetCapture.currentSimulation.ReportAnnotation(this, definition, annotation);
 
-        /// <summary>
-        /// Report a value-based annotation related to this sensor in this frame.
-        /// </summary>
-        /// <param name="annotationDefinition">The AnnotationDefinition of this annotation.</param>
-        /// <param name="values">The annotation data, which will be automatically converted to json.</param>
-        /// <typeparam name="T">The type of the values array.</typeparam>
-        /// <returns>Returns a handle to the reported annotation for reporting annotation-based metrics.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if this method is called during a frame where <see cref="ShouldCaptureThisFrame"/> is false.</exception>
-        /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
-        public Annotation ReportAnnotationValues<T>(AnnotationDefinition annotationDefinition, T[] values)
-        {
-            if (!ShouldCaptureThisFrame)
-                throw new InvalidOperationException("Annotation reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
-            if (!annotationDefinition.IsValid)
-                throw new ArgumentException("The given annotationDefinition is invalid", nameof(annotationDefinition));
-
-            return DatasetCapture.SimulationState.ReportAnnotationValues(annotationDefinition, this, values);
+            return new AnnotationHandle(this, definition);
         }
 
         /// <summary>
         /// Creates an async annotation for reporting the values for an annotation during a future frame.
         /// </summary>
         /// <param name="annotationDefinition">The AnnotationDefinition of this annotation.</param>
-        /// <returns>Returns a handle to the <see cref="AsyncAnnotation"/>, which can be used to report annotation data during a subsequent frame.</returns>
+        /// <returns>Returns a handle to the <see cref="AsyncFuture{T}"/>, which can be used to report annotation data during a subsequent frame.</returns>
         /// <exception cref="InvalidOperationException">Thrown if this method is called during a frame where <see cref="ShouldCaptureThisFrame"/> is false.</exception>
         /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
-        public AsyncAnnotation ReportAnnotationAsync(AnnotationDefinition annotationDefinition)
+        public AsyncFuture<Annotation> ReportAnnotationAsync(AnnotationDefinition annotationDefinition)
         {
             if (!ShouldCaptureThisFrame)
                 throw new InvalidOperationException("Annotation reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
-            if (!annotationDefinition.IsValid)
+            if (!annotationDefinition.IsValid())
                 throw new ArgumentException("The given annotationDefinition is invalid", nameof(annotationDefinition));
 
-            return DatasetCapture.SimulationState.ReportAnnotationAsync(annotationDefinition, this);
+            return DatasetCapture.currentSimulation.ReportAnnotationAsync(annotationDefinition, this);
         }
 
         /// <summary>
-        /// Report a sensor capture recorded to disk. This should be called on the same frame as the capture is taken, and may be called before the file is written to disk.
+        /// Creates an async sensor for reporting the values for a sensor during a future frame.
         /// </summary>
-        /// <param name="filename">The path to the capture data.</param>
-        /// <param name="sensorSpatialData">Spatial data describing the sensor and the ego containing it.</param>
-        /// <param name="additionalSensorValues">Additional values to be emitted as json name/value pairs on the sensor object under the capture.</param>
-        /// <exception cref="InvalidOperationException">Thrown if ReportCapture is being called when ShouldCaptureThisFrame is false or it has already been called this frame.</exception>
-        public void ReportCapture(string filename, SensorSpatialData sensorSpatialData, params(string, object)[] additionalSensorValues)
+        /// <returns>Returns a handle to the <see cref="AsyncFuture{T}"/>, which can be used to report annotation data during a subsequent frame.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if this method is called during a frame where <see cref="ShouldCaptureThisFrame"/> is false.</exception>
+        /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
+        public AsyncFuture<Sensor> ReportSensorAsync()
         {
             if (!ShouldCaptureThisFrame)
-            {
-                throw new InvalidOperationException("Capture reported in frame when ShouldCaptureThisFrame is false.");
-            }
+                throw new InvalidOperationException("Sensor capture reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
+            if (!IsValid)
+                throw new ArgumentException($"The sensor is invalid {Id}");
 
-            DatasetCapture.SimulationState.ReportCapture(this, filename, sensorSpatialData, additionalSensorValues);
+            return DatasetCapture.currentSimulation.ReportSensorAsync(this);
+        }
+
+        /// <summary>
+        /// Reports a sensor capture immediately for the current frame
+        /// </summary>
+        /// <param name="sensor">The capture to report</param>
+        /// <exception cref="InvalidOperationException">Thrown if this method is called during a frame where <see cref="ShouldCaptureThisFrame"/> is false.</exception>
+        /// <exception cref="ArgumentException">Thrown if the given AnnotationDefinition is invalid.</exception>
+        public void ReportSensor(Sensor sensor)
+        {
+            if (!ShouldCaptureThisFrame)
+                throw new InvalidOperationException("Annotation reported a sensor in frame when its ShouldCaptureThisFrame is false.");
+            if (!IsValid)
+                throw new ArgumentException("The sensor is invalid", Id);
+
+            DatasetCapture.currentSimulation.ReportSensor(this, sensor);
         }
 
         /// <summary>
         /// Whether the sensor should capture this frame. Sensors are expected to call this method each frame to determine whether
         /// they should capture during the frame. Captures should only be reported when this is true.
         /// </summary>
-        public bool ShouldCaptureThisFrame => DatasetCapture.SimulationState.ShouldCaptureThisFrame(this);
+        public bool ShouldCaptureThisFrame => DatasetCapture.currentSimulation.ShouldCaptureThisFrame(this);
 
         /// <summary>
-        /// Requests a capture from this sensor on the next rendered frame. Can only be used with manual capture mode (<see cref="PerceptionCamera.CaptureTriggerMode.Manual"/>).
+        /// Requests a capture from this sensor on the next rendered frame. Can only be used with manual capture mode (<see cref="CaptureTriggerMode.Manual"/>).
         /// </summary>
         public void RequestCapture()
         {
-            DatasetCapture.SimulationState.SetNextCaptureTimeToNowForSensor(this);
+            DatasetCapture.currentSimulation.SetNextCaptureTimeToNowForSensor(this);
         }
 
         /// <summary>
-        /// Report a metric regarding this sensor in the current frame.
+        /// Reports a metric on the current frame.
         /// </summary>
-        /// <param name="metricDefinition">The <see cref="MetricDefinition"/> of the metric.</param>
-        /// <param name="values">An array to be converted to json and put in the "values" field of the metric</param>
-        /// <typeparam name="T">The value type</typeparam>
-        /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="ShouldCaptureThisFrame"/> is false.</exception>
-        public void ReportMetric<T>(MetricDefinition metricDefinition, [NotNull] T[] values)
-        {
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
-
-            if (!ShouldCaptureThisFrame)
-                throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
-
-            DatasetCapture.SimulationState.ReportMetric(metricDefinition, values, this, default);
-        }
-
-        /// <summary>
-        /// Report a metric regarding this sensor in the current frame.
-        /// </summary>
-        /// <param name="metricDefinition">The <see cref="MetricDefinition"/> of the metric.</param>
-        /// <param name="valuesJsonArray">A string-based JSON array to be placed in the "values" field of the metric</param>
-        /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="ShouldCaptureThisFrame"/> is false.</exception>
-        public void ReportMetric(MetricDefinition metricDefinition, [NotNull] string valuesJsonArray)
+        /// <param name="definition">The metric definition</param>
+        /// <param name="metric">The metric value</param>
+        /// <exception cref="InvalidOperationException">Thrown when a metric is reported on a frame that should not capture</exception>
+        /// <exception cref="ArgumentException">Thrown if the passed in metric is invalid</exception>
+        public void ReportMetric(MetricDefinition definition, Metric metric)
         {
             if (!ShouldCaptureThisFrame)
-                throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
+                throw new InvalidOperationException("Metric reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
+            if (!IsValid)
+                throw new ArgumentException("The given metric is invalid", Id);
 
-            DatasetCapture.SimulationState.ReportMetric(metricDefinition, new JRaw(valuesJsonArray), this, default);
+            DatasetCapture.currentSimulation.ReportMetric(definition, metric, this.Id, null);
         }
 
         /// <summary>
@@ -356,13 +553,15 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         /// <param name="metricDefinition">The <see cref="MetricDefinition"/> of the metric</param>
         /// <exception cref="InvalidOperationException">Thrown if <see cref="ShouldCaptureThisFrame"/> is false</exception>
-        /// <returns>An <see cref="AsyncMetric"/> which should be used to report the metric values, potentially in a later frame</returns>
-        public AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition)
+        /// <returns>An <see cref="AsyncFuture{T}"/> which should be used to report the metric values, potentially in a later frame</returns>
+        public AsyncFuture<Metric> ReportMetricAsync(MetricDefinition metricDefinition)
         {
             if (!ShouldCaptureThisFrame)
                 throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
+            if (!metricDefinition.IsValid())
+                throw new ArgumentException("The passed in metric definition is invalid", nameof(metricDefinition));
 
-            return DatasetCapture.SimulationState.CreateAsyncMetric(metricDefinition, this);
+            return DatasetCapture.currentSimulation.CreateAsyncMetric(metricDefinition, this);
         }
 
         /// <summary>
@@ -370,13 +569,14 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public void Dispose()
         {
-            this.Enabled = false;
+            this.enabled = false;
         }
 
         /// <summary>
         /// Returns whether this SensorHandle is valid in the current simulation. Nil SensorHandles are never valid.
         /// </summary>
         public bool IsValid => DatasetCapture.IsValid(this.Id);
+
         /// <summary>
         /// Returns true if this SensorHandle was default-instantiated.
         /// </summary>
@@ -391,7 +591,15 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         public bool Equals(SensorHandle other)
         {
-            return Id.Equals(other.Id);
+            switch (Id)
+            {
+                case null when other.Id == null:
+                    return true;
+                case null:
+                    return false;
+                default:
+                    return Id.Equals(other.Id);
+            }
         }
 
         /// <inheritdoc/>
@@ -430,226 +638,67 @@ namespace UnityEngine.Perception.GroundTruth
     }
 
     /// <summary>
-    /// Handle to a metric whose values may be reported in a subsequent frame.
-    /// </summary>
-    public struct AsyncMetric
-    {
-        internal readonly int Id;
-        readonly SimulationState m_SimulationState;
-
-        internal AsyncMetric(MetricDefinition metricDefinition, int id, SimulationState simulationState)
-        {
-            this.Id = id;
-            MetricDefinition = metricDefinition;
-            m_SimulationState = simulationState;
-        }
-
-        /// <summary>
-        /// The MetricDefinition associated with this AsyncMetric.
-        /// </summary>
-        public readonly MetricDefinition MetricDefinition;
-
-        /// <summary>
-        /// True if the simulation is still running.
-        /// </summary>
-        public bool IsValid => !IsNil && m_SimulationState.IsRunning;
-
-        /// <summary>
-        /// True if ReportValues has not been called yet.
-        /// </summary>
-        public bool IsPending => !IsNil && m_SimulationState.IsPending(ref this);
-
-        /// <summary>
-        /// Returns true if the AsyncMetric is its default value.
-        /// </summary>
-        public bool IsNil => m_SimulationState == null && Id == default;
-
-        /// <summary>
-        /// Report the values for this AsyncMetric. Calling this method will transition <see cref="IsPending"/> to false.
-        /// ReportValues may only be called once per AsyncMetric.
-        /// </summary>
-        /// <param name="values">The values to report for the metric. These values will be converted to json.</param>
-        /// <typeparam name="T">The type of the values</typeparam>
-        /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        public void ReportValues<T>(T[] values)
-        {
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
-
-            m_SimulationState.ReportAsyncMetricResult(this, values: values);
-        }
-
-        /// <summary>
-        /// Report the values for this AsyncMetric. Calling this method will transition <see cref="IsPending"/> to false.
-        /// ReportValues may only be called once per AsyncMetric.
-        /// </summary>
-        /// <param name="valuesJsonArray">A JSON array in string form.</param>
-        /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        public void ReportValues(string valuesJsonArray)
-        {
-            if (valuesJsonArray == null)
-                throw new ArgumentNullException(nameof(valuesJsonArray));
-
-            m_SimulationState.ReportAsyncMetricResult(this, valuesJsonArray);
-        }
-    }
-
-    /// <summary>
-    /// A handle to an async annotation, used to report values for an annotation after the frame for the annotation has past.
-    /// See <see cref="SensorHandle.ReportAnnotationAsync"/>
-    /// </summary>
-    public struct AsyncAnnotation
-    {
-        internal AsyncAnnotation(Annotation annotation, SimulationState simulationState)
-        {
-            Annotation = annotation;
-            m_SimulationState = simulationState;
-        }
-
-        /// <summary>
-        /// The annotation associated with this AsyncAnnotation. Can be used to report metrics on the annotation.
-        /// </summary>
-        public readonly Annotation Annotation;
-        readonly SimulationState m_SimulationState;
-        /// <summary>
-        /// True if the annotation is nil (was created using default instantiation)
-        /// </summary>
-        internal bool IsNil => m_SimulationState == null && Annotation.IsNil;
-        /// <summary>
-        /// True if the annotation is generated by the currently running simulation.
-        /// </summary>
-        public bool IsValid => !IsNil && m_SimulationState.IsRunning;
-        /// <summary>
-        /// True if neither <see cref="ReportValues{T}"/> nor <see cref="ReportFile"/> have been called.
-        /// </summary>
-        public bool IsPending => !IsNil && m_SimulationState.IsPending(Annotation);
-
-        /// <summary>
-        /// Report a file-based data for this annotation.
-        /// </summary>
-        /// <param name="path">The path to the file containing the annotation data.</param>
-        /// <exception cref="ArgumentNullException">Thrown if path is null</exception>
-        public void ReportFile(string path)
-        {
-            if (path == null)
-                throw new ArgumentNullException(nameof(path));
-
-            m_SimulationState.ReportAsyncAnnotationResult<object>(this, path);
-        }
-
-        /// <summary>
-        /// Report file-based and value-based data for this annotation.
-        /// </summary>
-        /// <param name="path">The path to the file containing the annotation data.</param>
-        /// <param name="values">The annotation data.</param>
-        /// <typeparam name="T">The type of the data.</typeparam>
-        /// <exception cref="ArgumentNullException">Thrown if path or values is null</exception>
-        public void ReportFileAndValues<T>(string path, IEnumerable<T> values)
-        {
-            if (path == null)
-                throw new ArgumentNullException(nameof(path));
-
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
-
-            m_SimulationState.ReportAsyncAnnotationResult(this, path, values);
-        }
-
-        /// <summary>
-        /// Report a value-based data for this annotation.
-        /// </summary>
-        /// <param name="values">The annotation data.</param>
-        /// <typeparam name="T">The type of the data.</typeparam>
-        /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        public void ReportValues<T>(IEnumerable<T> values)
-        {
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
-
-            m_SimulationState.ReportAsyncAnnotationResult(this, values: values);
-        }
-
-        /// <summary>
-        /// Report a value-based data for this annotation.
-        /// </summary>
-        /// <param name="values">The annotation data.</param>
-        /// <typeparam name="T">The type of the data.</typeparam>
-        /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        public void ReportValues<T>(NativeSlice<T> values) where T : struct
-        {
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
-
-            m_SimulationState.ReportAsyncAnnotationResult(this, values: values);
-        }
-    }
-
-    /// <summary>
     /// A handle to an annotation. Can be used to report metrics on the annotation.
     /// </summary>
-    public struct Annotation : IEquatable<Annotation>
+    public readonly struct AnnotationHandle : IDatasetHandle, IEquatable<AnnotationHandle>
     {
+        internal AnnotationHandle(SensorHandle sensorHandle, AnnotationDefinition definition)
+        {
+            m_SensorHandle = sensorHandle;
+            m_Definition = definition;
+        }
+
+        readonly AnnotationDefinition m_Definition;
+
+        public bool IsValid() => m_Definition != null;
+
+
         /// <summary>
         /// The ID of the annotation which will be used in the json metadata.
         /// </summary>
-        public readonly Guid Id;
-        /// <summary>
-        /// The step on which the annotation was reported.
-        /// </summary>
-        public readonly int Step;
+        public string Id => m_Definition != null ? m_Definition.id : string.Empty;
+
         /// <summary>
         /// The SensorHandle on which the annotation was reported
         /// </summary>
-        public readonly SensorHandle SensorHandle;
-
-        internal Annotation(SensorHandle sensorHandle, int step)
-        {
-            Id = Guid.NewGuid();
-            SensorHandle = sensorHandle;
-            Step = step;
-        }
+        readonly SensorHandle m_SensorHandle;
 
         /// <summary>
         /// Returns true if the annotation is nil (created using default instantiation).
         /// </summary>
-        public bool IsNil => Id == Guid.Empty;
+        public bool IsNil => Id == string.Empty;
 
-        /// <summary>
-        /// Reports a metric on this annotation. May only be called in the same frame as the annotation was reported.
-        /// </summary>
-        /// <param name="metricDefinition"></param>
-        /// <param name="values"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for <see cref="UnityEngine.Perception.GroundTruth.SensorHandle.ShouldCaptureThisFrame"/>.</exception>
-        public void ReportMetric<T>(MetricDefinition metricDefinition, [NotNull] T[] values)
+        /// <inheritdoc/>
+        public bool Equals(AnnotationHandle other)
         {
-            if (values == null)
-                throw new ArgumentNullException(nameof(values));
+            return m_SensorHandle.Equals(other.m_SensorHandle) && m_Definition.Equals(other.m_Definition);
+        }
 
-            if (!SensorHandle.ShouldCaptureThisFrame)
-                throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
+        /// <inheritdoc/>
+        public override bool Equals(object obj)
+        {
+            return obj is AnnotationHandle other && Equals(other);
+        }
 
-            DatasetCapture.SimulationState.ReportMetric(metricDefinition, values, SensorHandle, this);
+        /// <inheritdoc/>
+        public override int GetHashCode()
+        {
+            var hash = (Id != null ? StringComparer.InvariantCulture.GetHashCode(Id) : 0);
+            return hash;
         }
 
         /// <summary>
-        /// Reports a metric on this annotation. May only be called in the same frame as the annotation was reported.
+        /// Synchronously report a metric for the current simulation frame.
         /// </summary>
-        /// <param name="metricDefinition"></param>
-        /// <param name="valuesJsonArray">A string-based JSON array to be placed in the "values" field of the metric</param>
-        /// <exception cref="ArgumentNullException">Thrown if values is null</exception>
-        /// <exception cref="InvalidOperationException">Thrown if <see cref="Annotation.SensorHandle"/> reports false for
-        /// <see cref="UnityEngine.Perception.GroundTruth.SensorHandle.ShouldCaptureThisFrame"/>.</exception>
-        public void ReportMetric(MetricDefinition metricDefinition, [NotNull] string valuesJsonArray)
+        /// <param name="definition">The definition of the metric to report</param>
+        /// <param name="metric">The metric value</param>
+        public void ReportMetric(MetricDefinition definition, Metric metric)
         {
-            if (valuesJsonArray == null)
-                throw new ArgumentNullException(nameof(valuesJsonArray));
-
-            if (!SensorHandle.ShouldCaptureThisFrame)
-                throw new InvalidOperationException($"Sensor-based metrics may only be reported when SensorHandle.ShouldCaptureThisFrame is true");
-
-            DatasetCapture.SimulationState.ReportMetric(metricDefinition, new JRaw(valuesJsonArray), SensorHandle, this);
+            if (!m_SensorHandle.ShouldCaptureThisFrame)
+                throw new InvalidOperationException("Metric reported on SensorHandle in frame when its ShouldCaptureThisFrame is false.");
+            if (!metric.IsValid())
+                throw new ArgumentException("The given metric is invalid", Id);
+            DatasetCapture.currentSimulation.ReportMetric(definition, metric, m_SensorHandle.Id, this.Id);
         }
 
         /// <summary>
@@ -657,212 +706,6 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         /// <param name="metricDefinition">The type of the metric.</param>
         /// <returns>A handle to an AsyncMetric, which can be used to report values for this metric in future frames.</returns>
-        public AsyncMetric ReportMetricAsync(MetricDefinition metricDefinition) => DatasetCapture.SimulationState.CreateAsyncMetric(metricDefinition, SensorHandle, this);
-
-        /// <inheritdoc/>
-        public bool Equals(Annotation other)
-        {
-            return Id.Equals(other.Id);
-        }
-
-        /// <inheritdoc/>
-        public override bool Equals(object obj)
-        {
-            return obj is Annotation other && Equals(other);
-        }
-
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
-    }
-
-    /// <summary>
-    /// An ego, which is used to group multiple sensors under a single frame of reference.
-    /// </summary>
-    public struct EgoHandle : IEquatable<EgoHandle>
-    {
-        /// <summary>
-        /// The ID for this ego. This ID will be used to refer to this ego in the json metadata.
-        /// </summary>
-        public readonly Guid Id;
-
-        /// <summary>
-        /// A human-readable description of this ego.
-        /// </summary>
-        public readonly string Description;
-
-        internal EgoHandle(Guid id, string description)
-        {
-            this.Id = id;
-            this.Description = description;
-        }
-
-        /// <inheritdoc/>
-        public bool Equals(EgoHandle other)
-        {
-            return Id.Equals(other.Id);
-        }
-
-        /// <inheritdoc/>
-        public override bool Equals(object obj)
-        {
-            return obj is EgoHandle other && Equals(other);
-        }
-
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
-
-        /// <summary>
-        /// Compares two <see cref="EgoHandle"/> instances for equality.
-        /// </summary>
-        /// <param name="left">The first EgoHandle.</param>
-        /// <param name="right">The second EgoHandle.</param>
-        /// <returns>Returns true if the two EgoHandles refer to the same ego.</returns>
-        public static bool operator==(EgoHandle left, EgoHandle right)
-        {
-            return left.Equals(right);
-        }
-
-        /// <summary>
-        /// Compares two <see cref="EgoHandle"/> instances for inequality.
-        /// </summary>
-        /// <param name="left">The first EgoHandle.</param>
-        /// <param name="right">The second EgoHandle.</param>
-        /// <returns>Returns true if the two EgoHandles refer to the same ego.</returns>
-        public static bool operator!=(EgoHandle left, EgoHandle right)
-        {
-            return !left.Equals(right);
-        }
-    }
-
-    /// <summary>
-    /// A metric type, used to define a kind of metric. <see cref="DatasetCapture.RegisterMetricDefinition"/>.
-    /// </summary>
-    public struct MetricDefinition : IEquatable<MetricDefinition>
-    {
-        /// <summary>
-        /// The ID of the metric
-        /// </summary>
-        public readonly Guid Id;
-
-        internal MetricDefinition(Guid id)
-        {
-            Id = id;
-        }
-
-        /// <inheritdoc />
-        public bool Equals(MetricDefinition other)
-        {
-            return Id.Equals(other.Id);
-        }
-
-        /// <inheritdoc />
-        public override bool Equals(object obj)
-        {
-            return obj is MetricDefinition other && Equals(other);
-        }
-
-        /// <inheritdoc />
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
-    }
-
-    /// <summary>
-    /// A metric type, used to define a kind of annotation. <see cref="DatasetCapture.RegisterAnnotationDefinition"/>.
-    /// </summary>
-    public struct AnnotationDefinition : IEquatable<AnnotationDefinition>
-    {
-        /// <inheritdoc/>
-        public bool Equals(AnnotationDefinition other)
-        {
-            return Id.Equals(other.Id);
-        }
-
-        /// <inheritdoc/>
-        public override bool Equals(object obj)
-        {
-            return obj is AnnotationDefinition other && Equals(other);
-        }
-
-        /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
-
-        /// <summary>
-        /// The ID of the annotation type. Used in the json metadata to associate anntations with the type.
-        /// </summary>
-        public readonly Guid Id;
-        internal bool IsValid => DatasetCapture.IsValid(Id);
-
-        internal AnnotationDefinition(Guid id)
-        {
-            Id = id;
-        }
-    }
-
-    /// <summary>
-    /// Container holding the poses of the ego and sensor. Also optionally contains the ego velocity and acceleration.
-    /// </summary>
-    public struct SensorSpatialData
-    {
-        /// <summary>
-        /// The pose of the ego.
-        /// </summary>
-        public Pose EgoPose;
-        /// <summary>
-        /// The pose of the sensor relative to the ego.
-        /// </summary>
-        public Pose SensorPose;
-        /// <summary>
-        /// The velocity of the ego (optional).
-        /// </summary>
-        public Vector3? EgoVelocity;
-        /// <summary>
-        /// The acceleration of the ego (optional).
-        /// </summary>
-        public Vector3? EgoAcceleration;
-
-        /// <summary>
-        /// Create a new SensorSpatialData with the given values.
-        /// </summary>
-        /// <param name="egoPose">The pose of the ego.</param>
-        /// <param name="sensorPose">The pose of the sensor relative to the ego.</param>
-        /// <param name="egoVelocity">The velocity of the ego.</param>
-        /// <param name="egoAcceleration">The acceleration of the ego.</param>
-        public SensorSpatialData(Pose egoPose, Pose sensorPose, Vector3? egoVelocity, Vector3? egoAcceleration)
-        {
-            EgoPose = egoPose;
-            SensorPose = sensorPose;
-            EgoVelocity = egoVelocity;
-            EgoAcceleration = egoAcceleration;
-        }
-
-        /// <summary>
-        /// Create a SensorSpatialData from two <see cref="UnityEngine.GameObject"/>s, one representing the ego and the other representing the sensor.
-        /// </summary>
-        /// <param name="ego">The ego GameObject.</param>
-        /// <param name="sensor">The sensor GameObject.</param>
-        /// <returns>Returns a SensorSpatialData filled out with EgoPose and SensorPose based on the given objects.</returns>
-        public static SensorSpatialData FromGameObjects(GameObject ego, GameObject sensor)
-        {
-            ego = ego == null ? sensor : ego;
-            var egoRotation = ego.transform.rotation;
-            var egoPosition = ego.transform.position;
-            var sensorSpatialData = new SensorSpatialData()
-            {
-                EgoPose = new Pose(egoPosition, egoRotation),
-                SensorPose = new Pose(sensor.transform.position - egoPosition, sensor.transform.rotation * Quaternion.Inverse(egoRotation))
-            };
-            return sensorSpatialData;
-        }
+        public AsyncFuture<Metric> ReportMetricAsync(MetricDefinition metricDefinition) => DatasetCapture.currentSimulation.CreateAsyncMetric(metricDefinition, m_SensorHandle, this);
     }
 }

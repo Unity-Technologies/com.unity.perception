@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Profiling;
-using Unity.Simulation;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Perception.GroundTruth.DataModel;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 #if HDRP_PRESENT
@@ -14,6 +15,7 @@ using UnityEngine.Rendering.HighDefinition;
 #if URP_PRESENT
 using UnityEngine.Rendering.Universal;
 #endif
+#pragma warning disable 649
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -25,15 +27,11 @@ namespace UnityEngine.Perception.GroundTruth
     {
         const float k_PanelWidth = 200;
         const float k_PanelHeight = 250;
-        const string k_RgbFilePrefix = "rgb_";
 
         static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
-        static ProfilerMarker s_EncodeAndSave = new ProfilerMarker("Encode and save (PerceptionCamera)");
 
         static PerceptionCamera s_VisualizedPerceptionCamera;
 
-        //TODO: Remove the Guid path when we have proper dataset merging in Unity Simulation and Thea
-        internal string rgbDirectory { get; } = $"RGB{Guid.NewGuid()}";
         internal HUDPanel hudPanel;
         internal OverlayPanel overlayPanel;
 
@@ -41,13 +39,16 @@ namespace UnityEngine.Perception.GroundTruth
         List<CameraLabeler> m_Labelers = new List<CameraLabeler>();
         Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
 
+        bool m_SimulationEnded;
         bool m_ShowingVisualizations;
         bool m_GUIStylesInitialized;
         int m_LastFrameCaptured = -1;
         int m_LastFrameEndRendering = -1;
-        Ego m_EgoMarker;
         SensorHandle m_SensorHandle;
         Vector2 m_ScrollPosition;
+        RgbSensor m_RgbSensorCapture;
+        RgbSensorDefinition m_SensorDefinition;
+        AsyncFuture<Sensor> m_Future;
 
 #if URP_PRESENT
         // only used to confirm that GroundTruthRendererFeature is present in URP
@@ -56,17 +57,47 @@ namespace UnityEngine.Perception.GroundTruth
 #endif
 
         /// <summary>
+        /// The number of capture-able frames that have been generated
+        /// </summary>
+#if UNITY_EDITOR
+        public static int captureFrameCount => Time.frameCount - 2;
+#else
+        public static int captureFrameCount => Time.frameCount - 1;
+#endif
+
+        /// <summary>
+        /// A toggle for choosing whether to use async or synchronous readback APIs to transfer captured RGB image
+        /// data from the GPU back to the CPU. The more performant option of async readbacks is enabled by default.
+        /// </summary>
+        public static bool useAsyncReadbackIfSupported = true;
+
+        /// <summary>
+        /// An event that executes for each captured RGB image that is read from GPU memory back to CPU memory.
+        /// </summary>
+        public Action<int, NativeArray<Color32>> RgbCaptureReadback;
+
+        /// <summary>
+        /// The string ID of this camera sensor
+        /// </summary>
+        public string ID = "camera";
+
+        /// <summary>
         /// A human-readable description of the camera.
         /// </summary>
         public string description;
 
         /// <summary>
-        /// Whether camera output should be captured to disk
+        /// Whether camera output should be captured to disk.
         /// </summary>
         public bool captureRgbImages = true;
 
         /// <summary>
-        /// Caches access to the camera attached to the perception camera
+        /// The image encoding format used to encode captured RGB images.
+        /// </summary>
+        const ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.Png;
+
+        /// <summary>
+        /// Caches access to the camera attached to the perception camera.
         /// </summary>
         public Camera attachedCamera { get; private set; }
 
@@ -82,7 +113,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         /// <summary>
         /// Have this unscheduled (manual capture) camera affect simulation timings (similar to a scheduled camera) by
-        /// requesting a specific frame delta time
+        /// requesting a specific frame delta time.
         /// </summary>
         public bool manualSensorAffectSimulationTiming;
 
@@ -190,10 +221,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         void Start()
         {
-            // Jobs are not chained to one another in any way, maximizing parallelism
-            AsyncRequest.maxJobSystemParallelism = 0;
-            AsyncRequest.maxAsyncRequestFrameAge = 0;
-
             Application.runInBackground = true;
 
             SetupInstanceSegmentation();
@@ -207,8 +234,8 @@ namespace UnityEngine.Perception.GroundTruth
         void OnEnable()
         {
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            RenderPipelineManager.endFrameRendering += OnEndFrameRendering;
             RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
         }
 
         // LateUpdate is called once per frame. It is called after coroutines, ensuring it is called properly after
@@ -234,7 +261,7 @@ namespace UnityEngine.Perception.GroundTruth
             // if we are utilizing async readback and we have to flip our captured image.
             // We have created a jira issue for this (aisv-779) and have notified the engine team about this.
             if (m_ShowingVisualizations)
-                CaptureOptions.useAsyncReadbackIfSupported = false;
+                useAsyncReadbackIfSupported = false;
         }
 
         void OnGUI()
@@ -296,7 +323,7 @@ namespace UnityEngine.Perception.GroundTruth
         void OnDisable()
         {
             RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-            RenderPipelineManager.endFrameRendering -= OnEndFrameRendering;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
             RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
         }
 
@@ -317,11 +344,9 @@ namespace UnityEngine.Perception.GroundTruth
         {
             if (m_SensorHandle.IsNil)
             {
-                m_EgoMarker = GetComponentInParent<Ego>();
-                var ego = m_EgoMarker == null ? DatasetCapture.RegisterEgo("") : m_EgoMarker.EgoHandle;
-                SensorHandle = DatasetCapture.RegisterSensor(
-                    ego, "camera", description, firstCaptureFrame, captureTriggerMode,
-                    simulationDeltaTime, framesBetweenCaptures, manualSensorAffectSimulationTiming);
+                m_SensorDefinition = new RgbSensorDefinition(ID, captureTriggerMode, description, firstCaptureFrame,
+                    framesBetweenCaptures, manualSensorAffectSimulationTiming, "camera", simulationDeltaTime);
+                SensorHandle = DatasetCapture.RegisterSensor(m_SensorDefinition);
             }
         }
 
@@ -410,71 +435,12 @@ namespace UnityEngine.Perception.GroundTruth
             GUILayout.EndArea();
         }
 
-        /// <summary>
-        /// Convert the Unity 4x4 projection matrix to a 3x3 matrix
-        /// </summary>
-        // ReSharper disable once InconsistentNaming
-        static float3x3 ToProjectionMatrix3x3(Matrix4x4 inMatrix)
-        {
-            return new float3x3(
-                inMatrix[0,0], inMatrix[0,1], inMatrix[0,2],
-                inMatrix[1,0], inMatrix[1,1], inMatrix[1,2],
-                inMatrix[2,0],inMatrix[2,1], inMatrix[2,2]);
-        }
-
-        void CaptureRgbData(Camera cam)
-        {
-            if (!captureRgbImages)
-                return;
-
-            Profiler.BeginSample("CaptureDataFromLastFrame");
-
-            // Record the camera's projection matrix
-            SetPersistentSensorData("camera_intrinsic", ToProjectionMatrix3x3(cam.projectionMatrix));
-
-            // Record the camera's projection type (orthographic or perspective)
-            SetPersistentSensorData("projection", cam.orthographic ? "orthographic" : "perspective");
-
-            var captureFilename = $"{Manager.Instance.GetDirectoryFor(rgbDirectory)}/{k_RgbFilePrefix}{Time.frameCount}.png";
-            var dxRootPath = $"{rgbDirectory}/{k_RgbFilePrefix}{Time.frameCount}.png";
-            SensorHandle.ReportCapture(dxRootPath, SensorSpatialData.FromGameObjects(
-                m_EgoMarker == null ? null : m_EgoMarker.gameObject, gameObject),
-                m_PersistentSensorData.Select(kvp => (kvp.Key, kvp.Value)).ToArray());
-
-            Func<AsyncRequest<CaptureCamera.CaptureState>, AsyncRequest.Result> colorFunctor;
-            var width = cam.pixelWidth;
-            var height = cam.pixelHeight;
-
-            colorFunctor = r =>
-            {
-                using (s_WriteFrame.Auto())
-                {
-                    var dataColorBuffer = (byte[])r.data.colorBuffer;
-
-                    byte[] encodedData;
-                    using (s_EncodeAndSave.Auto())
-                    {
-                        encodedData = ImageConversion.EncodeArrayToPNG(
-                            dataColorBuffer, GraphicsFormat.R8G8B8A8_UNorm, (uint)width, (uint)height);
-                    }
-
-                    return !FileProducer.Write(captureFilename, encodedData)
-                        ? AsyncRequest.Result.Error
-                        : AsyncRequest.Result.Completed;
-                }
-            };
-
-#if SIMULATION_CAPTURE_0_0_10_PREVIEW_16_OR_NEWER
-            CaptureCamera.Capture(cam, colorFunctor, forceFlip: ForceFlip.None);
-#else
-            CaptureCamera.Capture(cam, colorFunctor, flipY: flipY);
-#endif
-
-            Profiler.EndSample();
-        }
-
         void OnSimulationEnding()
         {
+            RenderTextureReader.WaitForAllImages();
+            ImageEncoder.WaitForAllEncodingJobsToComplete();
+
+            m_SimulationEnded = true;
             CleanUpInstanceSegmentation();
             foreach (var labeler in m_Labelers)
             {
@@ -485,30 +451,26 @@ namespace UnityEngine.Perception.GroundTruth
 
         void OnBeginCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera cam)
         {
-            if (!ShouldCallLabelers(cam, m_LastFrameCaptured))
-                return;
+            ImageEncoder.ExecutePendingCallbacks();
 
+            if (!ShouldCaptureThisFrame(cam, m_LastFrameCaptured))
+                return;
             m_LastFrameCaptured = Time.frameCount;
-            CaptureRgbData(cam);
+            BeginSensorCapture();
             CallOnLabelers(l => l.InternalOnBeginRendering(scriptableRenderContext));
         }
 
-        void OnEndFrameRendering(ScriptableRenderContext scriptableRenderContext, Camera[] cameras)
+        void OnEndCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera cam)
         {
-            bool anyCamera = false;
-            foreach (var cam in cameras)
-            {
-                if (ShouldCallLabelers(cam, m_LastFrameEndRendering))
-                {
-                    anyCamera = true;
-                    break;
-                }
-            }
-
-            if (!anyCamera)
+            if (!ShouldCaptureThisFrame(cam, m_LastFrameEndRendering))
                 return;
 
+            // Submit the graphics commands already queued up in this camera's ScriptableRenderContext to ensure that
+            // the custom passes added by the labelers in this camera have written to their respective RenderTextures.
+            scriptableRenderContext.Submit();
+
             m_LastFrameEndRendering = Time.frameCount;
+            CaptureRGB(scriptableRenderContext);
             CallOnLabelers(l => l.InternalOnEndRendering(scriptableRenderContext));
             CaptureInstanceSegmentation(scriptableRenderContext);
         }
@@ -527,18 +489,86 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        bool ShouldCallLabelers(Camera cam, int lastFrameCalledThisCallback)
+        bool ShouldCaptureThisFrame(Camera cam, int lastFrameCalledThisCallback)
         {
+            if (m_SimulationEnded)
+                return false;
             if (cam != attachedCamera)
                 return false;
             if (!SensorHandle.ShouldCaptureThisFrame)
                 return false;
-            // There are cases when OnBeginCameraRendering is called multiple times in the same frame.
+            // There are cases when OnBegin/EndCameraRendering is called multiple times in the same frame.
             // Ignore the subsequent calls.
-            if (lastFrameCalledThisCallback == Time.frameCount)
-                return false;
+            return lastFrameCalledThisCallback != Time.frameCount;
+        }
 
-            return true;
+        void BeginSensorCapture()
+        {
+            var trans = transform;
+
+            var dimension = new Vector2(attachedCamera.pixelWidth, attachedCamera.pixelHeight);
+            var projection = attachedCamera.orthographic
+                ? RgbSensor.ImageProjection.Isometric : RgbSensor.ImageProjection.Perspective;
+            m_RgbSensorCapture = new RgbSensor(
+                m_SensorDefinition,
+                trans.position, trans.rotation, k_RgbImageEncodingFormat, projection, dimension)
+            {
+                matrix = ToProjectionMatrix3x3(attachedCamera.projectionMatrix)
+            };
+
+            if (!captureRgbImages)
+                SensorHandle.ReportSensor(m_RgbSensorCapture);
+            else
+                m_Future = SensorHandle.ReportSensorAsync();
+        }
+
+        void CaptureRGB(ScriptableRenderContext ctx)
+        {
+            if (!captureRgbImages)
+                return;
+
+            Profiler.BeginSample("CaptureDataFromLastFrame");
+            var cmd = CommandBufferPool.Get($"{ID}_PerceptionRGBCapture");
+            var tempRT1 = RenderTexture.GetTemporary(
+                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_UNorm);
+            var tempRT2 = RenderTexture.GetTemporary(
+                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_UNorm);
+
+            // Blit the back buffer to a temporary RenderTexture to obtain the RGB output image
+            cmd.Blit(null, tempRT1);
+
+            // Invert the image (the image comes back upside down from the first blit)
+            cmd.Blit(tempRT1, tempRT2, new Vector2(1, -1), Vector2.up);
+
+            // Execute the CommandBuffer
+            ctx.ExecuteCommandBuffer(cmd);
+            ctx.Submit();
+
+            // Release the CommandBuffer
+            CommandBufferPool.Release(cmd);
+            tempRT1.Release();
+
+            // Capture these parameters in the method body for the ImageEncoder callback
+            var capture = m_RgbSensorCapture;
+            var future = m_Future;
+
+            RenderTextureReader.Capture<Color32>(ctx, tempRT2, (frame, pixelData, rt) =>
+            {
+                RgbCaptureReadback?.Invoke(frame, pixelData);
+
+                ImageEncoder.EncodeImage(pixelData, rt.width, rt.height,
+                    rt.graphicsFormat, k_RgbImageEncodingFormat, encodedImageData =>
+                {
+                    using (s_WriteFrame.Auto())
+                    {
+                        capture.buffer = encodedImageData.ToArray();
+                        future.Report(capture);
+                    }
+                });
+
+                rt.Release();
+            });
+            Profiler.EndSample();
         }
 
         void CleanupVisualization()
@@ -556,5 +586,17 @@ namespace UnityEngine.Perception.GroundTruth
             m_IsGroundTruthRendererFeaturePresent = true;
         }
 #endif
+
+        /// <summary>
+        /// Convert the Unity 4x4 projection matrix to a 3x3 matrix
+        /// </summary>
+        // ReSharper disable once InconsistentNaming
+        static float3x3 ToProjectionMatrix3x3(Matrix4x4 inMatrix)
+        {
+            return new float3x3(
+                inMatrix[0,0], inMatrix[0,1], inMatrix[0,2],
+                inMatrix[1,0], inMatrix[1,1], inMatrix[1,2],
+                inMatrix[2,0],inMatrix[2,1], inMatrix[2,2]);
+        }
     }
 }

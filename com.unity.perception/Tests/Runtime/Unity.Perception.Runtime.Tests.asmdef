@@ -5,10 +5,8 @@
         "Unity.Mathematics",
         "Unity.Collections",
         "Unity.Burst",
-        "Unity.Entities",
         "Unity.Perception.Runtime",
         "Unity.Perception.Editor",
-        "Unity.Simulation.Core",
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Universal.Runtime"
     ],

@@ -171,7 +171,6 @@ namespace GroundTruthTests
             cache.Dispose();
         }
 
-
         [UnityTest]
         public IEnumerator LabelsCorrectWhenIdsReset()
         {
@@ -189,7 +188,7 @@ namespace GroundTruthTests
                 Debug.Log($"Bounding boxes received. FrameCount: {eventArgs.frameCount}");
 
                 Assert.AreEqual(1, eventArgs.data.Count());
-                Assert.AreEqual(expectedLabelIdAtFrame[eventArgs.frameCount], eventArgs.data.First().label_id);
+                Assert.AreEqual(expectedLabelIdAtFrame[eventArgs.frameCount], eventArgs.data.First().labelId);
             }
 
             var idLabelConfig = ScriptableObject.CreateInstance<IdLabelConfig>();

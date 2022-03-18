@@ -1,14 +1,13 @@
-﻿using System.Collections;
+﻿#if PERFORMANCE_TESTING_PRESENT
+using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using NUnit.Framework;
 using Unity.PerformanceTesting;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.TestTools;
-using UnityEngine.UIElements;
 
 namespace PerformanceTests
 {
@@ -17,6 +16,7 @@ namespace PerformanceTests
         (int, int) m_Resolution;
         bool m_CaptureData;
         bool m_VisualizersOn;
+        NoOutputEndpoint m_Endpoint;
         PerceptionCamera m_Camera;
         GameObject m_SceneRoot;
         IdLabelConfig m_IdConfig = null;
@@ -81,11 +81,10 @@ namespace PerformanceTests
         [SetUp]
         public void SetUpTest()
         {
+            m_Endpoint = new NoOutputEndpoint();
+            DatasetCapture.OverrideEndpoint(m_Endpoint);
             DatasetCapture.ResetSimulation();
             Time.timeScale = 1;
-
-            if (Directory.Exists(DatasetCapture.OutputDirectory))
-                Directory.Delete(DatasetCapture.OutputDirectory, true);
 
             Screen.SetResolution(m_Resolution.Item1, m_Resolution.Item2, true);
             (m_Camera, m_IdConfig, m_SsConfig, m_SceneRoot) = TestHelper.CreateThreeBlockScene();
@@ -111,13 +110,8 @@ namespace PerformanceTests
             Object.DestroyImmediate(m_Camera.gameObject);
             Object.DestroyImmediate(m_SceneRoot.gameObject);
 
-            var simState = DatasetCapture.SimulationState;
-            simState.End();
-
             DatasetCapture.ResetSimulation();
             Time.timeScale = 1;
-            if (Directory.Exists(DatasetCapture.OutputDirectory))
-                Directory.Delete(DatasetCapture.OutputDirectory, true);
 
             m_ActiveLabelers = null;
             m_IdConfig = null;
@@ -137,3 +131,4 @@ namespace PerformanceTests
         }
     }
 }
+#endif

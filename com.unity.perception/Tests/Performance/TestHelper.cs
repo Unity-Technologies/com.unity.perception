@@ -1,3 +1,4 @@
+#if PERFORMANCE_TESTING_PRESENT
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,8 +68,7 @@ namespace PerformanceTests
 
             return labelConfig;
         }
-        
-        //public static GameObject CreateLabeledCube(float scale = 10, string label = "label", float x = 0, float y = 0, float z = 0, float roll = 0, float pitch = 0, float yaw = 0)
+
         public static GameObject CreateLabeledCube(string label = "label", Vector3? position = null, Quaternion? rotation = null, float scale = 10)
         {
             var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -99,3 +99,4 @@ namespace PerformanceTests
         }
     }
 }
+#endif

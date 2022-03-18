@@ -180,4 +180,16 @@
     margin-right: 4px;
 }
 
+/* Progress classes */
+.progress__dark-viewport {
+    margin-top: 10px;
+    border-radius: 5px;
+    background-color: #191919;
+    padding: 2px;
+}
 
+/* Dragging classes */
+.drag__receiving {
+    border-color: white;
+    border-width: 2px;
+}

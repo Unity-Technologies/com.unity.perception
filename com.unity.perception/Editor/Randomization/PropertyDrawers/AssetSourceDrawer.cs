@@ -1,4 +1,4 @@
-﻿using Editor.Randomization.VisualElements.AssetSource;
+﻿using UnityEditor.Perception.Randomization.VisualElements.AssetSource;
 using UnityEngine;
 using UnityEngine.Perception.Randomization;
 using UnityEngine.UIElements;

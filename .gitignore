@@ -39,3 +39,5 @@ CodeCoverage
 **/Builds/**
 /utr
 *.user
+/TestProjects/PerceptionHDRP/Datasets/
+/TestProjects/PerceptionURP/Datasets/

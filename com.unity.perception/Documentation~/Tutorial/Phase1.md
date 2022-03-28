@@ -375,15 +375,9 @@ While the simulation is running, your _**Game**_ view will quickly generate fram
 
 ### <a name="step-7">Step 7: Inspect Generated Synthetic Data</a> 
 
-By default, the generated dataset will be generated in the Perception format. You can find the location of your data, and set the location of future datasets inside the project settings window. To achieve this: 
+By default, the generated dataset will be generated in the Perception format. You can find the location of your data, and set the location of future datasets in the settings on your Perception Camera object. To achieve this: 
 
-* **:green_circle: Action** Open the _**Project Settings...**_ window, by selecting the menu `Edit->Project Settings...`. Select `Perception` from the left panel. This will bring up the _**Perception**_ settings pane. 
-
-<p align="center">
-<img src="Images/perception_properties.png" width = "600"/>
-</p>
-
-* **:green_circle: Action**: Click _**Show Folder**_ to show and highlight the folder in your operating system's file explorer. Enter this folder.
+* **:green_circle: Action** Select your `Main Camera` object. In the _**Inspector**_ tab, find the `Perception Camera` component. Scroll down to the `Latest Generated Dataset` section and click _**Show Folder**_ to show and highlight the folder in your operating system's file explorer. Enter this folder. 
 
 In this folder, you will find a few types of data, depending on your `Perception Camera` settings. These can include:
 - Logs

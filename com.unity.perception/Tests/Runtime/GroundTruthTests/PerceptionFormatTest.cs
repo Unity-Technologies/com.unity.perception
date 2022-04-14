@@ -33,6 +33,7 @@ namespace GroundTruthTests
 
             if (Directory.Exists(m_Endpoint.currentPath))
                 Directory.Delete(m_Endpoint.currentPath, true);
+            DatasetCapture.OverrideEndpoint(null);
         }
 
         static (RgbSensorDefinition, SensorHandle) RegisterSensor(string id, string modality, string sensorDescription, int firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float simDeltaTime, int framesBetween, bool affectTiming = false)

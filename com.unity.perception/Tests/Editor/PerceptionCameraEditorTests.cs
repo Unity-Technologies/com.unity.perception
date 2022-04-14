@@ -4,7 +4,9 @@ using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
-// using UnityEditor.Perception.Visualizer;
+#if !UNITY_EDITOR_LINUX
+using UnityEditor.Perception.Visualizer;
+#endif
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -71,53 +73,52 @@ namespace EditorTests
 
             yield return new ExitPlayMode();
         }
-        /**
-        [Test, Ignore("Some bug to fix in the test itself")]
-        public void VisualizerInstalledSuccessfully()
+
+#if !UNITY_EDITOR_LINUX
+        //[Test]
+        //[Category("Python")]
+        public void VisualizerInstallationTest()
         {
             var cameraObject = SetupCamera(null);
-            var perceptionCamera = cameraObject.GetComponent<PerceptionCamera>();
-            InstallVisualizerAsync();
-            // check if visualizer is installed to the correct path
+            cameraObject.GetComponent<PerceptionCamera>();
 #if UNITY_EDITOR_WIN
             var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets", "/Library/PythonInstall/Scripts"));
+            packagesPath = packagesPath.Replace("/", "\\");
 #elif UNITY_EDITOR_OSX
             var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
 #endif
-            
-#if UNITY_EDITOR_WIN
-            packagesPath = packagesPath.Replace("/", "\\");
-#endif
-            string path =  Path.Combine(packagesPath, "datasetvisualizer.exe");
-            Assert.IsTrue(File.Exists(path));
+            // Install the Visualizer and check if it exists
+            InstallOrUninstallVisualizerAsync(packagesPath, installFlag:true);
+            string[] files = Directory.GetFiles(packagesPath, "datasetvisualizer.*");
+            Assert.IsTrue(files.Length > 0);
+            // Uninstall the visualizer after check
+            InstallOrUninstallVisualizerAsync(packagesPath, installFlag:false);
         }
-        
-        static void InstallVisualizerAsync()
+
+        static void InstallOrUninstallVisualizerAsync(string packagesPath, bool installFlag)
         {
-            // check if visualizer is installed to the correct path
-#if UNITY_EDITOR_WIN
-            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets", "/Library/PythonInstall/Scripts"));
-#elif UNITY_EDITOR_OSX
-            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
-#endif
-            
-#if UNITY_EDITOR_WIN
-            packagesPath = packagesPath.Replace("/", "\\");
-#endif
-            //==============================INSTALL VISUALIZER IN PYTHON FOR UNITY======================================
             const int steps = 3;
             var exitCode = 0;
-            EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes)", 2f / steps);
-            Task.WaitAll(VisualizerInstaller.InstallationCommand(ref exitCode, packagesPath));
+            // If install flag is true, install the visualizer
+            if (installFlag)
+            {
+                EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes)", 2f / steps);
+                Task.WaitAll(VisualizerInstaller.InstallationCommand(ref exitCode, packagesPath, true));
+            }
+            // if install flag is false, uninstall the visualizer
+            else
+            {
+                EditorUtility.DisplayProgressBar("Uninstall the Visualizer", "Uninstalling Visualizer (This may take a few minutes)", 2f / steps);
+                Task.WaitAll(VisualizerInstaller.UninstallCommand(ref exitCode, packagesPath));
+            }
             if (exitCode != 0)
             {
                 EditorUtility.ClearProgressBar();
                 return;
             }
             EditorUtility.ClearProgressBar();
-            Debug.Log("Successfully installed visualizer tool!");
         }
-        **/
+#endif
 
 #if MOQ_PRESENT
         [UnityTest]

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Unity.Collections;
 
 namespace UnityEngine.Perception.GroundTruth.DataModel
 {
@@ -13,6 +15,11 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
         public Metadata()
         {
             m_Metadata = new Dictionary<string, MetadataEntry>();
+        }
+
+        Metadata(Dictionary<string, MetadataEntry> metadata)
+        {
+            m_Metadata = metadata;
         }
 
         Dictionary<string, MetadataEntry> m_Metadata;
@@ -207,6 +214,11 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                 valueType = ValueType.SubMetadataArray,
                 value = value
             };
+        }
+
+        void Add(string key, MetadataEntry value)
+        {
+            m_Metadata[key] = value;
         }
 
         /// <summary>
@@ -594,7 +606,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             if (!m_Metadata.TryGetValue(key, out var value))
                 throw new ArgumentException($"{key} does not exist in metadata");
 
-            if (value.valueType != ValueType.BoolArray)
+            if (value.valueType != ValueType.SubMetadataArray)
                 throw new InvalidOperationException($"{key} is not associated to a sub-metadata array");
 
             return (Metadata[])value.value;
@@ -614,7 +626,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             return true;
         }
 
-        enum ValueType
+        internal enum ValueType
         {
             Int,
             UInt,
@@ -629,10 +641,200 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             SubMetadataArray
         }
 
-        struct MetadataEntry
+        internal struct MetadataEntry
         {
             public ValueType valueType;
             public object value;
+        }
+
+        class MetadataEntryConverter : JsonConverter
+        {
+            static void WriteMetadata(JsonWriter writer, Metadata value, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                foreach (var i in value.m_Metadata.Keys)
+                {
+                    writer.WritePropertyName(i);
+                    serializer.Serialize(writer, value.m_Metadata[i]);
+                }
+
+                writer.WriteEndObject();
+            }
+
+            static void WriteMetadataEntry(JsonWriter writer, Metadata value, JsonSerializer serializer)
+            {
+
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                switch (value)
+                {
+                    case Metadata metadata:
+                        WriteMetadata(writer, metadata, serializer);
+                        return;
+                    case MetadataEntry metadataEntry:
+                    {
+                        var entry = metadataEntry;
+                        JObject jObject = null;
+                        switch (entry.valueType)
+                        {
+                            case ValueType.Int:
+                                jObject = new JObject { ["type"] = entry.valueType.ToString(), ["value"] = (int)entry.value };
+                                jObject.WriteTo(writer);
+                                break;
+                            case ValueType.UInt:
+                                jObject = new JObject { ["type"] = entry.valueType.ToString(), ["value"] = (uint)entry.value };
+                                jObject.WriteTo(writer);
+                                break;
+                            case ValueType.Float:
+                                jObject = new JObject { ["type"] = entry.valueType.ToString(), ["value"] = (float)entry.value };
+                                jObject.WriteTo(writer);
+                                break;
+                            case ValueType.String:
+                                jObject = new JObject { ["type"] = entry.valueType.ToString(), ["value"] = (string)entry.value };
+                                jObject.WriteTo(writer);
+                                break;
+                            case ValueType.Bool:
+                                jObject = new JObject { ["type"] = entry.valueType.ToString(), ["value"] = (bool)entry.value };
+                                jObject.WriteTo(writer);
+                                break;
+                            case ValueType.SubMetadata:
+                                writer.WriteStartObject();
+                                writer.WritePropertyName("type");
+                                writer.WriteValue(entry.valueType.ToString());
+                                writer.WritePropertyName("value");
+                                serializer.Serialize(writer, entry.value);
+                                writer.WriteEndObject();
+                                break;
+                            case ValueType.IntArray:
+                                jObject = new JObject { ["type"] = entry.valueType.ToString(), ["value"] =  new JArray(entry.value) };
+                                jObject.WriteTo(writer);
+                                break;
+                            case ValueType.FloatArray:
+                                jObject = new JObject { ["type"] = entry.valueType.ToString(), ["value"] =  new JArray(entry.value) };
+                                jObject.WriteTo(writer);
+                                break;
+                            case ValueType.StringArray:
+                                jObject = new JObject { ["type"] = entry.valueType.ToString(), ["value"] =  new JArray(entry.value) };
+                                jObject.WriteTo(writer);
+                                break;
+                            case ValueType.BoolArray:
+                                jObject = new JObject { ["type"] = entry.valueType.ToString(), ["value"] =  new JArray(entry.value) };
+                                jObject.WriteTo(writer);
+                                break;
+                            case ValueType.SubMetadataArray:
+                                writer.WriteStartObject();
+                                writer.WritePropertyName("type");
+                                writer.WriteValue(entry.valueType.ToString());
+                                writer.WritePropertyName("value");
+                                serializer.Serialize(writer, entry.value);
+                                writer.WriteEndObject();
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                var jsonObject = JObject.Load(reader);
+                var properties = jsonObject.Properties().ToList();
+
+                var valueType = (ValueType)Enum.Parse(typeof(ValueType), (string)properties[0].Value);
+
+                object value = null;
+
+                switch (valueType)
+                {
+                    case ValueType.Int:
+                        value = (int)properties[1].Value;
+                        break;
+                    case ValueType.UInt:
+                        value = (uint)properties[1].Value;
+                        break;
+                    case ValueType.Float:
+                        value = (float)properties[1].Value;
+                        break;
+                    case ValueType.String:
+                        value = (string)properties[1].Value;
+                        break;
+                    case ValueType.Bool:
+                        value = (bool)properties[1].Value;
+                        break;
+                    case ValueType.SubMetadata:
+                    {
+                        var sub = new Metadata();
+                        var readIn = properties[1].Value.ToObject<Dictionary<string, MetadataEntry>>(serializer);
+                        foreach (var r in readIn.Keys)
+                        {
+                            sub.Add(r, readIn[r]);
+                        }
+
+                        value = sub;
+
+                        break;
+                    }
+                    case ValueType.IntArray:
+                        value = properties[1].Values().ToList().ConvertAll(a => (int)a).ToArray();
+                        break;
+                    case ValueType.FloatArray:
+                        value = properties[1].Values().ToList().ConvertAll(a => (float)a).ToArray();
+                        break;
+                    case ValueType.StringArray:
+                        value = properties[1].Values().ToList().ConvertAll(a => (string)a).ToArray();
+                        break;
+                    case ValueType.BoolArray:
+                        value = properties[1].Values().ToList().ConvertAll(a => (bool)a).ToArray();
+                        break;
+                    case ValueType.SubMetadataArray:
+                    {
+                        var subList = new List<Metadata>();
+                        var readIn = properties[1].Values().ToList().ConvertAll(a => a.ToObject<Dictionary<string, MetadataEntry>>(serializer));
+                        foreach (var r in readIn)
+                        {
+                            var sub = new Metadata();
+                            foreach (var k in r.Keys)
+                            {
+                                sub.Add(k, r[k]);
+                            }
+                            subList.Add(sub);
+                        }
+
+                        value = subList.ToArray();
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                return new MetadataEntry
+                {
+                    valueType = valueType,
+                    value = value
+                };
+            }
+
+            public override bool CanConvert(Type objectType)
+            {
+                return objectType == typeof(MetadataEntry) || objectType == typeof(Metadata);
+            }
+        }
+
+        public static Metadata FromJson(string json)
+        {
+            var map = JsonConvert.DeserializeObject<Dictionary<string, MetadataEntry>>(json, new MetadataEntryConverter());
+            return new Metadata(map);
+        }
+
+        public string ToJson()
+        {
+            return JsonConvert.SerializeObject(m_Metadata, Formatting.Indented, new MetadataEntryConverter());
         }
     }
 }

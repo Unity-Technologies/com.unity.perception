@@ -46,7 +46,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
             m_Container = new GameObject("Foreground Objects");
             m_Container.transform.parent = scenario.transform;
             m_GameObjectOneWayCache = new GameObjectOneWayCache(
-                m_Container.transform, prefabs.categories.Select(element => element.Item1).ToArray());
+                m_Container.transform, prefabs.categories.Select(element => element.Item1).ToArray(), this);
         }
 
         /// <summary>

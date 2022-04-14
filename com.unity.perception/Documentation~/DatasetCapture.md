@@ -14,55 +14,90 @@ You can register custom sensors using `DatasetCapture.RegisterSensor()`. The `si
 `Time.captureDeltaTime` is set at every frame in order to precisely fall on the next sensor that requires simulation, and this includes multi-sensor simulations. For instance, if one sensor has a `simulationDeltaTime` of 2 and another 3, the first five values for `Time.captureDeltaTime` will be 2, 1, 1, 2, and 3, meaning simulation will happen on the timestamps 0, 2, 3, 4, 6, and 9.
 
 ## Custom annotations and metrics
-In addition to the common annotations and metrics produced by [PerceptionCamera](PerceptionCamera.md), scripts can produce their own via `DatasetCapture`. You must first register annotation and metric definitions using `DatasetCapture.RegisterAnnotationDefinition()` or `DatasetCapture.RegisterMetricDefinition()`. These return `AnnotationDefinition` and `MetricDefinition` instances which you can then use to report values during runtime.
+In addition to the common annotations and metrics produced by [PerceptionCamera](PerceptionCamera.md), scripts can produce their own via `DatasetCapture`. You must first create and register annotation and metric definitions using `DatasetCapture.RegisterAnnotationDefinition()` or `DatasetCapture.RegisterMetric()`. These are used~~~~ to report values during runtime.
 
 Annotations and metrics are always associated with the frame they are reported in. They may also be associated with a specific sensor by using the `Report*` methods on `SensorHandle`.
 
 ### Example
-<!-- If you change this, change it in PerceptionURP/Assets/Examples/CustomAnnotationAndMetricReporter.cs as well -->
 ```csharp
 using System;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Rendering;
 
-[RequireComponent(typeof(PerceptionCamera))]
-public class CustomAnnotationAndMetricReporter : MonoBehaviour
+public class CustomLabeler : CameraLabeler
 {
+    public override string description => "Demo labeler";
+    public override string labelerId => "Demo labeler";
+    protected override bool supportsVisualization => false;
+
     public GameObject targetLight;
     public GameObject target;
 
     MetricDefinition lightMetricDefinition;
-    AnnotationDefinition boundingBoxAnnotationDefinition;
-    SensorHandle cameraSensorHandle;
+    AnnotationDefinition targetPositionDef;
 
-    public void Start()
+    class TargetPositionDef : AnnotationDefinition
     {
-        //Metrics and annotations are registered up-front
-        lightMetricDefinition = DatasetCapture.RegisterMetricDefinition(
-            "Light position",
-            "The world-space position of the light",
-            Guid.Parse("1F6BFF46-F884-4CC5-A878-DB987278FE35"));
-        boundingBoxAnnotationDefinition = DatasetCapture.RegisterAnnotationDefinition(
-            "Target bounding box",
-            "The position of the target in the camera's local space",
-            id: Guid.Parse("C0B4A22C-0420-4D9F-BAFC-954B8F7B35A7"));
+        public TargetPositionDef(string id)
+            : base(id) { }
+
+        public override string modelType => "targetPosDef";
+        public override string description => "The position of the target in the camera's local space";
     }
 
-    public void Update()
+    [Serializable]
+    class TargetPosition : Annotation
+    {
+        public TargetPosition(AnnotationDefinition definition, string sensorId, Vector3 pos)
+            : base(definition, sensorId)
+        {
+            position = pos;
+        }
+
+        public Vector3 position;
+
+        public override void ToMessage(IMessageBuilder builder)
+        {
+            base.ToMessage(builder);
+            builder.AddFloatArray("position", MessageBuilderUtils.ToFloatVector(position));
+        }
+
+        public override bool IsValid() => true;
+
+    }
+
+    protected override void Setup()
+    {
+        lightMetricDefinition =
+            new MetricDefinition(
+                "LightMetric",
+                "lightMetric1",
+                "The world-space position of the light");
+        DatasetCapture.RegisterMetric(lightMetricDefinition);
+
+        targetPositionDef = new TargetPositionDef("target1");
+        DatasetCapture.RegisterAnnotationDefinition(targetPositionDef);
+    }
+
+    protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
     {
         //Report the light's position by manually creating the json array string.
         var lightPos = targetLight.transform.position;
-        DatasetCapture.ReportMetric(lightMetricDefinition,
-            $@"[{{ ""x"": {lightPos.x}, ""y"": {lightPos.y}, ""z"": {lightPos.z} }}]");
+        var metric = new GenericMetric(new[] { lightPos.x, lightPos.y, lightPos.z }, lightMetricDefinition);
+        DatasetCapture.ReportMetric(lightMetricDefinition, metric);
+
         //compute the location of the object in the camera's local space
-        Vector3 targetPos = transform.worldToLocalMatrix * target.transform.position;
+        Vector3 targetPos = perceptionCamera.transform.worldToLocalMatrix * target.transform.position;
+
         //Report using the PerceptionCamera's SensorHandle if scheduled this frame
-        var sensorHandle = GetComponent<PerceptionCamera>().SensorHandle;
+        var sensorHandle = perceptionCamera.SensorHandle;
+
         if (sensorHandle.ShouldCaptureThisFrame)
         {
-            sensorHandle.ReportAnnotationValues(
-                boundingBoxAnnotationDefinition,
-                new[] { targetPos });
+            var annotation = new TargetPosition(targetPositionDef, sensorHandle.Id, targetPos);
+            sensorHandle.ReportAnnotation(targetPositionDef, annotation);
         }
     }
 }
@@ -73,21 +108,26 @@ public class CustomAnnotationAndMetricReporter : MonoBehaviour
 //   "annotation_id": null,
 //   "sequence_id": "9768671e-acea-4c9e-a670-0f2dba5afe12",
 //   "step": 1,
-//   "metric_definition": "1f6bff46-f884-4cc5-a878-db987278fe35",
-//   "values": [{ "x": 96.1856, "y": 192.676, "z": -193.8386 }]
+//   "metric_definition": "lightMetric1",
+//   "values": [
+//      96.1856,
+//      192.675964,
+//      -193.838638
+//    ]
 // },
 
 // Example annotation that is added to each capture in the dataset:
 // {
-//   "id": "33f5a3aa-3e5e-48f1-8339-6cbd64ed4562",
-//   "annotation_definition": "c0b4a22c-0420-4d9f-bafc-954b8f7b35a7",
-//   "values": [
-//     [
-//       -1.03097284,
-//       0.07265166,
-//       -6.318692
+//     "annotation_id": "target1",
+//     "model_type": "targetPosDef",
+//     "description": "The position of the target in the camera's local space",
+//     "sensor_id": "camera",
+//     "id": "target1",
+//     "position": [
+//         1.85350215,
+//         -0.253945172,
+//         -5.015307
 //     ]
-//   ]
 // }
 
 ```

@@ -530,15 +530,27 @@ namespace UnityEngine.Perception.GroundTruth
             Profiler.BeginSample("CaptureDataFromLastFrame");
             var cmd = CommandBufferPool.Get($"{ID}_PerceptionRGBCapture");
             var tempRT1 = RenderTexture.GetTemporary(
-                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_UNorm);
+                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_SRGB);
             var tempRT2 = RenderTexture.GetTemporary(
-                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_UNorm);
+                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_SRGB);
 
             // Blit the back buffer to a temporary RenderTexture to obtain the RGB output image
             cmd.Blit(null, tempRT1);
 
-            // Invert the image (the image comes back upside down from the first blit)
-            cmd.Blit(tempRT1, tempRT2, new Vector2(1, -1), Vector2.up);
+            Vector2 scaleForFlip;
+            Vector2 offset;
+            if (RenderingUtil.ShouldFlipColorY(attachedCamera, false))
+            {
+                scaleForFlip = new Vector2(1, -1);
+                offset = Vector2.up;
+            }
+            else
+            {
+                scaleForFlip = new Vector2(1, 1);
+                offset = Vector2.zero;
+            }
+
+            cmd.Blit(tempRT1, tempRT2, scaleForFlip, offset);
 
             // Execute the CommandBuffer
             ctx.ExecuteCommandBuffer(cmd);

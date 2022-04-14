@@ -21,6 +21,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+## [0.11.1-preview.1] - 2022-04-13
+
+### Added
+
+Added the ability to define the output of a standalone player with an '--output-path' command line argument
+
+### Changed
+
+Exceptions thrown in randomizers will now end the run
+
+Duplicates in categorical parameters are checked and reported
+
+User output paths are now written out in user's settings
+
+### Fixed
+
+Fixed captured RGB images being upside down or dark in various cases
+
+Fixed UI when there are many randomizers in the project
+
+Fixed Scenario UI when the last randomizer is removed
+
+Fixed the Visualizer installation bug, Visualizer can be installed and opened properly now.
+
 ## [0.10.0-preview.1] - 2022-03-09
 
 ### Upgrade Notes

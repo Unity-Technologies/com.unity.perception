@@ -7,6 +7,7 @@ using Newtonsoft.Json.Serialization;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.Settings;
 
 namespace UnityEngine.Perception.GroundTruth.Consumers
 {
@@ -17,7 +18,6 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
     public class PerceptionEndpoint : IConsumerEndpoint, IFileSystemEndpoint
     {
         const string k_DefaultPathToken = "_DEFAULT_PATH_";
-        const string k_PrefsPathKey = "perceptionPathKey";
 
         string m_DatasetPath;
         Dictionary<string, SensorInfo> m_SensorMap = new Dictionary<string, SensorInfo>();
@@ -36,9 +36,10 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         };
 
         /// <summary>
-        /// The runtime resolved directory path where the dataset will be written to.
+        /// The runtime resolved directory path where the dataset will be written to. This value
+        /// should not be accessed directly. Please use <see cref="currentPath"/>
         /// </summary>
-        protected string m_CurrentPath;
+        protected string m_CurrentPathDoNotUseDirectly;
 
         /// <summary>
         /// The number of captures to write to a single captures file.
@@ -61,33 +62,13 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         /// <inheritdoc/>
         public string defaultPathToken => k_DefaultPathToken;
 
-        /// <inheritdoc/>
-        public virtual string defaultPath
-        {
-            get
-            {
-                var persistentDataPath = Application.persistentDataPath;
-#if UNITY_SIMULATION_CORE_PRESENT
-                if (Unity.Simulation.Configuration.Instance.IsSimulationRunningInCloud())
-                    persistentDataPath = Unity.Simulation.Configuration.Instance.GetStoragePath();
-#endif
-                return persistentDataPath;
-            }
-        }
+        string defaultPath => PerceptionSettings.instance.defaultOutputPath;
 
         /// <inheritdoc/>
         public virtual string basePath
         {
-            get
-            {
-#if UNITY_SIMULATION_CORE_PRESENT
-                if (Unity.Simulation.Configuration.Instance.IsSimulationRunningInCloud())
-                    return defaultPath;
-#endif
-                var p = PlayerPrefs.GetString(k_PrefsPathKey, k_DefaultPathToken);
-                return p == k_DefaultPathToken ? defaultPath : p;
-            }
-            set => PlayerPrefs.SetString(k_PrefsPathKey, value);
+            get => PerceptionSettings.instance.GetOutputBasePath();
+            set => PerceptionSettings.instance.SetOutputBasePath(value);
         }
 
         /// <summary>
@@ -98,27 +79,28 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         {
             get
             {
-                if (string.IsNullOrEmpty(m_CurrentPath))
+                if (string.IsNullOrEmpty(m_CurrentPathDoNotUseDirectly))
                 {
 #if UNITY_SIMULATION_CORE_PRESENT
                     if (Unity.Simulation.Configuration.Instance.IsSimulationRunningInCloud())
                     {
-                        m_CurrentPath = defaultPath;
+                        m_CurrentPathDoNotUseDirectly = defaultPath;
                         return defaultPath;
                     }
 #endif
-                    var baseDirectory = PlayerPrefs.GetString(k_PrefsPathKey, k_DefaultPathToken);
-
-                    if (baseDirectory == k_DefaultPathToken)
+                    var p = basePath;
+                    if (!Directory.Exists(p))
                     {
-                        m_CurrentPath = PathUtils.CombineUniversal(Application.persistentDataPath, Guid.NewGuid().ToString());
+                        m_CurrentPathDoNotUseDirectly = PathUtils.CombineUniversal(defaultPath, Guid.NewGuid().ToString());
+                        Debug.LogError($"Tried to write perception output to an inaccessible path {p}. Using default path: {m_CurrentPathDoNotUseDirectly}");
                     }
                     else
                     {
-                        m_CurrentPath = PathUtils.CombineUniversal(baseDirectory, Guid.NewGuid().ToString());
+                        m_CurrentPathDoNotUseDirectly = PathUtils.CombineUniversal(basePath, Guid.NewGuid().ToString());
                     }
                 }
-                return m_CurrentPath;
+
+                return m_CurrentPathDoNotUseDirectly;
             }
         }
 
@@ -317,7 +299,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
                     captureIdMap[(frame.step, rgb.id)] = id;
                     var capture = new PerceptionCapture
                     {
-                            id = id,
+                        id = id,
                         sequence_id = seqId,
                         step = frame.step,
                         timestamp = frame.timestamp,

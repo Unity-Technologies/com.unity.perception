@@ -94,9 +94,12 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
                 {
                     return JToken.FromObject(PerceptionKeyPointValue.Convert(consumer, kp), consumer.Serializer);
                 }
+                default:
+                {
+                    var tmp = JToken.FromObject(annotation, consumer.Serializer);
+                    return tmp;
+                }
             }
-
-            return null;
         }
     }
 

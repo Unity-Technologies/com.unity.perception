@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.DataModel;
 
 namespace GroundTruthTests
 {
@@ -81,6 +82,19 @@ namespace GroundTruthTests
                 json = Regex.Replace(json, "^\\s*", "", RegexOptions.Multiline);
 
             return json.Replace("\r\n", "\n");
+        }
+
+        public static (RgbSensorDefinition, SensorHandle) RegisterSensor(string id, string modality, string sensorDescription, int firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float simDeltaTime, int framesBetween, bool affectTiming = false)
+        {
+            var sensorDefinition = new RgbSensorDefinition(id, modality, sensorDescription)
+            {
+                firstCaptureFrame = firstCaptureFrame,
+                captureTriggerMode = captureTriggerMode,
+                simulationDeltaTime = simDeltaTime,
+                framesBetweenCaptures = framesBetween,
+                manualSensorsAffectTiming = affectTiming
+            };
+            return (sensorDefinition, DatasetCapture.RegisterSensor(sensorDefinition));
         }
     }
 }

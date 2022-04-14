@@ -15,6 +15,7 @@ namespace GroundTruthTests
     {
         private const string kAnimatedCubeScenePath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/AnimatedCubeScene.unity";
         private const string kCubeScenePath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/CubeScene.unity";
+        private const string kUnlitObjectPath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/UnlitObject.unity";
         private const double k_Delta = .01;
 
         public void Setup()
@@ -23,6 +24,7 @@ namespace GroundTruthTests
             var scenes = UnityEditor.EditorBuildSettings.scenes.ToList();
             scenes.Add(new UnityEditor.EditorBuildSettingsScene(kAnimatedCubeScenePath, true));
             scenes.Add(new UnityEditor.EditorBuildSettingsScene(kCubeScenePath, true));
+            scenes.Add(new UnityEditor.EditorBuildSettingsScene(kUnlitObjectPath, true));
             UnityEditor.EditorBuildSettings.scenes = scenes.ToArray();
 #endif
         }
@@ -31,7 +33,7 @@ namespace GroundTruthTests
         {
 #if UNITY_EDITOR
             var scenes = UnityEditor.EditorBuildSettings.scenes;
-            scenes = scenes.Where(s => s.path != kAnimatedCubeScenePath && s.path != kCubeScenePath).ToArray();
+            scenes = scenes.Where(s => s.path != kAnimatedCubeScenePath && s.path != kCubeScenePath && s.path != kUnlitObjectPath).ToArray();
             UnityEditor.EditorBuildSettings.scenes = scenes;
 #endif
         }

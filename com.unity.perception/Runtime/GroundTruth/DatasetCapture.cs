@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.Perception.GroundTruth.DataModel;
 using UnityEngine.Perception.Settings;
 
@@ -82,6 +83,13 @@ namespace UnityEngine.Perception.GroundTruth
             return currentSimulation.GetSequenceAndStepFromFrame(frame);
         }
 
+        /// <summary>
+        /// Reports a metric for the activate frame that is not associated with a sensor or an annotation. To
+        /// report a metric associated with an annotation use <see cref="AnnotationHandle.ReportMetric"/>, to
+        /// report a metric associated with a sensor user <see cref="SensorHandle.ReportMetric"/>.
+        /// </summary>
+        /// <param name="definition">The metric definition to use</param>
+        /// <param name="metric">The metric to report</param>
         public static void ReportMetric(MetricDefinition definition, Metric metric)
         {
             currentSimulation.ReportMetric(definition, metric, null, null);
@@ -190,6 +198,23 @@ namespace UnityEngine.Perception.GroundTruth
         internal static bool IsValid(string id) => id != null && currentSimulation.Contains(id);
 
         static IConsumerEndpoint m_OverrideEndpoint;
+
+        /// <summary>
+        /// Retrieve a handle to the active endpoint.
+        /// </summary>
+        public static IConsumerEndpoint activateEndpoint => m_ActiveSimulation.consumerEndpoint;
+
+        /// <summary>
+        /// Sets the current output path for <see cref="IFileSystemEndpoint"/> endpoints. This will set the path for the next simulation, it will
+        /// not affect a simulation that is currently executing. In order for this to take effect the caller should call
+        /// <see cref="ResetSimulation()"/>
+        /// </summary>
+        /// <remarks>If the current endpoint is not an <see cref="IFileSystemEndpoint"/> the value will be unused</remarks>
+        /// <param name="outputPath">The path to set</param>
+        public static void SetOutputPath(string outputPath)
+        {
+            PerceptionSettings.instance.SetOutputBasePath(outputPath);
+        }
 
         internal static void OverrideEndpoint(IConsumerEndpoint endpoint)
         {

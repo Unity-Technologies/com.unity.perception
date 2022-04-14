@@ -41,34 +41,48 @@ namespace UnityEditor.Perception.Visualizer
 #elif UNITY_EDITOR_WIN
             = "datasetvisualizer";
 #endif
-        
-        internal static Task InstallationCommand(ref int exitCode, string packagesPath)
+
+        internal static Task InstallationCommand(ref int exitCode, string packagesPath, bool forcePublic)
         {
             var exitCodeCopy = exitCode;
-            var pythonPath = packagesPath + "\\..\\python.exe";
-            var index_url = get_index_url();
+            var pythonPath = Path.Combine(Directory.GetParent(packagesPath)?.ToString() ?? string.Empty, "python.exe");
+
+            var indexURL = forcePublic ? string.Empty : GetIndexURL();
+
 #if UNITY_EDITOR_WIN
-            var task = Task.Run(() => ExecuteCmd($"\"{pythonPath}\" -m pip install --upgrade --no-warn-script-location unity-cv-datasetvisualizer\"{index_url}\"", ref exitCodeCopy));
+            var task = Task.Run(() => ExecuteCmd($"{pythonPath} -m pip install --upgrade --no-warn-script-location unity-cv-datasetvisualizer {indexURL}", ref exitCodeCopy));
 #elif UNITY_EDITOR_OSX
-            var task = Task.Run(() => ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer \'{index_url}'", ref exitCodeCopy));
+            var task = Task.Run(() => ExecuteCmd($"cd {packagesPath}; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer {indexURL}", ref exitCodeCopy));
+#endif
+            exitCode = exitCodeCopy;
+            return task;
+        }
+
+        internal static Task UninstallCommand(ref int exitCode, string packagesPath)
+        {
+            var exitCodeCopy = exitCode;
+            var pythonPath = Path.Combine(Directory.GetParent(packagesPath)?.ToString() ?? string.Empty, "Scripts");
+#if UNITY_EDITOR_WIN
+            var task = Task.Run(() => ExecuteCmd($"cd {pythonPath} && pip uninstall -y unity-cv-datasetvisualizer", ref exitCodeCopy));
+#elif UNITY_EDITOR_OSX
+            var task = Task.Run(() => ExecuteCmd($"cd {packagesPath}; ./python3.7 pip uninstall unity-cv-datasetvisualizer", ref exitCodeCopy));
 #endif
             exitCode = exitCodeCopy;
             return task;
         }
 
         // return the internal artifactory index url if using the internal perception package
-        static String get_index_url()
+        static string GetIndexURL()
         {
-            var pckName = "com.unity.perception.internal";
-            if ( !File.Exists("Packages/manifest.json") )
-                return "";
-            string jsonText = File.ReadAllText("Packages/manifest.json");
-            var hasPerceptionInternal =  jsonText.Contains( pckName );
-            if (hasPerceptionInternal)
+            const string pckName = "com.unity.perception.internal";
+            if (!File.Exists("Packages/manifest.json"))
             {
-                return " --index-url=https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/unity-pypi-local/simple/";
+                return string.Empty;
             }
-            return "";
+
+            var jsonText = File.ReadAllText("Packages/manifest.json");
+            var hasPerceptionInternal =  jsonText.Contains( pckName );
+            return hasPerceptionInternal ? "--index-url=https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/unity-pypi-local/simple/" : string.Empty;
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
@@ -117,8 +131,12 @@ namespace UnityEditor.Perception.Visualizer
 
             EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes)", 2f / steps);
 
-            await InstallationCommand(ref exitCode, packagesPath);
-
+            await InstallationCommand(ref exitCode, packagesPath, false);
+            if (exitCode != 0)
+            {
+                Debug.LogWarning("Installing Public Visualizer");
+                await InstallationCommand(ref exitCode, packagesPath, true);
+            }
             if (exitCode != 0)
             {
                 EditorUtility.ClearProgressBar();
@@ -231,7 +249,7 @@ namespace UnityEditor.Perception.Visualizer
                 {
                     await SetupVisualizer();
                 }
-                
+
                 var lastDataPath = GetLastDataPath();
                 var (pythonPid, port, visualizerPid) = ReadEntry(lastDataPath);
 
@@ -349,7 +367,7 @@ namespace UnityEditor.Perception.Visualizer
 #elif UNITY_EDITOR_OSX
             var packagesPath = project.Replace("/Assets","/Library/PythonInstall/bin");
 #endif
-            
+
             var pathToData = GetLastDataPath();
 #if UNITY_EDITOR_WIN
             packagesPath = packagesPath.Replace("/", "\\");
@@ -369,7 +387,7 @@ namespace UnityEditor.Perception.Visualizer
                 Debug.LogError("Failed launching the visualizer - Exit Code: " + exitCode);
             }
         }
-        
+
         static string GetLastDataPath()
         {
             var lastEndpointType = PlayerPrefs.GetString(SimulationState.lastEndpointTypeKey, string.Empty);

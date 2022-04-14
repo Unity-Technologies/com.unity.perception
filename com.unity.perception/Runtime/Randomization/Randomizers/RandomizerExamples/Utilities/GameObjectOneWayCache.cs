@@ -32,7 +32,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         /// </summary>
         /// <param name="parent">The parent object all cached instances will be parented under</param>
         /// <param name="gameObjects">The gameObjects to cache</param>
-        public GameObjectOneWayCache(Transform parent, GameObject[] gameObjects)
+        public GameObjectOneWayCache(Transform parent, GameObject[] gameObjects, Randomizer randomizer)
         {
             if (gameObjects.Length == 0)
                 throw new ArgumentException(
@@ -53,6 +53,13 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                     obj.SetActive(false);
                 }
                 var instanceId = obj.GetInstanceID();
+                if (m_InstanceIdToIndex.ContainsKey(instanceId))
+                {
+                    Debug.LogException(new Exception("Duplicated objects were added in the categories, the duplicated object will be ignored\n" +
+                        "Randomizer: " + randomizer.GetType().Name + 
+                        "\nDuplicate objects: " + obj.name + "\n"));
+                    continue;
+                }
                 m_InstanceIdToIndex.Add(instanceId, index);
                 m_InstantiatedObjects[index] = new List<CachedObjectData>();
                 m_NumObjectsActive[index] = 0;
@@ -124,9 +131,12 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 for (var i = 0; i < m_InstantiatedObjects.Length; ++i)
                 {
                     m_NumObjectsActive[i] = 0;
-                    foreach (var cachedObjectData in m_InstantiatedObjects[i])
+                    if (m_InstantiatedObjects[i] != null)
                     {
-                        ResetObjectState(cachedObjectData);
+                        foreach (var cachedObjectData in m_InstantiatedObjects[i])
+                        {
+                            ResetObjectState(cachedObjectData);
+                        }   
                     }
                 }
             }

@@ -17,11 +17,6 @@
         string defaultPathToken { get; }
 
         /// <summary>
-        /// The default path to user if a user does not set a custom storage directory
-        /// </summary>
-        string defaultPath { get; }
-
-        /// <summary>
         /// The runtime directory that the dataset will be written to.
         /// This directory may be different from the <see cref="basePath"/> in cases where the <see cref="basePath"/>
         /// has already been taken before the endpoint has been initialized.

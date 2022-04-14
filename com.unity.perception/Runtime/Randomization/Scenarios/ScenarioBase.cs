@@ -357,28 +357,95 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
         #endregion
 
+        static void QuitApplication(Exception e)
+        {
+            Debug.LogException(e);
+            // save any game data here
+#if UNITY_EDITOR
+            // Application.Quit() does not work in the editor so
+            // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
+            EditorApplication.isPlaying = false;
+#else
+            Application.Quit(-1);
+#endif
+        }
+
         void IterationLoop()
         {
             // Increment iteration and cleanup last iteration
             if (isIterationComplete)
             {
-                IncrementIteration();
+                try
+                {
+                    IncrementIteration();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[IncrementIteration] scenario {GetType()} thrown an exception {e.Message}");
+                    QuitApplication(e);
+                }
+
                 currentIterationFrame = 0;
                 foreach (var randomizer in activeRandomizers)
-                    randomizer.IterationEnd();
-                OnIterationEnd();
+                {
+                    try
+                    {
+                        randomizer.IterationEnd();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[IterationEnd] randomizer {randomizer.GetType()} thrown an exception {e.Message}");
+                        QuitApplication(e);
+                    }
+                }
+
+                try
+                {
+                    OnIterationEnd();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[OnIterationEnd] scenario {GetType()} thrown an exception {e.Message}");
+                    QuitApplication(e);
+                }
             }
 
             // Quit if scenario is complete
             if (isScenarioComplete)
             {
                 foreach (var randomizer in activeRandomizers)
-                    randomizer.ScenarioComplete();
+                {
+                    try
+                    {
+                        randomizer.ScenarioComplete();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[ScenarioComplete] randomizer {randomizer.GetType()} thrown an exception {e.Message}");
+                        QuitApplication(e);
+                    }
+                }
 
-                OnComplete();
+                try
+                {
+                    OnComplete();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[OnComplete] scenario {GetType()} thrown an exception {e.Message}");
+                    QuitApplication(e);
+                }
 
-                state = State.Idle;
-                OnIdle();
+                try
+                {
+                    state = State.Idle;
+                    OnIdle();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[OnIdle] scenario {GetType()} thrown an exception {e.Message}");
+                    QuitApplication(e);
+                }
                 return;
             }
 
@@ -386,7 +453,15 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             if (currentIterationFrame == 0)
             {
                 ResetRandomStateOnIteration();
-                OnIterationStart();
+                try
+                {
+                    OnIterationStart();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[OnIterationStart] scenario {GetType()} thrown an exception {e.Message}");
+                    QuitApplication(e);
+                }
 
                 int iterationStartCount = 0;
                 do
@@ -396,7 +471,16 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                     iterationStartCount++;
                     foreach (var randomizer in activeRandomizers)
                     {
-                        randomizer.IterationStart();
+                        try
+                        {
+                            randomizer.IterationStart();
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError($"[IterationStart] randomizer {randomizer.GetType()} thrown an exception {e.Message}");
+                            QuitApplication(e);
+                        }
+
                         if (m_ShouldRestartIteration)
                             break;
 
@@ -418,9 +502,29 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             }
 
             // Perform new frame tasks
-            OnUpdate();
+            try
+            {
+                OnUpdate();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[OnUpdate] scenario {GetType()} thrown an exception {e.Message}");
+                QuitApplication(e);
+            }
+
             foreach (var randomizer in activeRandomizers)
-                randomizer.Update();
+            {
+                try
+                {
+                    randomizer.Update();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[OnUpdate] randomizer {randomizer.GetType()} thrown an exception {e.Message}");
+                    QuitApplication(e);
+                }
+            }
+
 
             // Iterate scenario frame count
             if (!m_ShouldDelayIteration)

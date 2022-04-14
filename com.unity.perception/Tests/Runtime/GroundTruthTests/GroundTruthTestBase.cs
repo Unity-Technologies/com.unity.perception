@@ -5,8 +5,12 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.Consumers;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+#if HDRP_PRESENT
+using UnityEngine.Rendering.HighDefinition;
+#endif
 using Object = UnityEngine.Object;
 
 namespace GroundTruthTests
@@ -60,6 +64,17 @@ namespace GroundTruthTests
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
             camera.orthographicSize = 1;
+
+#if HDRP_PRESENT
+            //disable postprocessing on HDRP to ensure unlit objects have precise RGB colors
+            var hdAdditionalCameraData = cameraObject.AddComponent<HDAdditionalCameraData>();
+            hdAdditionalCameraData.customRenderingSettings = true;
+
+            hdAdditionalCameraData.renderingPathCustomFrameSettingsOverrideMask
+                .mask[(uint)FrameSettingsField.Postprocess] = true;
+
+            hdAdditionalCameraData.renderingPathCustomFrameSettings.SetEnabled(FrameSettingsField.Postprocess, false);
+#endif
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
             perceptionCamera.captureRgbImages = false;

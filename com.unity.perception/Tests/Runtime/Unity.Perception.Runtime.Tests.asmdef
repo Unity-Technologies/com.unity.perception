@@ -1,5 +1,6 @@
 {
     "name": "Unity.Perception.Runtime.Tests",
+    "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "Unity.Mathematics",
@@ -8,7 +9,8 @@
         "Unity.Perception.Runtime",
         "Unity.Perception.Editor",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

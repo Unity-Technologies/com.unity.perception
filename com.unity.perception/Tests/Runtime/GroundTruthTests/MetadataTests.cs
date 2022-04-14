@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.Perception.GroundTruth.DataModel;
 
 namespace GroundTruthTests
@@ -164,6 +165,58 @@ namespace GroundTruthTests
             Assert.AreEqual(val, outVal);
         }
 
+        [Test]
+        public void TestReadWriteJson()
+        {
+            var m = new Metadata();
+            m.Add("int_value", 7);
+            m.Add("uint_value", uint.MaxValue);
+            m.Add("float_value", 4.2f);
+            m.Add("string_value", "hello_world");
+            m.Add("bool_value", false);
+            m.Add("int[]_valle", new [] {0, 1, 2, 3});
+            m.Add("float[]_value", new [] {1.1f, 2.2f, 3,3f, 4.4f, 5.5f});
+            m.Add("string[]_value", new [] {"this", "is", "an", "array"});
+            m.Add("bool[]_value", new [] {false, true, true, false});
+
+            var nested = new Metadata();
+            nested.Add("int_value", 42);
+            nested.Add("string_array", new [] {"life","universe", "everything"});
+
+            m.Add("nested", nested);
+
+            var nested2 = new Metadata();
+            nested2.Add("int_value", 43);
+            nested2.Add("int_value2", 44);
+
+            var nestedArray = new[] { nested, nested2 };
+            m.Add("nested_array", nestedArray);
+
+            var json = m.ToJson();
+
+            var m2 = Metadata.FromJson(json);
+
+            Assert.AreEqual(7, m2.GetInt("int_value"));
+            Assert.AreEqual(uint.MaxValue, m2.GetUInt("uint_value"));
+            Assert.AreEqual(4.2f, m2.GetFloat("float_value"));
+            Assert.AreEqual("hello_world", m2.GetString("string_value"));
+            Assert.AreEqual(false, m2.GetBool("bool_value"));
+            Assert.AreEqual(new [] {0,1,2,3}, m2.GetIntArray("int[]_valle"));
+            Assert.AreEqual(new [] {1.1f, 2.2f, 3,3f, 4.4f, 5.5f}, m2.GetFloatArray("float[]_value"));
+            Assert.AreEqual(new [] {"this", "is", "an", "array"}, m2.GetStringArray("string[]_value"));
+            Assert.AreEqual(new [] {false, true, true, false}, m2.GetBoolArray("bool[]_value"));
+            var n = m2.GetSubMetadata("nested");
+            Assert.AreEqual(42, n.GetInt("int_value"));
+            Assert.AreEqual(new [] {"life", "universe", "everything"}, n.GetStringArray("string_array"));
+            var n2 = m2.GetSubMetadataArray("nested_array");
+            Assert.AreEqual(2, n2.Length);
+            Assert.AreEqual(42, n2[0].GetInt("int_value"));
+            Assert.AreEqual(new [] {"life", "universe", "everything"}, n2[0].GetStringArray("string_array"));
+            Assert.AreEqual(43, n2[1].GetInt("int_value"));
+            Assert.AreEqual(44, n2[1].GetInt("int_value2"));
+        }
+
+        [Test]
         public void TestTryGetMiss_WrongType()
         {
             var metadata = new SimulationMetadata();

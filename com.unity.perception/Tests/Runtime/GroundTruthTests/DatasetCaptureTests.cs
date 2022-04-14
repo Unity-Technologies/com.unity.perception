@@ -1,13 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.Settings;
 using UnityEngine.TestTools;
 // ReSharper disable InconsistentNaming
 // ReSharper disable NotAccessedField.Local
@@ -68,18 +71,7 @@ namespace GroundTruthTests
     [TestFixture]
     public class DatasetCaptureTests
     {
-        static (RgbSensorDefinition, SensorHandle) RegisterSensor(string id, string modality, string sensorDescription, int firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float simDeltaTime, int framesBetween, bool affectTiming = false)
-        {
-            var sensorDefinition = new RgbSensorDefinition(id, modality, sensorDescription)
-            {
-                firstCaptureFrame = firstCaptureFrame,
-                captureTriggerMode = captureTriggerMode,
-                simulationDeltaTime = simDeltaTime,
-                framesBetweenCaptures = framesBetween,
-                manualSensorsAffectTiming = affectTiming
-            };
-            return (sensorDefinition, DatasetCapture.RegisterSensor(sensorDefinition));
-        }
+
 
         [UnityTest]
         public IEnumerator RegisterSensor_ReportsProperJson()
@@ -97,7 +89,7 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
             Assert.IsTrue(sensorHandle.IsValid);
 
             yield return null;
@@ -144,7 +136,7 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var f = sensorHandle.ReportSensorAsync();
 
             DatasetCapture.ResetSimulation();
@@ -160,7 +152,7 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var f = sensorHandle.ReportSensorAsync();
 
             yield return null;
@@ -180,7 +172,7 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var sensor = CreateMocRgbCapture(sensorDef);
             sensorHandle.ReportSensor(sensor);
 
@@ -217,7 +209,7 @@ namespace GroundTruthTests
 
             //DatasetCapture.StartNewSequence();
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 2, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 2, 0);
             var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
 
             Assert.IsTrue(sensorHandle.ShouldCaptureThisFrame);
@@ -262,7 +254,7 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
             sensorHandle.ReportSensor(sensor);
 
@@ -333,7 +325,7 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
             sensorHandle.ReportSensor(sensor);
 
@@ -375,7 +367,7 @@ namespace GroundTruthTests
         {
             var def = new TestDef();
             DatasetCapture.RegisterAnnotationDefinition(def);
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotation(def, null));
 
             DatasetCapture.ResetSimulation();
@@ -394,7 +386,7 @@ namespace GroundTruthTests
                     new TestAnnotation.Entry { a = "a second string", b = 20 }
                 }
             };
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotation(def, ann));
             DatasetCapture.ResetSimulation();
         }
@@ -412,7 +404,7 @@ namespace GroundTruthTests
                     new TestAnnotation.Entry { a = "a second string", b = 20 }
                 }
             };
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportAnnotationAsync(def));
         }
 
@@ -431,7 +423,7 @@ namespace GroundTruthTests
         {
             var def = new TestDef();
             DatasetCapture.RegisterAnnotationDefinition(def);
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var asyncAnnotation = sensorHandle.ReportAnnotationAsync(def);
             Assert.IsTrue(asyncAnnotation.IsValid());
 
@@ -444,7 +436,7 @@ namespace GroundTruthTests
         {
             var def = new TestMetricDef();
             DatasetCapture.RegisterMetric(def);
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             sensorHandle.ReportMetricAsync(def);
             DatasetCapture.ResetSimulation();
             LogAssert.Expect(LogType.Error, new Regex("Simulation ended with pending .*"));
@@ -462,7 +454,7 @@ namespace GroundTruthTests
 
             var def = new TestDef();
             DatasetCapture.RegisterAnnotationDefinition(def);
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var asyncAnnotation = sensorHandle.ReportAnnotationAsync(def);
             Assert.IsTrue(asyncAnnotation.IsValid());
 
@@ -478,7 +470,7 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
             sensorHandle.ReportSensor(sensor);
 
@@ -530,7 +522,7 @@ namespace GroundTruthTests
             var def = new TestDef();
             DatasetCapture.RegisterAnnotationDefinition(def);
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
 
             // Record one capture for this frame
             var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
@@ -621,7 +613,7 @@ namespace GroundTruthTests
         {
             var def = new TestMetricDef();
             DatasetCapture.RegisterMetric(def);
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
             var metric = new GenericMetric(1, def);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetric(def, metric));
         }
@@ -631,7 +623,7 @@ namespace GroundTruthTests
         {
             var def = new TestMetricDef();
             DatasetCapture.RegisterMetric(def);
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 100, CaptureTriggerMode.Scheduled, 1, 0);
             Assert.Throws<InvalidOperationException>(() => sensorHandle.ReportMetricAsync(def));
         }
 
@@ -647,7 +639,7 @@ namespace GroundTruthTests
 
             var def = new TestMetricDef();
             DatasetCapture.RegisterMetric(def);
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var asyncMetric = sensorHandle.ReportMetricAsync(def);
             Assert.IsTrue(asyncMetric.IsValid());
 
@@ -677,7 +669,7 @@ namespace GroundTruthTests
             var boolArrayDef = new MetricDefinition("bool_array_def", "bool_array_def");
             var vec3Def = new MetricDefinition("vec3_def", "vec3_def");
 
-            var sensorHandle = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var sensorHandle = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
 
             yield return null;
             yield return null;
@@ -750,7 +742,7 @@ namespace GroundTruthTests
             var def = new TestMetricDef();
             DatasetCapture.RegisterMetric(def);
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
 
 
 
@@ -761,7 +753,7 @@ namespace GroundTruthTests
             // var expectedLine = @"""step"": 0";
 
             // var metricDefinition = DatasetCapture.RegisterMetricDefinition("");
-            // var sensor = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            // var sensor = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
 
             yield return null;
             var metric = new GenericMetric(1, def);
@@ -818,7 +810,7 @@ namespace GroundTruthTests
             var metric = new GenericMetric(values, metDef);
 
             DatasetCapture.RegisterMetric(metDef);
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var annDef = new TestDef();
             DatasetCapture.RegisterAnnotationDefinition(annDef);
 
@@ -1067,5 +1059,61 @@ namespace GroundTruthTests
                 Assert.AreEqual(6, a.specValues[1].pixel_value[2]);
             }
         }
+
+#if UNITY_EDITOR
+        // Perception only supports setting the output directory from the command line in non editor based simulations
+        [UnityTest]
+        public IEnumerator TestSetOutputDirectory()
+        {
+
+
+            const string id = "camera";
+            const string modality = "camera";
+            const string def = "Cam (FL2-14S3M-C)";
+            const int firstFrame = 1;
+            const CaptureTriggerMode mode = CaptureTriggerMode.Scheduled;
+            const int delta = 1;
+            const int framesBetween = 0;
+
+            // Clear dataset override from previous tests
+            DatasetCapture.OverrideEndpoint(null);
+
+            PerceptionSettings.instance.endpoint = new PerceptionEndpoint();
+
+            var savePath = PerceptionSettings.instance.GetOutputBasePath();
+
+            var outputPath = Path.Combine(PerceptionSettings.instance.defaultOutputPath, $"test_{Guid.NewGuid()}");
+            Directory.CreateDirectory(outputPath);
+            DatasetCapture.SetOutputPath(outputPath);
+
+            DatasetCapture.ResetSimulation();
+
+            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
+            Assert.IsTrue(sensorHandle.IsValid);
+
+            yield return null;
+
+            // grab a handle for the endpoint of the current run
+            var endpoint = (PerceptionEndpoint)DatasetCapture.activateEndpoint;
+
+            DatasetCapture.ResetSimulation();
+            Assert.IsFalse(sensorHandle.IsValid);
+
+            var path = endpoint.datasetPath;
+
+            // Verify that the output directory exists and a captures and a metrics file is written to it
+            Assert.IsTrue(path.Contains(outputPath));
+            DirectoryAssert.Exists(path);
+            FileAssert.Exists(Path.Combine(path, "captures_000.json"));
+            FileAssert.Exists(Path.Combine(path, "metrics_000.json"));
+
+            Directory.Delete(outputPath, true);
+
+            DirectoryAssert.DoesNotExist(outputPath);
+
+            DatasetCapture.SetOutputPath(savePath);
+
+        }
+#endif
     }
 }

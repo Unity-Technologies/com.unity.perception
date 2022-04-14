@@ -3,6 +3,7 @@ using System.Collections;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.DataModel;
 using UnityEngine.Rendering;
@@ -143,11 +144,10 @@ namespace GroundTruthTests.RgbOutputTests
     }
 #endif
 
-#if HDRP_PRESENT
-    public class HdrpRgbOutputTests : RgbOutputTestBase
+    public class GenericRgbOutputTests : RgbOutputTestBase
     {
         [UnityTearDown]
-        public IEnumerator HdrpTeardown()
+        public IEnumerator GenericRgbOutputTeardown()
         {
             base.TearDown();
 
@@ -160,13 +160,18 @@ namespace GroundTruthTests.RgbOutputTests
         #region Blank Image Test
 
         [UnityTest]
-        public IEnumerator RgbOutput_DefaultProjectSettings_IsNotEmpty()
+        public IEnumerator RgbOutput_DefaultProjectSettings_IsNotEmpty([Values(false, true)] bool useCameraTargetTexture)
         {
             // Setup the camera and scene
             var camera = SetupCamera(cam =>
             {
                 cam.captureRgbImages = true;
                 cam.captureTriggerMode = CaptureTriggerMode.Manual;
+                if (useCameraTargetTexture)
+                {
+                    cam.GetComponent<Camera>().targetTexture =
+                        new RenderTexture(100, 100, 16);
+                }
                 perceptionCamera = cam;
             });
             AddTestObjectForCleanup(camera);
@@ -183,6 +188,88 @@ namespace GroundTruthTests.RgbOutputTests
             );
         }
         #endregion
-    }
+
+        [UnityTest]
+        public IEnumerator RgbOutput_VerticalOrientationCorrect([Values(false, true)] bool useCameraTargetTexture)
+        {
+            // Setup the camera and scene
+            var camera = SetupCamera(pcam =>
+            {
+                pcam.captureRgbImages = true;
+                pcam.captureTriggerMode = CaptureTriggerMode.Manual;
+                var camera = pcam.GetComponent<Camera>();
+                camera.orthographic = true;
+                camera.orthographicSize = 1f;
+                if (useCameraTargetTexture)
+                {
+                    camera.GetComponent<Camera>().targetTexture =
+                        new RenderTexture(100, 100, 16);
+                }
+                perceptionCamera = pcam;
+
+            });
+            AddTestObjectForCleanup(camera);
+            //position camera to point straight at the top edge of plane1, such that plane1 takes up the bottom half of
+            //the image and plane2 takes up the top half
+            camera.transform.localPosition = Vector3.up * 10f;
+
+            //the colors are chosen specifically such that they are not
+            var plane1 = TestHelper.CreateLabeledPlane(2f);
+            var colorBottom = new Color32(0, 0, 200, 255);
+            SetColor(plane1, colorBottom);
+            var plane2 = TestHelper.CreateLabeledPlane(2f);
+            var colorTop = new Color32(200, 0, 0, 255);
+            SetColor(plane2, colorTop);
+            plane2.transform.localPosition = plane2.transform.localPosition + Vector3.up * 20f;
+            AddTestObjectForCleanup(plane1);
+            AddTestObjectForCleanup(plane2);
+
+
+
+            //TestHelper.LoadAndStartRenderDocCapture();
+            try
+            {
+                Color32 bottomLeft = new Color32();
+                Color32 topRight = new Color32();
+                // Validate RGB output image by checking if its empty
+                yield return GenerateRgbOutputAndValidateData(imagePixels =>
+                    {
+                        bottomLeft = imagePixels[0];
+                        topRight = imagePixels[imagePixels.Length - 1];
+                    }
+                );
+
+                //Accomodate for the rendering pipeline causing colors to change slightly during conversions
+                Assert.Greater(4, ColorDistance(colorBottom, bottomLeft), $"Expected {colorBottom}, got {bottomLeft}");
+                Assert.Greater(4, ColorDistance(colorTop, topRight), $"Expected {colorTop}, got {topRight}");
+            }
+            finally
+            {
+                //TestHelper.EndCaptureRenderDoc();
+            }
+        }
+
+        private int ColorDistance(Color32 color1, Color32 color2)
+        {
+            return Math.Abs(color1.a - color2.a) +
+                   Math.Abs(color1.r - color2.r) +
+                   Math.Abs(color1.g - color2.g) +
+                   Math.Abs(color1.b - color2.b);
+        }
+
+        private static void SetColor(GameObject gameObject, Color color)
+        {
+            var renderer = gameObject.GetComponent<MeshRenderer>();
+            string shaderName = null;
+#if HDRP_PRESENT
+            shaderName = "HDRP/Unlit";
 #endif
+#if URP_PRESENT
+            shaderName = "Universal Render Pipeline/Unlit";
+#endif
+            var material = new Material(Shader.Find(shaderName));
+            material.color = color;
+            renderer.sharedMaterial = material;
+        }
+    }
 }

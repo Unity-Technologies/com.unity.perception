@@ -66,6 +66,16 @@ namespace UnityEditor.Perception.Randomization
                 return;
             }
 
+            if (m_Property.arraySize == 0)
+            {
+                var textElement = new TextElement()
+                {
+                    text = "No randomizers added. Add any to resume"
+                };
+                textElement.AddToClassList("scenario__error-box");
+                m_Container.Add(textElement);
+            }
+
             for (var i = 0; i < m_Property.arraySize; i++)
                 m_Container.Add(new RandomizerElement(m_Property.GetArrayElementAtIndex(i), this));
         }

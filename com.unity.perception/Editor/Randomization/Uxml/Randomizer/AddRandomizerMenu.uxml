@@ -7,7 +7,7 @@
             <TextElement name="directory-label-text" text="Randomizers" style="-unity-font-style: bold; padding: 3px;"/>
             <VisualElement/>
         </VisualElement>
-        <VisualElement name="menu-options"/>
+        <ScrollView name="menu-options"/>
         <VisualElement class="randomizer__menu-search-icon"/>
     </VisualElement>
 </UXML>

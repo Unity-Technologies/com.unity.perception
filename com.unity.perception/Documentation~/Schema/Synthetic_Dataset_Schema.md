@@ -167,7 +167,7 @@ annotation {
 
 ##### semantic segmentation - grayscale image
 
-A grayscale PNG file that stores integer values (label pixel_value in [annotation spec](#annotation_definitionsjson) reference table, semantic segmentation) of the labeled object at each pixel. 
+A grayscale PNG file that stores integer values (label pixel_value in [annotation spec](#annotation_definitions) reference table, semantic segmentation) of the labeled object at each pixel. 
 
 ![image alt text](../images/Schema/image_2.png)
 
@@ -348,7 +348,7 @@ Some special cases like semantic segmentation might assign additional values (e.
 
 ##### annotation definition header
 ```
-annotation_definition {
+annotation_definitions {
   id:                <int>           -- Integer identifier of the annotation definition.
   name:              <str>           -- Human readable annotation spec name (e.g. sementic_segmentation, instance_segmentation, etc.) 
   description:       <str>           -- [Optional] Description of this annotation specifications.
@@ -412,7 +412,7 @@ annotation_definition.spec {
 A json file that stores collections of metric specifications records (metric_definition). 
 Each specification record describes a particular metric stored in [metrics](#metrics) values. 
 Each metric_definition record is assigned a unique identifier to a collection of specification records, which is stored as a list of key-value pairs. 
-The design is very similar to [annotation_definitions](#annotation_definitionsjson).
+The design is very similar to [annotation_definitions](#annotation_definitions).
 
 ```
 metric_definition {

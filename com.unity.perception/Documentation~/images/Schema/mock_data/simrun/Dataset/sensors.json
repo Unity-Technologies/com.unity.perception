@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "sensors": [
+    {
+      "id": "b4f6a75e-12de-4b4c-9574-5b135cecac6f",
+      "ego_id": "4f80234d-4342-420f-9187-07004613cd1f",
+      "modality": "camera",
+      "description": "Point Grey Flea 2 (FL2-14S3M-C)"
+    },
+    {
+      "id": "6fb1a823-5b83-4a79-b566-fe4435ec1942",
+      "ego_id": "4f80234d-4342-420f-9187-07004613cd1f",
+      "modality": "lidar",
+      "description": "Velodyne HDL-64E"
+    }
+  ]
+}

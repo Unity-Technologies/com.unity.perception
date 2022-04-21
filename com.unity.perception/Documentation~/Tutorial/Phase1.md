@@ -7,14 +7,16 @@ Throughout the tutorial, lines starting with bullet points followed by **":green
 
 Steps included in this phase of the tutorial:
 
-* [Step 1: Download Unity Editor and Create a New Project](#step-1)
-* [Step 2: Download the Perception Package and Import Samples](#step-2)
-* [Step 3: Setup a Scene for Your Perception Simulation](#step-3)
-* [Step 4: Specify Ground-Truth and Set Up Object Labels](#step-4)
-* [Step 5: Set Up Background Randomizers](#step-5)
-* [Step 6: Set Up Foreground Randomizers](#step-6)
-* [Step 7: Inspect Generated Synthetic Data](#step-7)
-* [Step 8: Explore and Visualize Your Dataset](#step-8)
+- [Perception Tutorial](#perception-tutorial)
+  - [Phase 1: Setup and Basic Randomizations](#phase-1-setup-and-basic-randomizations)
+    - [<a name="step-1">Step 1: Download Unity Editor and Create a New Project</a>](#step-1-download-unity-editor-and-create-a-new-project)
+    - [<a name="step-2">Step 2: Download the Perception Package and Import Samples</a>](#step-2-download-the-perception-package-and-import-samples)
+    - [<a name="step-3">Step 3: Setup a Scene for Your Perception Simulation</a>](#step-3-setup-a-scene-for-your-perception-simulation)
+    - [<a name="step-4">Step 4: Specify Ground-Truth and Set Up Object Labels</a>](#step-4-specify-ground-truth-and-set-up-object-labels)
+    - [<a name="step-5">Step 5: Set Up Background Randomizers</a>](#step-5-set-up-background-randomizers)
+    - [<a name="step-6">Step 6: Set Up Foreground Randomizers</a>](#step-6-set-up-foreground-randomizers)
+    - [<a name="step-7">Step 7: Inspect Generated Synthetic Data</a>](#step-7-inspect-generated-synthetic-data)
+    - [<a name="step-8">Step 8: Explore and Visualize Your Dataset</a>](#step-8-explore-and-visualize-your-dataset)
 
 
 > :information_source: If you face any problems while following this tutorial, please create a post on the **[Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/)** or the **[GitHub issues](https://github.com/Unity-Technologies/com.unity.perception/issues)** page and include as much detail as possible.
@@ -33,7 +35,7 @@ When you first run Unity, you will be asked to open an existing project or creat
 * **:green_circle: Action**: Open Unity and create a new project using the Universal Render Pipeline. Name your new project _**Perception Tutorial**_, and specify the desired location as shown below. 
 
 <p align="center">
-<img src="Images/create_new_project.png" align="center" width="800"/>
+<img src="../images/Tutorial/Images/create_new_project.png" align="center" width="800"/>
 </p>
 
 ### <a name="step-2">Step 2: Download the Perception Package and Import Samples</a> 
@@ -51,7 +53,7 @@ As the name suggests, the _**Package Manager**_ is where you can download new pa
 It will take some time for the manager to download and import the package. Once the operation finishes, you will see the newly downloaded Perception package automatically selected in the _**Package Manager**_, as depicted below:
 
 <p align="center">
-<img src="Images/package_manager.png" width="600"/>
+<img src="../images/Tutorial/Images/package_manager.png" width="600"/>
 </p>
 
 
@@ -62,19 +64,19 @@ Each package can come with a set of samples. As seen in the righthand panel, the
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project. You can view your project's folder structure and access your files from the _**Project**_ tab of the editor, as seen in the image below (the package version should match the version you downloaded):
 
 <p align="center">
-<img src="Images/project_folders_samples.png" width="500"/>
+<img src="../images/Tutorial/Images/project_folders_samples.png" width="500"/>
 </p>
 
 * **:green_circle: Action**: **(For URP projects only)** The _**Project**_ tab contains a search bar; use it to find the file named `ForwardRenderer.asset`, as shown below:
 
 <p align="center">
-<img src="Images/forward_renderer.png" width="800"/>
+<img src="../images/Tutorial/Images/forward_renderer.png" width="800"/>
 </p>
 
 * **:green_circle: Action**: **(For URP projects only)** Click on the found file to select it. Then, from the _**Inspector**_ tab of the editor, click on the _**Add Renderer Feature**_ button, and select _**Ground Truth Renderer Feature**_ from the dropdown menu:
 
 <p align="center">
-<img src="Images/forward_renderer_inspector.png" width="400"/>
+<img src="../images/Tutorial/Images/forward_renderer_inspector.png" width="400"/>
 </p>
 
 This step prepares your project to render tailor-made images that will be later used for labeling the generated synthetic data.
@@ -86,7 +88,7 @@ Simply put, in Unity, Scenes contain any object that exists in the world. This w
 
 The _**Hierarchy**_ tab of the editor displays all the Scenes currently loaded, and all the objects currently present in each loaded Scene, as shown below:
 <p align="center">
-<img src="Images/hierarchy.png" width="700"/>
+<img src="../images/Tutorial/Images/hierarchy.png" width="700"/>
 </p>
 
 As seen above, the new Scene already contains a camera (`Main Camera`) and a light (`Directional Light`). We will now modify the camera's field of view and position to prepare it for the tutorial. 
@@ -94,7 +96,7 @@ As seen above, the new Scene already contains a camera (`Main Camera`) and a lig
 * **:green_circle: Action**: Click on `Main Camera` and in the _**Inspector**_ tab, make sure the camera's `Position`, `Rotation`, `Projection`, and `Field of View` match the screenshot below. 
 
 <p align="center">
-<img src="Images/camera_prep.png" width = "400"/>
+<img src="../images/Tutorial/Images/camera_prep.png" width = "400"/>
 </p>
 
 For this tutorial, we prefer our light to not cast any shadows, therefore:
@@ -107,7 +109,7 @@ We will now add the necessary components to the camera in order to equip it for 
 * **:green_circle: Action**: Start typing `Perception Camera` in the search bar that appears, until the `Perception Camera` script is found, with a **#** icon to the left:
 
 <p align="center">
-<img src="Images/add_comp_perc.png" width="400"/>
+<img src="../images/Tutorial/Images/add_comp_perc.png" width="400"/>
 </p>
 
 * **:green_circle: Action**: Click on this script to add it as a component. Your camera is now a `Perception` camera.
@@ -120,7 +122,7 @@ The `Perception Camera` component comes with its own UI to modify various aspect
 labelers and labelling configurations:
 
 <p align="center">
-<img src="Images/perc_comp.png" width="400"/>
+<img src="../images/Tutorial/Images/perc_comp.png" width="400"/>
 </p>
 
 If you hover your mouse pointer over each of the fields shown (e.g. `Simulation Delta Time`), you will see a tooltip popup with an explanation of what the item controls.
@@ -135,7 +137,7 @@ To speed up your workflow, the Perception package comes with seven common Labele
 Once you add the Labelers, the _**Inspector**_ view of the `Perception Camera` component will look like this:
 
 <p align="center">
-<img src="Images/pc_labelers_added.png" width="400"/>
+<img src="../images/Tutorial/Images/pc_labelers_added.png" width="400"/>
 </p>
 
 
@@ -166,7 +168,7 @@ Now that you have created your label configurations, we need to assign them to L
 * **:green_circle: Action**: Select the `Main Camera` object from the Scene _**Hierarchy**_, and in the _**Inspector**_ tab, assign the newly created `TutorialIdLabelConfig` to the first three Labelers. To do so, you can either drag and drop the former into the corresponding fields for each Labeler, or click on the small circular button in front of the `Id Label Config` field, which brings up an asset selection window filtered to only show compatible assets. Assign `TutorialSemanticSegmentationLabelConfig` to the fourth Labeler. The `Perception Camera` component will now look like the image below:
 
 <p align="center">
-<img src="Images/pclabelconfigsadded.png" width="400"/>
+<img src="../images/Tutorial/Images/pclabelconfigsadded.png" width="400"/>
 </p>
 
 It is now time to assign labels to the objects that are supposed to be detected by an eventual object-detection model, and add those labels to both of the label configurations we have created. As mentioned above, these objects are located at `Assets/Samples/Perception/0.10.0-preview.1/Tutorial Files/Foreground Objects/Phase 1/Prefabs`. 
@@ -179,7 +181,7 @@ In Unity, Prefabs are essentially reusable GameObjects that are stored to disk, 
 When you open the Prefab asset, you will see the object shown in the Scene tab and its components shown on the right side of the editor, in the _**Inspector**_ tab:
 
 <p align="center">
-<img src="Images/exampleprefab.png" width="900"/>
+<img src="../images/Tutorial/Images/exampleprefab.png" width="900"/>
 </p>
 
 The Prefab contains a number of components, including a `Transform`, a `Mesh Filter`, a `Mesh Renderer` and a `Labeling` component (highlighted in the image above). While the first three of these are common Unity components, the fourth one is specific to the Perception package and is used for assigning labels to objects. You can see here that the Prefab has one label already added, displayed in the list of `Added Labels`. The UI here provides a multitude of ways for you to assign labels to the object. You can either choose to have the asset automatically labeled (by enabling `Use Automatic Labeling`), or add labels manually. In case of automatic labeling, you can choose from a number of labeling schemes, e.g. the asset's name or folder name. If you go the manual route, you can type in labels, add labels from any of the label configurations included in the project, or add from lists of suggested labels based on the Prefab's name and path. 
@@ -196,7 +198,7 @@ Even though the sample Prefabs already have a label manually added, to learn mor
 * **:green_circle: Action**: From the _**Inspector**_ tab, enable `Use Automatic Labeling for All Selected Items`, and then select `Use asset name` as the labeling scheme.
 
 <p align="center">
-<img src="Images/autolabel.png" width="400"/>
+<img src="../images/Tutorial/Images/autolabel.png" width="400"/>
 </p>
 
 This will assign each of the selected Prefabs its own name as a label.
@@ -209,13 +211,13 @@ In the window that opens, you can add all the automatic labels you just added to
 
 
 <p align="center">
-<img src="Images/addtoconfigwindow.png" width="500"/>
+<img src="../images/Tutorial/Images/addtoconfigwindow.png" width="500"/>
 </p>
 
 Here, you can also open either of the configurations by clicking the _**Open**_ buttons. Open both configurations to make sure the list of labels has been added to them. They should now look similar to the screenshots below:
 
 <p align="center">
-<img src="Images/labelconfigs.png" width="800"/>
+<img src="../images/Tutorial/Images/labelconfigs.png" width="800"/>
 </p>
 
 > :information_source: Since we used automatic labels here and added them to our configurations, we are confident that the labels in the configurations match the labels of our objects. In cases where you decide to add manual labels to objects and configurations, make sure you use the exact same labels, otherwise, the objects for which a matching label is not found in your configurations will not be detected by the Labelers that are using those configurations.
@@ -229,7 +231,7 @@ Now that we have labeled all our foreground objects and set up our label configu
 Since we have visualizations enabled on our `Perception Camera`, you should now see a bounding box being drawn around the object you put in the scene, and the object itself being colored according to its label's color in `TutorialSemanticSegmentationLabelConfig`, similar to the image below:
 
 <p align="center">
-<img src="Images/one_object_run.png" width="600"/>
+<img src="../images/Tutorial/Images/one_object_run.png" width="600"/>
 </p>
 
 ### <a name="step-5">Step 5: Set Up Background Randomizers</a> 
@@ -241,7 +243,7 @@ To start randomizing your simulation you will first need to add a `Scenario` to 
 To summarize, a sample `Scenario` could look like this:
 
 <p align="center">
-<img src="Images/scenario_hierarchy.png" width = "300"/>
+<img src="../images/Tutorial/Images/scenario_hierarchy.png" width = "300"/>
 </p>
 
 
@@ -256,7 +258,7 @@ Each `Scenario` executes a number of `Iteration`s, and each Iteration carries on
 The _**Inspector**_ view of `Fixed Length Scenario` looks like below:
 
 <p align="center">
-<img src="Images/fixedscenarioempty.png" width = "400"/>
+<img src="../images/Tutorial/Images/fixedscenarioempty.png" width = "400"/>
 </p>
 
 There are a number of settings and properties you can modify here. `Quit On Complete` instructs the simulation to quit once this Scenario has completed executing. We can see here that the Scenario has been set to run for 100 Iterations, and that each Iteration will run for one frame. But this is currently an empty `Scenario`, so let's add some Randomizers.
@@ -272,20 +274,20 @@ The background Prefabs are primitive shapes devoid of color or texture. Later Ra
 * **:green_circle: Action**: Set the rest of the properties according to the image below. That is, `Depth = 0, Layer Count = 2, Separation Distance = 0.5, Placement Area = (6,6)`.
 
 <p align="center">
-<img src="Images/background_randomizer.png" width = "400"/>
+<img src="../images/Tutorial/Images/background_randomizer.png" width = "400"/>
 </p>
 
 
 * **:green_circle: Action**: Click on the **▷** (play) button located at the top middle section of the editor to run your simulation.
 
 <p align="center">
-<img src="Images/play.png" width = "500"/>
+<img src="../images/Tutorial/Images/play.png" width = "500"/>
 </p>
 
 When the simulation starts running, Unity Editor will switch to the _**Game**_ tab to show you the output of the active camera, which carries the `Perception Camera` component:
 
 <p align="center">
-<img src="Images/first_run.png" width = "700"/>
+<img src="../images/Tutorial/Images/first_run.png" width = "700"/>
 </p>
 
 In this view, you will also see the real-time visualizations we discussed before shown on top of the camera's view. In the top right corner of the window, you can see a visualization control panel, through which you can enable or disable visualizations for individual Labelers. That said, we currently have no foreground objects in the Scene yet, so no bounding boxes or semantic segmentation overlays will be displayed.
@@ -301,7 +303,7 @@ As seen in the image above, what we have now is just a beige-colored wall of sha
 > :information_source: If your _**Game**_ tab has a different field of view than the one shown here, change the aspect ratio of your _**Game**_ tab to `4:3`, as shown below:
 
 <p align="center">
-<img src="Images/game_aspect.png" width = "400"/>
+<img src="../images/Tutorial/Images/game_aspect.png" width = "400"/>
 </p>
 
 * **:green_circle: Action**: Repeat the previous steps to add `TextureRandomizer`, `HueOffsetRandomizer`, and `RotationRandomizer`.
@@ -315,7 +317,7 @@ As seen in the image above, what we have now is just a beige-colored wall of sha
 Your list of Randomizers should now look like the screenshot below:
 
 <p align="center">
-<img src="Images/all_back_rands.png" width = "400"/>
+<img src="../images/Tutorial/Images/all_back_rands.png" width = "400"/>
 </p>
 
 There is one more important thing left to do, in order to make sure all the above Randomizers operate as expected. Since `BackgroundObjectPlacementRandomizer` spawns objects, it already knows which objects in the Scene it is dealing with; however, the rest of the Randomizers we added are not yet aware of what objects they should target because they don't spawn their own objects.
@@ -329,13 +331,13 @@ To make sure each Randomizer knows which objects it should work with, we will us
 Once the above step is done, the _**Inspector**_ tab for a background Prefab should look like this:
 
 <p align="center">
-<img src="Images/back_prefab.png" width = "400"/>
+<img src="../images/Tutorial/Images/back_prefab.png" width = "400"/>
 </p>
 
 If you run the simulation now you will see the generated backgrounds look much more colourful and distracting!
 
 <p align="center">
-<img src="Images/background_good.png" width = "700"/>
+<img src="../images/Tutorial/Images/background_good.png" width = "700"/>
 </p>
 
 ### <a name="step-6">Step 6: Set Up Foreground Randomizers</a> 
@@ -358,7 +360,7 @@ Randomizers execute according to their order within the list of Randomizers adde
 Your full list of Randomizers should now look like the screenshot below:
 
 <p align="center">
-<img src="Images/randomizers_all.png" width = "400"/>
+<img src="../images/Tutorial/Images/randomizers_all.png" width = "400"/>
 </p>
 
 
@@ -369,7 +371,7 @@ You are now ready to generate your first dataset. Our current setup will produce
 While the simulation is running, your _**Game**_ view will quickly generate frames similar to the gif below (note: visualization for `SemanticSegmentationLabeler` is disabled here):
 
 <p align="center">
-<img src="Images/generation1.gif" width = "700"/>
+<img src="../images/Tutorial/Images/generation1.gif" width = "700"/>
 </p>
 
 
@@ -380,7 +382,7 @@ By default, the generated dataset will be generated in the Perception format. Yo
 * **:green_circle: Action** Open the _**Project Settings...**_ window, by selecting the menu `Edit->Project Settings...`. Select `Perception` from the left panel. This will bring up the _**Perception**_ settings pane. 
 
 <p align="center">
-<img src="Images/perception_properties.png" width = "600"/>
+<img src="../images/Tutorial/Images/perception_properties.png" width = "600"/>
 </p>
 
 * **:green_circle: Action**: Click _**Show Folder**_ to show and highlight the folder in your operating system's file explorer. Enter this folder.
@@ -413,7 +415,7 @@ This will first install the visualizer and then run it. The visualizer is a Pyth
 In certain circumstances, the tool may run but the browser window may not open. To alleviate this, once the tool is running you will get a prompt in Unity Editor, asking whether the browser window opened successfully. If it did not, you can force it to open by clicking **Manually Open**.
 
 <p align="center">
-<img src="Images/did_visualizer_open.png" width = "300"/>
+<img src="../images/Tutorial/Images/did_visualizer_open.png" width = "300"/>
 </p>
 
 > :information_source: The visualizer is a standalone tool that may be updated outside of the normal release cycles of the Perception package. You can use _**Window**_ -> _**Dataset Visualizer**_ -> _**Check For Updates**_ to check for and install updates.
@@ -423,7 +425,7 @@ Once the browser window is open, the tool will automatically try to open the lat
 The left sidebar also contains switches for enabling the visualization of each Labeler in the dataset. The image below shows a sample dataset opened in the visualizer, with the 2D bounding boxes overlay enabled.
 
 <p align="center">
-<img src="Images/visualizer_sample_synthdet.png" width = "800"/>
+<img src="../images/Tutorial/Images/visualizer_sample_synthdet.png" width = "800"/>
 </p>
 
 * **:green_circle: Action**: Click _**Expand Frame**_ for the first image.
@@ -431,7 +433,7 @@ The left sidebar also contains switches for enabling the visualization of each L
 In expanded mode, the image is enlarged and the JSON data attached to it are displayed, as seen in the screenshot below.
 
 <p align="center">
-<img src="Images/vis_expanded.png" width = "800"/>
+<img src="../images/Tutorial/Images/vis_expanded.png" width = "800"/>
 </p>
 
 To further analyze your dataset and verify statistics such as the number of objects in each frame and more, you can use Unity's Dataset Insights, which is a Python package created for processing Perception datasets. [This guide](DatasetInsights.md) can get you started.

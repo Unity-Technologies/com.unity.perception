@@ -8,12 +8,13 @@ In this tutorial, **":green_circle: Action:"** mark all of the actions needed to
 
 Steps included in this tutorial:
 
-* [Step 1: Import `.fbx` Models and Animations](#step-1)
-* [Step 2: Set Up a Humanoid Character in a Scene](#step-2)
-* [Step 3: Set Up the Perception Camera for Keypoint Annotation](#step-3)
-* [Step 4: Configure Animation Pose Labeling](#step-4)
-* [Step 5: Add Joints to the Character and Customize Keypoint Templates](#step-5)
-* [Step 6: Randomize the Humanoid Character's Animations](#step-6)
+- [Human Pose Labeling and Randomization Tutorial](#human-pose-labeling-and-randomization-tutorial)
+    - [<a name="step-1">Step 1: Import `.fbx` Models and Animations</a>](#step-1-import-fbx-models-and-animations)
+    - [<a name="step-2">Step 2: Set Up a Humanoid Character in a Scene</a>](#step-2-set-up-a-humanoid-character-in-a-scene)
+    - [<a name="step-3">Step 3: Set Up the Perception Camera for Keypoint Annotation</a>](#step-3-set-up-the-perception-camera-for-keypoint-annotation)
+    - [<a name="step-4">Step 4: Configure Animation Pose Labeling</a>](#step-4-configure-animation-pose-labeling)
+    - [<a name="step-5">Step 5: Add Joints to the Character and Customize Keypoint Templates</a>](#step-5-add-joints-to-the-character-and-customize-keypoint-templates)
+    - [<a name="step-6">Step 6: Randomize the Humanoid Character's Animations</a>](#step-6-randomize-the-humanoid-characters-animations)
 
 > :information_source: If you face any problems while following this tutorial, please create a post on the **[Unity Computer Vision forum](https://forum.unity.com/forums/computer-vision.626/)** or the **[GitHub issues](https://github.com/Unity-Technologies/com.unity.perception/issues)** page and include as much detail as possible.
 
@@ -32,7 +33,7 @@ We will use this duplicated Scene in this tutorial so that we do not lose our gr
 Your Scenario should now look like this:
 
 <p align="center">
-<img src="Images/scenario_empty.png" width="400"/>
+<img src="../images/HPTutorial/Images/scenario_empty.png" width="400"/>
 </p>
 
 * **:green_circle: Action**: Select `Main Camera` and in the _**Inspector**_ view of the `Perception Camera` component, **disable** all previously added labelers using the check-mark in front of each. We will be using a new labeler in this tutorial.
@@ -45,7 +46,7 @@ We now need to import the sample files required for this tutorial.
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception` folder in your Unity project, as seen in the image below:
 
 <p align="center">
-<img src="Images/project_folders_samples.png" width="600"/>
+<img src="../images/HPTutorial/Images/project_folders_samples.png" width="600"/>
 </p>
 
 * **:green_circle: Action**: Select all of the assets inside the `Assets/Samples/Perception/<perception-package-version>/Human Pose Labeling and Randomization/Models and Animations`.
@@ -61,7 +62,7 @@ Note how `Animation Type` is set to `Humanoid` for all selected assets. This is 
 * **:green_circle: Action**: Select the new `Player` object in the Scene and in the _**Inspector**_ tab set its transform's position and rotation according to the image below to make the character face the camera.
 
 <p align="center">
-<img src="Images/character_transform.png" width="800"/>
+<img src="../images/HPTutorial/Images/character_transform.png" width="800"/>
 </p>
 
 The `Player` object already has an `Animator` component attached. This is because the `Animation Type` property of all the sample `.fbx` files is set to `Humanoid`.
@@ -71,7 +72,7 @@ To animate our character, we will now attach an `Animation Controller` to the `A
 * **:green_circle: Action**: Double click the new controller to open it. Then right-click in the empty area and select _**Create State**_ -> _**Empty**_. 
   
 <p align="center">
-<img src="Images/anim_controller_1.png" width="600"/>
+<img src="../images/HPTutorial/Images/anim_controller_1.png" width="600"/>
 </p>
 
 This will create a new state and attach it to the Entry state with a new transition edge. This means the controller will always move to this new state as soon as the `Animator` component is awoken. In this example, this will happen when the **▷** button is pressed and the simulation starts.
@@ -83,19 +84,19 @@ In the selector window that pops up, you will see several clips named `Take 001`
 * **:green_circle: Action**: Select the animation clip originating from the `TakeObjects.fbx` file, as seen below:
 
 <p align="center">
-<img src="Images/select_clip.png" width="600"/>
+<img src="../images/HPTutorial/Images/select_clip.png" width="600"/>
 </p>
 
 * **:green_circle: Action**: Assign `TestAnimationController` to the `Controller` property of the `Player` object's `Animator` component. 
 
 <p align="center">
-<img src="Images/assign_controller.png" width="400"/>
+<img src="../images/HPTutorial/Images/assign_controller.png" width="400"/>
 </p>
 
 If you run the simulation now you will see the character performing an animation for picking up a hypothetical object as seen in the GIF below.
 
 <p align="center">
-<img src="Images/take_objects.gif" width="600"/>
+<img src="../images/HPTutorial/Images/take_objects.gif" width="600"/>
 </p> 
 
 
@@ -116,7 +117,7 @@ Similar to the labelers we used in the Perception Tutorial, we will need a label
 * **:green_circle: Action**: In the _**Inspector**_ UI for this new `Labeling` component, expand `HPE_IdLabelConfig` and click _**Add to Labels**_ on `MyCharacter`.
 
 <p align="center">
-<img src="Images/add_label_from_config.png" width="400"/>
+<img src="../HPTutorial/Images/add_label_from_config.png" width="400"/>
 </p> 
 
 * **:green_circle: Action**: Return to `Perception Camera` and assign `HPE_IdLabelConfig` to the `KeyPointLabeler`'s label configuration property.
@@ -125,14 +126,14 @@ Similar to the labelers we used in the Perception Tutorial, we will need a label
 The labeler should now look like the image below:
 
 <p align="center">
-<img src="Images/keypoint_labeler.png" width="500"/>
+<img src="../HPTutorial/Images/keypoint_labeler.png" width="500"/>
 </p>
 
 
 The `Active Template` tells the labeler how to map default Unity rig joints to human joint labels in the popular COCO dataset so that the output of the labeler can be easily converted to COCO format. Later in this tutorial, we will learn how to add more joints to our character and how to customize joint mapping templates.
 
 <p align="center">
-<img src="Images/take_objects_keypoints.gif" width="600"/>
+<img src="../images/HPTutorial/Images/take_objects_keypoints.gif" width="600"/>
 </p> 
 
 You can now check out the output dataset to see what the annotations look like. To do this, click the _**Show Folder**_ button in the `Perception Camera` UI, then navigate inside to the dataset folder to find the `captures_000.json` file. Here is an example annotation for the first frame of our test-case here:
@@ -276,7 +277,7 @@ You can now use the `Timestamps` list to define poses. Let's define four poses h
 Modify `MyAnimationPoseConfig` according to the image below:
 
 <p align="center">
-<img src="Images/anim_pos_conf.png" width="800"/>
+<img src="../images/HPTutorial/Images/anim_pos_conf.png" width="800"/>
 </p> 
 
 The pose configuration we created needs to be assigned to our `KeyPointLabeler`. So:
@@ -284,7 +285,7 @@ The pose configuration we created needs to be assigned to our `KeyPointLabeler`.
 * **:green_circle: Action**: In the _**Inspector**_ UI for `Perception Camera`, set the `Size` of `Animation Pose Configs` for the `KeyPointLabeler` to 1. Then, assign the `MyAnimationPoseConfig` to the sole slot in the list, as shown below:
 
 <p align="center">
-<img src="Images/keypoint_labeler_2.png" width="500"/>
+<img src="../images/HPTutorial/Images/keypoint_labeler_2.png" width="500"/>
 </p> 
 
 If you run the simulation again to generate a new dataset, you will see the new poses we defined written in it. All frames that belong to a certain pose will have the pose label attached.
@@ -305,7 +306,7 @@ In the _**Inspector**_ view of `CocoKeypointTemplate`, you will see the list of 
 
 
 <p align="center">
-<img src="Images/coco_template.png" width="500"/>
+<img src="../images/HPTutorial/Images/coco_template.png" width="500"/>
 </p> 
 
 If you review the list you will see that the `left_ear` and `right_ear` joints are also not associated with the rig.
@@ -317,7 +318,7 @@ We will create our three new joints under the `Head` object.
 * **:green_circle: Action**: Create three new empty GameObjects under `Head` and place them in the proper positions for the character's nose and ears, as seen in the GIF below (make sure the positions are correct in 3D space):
 
 <p align="center">
-<img src="Images/new_joints.gif" width="600"/>
+<img src="../images/HPTutorial/Images/new_joints.gif" width="600"/>
 </p> 
 
 The final step in this process would be to label these new joints such that they match the labels of their corresponding keypoints in `CocoKeypointTemplate`. For this purpose, we use the `Joint Label` component.
@@ -327,7 +328,7 @@ The final step in this process would be to label these new joints such that they
 If you run the simulation now, you can see the new joints being visualized:
 
 <p align="center">
-<img src="Images/new_joints_play.gif" width="600"/>
+<img src="../images/HPTutorial/Images/new_joints_play.gif" width="600"/>
 </p> 
 
 You could now look at the latest generated dataset to confirm the new joints are being detected and written.
@@ -347,7 +348,7 @@ The `Animation Randomizer Tag` accepts a list of animation clips. At runtime, th
 If you run the simulation now, your character will randomly perform one of the above four animations, each for 150 frames. This cycle will recur 20 times, which is the total number of Iterations in your Scenario.   
 
 <p align="center">
-<img src="Images/randomized_results.gif" width="600"/>
+<img src="../images/HPTutorial/Images/randomized_results.gif" width="600"/>
 </p> 
 
 > :information_source: The reason the character stops animating at certain points in the above GIF is that the animation clips are not set to loop. Therefore, if the randomly selected timestamp is sufficiently close to the end of the clip, the character will complete the animation and stop animating for the rest of the Iteration.

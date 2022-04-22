@@ -61,7 +61,7 @@ The main difference between this schema and nuScenes is that we use **document b
 This means that instead of requiring multiple id-based "joins" to explore the data, data is nested and sometimes duplicated for ease of consumption.
 
 ## Components
-![image alt text](image_0.png)
+![image alt text](../images/Schema/image_0.png)
 
 ### captures
 
@@ -96,7 +96,7 @@ We cannot use timestamps to synchronize between two different events because tim
 Instead, we use a "step" counter which make it easy to associate metrics and captures that occur at the same time. 
 Below is an illustration of how captures, metrics, timestamps and steps are synchronized. 
 
-![image alt text](captures_steps_timestamps.png)
+![image alt text](../images/Schema/captures_steps_timestamps.png)
 
 Since each sensor might trigger captures at different frequencies, at the same timestamp we might contain 0 to N captures, where N is the total number of sensors included in this scene. 
 If two sensors are captured at the same timestamp, they should share the same sequence, step and timestamp value.
@@ -167,9 +167,9 @@ annotation {
 
 ##### semantic segmentation - grayscale image
 
-A grayscale PNG file that stores integer values (label pixel_value in [annotation spec](#annotation_definitionsjson) reference table, semantic segmentation) of the labeled object at each pixel. 
+A grayscale PNG file that stores integer values (label pixel_value in [annotation spec](#annotation_definitions) reference table, semantic segmentation) of the labeled object at each pixel. 
 
-![image alt text](image_2.png)
+![image alt text](../images/Schema/image_2.png)
 
 #### capture.annotation.values
 
@@ -285,7 +285,7 @@ How to support instance segmentation (maybe we need to use polygon instead of pi
 
 A grayscale PNG file that stores integer values of labeled instances at each pixel. 
 
-![image alt text](image_4.png)
+![image alt text](../images/Schema/image_4.png)
 -->
  
 ### metrics
@@ -348,7 +348,7 @@ Some special cases like semantic segmentation might assign additional values (e.
 
 ##### annotation definition header
 ```
-annotation_definition {
+annotation_definitions {
   id:                <int>           -- Integer identifier of the annotation definition.
   name:              <str>           -- Human readable annotation spec name (e.g. sementic_segmentation, instance_segmentation, etc.) 
   description:       <str>           -- [Optional] Description of this annotation specifications.
@@ -412,7 +412,7 @@ annotation_definition.spec {
 A json file that stores collections of metric specifications records (metric_definition). 
 Each specification record describes a particular metric stored in [metrics](#metrics) values. 
 Each metric_definition record is assigned a unique identifier to a collection of specification records, which is stored as a list of key-value pairs. 
-The design is very similar to [annotation_definitions](#annotation_definitionsjson).
+The design is very similar to [annotation_definitions](#annotation_definitions).
 
 ```
 metric_definition {

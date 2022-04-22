@@ -42,7 +42,7 @@ Keep in mind that any new label added with this method should already be present
   Labeling works on the GameObject level, so to achieve the scenarios described here, you will need to break down your main object into multiple GameObjects parented to the same root object, and add `Labeling` components to each of the inner objects, as shown below.
 
 <p align="center">
-<img src="images/inner_objects.png" width="800"/>
+<img src="../images/FAQ/images/inner_objects.png" width="800"/>
 </p>
   
   Alternatively, in cases where parts of the surface of the object need to be labeled (e.g. decals on objects), you can add labeled invisible surfaces on top of these sections. These invisible surfaces need to have a fully transparent material. To create an invisible material:
@@ -54,7 +54,7 @@ Keep in mind that any new label added with this method should already be present
   An example labeled output for an object with separate labels on inner objects and decals is shown below:
 
 <p align="center">
-<img src="images/inner_labels.gif" width="600"/>
+<img src="../images/FAQ/images/inner_labels.gif" width="600"/>
 </p> 
 
 ---
@@ -118,7 +118,7 @@ Most human character models use Skinned Mesh Renderers. Unfortunately, at this t
   The ***Inspector*** view of a prefab cluster asset looks like below:
 
   <p align="center">
-<img src="images/prefab_cluster.png" width="400"/>
+<img src="../images/FAQ/images/prefab_cluster.png" width="400"/>
 </p>  
 
   Now all that is left is to use our prefab clusters inside a Randomizer. Here is some sample code:
@@ -146,7 +146,7 @@ public class ClusterRandomizer : UnityEngine.Perception.Randomization.Randomizer
 This Randomizer takes a list of `PrefabCluster` assets, then, on each Iteration, it goes through all the provided clusters and samples one prefab from each. The ***Inspector*** view for this Randomizer looks like this:
 
 <p align="center">
-<img src="images/cluster_randomizer.png" width="400"/>
+<img src="../images/FAQ/images/cluster_randomizer.png" width="400"/>
 </p>  
 
 ---
@@ -426,7 +426,7 @@ Suppose we need to drop a few objects into the Scene, let them interact physical
 
 
 <p align="center">
-<img src="images/object_drop.gif" width="700"/>
+<img src="../images/FAQ/images/object_drop.gif" width="700"/>
 </p>  
 
 ---
@@ -494,7 +494,7 @@ HDRP projects have motion blur and a number of other post processing effects ena
 
 
 <p align="center">
-<img src="images/volume.png" width="500"/>
+<img src="../images/FAQ/images/volume.png" width="500"/>
 </p>  
 
 ---
@@ -573,25 +573,25 @@ A visual comparison of the different lighting configurations in HDRP is shown be
 Default HDRP:
 
 <p align="center">
-<img src="images/hdrp.png" width="700"/>
+<img src="../images/FAQ/images/hdrp.png" width="700"/>
 </p>  
 
 HDRP with Global Illumination (notice how much brighter the scene is with ray traced light bouncing):
 
 <p align="center">
-<img src="images/hdrp_rt_gi.png" width="700"/>
+<img src="../images/FAQ/images/hdrp_rt_gi.png" width="700"/>
 </p>  
 
 HDRP with Path Tracing (128 samples) (notice the red light bleeding from the cube onto the floor and the increased shadow quality):
 
 <p align="center">
-<img src="images/hdrp_pt_128_samples.png" width="700"/>
+<img src="../images/FAQ/images/hdrp_pt_128_samples.png" width="700"/>
 </p>  
 
 HDRP with Path Tracing (4096 samples) (more samples leads to less ray tracing noise but also a longer time to render):
 
 <p align="center">
-<img src="images/hdrp_pt_4096_samples.png" width="700"/>
+<img src="../images/FAQ/images/hdrp_pt_4096_samples.png" width="700"/>
 </p>  
 
 ---

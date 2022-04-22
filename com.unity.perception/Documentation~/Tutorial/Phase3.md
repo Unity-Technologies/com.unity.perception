@@ -16,7 +16,7 @@ In order to use Unity Simulation, you need to first create a Unity account or lo
 * **:green_circle: Action** Click on the _**Cloud**_ button at the top-right corner of Unity Editor to open the _**Services**_ tab. 
 
 <p align="center">
-<img src="Images/cloud_icon.png" width="400"/>
+<img src="../images/Tutorial/Images/cloud_icon.png" width="400"/>
 </p>
 
 * **:green_circle: Action** Click the ***General settings***.
@@ -24,7 +24,7 @@ In order to use Unity Simulation, you need to first create a Unity account or lo
 This will open the ***Services*** tab of the ***Project Settings*** window. If you have not logged in yet, you will see a message noting that you are signed out:
 
 <p align="center">
-<img src="Images/signin.png" width="600"/>
+<img src="../images/Tutorial/Images/signin.png" width="600"/>
 </p>
 
 * **:green_circle: Action**: Click _**Sign in...**_ and follow the steps in the window that opens to sign in or create a Unity account.
@@ -41,7 +41,7 @@ It is now time to connect your local Unity project to a cloud project.
 If you have used Unity before, you might have set up multiple organizations for your account. In that case, choose whichever you would like to associate with this project.
 
 <p align="center">
-<img src="Images/create_proj.png" width="600"/>
+<img src="../images/Tutorial/Images/create_proj.png" width="600"/>
 </p>
 
 * **:green_circle: Action**: Click _**Create Project ID**_ to create a new cloud project and connect your local project to it.
@@ -58,20 +58,20 @@ In order to make sure our builds are compatible with Unity Simulation, we need t
 * **:green_circle: Action**: In the window that opens, navigate to the _**Player**_ tab, find the _**Scripting Backend**_ setting (under _**Other Settings**_), and change it to _**Mono**_:
 
 <p align="center">
-<img src="Images/mono.png" width="800"/>
+<img src="../images/Tutorial/Images/mono.png" width="800"/>
 </p>
 
 * **:green_circle: Action**: Change _**Fullscreen Mode**_ to _**Windowed**_ and set a width and height of 800 by 600.
 
 <p align="center">
-<img src="Images/windowed.png" width="600"/>
+<img src="../images/Tutorial/Images/windowed.png" width="600"/>
 </p>
 
 * **:green_circle: Action**: Close _**Project Settings**_. 
 * **:green_circle: Action**: From the top menu bar, open _**Window -> Run in Unity Simulation**_.
 
 <p align="center">
-<img src="Images/runinusim.png" width="600"/>
+<img src="../images/Tutorial/Images/runinusim.png" width="600"/>
 </p>
 
 Here, you can specify a name for the run, the number of Iterations the Scenario will execute for, and the number of Instances (number of nodes the work will be distributed across) for the run. This window automatically picks the currently active Scene and Scenario to run in Unity Simulation.
@@ -87,7 +87,7 @@ Your project will now be built and then uploaded to Unity Simulation and run. Th
 * **:green_circle: Action**: Once the operation is complete, you can find the **Execution ID** of this Unity Simulation run in the **Console** tab and the ***Run in Unity Simulation*** Window: 
 
 <p align="center">
-<img src="Images/build_uploaded.png" width="600"/>
+<img src="../images/Tutorial/Images/build_uploaded.png" width="600"/>
 </p>
 
 ### <a name="step-3">Step 3: Keep Track of Your Runs Using the Unity Simulation Command-Line Interface</a> 
@@ -143,7 +143,7 @@ This command will ask you to press Enter to open a browser for you to login to y
 Once you have logged you will see this page:
 
 <p align="center">
-<img src="Images/usim_login.png" width="400"/>
+<img src="../images/Tutorial/Images/usim_login.png" width="400"/>
 </p>
 
 > :warning: On MacOS, you might get errors related to permissions. If that is the case, modify the permissions on the `~/.usim` folder and its contents to give your user full read and write permission.

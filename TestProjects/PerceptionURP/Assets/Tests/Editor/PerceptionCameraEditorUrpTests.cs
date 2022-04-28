@@ -25,13 +25,7 @@ namespace EditorTests
         [UnityTest]
         public IEnumerator MissingRendererFeature_ProducesLogError()
         {
-            int sceneCount = SceneManager.sceneCount;
-            for (int i = sceneCount - 1; i >= 0; i--)
-            {
-                EditorSceneManager.CloseScene(SceneManager.GetSceneAt(i), true);
-            }
-
-            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene);
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             var urpAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/NoGroundTruthURPAsset.asset");
             GraphicsSettings.renderPipelineAsset = urpAsset;

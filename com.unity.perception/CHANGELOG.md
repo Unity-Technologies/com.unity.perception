@@ -21,6 +21,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+## [0.11.2-preview.2] - 2022-04-28
+
+### Fixed
+
+Install and Open Data Visualizer on Mac
+
+Documentation
+
 ## [0.11.1-preview.1] - 2022-04-13
 
 ### Added

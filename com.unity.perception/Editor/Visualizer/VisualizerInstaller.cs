@@ -18,7 +18,7 @@ namespace UnityEditor.Perception.Visualizer
         //This files stores entries as ProjectDataPath,PythonPID,Port,VisualizerPID
         //It keeps a record of the instances of visualizer opened so that we don't open a new one everytime
         const string k_FilenameStreamlitInstances = "Unity/streamlit_instances.csv";
-
+        static bool hasPerceptionInternal;
         static string PathToStreamlitInstances
         {
             get
@@ -42,17 +42,19 @@ namespace UnityEditor.Perception.Visualizer
             = "datasetvisualizer";
 #endif
 
-        internal static Task InstallationCommand(ref int exitCode, string packagesPath, bool forcePublic)
+        internal static Task InstallationCommand(ref int exitCode, string packagesPath)
         {
             var exitCodeCopy = exitCode;
             var pythonPath = Path.Combine(Directory.GetParent(packagesPath)?.ToString() ?? string.Empty, "python.exe");
 
-            var indexURL = forcePublic ? string.Empty : GetIndexURL();
+            var indexURL = GetIndexURL();
 
 #if UNITY_EDITOR_WIN
-            var task = Task.Run(() => ExecuteCmd($"{pythonPath} -m pip install --upgrade --no-warn-script-location unity-cv-datasetvisualizer {indexURL}", ref exitCodeCopy));
+            var task = Task.Run(() => ExecuteCmd($"\"{pythonPath}\" -m pip install --upgrade --no-warn-script-location unity-cv-datasetvisualizer {indexURL}", ref exitCodeCopy));
+            task.Wait();
 #elif UNITY_EDITOR_OSX
-            var task = Task.Run(() => ExecuteCmd($"cd {packagesPath}; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer {indexURL}", ref exitCodeCopy));
+            var task = Task.Run(() => ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip install --upgrade unity-cv-datasetvisualizer {indexURL}", ref exitCodeCopy));
+            task.Wait();
 #endif
             exitCode = exitCodeCopy;
             return task;
@@ -63,9 +65,11 @@ namespace UnityEditor.Perception.Visualizer
             var exitCodeCopy = exitCode;
             var pythonPath = Path.Combine(Directory.GetParent(packagesPath)?.ToString() ?? string.Empty, "Scripts");
 #if UNITY_EDITOR_WIN
-            var task = Task.Run(() => ExecuteCmd($"cd {pythonPath} && pip uninstall -y unity-cv-datasetvisualizer", ref exitCodeCopy));
+            var task = Task.Run(() => ExecuteCmd($"cd \"{pythonPath}\" && pip uninstall -y unity-cv-datasetvisualizer", ref exitCodeCopy));
+            task.Wait();
 #elif UNITY_EDITOR_OSX
-            var task = Task.Run(() => ExecuteCmd($"cd {packagesPath}; ./python3.7 pip uninstall unity-cv-datasetvisualizer", ref exitCodeCopy));
+            var task = Task.Run(() => ExecuteCmd($"cd \'{packagesPath}\'; ./python3.7 -m pip uninstall -y unity-cv-datasetvisualizer", ref exitCodeCopy));
+            task.Wait();
 #endif
             exitCode = exitCodeCopy;
             return task;
@@ -77,12 +81,13 @@ namespace UnityEditor.Perception.Visualizer
             const string pckName = "com.unity.perception.internal";
             if (!File.Exists("Packages/manifest.json"))
             {
+                hasPerceptionInternal = false;
                 return string.Empty;
             }
 
             var jsonText = File.ReadAllText("Packages/manifest.json");
-            var hasPerceptionInternal =  jsonText.Contains( pckName );
-            return hasPerceptionInternal ? "--index-url=https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/unity-pypi-local/simple/" : string.Empty;
+            hasPerceptionInternal =  jsonText.Contains( pckName );
+            return hasPerceptionInternal ? "--extra-index-url=https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/unity-pypi-local/simple/" : string.Empty;
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
@@ -131,14 +136,16 @@ namespace UnityEditor.Perception.Visualizer
 
             EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes)", 2f / steps);
 
-            await InstallationCommand(ref exitCode, packagesPath, false);
-            if (exitCode != 0)
+            await InstallationCommand(ref exitCode, packagesPath);
+            if (exitCode != 0 && hasPerceptionInternal )
             {
-                Debug.LogWarning("Installing Public Visualizer");
-                await InstallationCommand(ref exitCode, packagesPath, true);
+                Debug.LogWarning("Installation of internal visualizer is failed. You are probably not on VPN, turn on the VPN and try again.");
+                EditorUtility.ClearProgressBar();
+                return;
             }
             if (exitCode != 0)
             {
+                Debug.LogWarning("Failed to install the visualizer.");
                 EditorUtility.ClearProgressBar();
                 return;
             }

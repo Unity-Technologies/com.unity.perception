@@ -103,18 +103,25 @@ namespace EditorTests
             if (installFlag)
             {
                 EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes)", 2f / steps);
-                Task.WaitAll(VisualizerInstaller.InstallationCommand(ref exitCode, packagesPath, true));
+                Task.WaitAll(VisualizerInstaller.InstallationCommand(ref exitCode, packagesPath));
+                if (exitCode != 0)
+                {
+                    Debug.LogWarning("Fail to Install the Visualizer");
+                    EditorUtility.ClearProgressBar();
+                    return;
+                }
             }
             // if install flag is false, uninstall the visualizer
             else
             {
                 EditorUtility.DisplayProgressBar("Uninstall the Visualizer", "Uninstalling Visualizer (This may take a few minutes)", 2f / steps);
                 Task.WaitAll(VisualizerInstaller.UninstallCommand(ref exitCode, packagesPath));
-            }
-            if (exitCode != 0)
-            {
-                EditorUtility.ClearProgressBar();
-                return;
+                if (exitCode != 0)
+                {
+                    Debug.LogWarning("Fail to Uninstall the Visualizer");
+                    EditorUtility.ClearProgressBar();
+                    return;
+                }
             }
             EditorUtility.ClearProgressBar();
         }

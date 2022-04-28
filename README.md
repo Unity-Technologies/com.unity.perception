@@ -19,8 +19,6 @@ The Perception package provides a toolkit for generating large-scale datasets fo
 
 Visit the [Unity Computer Vision](https://unity.com/computer-vision) page for more information on our tools and offerings!
 
-[Join our mailing list](https://create.unity.com/computer-vision-newsletter-sign-up?_gl=1*m30uzd*_gcl_aw*R0NMLjE2NDE4MzcyMjAuQ2p3S0NBaUF6LS1PQmhCSUVpd0FHMXJJT2tyQnYwaFFpQUtBQ1pwdXlzeklPbkdtRHp4dnVVOXNSem1EY0dwaTdLOFRra3FQc2gwLTFSb0NHQlFRQXZEX0J3RQ..*_gcl_dc*R0NMLjE2NDE4MzcyMjAuQ2p3S0NBaUF6LS1PQmhCSUVpd0FHMXJJT2tyQnYwaFFpQUtBQ1pwdXlzeklPbkdtRHp4dnVVOXNSem1EY0dwaTdLOFRra3FQc2gwLTFSb0NHQlFRQXZEX0J3RQ). Sign up now to stay up to date on our latest product feature release, upcoming community events, though-leadership blog posts, and more!
-
 ## Getting Started
 
 **[Quick Installation Instructions](com.unity.perception/Documentation~/SetupSteps.md)**  

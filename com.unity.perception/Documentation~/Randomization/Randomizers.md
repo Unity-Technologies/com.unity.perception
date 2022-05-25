@@ -31,7 +31,9 @@ public class RotationRandomizer : Randomizer
     {
         var taggedObjects = tagManager.Query<RotationRandomizerTag>();
         foreach (var taggedObject in taggedObjects)
+        {
             taggedObject.transform.rotation = Quaternion.Euler(rotation.Sample());
+        }
     }
 }
 ```

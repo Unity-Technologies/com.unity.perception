@@ -78,6 +78,7 @@ namespace UnityEngine.Perception.Settings
             return userPreferences.TryGetValue($"{endpoint.GetType().FullName}.output_path", out string path) ? path : defaultOutputPath;
         }
 #endif
+        public bool useGUID = false;
 
         /// <summary>
         /// Sets the output path for the active endpoint type. This will set the path for the next simulation, it will
@@ -187,7 +188,8 @@ namespace UnityEngine.Perception.Settings
         }
 #endif
 
-        [SerializeReference][ConsumerEndpointDrawer(typeof(IConsumerEndpoint))]
+        [SerializeReference]
+        [ConsumerEndpointDrawer(typeof(IConsumerEndpoint))]
         public IConsumerEndpoint endpoint = new PerceptionEndpoint();
     }
 }

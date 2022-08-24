@@ -111,7 +111,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         {
             get
             {
-                return m_DatasetPath ?? (m_DatasetPath = VerifyDirectoryWithGuidExists("Dataset"));
+                return m_DatasetPath ?? (m_DatasetPath = VerifyDirectoryWithGuidExists("Dataset"), PerceptionSettings.instance.useGUID);
             }
         }
 
@@ -122,8 +122,14 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string GetRgbProductPath(string id)
         {
-            // idToGuidMap.TryGetValue(id, out var guid);
-            var path = $"RGB_{id}";
+            var path;
+            if (PerceptionSettings.instance.useGUID)
+            {
+                idToGuidMap.TryGetValue(id, out var guid);
+                path = $"RGB_{guid}";
+            }
+            else
+                path = $"RGB_{id}";
             return VerifyDirectoryWithGuidExists(path, false);
         }
 
@@ -134,8 +140,14 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string GetSemanticSegmentationProductPath(string id)
         {
-            // idToGuidMap.TryGetValue(id, out var guid);
-            var path = $"SemanticSegmentation_{id}";
+            var path;
+            if (PerceptionSettings.instance.useGUID)
+            {
+                idToGuidMap.TryGetValue(id, out var guid);
+                path = $"SemanticSegmentation_{guid}";
+            }
+            else
+                path = $"SemanticSegmentation_{id}";
             return VerifyDirectoryWithGuidExists(path, false);
         }
 
@@ -146,8 +158,14 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string GetInstanceSegmentationProductPath(string id)
         {
-            // idToGuidMap.TryGetValue(id, out var guid);
-            var path = $"InstanceSegmentation_{id}";
+            var path;
+            if (PerceptionSettings.instance.useGUID)
+            {
+                idToGuidMap.TryGetValue(id, out var guid);
+                path = $"InstanceSegmentation_{guid}";
+            }
+            else
+                path = $"InstanceSegmentation_{id}";
             return VerifyDirectoryWithGuidExists(path, false);
         }
 

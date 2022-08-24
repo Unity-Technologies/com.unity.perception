@@ -94,7 +94,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The image encoding format used to encode captured RGB images.
         /// </summary>
-        const ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.JPG;
+        const ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.Jpg;
 
         /// <summary>
         /// Caches access to the camera attached to the perception camera.

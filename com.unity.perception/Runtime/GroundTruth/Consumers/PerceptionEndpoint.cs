@@ -111,7 +111,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         {
             get
             {
-                return m_DatasetPath ?? (m_DatasetPath = VerifyDirectoryWithGuidExists("Dataset", PerceptionSettings.instance.useGUID));
+                return m_DatasetPath ?? (m_DatasetPath = VerifyDirectoryWithGuidExists("Dataset", PerceptionSettings.instance.useGUIDForFolderNaming));
             }
         }
 
@@ -123,7 +123,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         internal string GetRgbProductPath(string id)
         {
             string path;
-            if (PerceptionSettings.instance.useGUID)
+            if (PerceptionSettings.instance.useGUIDForFolderNaming)
             {
                 idToGuidMap.TryGetValue(id, out var guid);
                 path = $"RGB{guid}";
@@ -141,7 +141,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         internal string GetSemanticSegmentationProductPath(string id)
         {
             string path;
-            if (PerceptionSettings.instance.useGUID)
+            if (PerceptionSettings.instance.useGUIDForFolderNaming)
             {
                 idToGuidMap.TryGetValue(id, out var guid);
                 path = $"SemanticSegmentation{guid}";
@@ -159,7 +159,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         internal string GetInstanceSegmentationProductPath(string id)
         {
             string path;
-            if (PerceptionSettings.instance.useGUID)
+            if (PerceptionSettings.instance.useGUIDForFolderNaming)
             {
                 idToGuidMap.TryGetValue(id, out var guid);
                 path = $"InstanceSegmentation{guid}";
@@ -387,7 +387,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string WriteOutImageFile(int frame, RgbSensor rgb)
         {
-            var path = PathUtils.CombineUniversal(GetProductPath(rgb), $"rgb_{frame}.png");
+            var path = PathUtils.CombineUniversal(GetProductPath(rgb), $"rgb_{frame}." + PerceptionSettings.instance.RgbImageEncodingFormatString);
             PathUtils.WriteAndReportImageFile(path, rgb.buffer);
             RegisterFile(path);
             return path;

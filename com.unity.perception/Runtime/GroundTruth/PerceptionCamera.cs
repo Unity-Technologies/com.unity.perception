@@ -7,6 +7,7 @@ using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.Settings;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 #if HDRP_PRESENT
@@ -94,7 +95,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The image encoding format used to encode captured RGB images.
         /// </summary>
-        const ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.Jpg;
+        ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.Png;
 
         /// <summary>
         /// Caches access to the camera attached to the perception camera.
@@ -222,6 +223,7 @@ namespace UnityEngine.Perception.GroundTruth
         void Start()
         {
             Application.runInBackground = true;
+            k_RgbImageEncodingFormat = PerceptionSettings.instance.RgbImageEncodingFormat;
 
             SetupInstanceSegmentation();
             attachedCamera = GetComponent<Camera>();
@@ -530,9 +532,9 @@ namespace UnityEngine.Perception.GroundTruth
             Profiler.BeginSample("CaptureDataFromLastFrame");
             var cmd = CommandBufferPool.Get($"{ID}_PerceptionRGBCapture");
             var tempRT1 = RenderTexture.GetTemporary(
-                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_SRGB);
+                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, PerceptionSettings.instance.CameraGraphicsFormat);
             var tempRT2 = RenderTexture.GetTemporary(
-                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_SRGB);
+                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, PerceptionSettings.instance.CameraGraphicsFormat);
 
             // Blit the back buffer to a temporary RenderTexture to obtain the RGB output image
             cmd.Blit(null, tempRT1);

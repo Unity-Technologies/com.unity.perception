@@ -94,7 +94,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The image encoding format used to encode captured RGB images.
         /// </summary>
-        const ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.Png;
+        const ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.JPG;
 
         /// <summary>
         /// Caches access to the camera attached to the perception camera.
@@ -606,9 +606,9 @@ namespace UnityEngine.Perception.GroundTruth
         static float3x3 ToProjectionMatrix3x3(Matrix4x4 inMatrix)
         {
             return new float3x3(
-                inMatrix[0,0], inMatrix[0,1], inMatrix[0,2],
-                inMatrix[1,0], inMatrix[1,1], inMatrix[1,2],
-                inMatrix[2,0],inMatrix[2,1], inMatrix[2,2]);
+                inMatrix[0, 0], inMatrix[0, 1], inMatrix[0, 2],
+                inMatrix[1, 0], inMatrix[1, 1], inMatrix[1, 2],
+                inMatrix[2, 0], inMatrix[2, 1], inMatrix[2, 2]);
         }
     }
 }

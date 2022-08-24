@@ -229,9 +229,9 @@ namespace UnityEditor.Perception.GroundTruth
             if (m_EditorHasUi && m_UiInitialized)
             {
                 RefreshNonPresentLabels();
-                m_NonPresentLabelsListView.Refresh();
+                m_NonPresentLabelsListView.Rebuild();
                 RefreshListViewHeight();
-                m_LabelListView.Refresh();
+                m_LabelListView.Rebuild();
             }
         }
 

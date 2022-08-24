@@ -122,14 +122,14 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string GetRgbProductPath(string id)
         {
-            var path;
+            string path;
             if (PerceptionSettings.instance.useGUID)
             {
                 idToGuidMap.TryGetValue(id, out var guid);
-                path = $"RGB_{guid}";
+                path = $"RGB{guid}";
             }
             else
-                path = $"RGB_{id}";
+                path = $"RGB{id}";
             return VerifyDirectoryWithGuidExists(path, false);
         }
 
@@ -140,14 +140,14 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string GetSemanticSegmentationProductPath(string id)
         {
-            var path;
+            string path;
             if (PerceptionSettings.instance.useGUID)
             {
                 idToGuidMap.TryGetValue(id, out var guid);
-                path = $"SemanticSegmentation_{guid}";
+                path = $"SemanticSegmentation{guid}";
             }
             else
-                path = $"SemanticSegmentation_{id}";
+                path = $"SemanticSegmentation{id}";
             return VerifyDirectoryWithGuidExists(path, false);
         }
 
@@ -158,14 +158,14 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string GetInstanceSegmentationProductPath(string id)
         {
-            var path;
+            string path;
             if (PerceptionSettings.instance.useGUID)
             {
                 idToGuidMap.TryGetValue(id, out var guid);
-                path = $"InstanceSegmentation_{guid}";
+                path = $"InstanceSegmentation{guid}";
             }
             else
-                path = $"InstanceSegmentation_{id}";
+                path = $"InstanceSegmentation{id}";
             return VerifyDirectoryWithGuidExists(path, false);
         }
 

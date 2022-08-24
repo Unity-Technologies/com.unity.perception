@@ -111,7 +111,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         {
             get
             {
-                return m_DatasetPath ?? (m_DatasetPath = VerifyDirectoryWithGuidExists("Dataset"), PerceptionSettings.instance.useGUID);
+                return m_DatasetPath ?? (m_DatasetPath = VerifyDirectoryWithGuidExists("Dataset", PerceptionSettings.instance.useGUID));
             }
         }
 

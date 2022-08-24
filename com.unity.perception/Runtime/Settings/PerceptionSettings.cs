@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using UnityEditor.Perception.GroundTruth;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.Perception.GroundTruth.DataModel;
@@ -78,7 +79,6 @@ namespace UnityEngine.Perception.Settings
             return userPreferences.TryGetValue($"{endpoint.GetType().FullName}.output_path", out string path) ? path : defaultOutputPath;
         }
 #endif
-
         /// <summary>
         /// Sets the output path for the active endpoint type. This will set the path for the next simulation, it will
         /// not affect a simulation that is currently executing. In order for this to take effect the caller should call
@@ -186,8 +186,20 @@ namespace UnityEngine.Perception.Settings
             return new SerializedObject(instance);
         }
 #endif
+        public bool useGUIDForFolderNaming = false;
+        public ImageEncodingFormat RgbImageEncodingFormat = ImageEncodingFormat.Png;
+        public string RgbImageEncodingFormatString
+        {
+            get
+            {
+                return Enum.GetName(typeof(ImageEncodingFormat), RgbImageEncodingFormat).ToLower();
+            }
+        }
 
-        [SerializeReference][ConsumerEndpointDrawer(typeof(IConsumerEndpoint))]
+        public GraphicsFormat CameraGraphicsFormat = GraphicsFormat.R8G8B8A8_SRGB;
+
+        [SerializeReference]
+        [ConsumerEndpointDrawer(typeof(IConsumerEndpoint))]
         public IConsumerEndpoint endpoint = new PerceptionEndpoint();
     }
 }

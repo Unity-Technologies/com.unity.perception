@@ -81,7 +81,7 @@ namespace UnityEditor.Perception.GroundTruth
 
                 serializedObject.ApplyModifiedProperties();
                 RefreshAddedLabels();
-                m_LabelListView.Refresh();
+                m_LabelListView.Rebuild();
                 RefreshListViewHeight();
             }
         }
@@ -118,7 +118,7 @@ namespace UnityEditor.Perception.GroundTruth
 
                 serializedObject.ApplyModifiedProperties();
                 RefreshAddedLabels();
-                m_LabelListView.Refresh();
+                m_LabelListView.Rebuild();
                 RefreshListViewHeight();
             }
         }

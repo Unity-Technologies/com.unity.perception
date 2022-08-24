@@ -223,8 +223,8 @@ namespace UnityEditor.Perception.GroundTruth
         public void RefreshLists()
         {
             CheckInclusionInConfigs(m_AllLabelConfigGuids, s_LabelValues.Count == 1? s_LabelValues.First() : null);
-            s_PresentConfigsListview.Refresh();
-            s_NonPresentConfigsListview.Refresh();
+            s_PresentConfigsListview.Rebuild();
+            s_NonPresentConfigsListview.Rebuild();
         }
         void OnEnable()
         {

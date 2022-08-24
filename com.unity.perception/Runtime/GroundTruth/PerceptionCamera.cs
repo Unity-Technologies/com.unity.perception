@@ -7,6 +7,7 @@ using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.Settings;
 using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 #if HDRP_PRESENT
@@ -94,7 +95,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The image encoding format used to encode captured RGB images.
         /// </summary>
-        const ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.Png;
+        ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.Png;
 
         /// <summary>
         /// Caches access to the camera attached to the perception camera.
@@ -222,6 +223,7 @@ namespace UnityEngine.Perception.GroundTruth
         void Start()
         {
             Application.runInBackground = true;
+            k_RgbImageEncodingFormat = PerceptionSettings.instance.RgbImageEncodingFormat;
 
             SetupInstanceSegmentation();
             attachedCamera = GetComponent<Camera>();
@@ -530,9 +532,9 @@ namespace UnityEngine.Perception.GroundTruth
             Profiler.BeginSample("CaptureDataFromLastFrame");
             var cmd = CommandBufferPool.Get($"{ID}_PerceptionRGBCapture");
             var tempRT1 = RenderTexture.GetTemporary(
-                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_SRGB);
+                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, PerceptionSettings.instance.CameraGraphicsFormat);
             var tempRT2 = RenderTexture.GetTemporary(
-                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_SRGB);
+                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, PerceptionSettings.instance.CameraGraphicsFormat);
 
             // Blit the back buffer to a temporary RenderTexture to obtain the RGB output image
             cmd.Blit(null, tempRT1);
@@ -606,9 +608,9 @@ namespace UnityEngine.Perception.GroundTruth
         static float3x3 ToProjectionMatrix3x3(Matrix4x4 inMatrix)
         {
             return new float3x3(
-                inMatrix[0,0], inMatrix[0,1], inMatrix[0,2],
-                inMatrix[1,0], inMatrix[1,1], inMatrix[1,2],
-                inMatrix[2,0],inMatrix[2,1], inMatrix[2,2]);
+                inMatrix[0, 0], inMatrix[0, 1], inMatrix[0, 2],
+                inMatrix[1, 0], inMatrix[1, 1], inMatrix[1, 2],
+                inMatrix[2, 0], inMatrix[2, 1], inMatrix[2, 2]);
         }
     }
 }

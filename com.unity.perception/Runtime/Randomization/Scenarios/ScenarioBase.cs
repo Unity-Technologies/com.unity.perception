@@ -619,7 +619,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         void ValidateParameters()
         {
-            foreach (var randomizer in m_Randomizers)
+            foreach (var randomizer in activeRandomizers)
             foreach (var parameter in randomizer.parameters)
             {
                 try { parameter.Validate(); }

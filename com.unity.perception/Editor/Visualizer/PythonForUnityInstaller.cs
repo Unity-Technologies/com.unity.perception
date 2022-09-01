@@ -19,7 +19,7 @@ namespace UnityEditor.Perception.Visualizer
         {
             if (!CheckIfPackageInstalled())
             {
-                var request = Client.Add("com.unity.scripting.python@4.0.0-exp.5");
+                var request = Client.Add("com.unity.scripting.python@6.0.0");
 
                 while (!request.IsCompleted)
                 {

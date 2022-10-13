@@ -227,7 +227,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override void Cleanup()
         {
-
+            Debug.Log("Cleaning UP");
             if (m_TargetTextureOverride != null)
                 m_TargetTextureOverride.Release();
 

@@ -37,6 +37,11 @@ namespace UnityEngine.Perception.GroundTruth
             else
             {
                 var cpuTexture = GetTextureFromCache(sourceTex.width, sourceTex.height, sourceTex.graphicsFormat);
+                if (!cpuTexture)
+                {
+                    Debug.LogWarning("No texture from cache found!");
+                    return;
+                }
                 RenderTexture.active = sourceTex;
                 cpuTexture.ReadPixels(new Rect(0, 0, sourceTex.width, sourceTex.height), 0, 0);
                 cpuTexture.Apply();
@@ -73,7 +78,10 @@ namespace UnityEngine.Perception.GroundTruth
         static Texture2D GetTextureFromCache(int width, int height, GraphicsFormat graphicsFormat)
         {
             if (s_CachedCpuTextures.TryGetValue((width, height, graphicsFormat), out var texture))
-                return texture;
+            {
+                if (null != texture) return texture;
+                Debug.LogWarning("Found disposed or null texture in cache");
+            }
             var newTexture = new Texture2D(width, height, graphicsFormat, TextureCreationFlags.None);
             s_CachedCpuTextures[(width, height, graphicsFormat)] = newTexture;
             return newTexture;

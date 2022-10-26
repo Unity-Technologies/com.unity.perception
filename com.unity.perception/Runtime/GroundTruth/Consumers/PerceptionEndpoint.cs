@@ -111,7 +111,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         {
             get
             {
-                return m_DatasetPath ?? (m_DatasetPath = VerifyDirectoryWithGuidExists("Dataset"));
+                return m_DatasetPath ?? (m_DatasetPath = VerifyDirectoryWithGuidExists("Dataset", PerceptionSettings.instance.useGUIDForFolderNaming));
             }
         }
 
@@ -122,8 +122,14 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string GetRgbProductPath(string id)
         {
-            idToGuidMap.TryGetValue(id, out var guid);
-            var path = $"RGB{guid}";
+            string path;
+            if (PerceptionSettings.instance.useGUIDForFolderNaming)
+            {
+                idToGuidMap.TryGetValue(id, out var guid);
+                path = $"RGB{guid}";
+            }
+            else
+                path = $"RGB{id}";
             return VerifyDirectoryWithGuidExists(path, false);
         }
 
@@ -134,8 +140,14 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string GetSemanticSegmentationProductPath(string id)
         {
-            idToGuidMap.TryGetValue(id, out var guid);
-            var path = $"SemanticSegmentation{guid}";
+            string path;
+            if (PerceptionSettings.instance.useGUIDForFolderNaming)
+            {
+                idToGuidMap.TryGetValue(id, out var guid);
+                path = $"SemanticSegmentation{guid}";
+            }
+            else
+                path = $"SemanticSegmentation{id}";
             return VerifyDirectoryWithGuidExists(path, false);
         }
 
@@ -146,8 +158,14 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string GetInstanceSegmentationProductPath(string id)
         {
-            idToGuidMap.TryGetValue(id, out var guid);
-            var path = $"InstanceSegmentation{guid}";
+            string path;
+            if (PerceptionSettings.instance.useGUIDForFolderNaming)
+            {
+                idToGuidMap.TryGetValue(id, out var guid);
+                path = $"InstanceSegmentation{guid}";
+            }
+            else
+                path = $"InstanceSegmentation{id}";
             return VerifyDirectoryWithGuidExists(path, false);
         }
 
@@ -314,7 +332,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
                 }
             }
 
-            foreach (var metric in  frame.metrics)
+            foreach (var metric in frame.metrics)
             {
                 AddMetricToReport(seqId, frame.step, captureIdMap, metric);
             }
@@ -327,7 +345,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
             //take the randomly generated sequenceGuidStart and increment by the sequence index to get a new unique id
             var hash = m_SequenceGuidStart.ToByteArray();
             var start = BitConverter.ToUInt32(hash, 0);
-            start = start + (uint) frame.sequence;
+            start = start + (uint)frame.sequence;
             var startBytes = BitConverter.GetBytes(start);
             //reverse so that the beginning of the guid always changes
             Array.Reverse(startBytes);
@@ -369,7 +387,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         internal string WriteOutImageFile(int frame, RgbSensor rgb)
         {
-            var path = PathUtils.CombineUniversal(GetProductPath(rgb), $"rgb_{frame}.png");
+            var path = PathUtils.CombineUniversal(GetProductPath(rgb), $"rgb_{frame}." + PerceptionSettings.instance.RgbImageEncodingFormatString);
             PathUtils.WriteAndReportImageFile(path, rgb.buffer);
             RegisterFile(path);
             return path;
@@ -467,7 +485,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
             return new JObject
             {
-                ["capture_id"] =  captureId,
+                ["capture_id"] = captureId,
                 ["annotation_id"] = annotationId,
                 ["sequence_id"] = sequenceId,
                 ["step"] = step,
@@ -609,60 +627,60 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
                     writer.WriteValue(value);
                     break;
                 case Vector3 v3:
-                {
-                    writer.WriteStartArray();
-                    writer.WriteValue(v3.x);
-                    writer.WriteValue(v3.y);
-                    writer.WriteValue(v3.z);
-                    writer.WriteEndArray();
-                    break;
-                }
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteValue(v3.x);
+                        writer.WriteValue(v3.y);
+                        writer.WriteValue(v3.z);
+                        writer.WriteEndArray();
+                        break;
+                    }
                 case Vector2 v2:
-                {
-                    writer.WriteStartArray();
-                    writer.WriteValue(v2.x);
-                    writer.WriteValue(v2.y);
-                    writer.WriteEndArray();
-                    break;
-                }
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteValue(v2.x);
+                        writer.WriteValue(v2.y);
+                        writer.WriteEndArray();
+                        break;
+                    }
                 case Color32 rgba:
-                {
-                    writer.WriteStartObject();
-                    writer.WritePropertyName("r");
-                    writer.WriteValue(rgba.r);
-                    writer.WritePropertyName("g");
-                    writer.WriteValue(rgba.g);
-                    writer.WritePropertyName("b");
-                    writer.WriteValue(rgba.b);
-                    writer.WritePropertyName("a");
-                    writer.WriteValue(rgba.a);
-                    writer.WriteEndObject();
-                    break;
-                }
+                    {
+                        writer.WriteStartObject();
+                        writer.WritePropertyName("r");
+                        writer.WriteValue(rgba.r);
+                        writer.WritePropertyName("g");
+                        writer.WriteValue(rgba.g);
+                        writer.WritePropertyName("b");
+                        writer.WriteValue(rgba.b);
+                        writer.WritePropertyName("a");
+                        writer.WriteValue(rgba.a);
+                        writer.WriteEndObject();
+                        break;
+                    }
                 case Color rgba:
-                {
-                    writer.WriteStartObject();
-                    writer.WritePropertyName("r");
-                    writer.WriteValue(rgba.r);
-                    writer.WritePropertyName("g");
-                    writer.WriteValue(rgba.g);
-                    writer.WritePropertyName("b");
-                    writer.WriteValue(rgba.b);
-                    writer.WritePropertyName("a");
-                    writer.WriteValue(rgba.a);
-                    writer.WriteEndObject();
-                    break;
-                }
+                    {
+                        writer.WriteStartObject();
+                        writer.WritePropertyName("r");
+                        writer.WriteValue(rgba.r);
+                        writer.WritePropertyName("g");
+                        writer.WriteValue(rgba.g);
+                        writer.WritePropertyName("b");
+                        writer.WriteValue(rgba.b);
+                        writer.WritePropertyName("a");
+                        writer.WriteValue(rgba.a);
+                        writer.WriteEndObject();
+                        break;
+                    }
                 case Quaternion quaternion:
-                {
-                    writer.WriteStartArray();
-                    writer.WriteValue(quaternion.x);
-                    writer.WriteValue(quaternion.y);
-                    writer.WriteValue(quaternion.z);
-                    writer.WriteValue(quaternion.w);
-                    writer.WriteEndArray();
-                    break;
-                }
+                    {
+                        writer.WriteStartArray();
+                        writer.WriteValue(quaternion.x);
+                        writer.WriteValue(quaternion.y);
+                        writer.WriteValue(quaternion.z);
+                        writer.WriteValue(quaternion.w);
+                        writer.WriteEndArray();
+                        break;
+                    }
                 case float3x3 f3x3:
                     writer.WriteStartArray();
                     writer.WriteStartArray();

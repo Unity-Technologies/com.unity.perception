@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.Settings;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable NotAccessedField.Local
@@ -75,30 +76,30 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
             switch (annotation)
             {
                 case InstanceSegmentationAnnotation i:
-                {
-                    return JToken.FromObject(PerceptionInstanceSegmentationValue.Convert(consumer, frame.frame, i), consumer.Serializer);
-                }
+                    {
+                        return JToken.FromObject(PerceptionInstanceSegmentationValue.Convert(consumer, frame.frame, i), consumer.Serializer);
+                    }
                 case BoundingBoxAnnotation b:
-                {
-                    return JToken.FromObject(PerceptionBoundingBoxAnnotationValue.Convert(consumer, labelerId, defId, b), consumer.Serializer);
-                }
+                    {
+                        return JToken.FromObject(PerceptionBoundingBoxAnnotationValue.Convert(consumer, labelerId, defId, b), consumer.Serializer);
+                    }
                 case BoundingBox3DAnnotation b:
-                {
-                    return JToken.FromObject(PerceptionBounding3dBoxAnnotationValue.Convert(consumer, labelerId, defId, b), consumer.Serializer);
-                }
+                    {
+                        return JToken.FromObject(PerceptionBounding3dBoxAnnotationValue.Convert(consumer, labelerId, defId, b), consumer.Serializer);
+                    }
                 case SemanticSegmentationAnnotation s:
-                {
-                    return JToken.FromObject(PerceptionSemanticSegmentationValue.Convert(consumer, frame.frame, s), consumer.Serializer);
-                }
+                    {
+                        return JToken.FromObject(PerceptionSemanticSegmentationValue.Convert(consumer, frame.frame, s), consumer.Serializer);
+                    }
                 case KeypointAnnotation kp:
-                {
-                    return JToken.FromObject(PerceptionKeyPointValue.Convert(consumer, kp), consumer.Serializer);
-                }
+                    {
+                        return JToken.FromObject(PerceptionKeyPointValue.Convert(consumer, kp), consumer.Serializer);
+                    }
                 default:
-                {
-                    var tmp = JToken.FromObject(annotation, consumer.Serializer);
-                    return tmp;
-                }
+                    {
+                        var tmp = JToken.FromObject(annotation, consumer.Serializer);
+                        return tmp;
+                    }
             }
         }
     }
@@ -253,7 +254,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         static string CreateFile(PerceptionEndpoint consumer, int frame, SemanticSegmentationAnnotation annotation)
         {
-            var path = PathUtils.CombineUniversal(consumer.GetProductPath(annotation), $"segmentation_{frame}.png");
+            var path = PathUtils.CombineUniversal(consumer.GetProductPath(annotation), $"segmentation_{frame}." + PerceptionSettings.instance.RgbImageEncodingFormatString);
             PathUtils.WriteAndReportImageFile(path, annotation.buffer);
             consumer.RegisterFile(path);
             return path;
@@ -341,7 +342,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
         static string CreateFile(PerceptionEndpoint consumer, int frame, InstanceSegmentationAnnotation annotation)
         {
-            var path = PathUtils.CombineUniversal(consumer.GetProductPath(annotation), $"Instance_{frame}.png");
+            var path = PathUtils.CombineUniversal(consumer.GetProductPath(annotation), $"Instance_{frame}." + PerceptionSettings.instance.RgbImageEncodingFormatString);
             PathUtils.WriteAndReportImageFile(path, annotation.buffer);
             consumer.RegisterFile(path);
             return path;

@@ -42,7 +42,7 @@ namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
 
                     m_Property.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = list;
-                    listView.Refresh();
+                    listView.Rebuild();
                 };
             };
 
@@ -52,7 +52,7 @@ namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
                 m_Property.arraySize++;
                 m_Property.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = list;
-                listView.Refresh();
+                listView.Rebuild();
                 listView.ScrollToItem(m_Property.arraySize);
             };
 
@@ -75,7 +75,7 @@ namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
 
                 m_Property.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = list;
-                listView.Refresh();
+                listView.Rebuild();
             };
 
             var clearOptionsButton = this.Q<Button>("clear-assets");
@@ -84,7 +84,7 @@ namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
                 m_Property.arraySize = 0;
                 m_Property.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = list;
-                listView.Refresh();
+                listView.Rebuild();
             };
         }
     }

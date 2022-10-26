@@ -196,7 +196,6 @@ namespace UnityEngine.Perception.Settings
             }
         }
 
-        public GraphicsFormat CameraGraphicsFormat = GraphicsFormat.R8G8B8A8_SRGB;
 
         [SerializeReference]
         [ConsumerEndpointDrawer(typeof(IConsumerEndpoint))]

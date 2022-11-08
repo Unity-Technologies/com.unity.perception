@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.unity.burst": {
-      "version": "1.4.6",
+      "version": "1.5.6",
       "depth": 1,
       "source": "registry",
       "dependencies": {
@@ -19,12 +19,12 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.collections": {
-      "version": "0.9.0-preview.6",
+      "version": "1.1.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework.performance": "2.0.8-preview",
-        "com.unity.burst": "1.3.0-preview.12"
+        "com.unity.burst": "1.5.4",
+        "com.unity.test-framework": "1.1.29"
       },
       "url": "https://packages.unity.com"
     },
@@ -97,12 +97,10 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.unity.burst": "1.4.6",
-        "com.unity.collections": "0.9.0-preview.6",
+        "com.unity.burst": "1.5.6",
+        "com.unity.collections": "1.1.0",
         "com.unity.nuget.newtonsoft-json": "1.1.2",
-        "com.unity.render-pipelines.core": "7.1.6",
-        "com.unity.simulation.client": "0.0.10-preview.10",
-        "com.unity.simulation.core": "0.0.10-preview.25"
+        "com.unity.render-pipelines.core": "7.1.6"
       }
     },
     "com.unity.render-pipelines.core": {
@@ -153,13 +151,6 @@
       },
       "url": "https://packages.unity.com"
     },
-    "com.unity.simulation.client": {
-      "version": "0.0.10-preview.10",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
     "com.unity.simulation.core": {
       "version": "0.0.10-preview.26",
       "depth": 0,
@@ -186,8 +177,8 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
-      "version": "1.1.27",
-      "depth": 0,
+      "version": "1.1.29",
+      "depth": 2,
       "source": "registry",
       "dependencies": {
         "com.unity.ext.nunit": "1.0.6",
@@ -197,12 +188,12 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework.performance": {
-      "version": "2.0.8-preview",
-      "depth": 2,
+      "version": "2.8.0-preview",
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.test-framework": "1.1.0",
-        "com.unity.nuget.newtonsoft-json": "2.0.0-preview"
+        "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },

@@ -62,11 +62,7 @@ As the name suggests, the _**Package Manager**_ is where you can download new, u
 
 It will take some time for the manager to download and import the package. Once the operation finishes, you may receive a pop-up error about the version of the Burst package. Dismiss the pop-up. 
 
-You will then see the newly downloaded Perception package automatically selected in the _**Package Manager**_, as depicted below:
-
-<p align="center">
-  	<img src="../images/Tutorial/package_manager_internal.png" width="600"/>
-</p>
+You will then see the newly downloaded Perception package automatically selected in the _**Package Manager**_.
 
 Each package can come with a set of samples. As seen in the righthand panel, one of the bundles is named _**Tutorial Files**_, which will be required for completing this tutorial. It consists of some generic foreground and background objects, randomizers, shaders, and other elements needed for this tutorial. **Foreground** objects are those that the eventual machine learning model will try to detect. While **Background** objects will be placed in the background as distractors for the model.
 
@@ -75,7 +71,7 @@ Each package can come with a set of samples. As seen in the righthand panel, one
 Once the sample files are imported, they will be placed inside the `Assets/Samples/Perception/<Perception Package Version>/Tutorial Files` folder in your Unity project. You can view your project's folder structure and access your files from the _**Project**_ tab of the editor, as seen in the image below (the package version should match the version you downloaded):
 
 <p align="center">
-  	<img src="../images/Tutorial/project_folders_samples_internal.png" width="500"/>
+  	<img src="../images/Tutorial/project_folders_samples_internal.PNG" width="500"/>
 </p>
 
 ### <a name="step-3">Step 3: Setup a Scene for Your Perception Simulation</a> 

@@ -6,9 +6,13 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.GroundTruth.Sensors.Channels;
+using UnityEngine.Perception.GroundTruth.Utilities;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Produces keypoint annotations for a humanoid model. This labeler supports generic
@@ -28,13 +32,44 @@ namespace UnityEngine.Perception.GroundTruth
     /// override to all of the keypoint tolerances defined in a keypoint template.
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public sealed class KeypointLabeler : CameraLabeler
     {
+        struct FrameKeypointData
+        {
+            public AsyncFuture<Annotation> annotation;
+            public int pointsPerEntry;
+            public List<KeypointComponent> keypoints;
+            public bool isDepthCheckComplete;
+            public bool isInstanceSegmentationCheckComplete;
+            public NativeArray<RenderedObjectInfo> objectInfos;
+        }
+
         // Smaller texture sizes produce assertion failures in the engine
         const int k_MinTextureWidth = 8;
+        const int k_PixelTolerance = 1;
 
-        static ProfilerMarker s_OnEndRenderingMarker = new ProfilerMarker($"KeypointLabeler OnEndRendering");
-        static ProfilerMarker s_OnVisualizeMarker = new ProfilerMarker($"KeypointLabeler OnVisualize");
+        static readonly int k_KeypointPositions = Shader.PropertyToID("_KeypointPositions");
+        static readonly int k_KeypointDepthToCheck = Shader.PropertyToID("_KeypointDepthToCheck");
+        static readonly int k_LinearDepthTexture = Shader.PropertyToID("_LinearDepthTexture");
+        static readonly int k_CameraPixelHeight = Shader.PropertyToID("_CameraPixelHeight");
+        static readonly int k_CameraFarPlane = Shader.PropertyToID("_CameraFarPlane");
+
+        static ProfilerMarker s_OnEndRenderingMarker = new("KeypointLabeler OnEndRendering");
+        static ProfilerMarker s_OnVisualizeMarker = new("KeypointLabeler OnVisualize");
+
+        int m_CurrentFrame;
+        Material m_DepthCheckMaterial;
+        AnnotationDefinition m_AnnotationDefinition;
+        Texture2D m_MissingTexture;
+        Texture2D m_KeypointPositionsTexture;
+        Texture2D m_KeypointCheckDepthTexture;
+        RenderTexture m_InstanceIdTexture;
+        RenderTexture m_DepthTexture;
+        RenderTexture m_ResultsBuffer;
+        Dictionary<int, FrameKeypointData> m_FrameKeypointData = new();
+        Dictionary<int, NativeArray<uint>> m_CachedInstanceIds = new();
+        List<KeypointComponent> m_LatestReported;
 
         /// <summary>
         /// The active keypoint template. Required to annotate keypoint data.
@@ -47,7 +82,6 @@ namespace UnityEngine.Perception.GroundTruth
         ///<inheritdoc/>
         protected override bool supportsVisualization => true;
 
-        // ReSharper disable MemberCanBePrivate.Global
         /// <summary>
         /// The GUID id to associate with the annotations produced by this labeler.
         /// </summary>
@@ -62,32 +96,21 @@ namespace UnityEngine.Perception.GroundTruth
         public IdLabelConfig idLabelConfig;
 
         /// <summary>
+        /// Should the visualizer draw occluded points.
+        /// </summary>
+        [Tooltip("If checked on the visualizer will draw an empty black circle for occluded points. If unchecked the point will not be drawn.")]
+        public bool visualizeOccludedPoints = true;
+
+        /// <summary>
         /// Controls which objects will have keypoints recorded in the dataset.
         /// <see cref="KeypointObjectFilter"/>
         /// </summary>
         public KeypointObjectFilter objectFilter;
-        // ReSharper restore MemberCanBePrivate.Global
 
-        AnnotationDefinition m_AnnotationDefinition;
-        Texture2D m_MissingTexture;
-        Material m_MaterialDepthCheck;
-        Texture2D m_KeypointPositionsTexture;
-        Texture2D m_KeypointCheckDepthTexture;
-
-        struct FrameKeypointData
-        {
-            public AsyncFuture<Annotation> annotation;
-            public int pointsPerEntry;
-            public List<KeypointComponent> keypoints;
-            public bool isDepthCheckComplete;
-            public bool isInstanceSegmentationCheckComplete;
-            public NativeArray<RenderedObjectInfo> objectInfos;
-        }
-
-        Dictionary<int, FrameKeypointData> m_FrameKeypointData;
-        List<KeypointComponent> m_LatestReported;
-
-        int m_CurrentFrame;
+        /// <summary>
+        /// Array of animation pose labels which map animation clip times to ground truth pose labels.
+        /// </summary>
+        public List<AnimationPoseConfig> animationPoseConfigs;
 
         /// <summary>
         /// Action that gets triggered when a new frame of key points are computed.
@@ -99,7 +122,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// is not valid until a <see cref="IdLabelConfig"/> and <see cref="KeypointTemplate"/>
         /// are assigned.
         /// </summary>
-        public KeypointLabeler() { }
+        public KeypointLabeler() {}
 
         /// <summary>
         /// Creates a new key point labeler.
@@ -108,17 +131,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="template">The active keypoint template</param>
         public KeypointLabeler(IdLabelConfig config, KeypointTemplate template)
         {
-            this.idLabelConfig = config;
-            this.activeTemplate = template;
+            idLabelConfig = config;
+            activeTemplate = template;
         }
-
-        /// <summary>
-        /// Array of animation pose labels which map animation clip times to ground truth pose labels.
-        /// </summary>
-        public List<AnimationPoseConfig> animationPoseConfigs;
-
-        ComputeShader m_KeypointDepthTestShader;
-        RenderTexture m_ResultsBuffer;
 
         /// <inheritdoc/>
         protected override void Setup()
@@ -126,7 +141,8 @@ namespace UnityEngine.Perception.GroundTruth
             if (idLabelConfig == null)
                 throw new InvalidOperationException($"{nameof(KeypointLabeler)}'s idLabelConfig field must be assigned");
 
-            m_AnnotationDefinition = new KeypointAnnotationDefinition(annotationId, TemplateToJson(activeTemplate, idLabelConfig));
+            m_AnnotationDefinition = new KeypointAnnotationDefinition(
+                annotationId, TemplateToJson(activeTemplate, idLabelConfig));
             DatasetCapture.RegisterAnnotationDefinition(m_AnnotationDefinition);
 
             visualizationEnabled = supportsVisualization;
@@ -134,29 +150,16 @@ namespace UnityEngine.Perception.GroundTruth
             // Texture to use in case the template does not contain a texture for the joints or the skeletal connections
             m_MissingTexture = new Texture2D(1, 1);
 
-            m_KnownStatus = new Dictionary<uint, CachedData>();
-
-            m_FrameKeypointData = new Dictionary<int, FrameKeypointData>();
             m_CurrentFrame = 0;
-            m_KeypointDepthTestShader = (ComputeShader) Resources.Load("KeypointDepthTest");
 
-            var depthCheckShader = Shader.Find("Perception/KeypointDepthCheck");
+            m_DepthCheckMaterial = new(RenderUtilities.LoadPrewarmedShader("Perception/KeypointDepthCheck"));
 
-            var shaderVariantCollection = new ShaderVariantCollection();
-            m_MaterialDepthCheck = new Material(depthCheckShader);
+            var depthChannel = perceptionCamera.EnableChannel<DepthChannel>();
+            m_DepthTexture = depthChannel.outputTexture;
 
-            shaderVariantCollection.Add(
-                new ShaderVariantCollection.ShaderVariant(depthCheckShader, PassType.ScriptableRenderPipeline));
-            shaderVariantCollection.WarmUp();
-
-            perceptionCamera.attachedCamera.depthTextureMode = DepthTextureMode.Depth;
-#if URP_PRESENT
-            var cameraData = Rendering.Universal.CameraExtensions.GetUniversalAdditionalCameraData(perceptionCamera.attachedCamera);
-            cameraData.requiresDepthOption = Rendering.Universal.CameraOverrideOption.On;
-            cameraData.requiresDepthTexture = true;
-#endif
-
-            perceptionCamera.InstanceSegmentationImageReadback += OnInstanceSegmentationImageReadback;
+            var instanceIdChannel = perceptionCamera.EnableChannel<InstanceIdChannel>();
+            instanceIdChannel.outputTextureReadback += OnInstanceSegmentationImageReadback;
+            m_InstanceIdTexture = instanceIdChannel.outputTexture;
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfoReadback;
         }
 
@@ -168,21 +171,15 @@ namespace UnityEngine.Perception.GroundTruth
                 textureDimensions.y == m_ResultsBuffer.height)
                 return;
 
-
             if (m_ResultsBuffer != null)
-            {
                 m_ResultsBuffer.Release();
-            }
 
-            m_KeypointPositionsTexture = new Texture2D(textureDimensions.x, textureDimensions.y, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
-            m_KeypointCheckDepthTexture = new Texture2D(textureDimensions.x, textureDimensions.y, GraphicsFormat.R16_SFloat, TextureCreationFlags.None);
-
-            m_ResultsBuffer = new RenderTexture(textureDimensions.x, textureDimensions.y, 0, GraphicsFormat.R8G8B8A8_UNorm);
-        }
-
-        bool AreEqual(Color32 lhs, Color32 rhs)
-        {
-            return lhs.r == rhs.r && lhs.g == rhs.g && lhs.b == rhs.b && lhs.a == rhs.a;
+            m_KeypointPositionsTexture = new Texture2D(textureDimensions.x, textureDimensions.y,
+                GraphicsFormat.R32G32_SFloat, TextureCreationFlags.None);
+            m_KeypointCheckDepthTexture = new Texture2D(textureDimensions.x, textureDimensions.y,
+                GraphicsFormat.R32_SFloat, TextureCreationFlags.None);
+            m_ResultsBuffer = new RenderTexture(textureDimensions.x, textureDimensions.y,
+                0, GraphicsFormat.R8G8B8A8_UNorm);
         }
 
         bool PixelOnScreen(int2 pixelLocation, (int x, int y) dimensions)
@@ -190,14 +187,14 @@ namespace UnityEngine.Perception.GroundTruth
             return pixelLocation.x >= 0 && pixelLocation.x < dimensions.x && pixelLocation.y >= 0 && pixelLocation.y < dimensions.y;
         }
 
-        bool PixelsMatch(int x, int y, Color32 idColor, (int x, int y) dimensions, NativeArray<Color32> data)
+        bool PixelsMatch(int x, int y, uint instanceId, (int x, int y) dimensions,
+            NativeArray<uint> pixelInstanceIdIndices, NativeArray<uint> instanceIds)
         {
             var h = dimensions.y - 1 - y;
-            var pixelColor = data[h * dimensions.x + x];
-            return AreEqual(pixelColor, idColor);
+            var instanceIdIndex = pixelInstanceIdIndices[h * dimensions.x + x];
+            var foundInstanceId = instanceIds[(int)instanceIdIndex];
+            return foundInstanceId == instanceId;
         }
-
-        static int s_PixelTolerance = 1;
 
         // Determine the state of a keypoint. A keypoint is considered visible (state = 2) if it is on screen and not occluded
         // by itself or another object. Self-occlusion has already been checked, so the input keypoint may be state 2, 1, or 0.
@@ -209,7 +206,9 @@ namespace UnityEngine.Perception.GroundTruth
         // close to the edge of the screen. Because of this we will test not only the keypoint pixel, but also the immediate surrounding
         // pixels  to determine if the pixel is really visible. This method returns 1 if the pixel is not visible but on screen, and 0
         // if the pixel is off of the screen (taken the tolerance into account).
-        int DetermineKeypointState(KeypointValue keypoint, Color32 instanceIdColor, (int x, int y) dimensions, NativeArray<Color32> data)
+        int DetermineKeypointState(
+            KeypointValue keypoint, uint instanceId, (int x, int y) dimensions,
+            NativeArray<uint> pixelInstanceIdIndices, NativeArray<uint> cachedInstanceIds)
         {
             if (keypoint.state == 0) return 0;
 
@@ -220,14 +219,14 @@ namespace UnityEngine.Perception.GroundTruth
 
             var pixelMatched = false;
 
-            for (var y = pixelLocation.y - s_PixelTolerance; y <= pixelLocation.y + s_PixelTolerance; y++)
+            for (var y = pixelLocation.y - k_PixelTolerance; y <= pixelLocation.y + k_PixelTolerance; y++)
             {
-                for (var x = pixelLocation.x - s_PixelTolerance; x <= pixelLocation.x + s_PixelTolerance; x++)
+                for (var x = pixelLocation.x - k_PixelTolerance; x <= pixelLocation.x + k_PixelTolerance; x++)
                 {
                     if (!PixelOnScreen(new int2(x, y), dimensions)) continue;
 
                     pixelMatched = true;
-                    if (PixelsMatch(x, y, instanceIdColor, dimensions, data))
+                    if (PixelsMatch(x, y, instanceId, dimensions, pixelInstanceIdIndices, cachedInstanceIds))
                     {
                         return keypoint.state;
                     }
@@ -245,25 +244,30 @@ namespace UnityEngine.Perception.GroundTruth
             return pixelLocation;
         }
 
-        void OnInstanceSegmentationImageReadback(int frameCount, NativeArray<Color32> data, RenderTexture renderTexture)
+        void OnInstanceSegmentationImageReadback(int frameCount, NativeArray<uint> pixelInstanceIdIndices)
         {
             if (!m_FrameKeypointData.TryGetValue(frameCount, out var frameKeypointData))
                 return;
 
-            var dimensions = (renderTexture.width, renderTexture.height);
+            var cachedInstanceIds = m_CachedInstanceIds[frameCount];
+            m_CachedInstanceIds.Remove(frameCount);
+
+            var dimensions = (m_InstanceIdTexture.width, m_InstanceIdTexture.height);
 
             foreach (var keypointEntry in frameKeypointData.keypoints)
             {
-                if (InstanceIdToColorMapping.TryGetColorFromInstanceId(keypointEntry.instanceId, out var idColor))
+                if (keypointEntry.instanceId != 0)
                 {
                     for (var i = 0; i < keypointEntry.keypoints.Length; i++)
                     {
                         var keypoint = keypointEntry.keypoints[i];
-                        keypoint.state = DetermineKeypointState(keypoint, idColor, dimensions, data);
+                        keypoint.state = DetermineKeypointState(
+                            keypoint, keypointEntry.instanceId, dimensions, pixelInstanceIdIndices, cachedInstanceIds);
 
                         if (keypoint.state == 0)
                         {
                             keypoint.location = Vector2.zero;
+                            keypoint.cameraCartesianLocation = Vector3.zero;
                         }
                         else
                         {
@@ -278,12 +282,16 @@ namespace UnityEngine.Perception.GroundTruth
                 }
             }
 
+            cachedInstanceIds.Dispose();
+
             frameKeypointData.isInstanceSegmentationCheckComplete = true;
             m_FrameKeypointData[frameCount] = frameKeypointData;
             ReportIfComplete(frameCount, frameKeypointData);
         }
 
-        void OnRenderedObjectInfoReadback(int frameCount, NativeArray<RenderedObjectInfo> objectInfos)
+        void OnRenderedObjectInfoReadback(
+            int frameCount, NativeArray<RenderedObjectInfo> objectInfos,
+            SceneHierarchyInformation hierarchyInfo)
         {
             if (!m_FrameKeypointData.TryGetValue(frameCount, out var frameKeypointData))
                 return;
@@ -326,7 +334,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
             m_FrameKeypointData.Remove(frameCount);
             KeypointsComputed?.Invoke(frameCount, reportList);
-            var toReport = new KeypointAnnotation(m_AnnotationDefinition, perceptionCamera.ID, activeTemplate.templateID, reportList);
+            var toReport = new KeypointAnnotation(m_AnnotationDefinition, perceptionCamera.id, activeTemplate.templateID, reportList);
             frameKeypointData.annotation.Report(toReport);
             frameKeypointData.objectInfos.Dispose();
             m_LatestReported = reportList;
@@ -353,6 +361,9 @@ namespace UnityEngine.Perception.GroundTruth
                     pointsPerEntry = activeTemplate.keypoints.Length
                 };
 
+                m_CachedInstanceIds[m_CurrentFrame] = new NativeArray<uint>(
+                    LabelManager.singleton.instanceIds, Allocator.Persistent);
+
                 if (keypointEntries.Count != 0)
                     DoDepthCheck(scriptableRenderContext, keypointEntries, checkLocations);
                 else
@@ -373,40 +384,49 @@ namespace UnityEngine.Perception.GroundTruth
         {
             var keypointCount = keypointEntries.Count * activeTemplate.keypoints.Length;
 
-            var commandBuffer = CommandBufferPool.Get("KeypointDepthCheck");
+            var cmd = CommandBufferPool.Get("KeypointDepthCheck");
 
             var textureDimensions = TextureDimensions(keypointCount);
 
-
             SetupDepthCheckBuffers(checkLocations.Length);
 
-            var positionsPixeldata = new NativeArray<half>(textureDimensions.x * textureDimensions.y * 2, Allocator.Temp);
-            var depthPixeldata = new NativeArray<half>(textureDimensions.x * textureDimensions.y, Allocator.Temp);
+            var positionsPixelData = new NativeArray<float2>(
+                textureDimensions.x * textureDimensions.y, Allocator.Temp);
+            var depthPixelData = new NativeArray<float>(
+                textureDimensions.x * textureDimensions.y, Allocator.Temp);
 
-            for (int i = 0; i < checkLocations.Length; i++)
+            for (var i = 0; i < checkLocations.Length; i++)
             {
                 var pos = checkLocations[i];
-                positionsPixeldata[i * 2] = new half(pos.x);
-                positionsPixeldata[i * 2 + 1] = new half(pos.y);
-                depthPixeldata[i] = new half(pos.z);
+                positionsPixelData[i] = new float2(pos.x, pos.y);
+                depthPixelData[i] = pos.z;
             }
 
-            m_KeypointPositionsTexture.SetPixelData(positionsPixeldata, 0);
+            m_KeypointPositionsTexture.SetPixelData(positionsPixelData, 0);
             m_KeypointPositionsTexture.Apply();
-            m_KeypointCheckDepthTexture.SetPixelData(depthPixeldata, 0);
+            m_KeypointCheckDepthTexture.SetPixelData(depthPixelData, 0);
             m_KeypointCheckDepthTexture.Apply();
 
-            positionsPixeldata.Dispose();
-            depthPixeldata.Dispose();
+            positionsPixelData.Dispose();
+            depthPixelData.Dispose();
 
-            m_MaterialDepthCheck.SetTexture("_Positions", m_KeypointPositionsTexture);
-            m_MaterialDepthCheck.SetTexture("_KeypointCheckDepth", m_KeypointCheckDepthTexture);
-            commandBuffer.Blit(null, m_ResultsBuffer, m_MaterialDepthCheck);
+            cmd.SetGlobalTexture(k_KeypointPositions, m_KeypointPositionsTexture);
+            cmd.SetGlobalTexture(k_KeypointDepthToCheck, m_KeypointCheckDepthTexture);
+            cmd.SetGlobalTexture(k_LinearDepthTexture, m_DepthTexture);
+            cmd.SetGlobalInteger(k_CameraPixelHeight, perceptionCamera.cameraSensor.pixelHeight);
+            cmd.SetGlobalFloat(k_CameraFarPlane, perceptionCamera.attachedCamera.farClipPlane);
 
-            scriptableRenderContext.ExecuteCommandBuffer(commandBuffer);
+            cmd.SetRenderTarget(m_ResultsBuffer);
+            cmd.ClearRenderTarget(false, true, Color.clear);
+            cmd.Blit(null, m_ResultsBuffer, m_DepthCheckMaterial);
+
+            RenderTextureReader.Capture<Color32>(cmd, m_ResultsBuffer,
+                (frame, data, _) => DoDepthCheckReadback(frame, data));
+            cmd.SetRenderTarget((RenderTexture)null);
+
+            scriptableRenderContext.ExecuteCommandBuffer(cmd);
             scriptableRenderContext.Submit();
-            CommandBufferPool.Release(commandBuffer);
-            RenderTextureReader.Capture<Color32>(scriptableRenderContext, m_ResultsBuffer, OnDepthCheckReadback);
+            CommandBufferPool.Release(cmd);
         }
 
         static Vector2Int TextureDimensions(int keypointCount)
@@ -418,19 +438,10 @@ namespace UnityEngine.Perception.GroundTruth
             return textureDimensions;
         }
 
-        void OnDepthCheckReadback(int frame, NativeArray<Color32> data, RenderTexture renderTexture)
-        {
-            DoDepthCheckReadback(frame, data);
-        }
-
-        void OnDepthCheckReadback(int frameCount, AsyncGPUReadbackRequest obj)
-        {
-            var data = obj.GetData<uint>();
-//            DoDepthCheckReadback(frameCount, data);
-        }
-
-        // Go through each keypoint and check if the depth compute shader has determined if it is visible (depth texture
-        // value of 1.
+        /// <summary>
+        /// Iterate through each keypoint to check if the depth check shader has determined if it is visible.
+        /// A keypoint is visible if its results texture pixel has an red channel value of 1.
+        /// </summary>
         void DoDepthCheckReadback(int frameCount, NativeArray<Color32> data)
         {
             var frameKeypointData = m_FrameKeypointData[frameCount];
@@ -438,8 +449,8 @@ namespace UnityEngine.Perception.GroundTruth
             Debug.Assert(totalLength < data.Length);
             for (var i = 0; i < totalLength; i++)
             {
-                var value = data[i];
-                if (value.r == 0)
+                var depthCheckResult = data[i];
+                if (depthCheckResult.r == 0)
                 {
                     var keypoints = frameKeypointData.keypoints[i / frameKeypointData.pointsPerEntry];
                     var indexInObject = i % frameKeypointData.pointsPerEntry;
@@ -453,12 +464,14 @@ namespace UnityEngine.Perception.GroundTruth
             m_FrameKeypointData[frameCount] = frameKeypointData;
             ReportIfComplete(frameCount, frameKeypointData);
         }
+
         float GetCaptureHeight()
         {
             var targetTexture = perceptionCamera.attachedCamera.targetTexture;
             return targetTexture != null ?
                 targetTexture.height : Screen.height;
         }
+
         Vector3 ConvertToScreenSpace(Vector3 worldLocation)
         {
             var pt = perceptionCamera.attachedCamera.WorldToScreenPoint(worldLocation);
@@ -471,16 +484,10 @@ namespace UnityEngine.Perception.GroundTruth
             return pt;
         }
 
-        struct CachedData
+        Vector3 ConvertToCameraSpace(Vector3 worldLocation)
         {
-            public bool status;
-            public Animator animator;
-            public KeypointComponent keypoints;
-            public List<(JointLabel, int)> overrides;
-            public float occlusionScalar;
+            return perceptionCamera.attachedCamera.transform.InverseTransformPoint(worldLocation);
         }
-
-        Dictionary<uint, CachedData> m_KnownStatus;
 
         bool TryToGetTemplateIndexForJoint(KeypointTemplate template, JointLabel joint, out int index)
         {
@@ -511,91 +518,73 @@ namespace UnityEngine.Perception.GroundTruth
             if (!idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
                 return;
 
-            // Cache out the data of a labeled game object the first time we see it, this will
-            // save performance each frame. Also checks to see if a labeled game object can be annotated.
-            if (!m_KnownStatus.ContainsKey(labeledEntity.instanceId))
+            var keypointsFound = false;
+
+            var overrides = new List<(JointLabel, int)>();
+
+            var entityGameObject = labeledEntity.gameObject;
+
+            var animator = entityGameObject.transform.GetComponentInChildren<Animator>();
+            if (animator != null)
             {
-                var cached = new CachedData()
+                keypointsFound = true;
+            }
+
+            foreach (var joint in entityGameObject.transform.GetComponentsInChildren<JointLabel>())
+            {
+                if (TryToGetTemplateIndexForJoint(activeTemplate, joint, out var idx))
                 {
-                    status = false,
-                    animator = null,
-                    keypoints = new KeypointComponent(),
-                    overrides = new List<(JointLabel, int)>(),
-                    occlusionScalar = 1.0f
-                };
-
-                var entityGameObject = labeledEntity.gameObject;
-
-                cached.keypoints.instanceId = labeledEntity.instanceId;
-                cached.keypoints.labelId = labelEntry.id;
-
-                cached.keypoints.keypoints = new KeypointValue[activeTemplate.keypoints.Length];
-                for (var i = 0; i < cached.keypoints.keypoints.Length; i++)
-                {
-                    cached.keypoints.keypoints[i] = new KeypointValue { index = i, state = 0 };
+                    overrides.Add((joint, idx));
+                    keypointsFound = true;
                 }
+            }
 
-                var animator = entityGameObject.transform.GetComponentInChildren<Animator>();
-                if (animator != null)
-                {
-                    cached.animator = animator;
-                    cached.status = true;
-                }
+            if (keypointsFound)
+            {
+                var keypointComponent = new KeypointComponent(labelEntry.id, labeledEntity.instanceId, "unset", activeTemplate.keypoints.Length);
 
-                foreach (var joint in entityGameObject.transform.GetComponentsInChildren<JointLabel>())
-                {
-                    if (TryToGetTemplateIndexForJoint(activeTemplate, joint, out var idx))
-                    {
-                        cached.overrides.Add((joint, idx));
-                        cached.status = true;
-                    }
-                }
+                var occlusionScalar = 1.0f;
 
                 var occlusionOverrider = labeledEntity.GetComponentInParent<KeypointOcclusionOverrides>();
                 if (occlusionOverrider != null)
                 {
-                    cached.occlusionScalar = occlusionOverrider.distanceScale;
+                    occlusionScalar = occlusionOverrider.distanceScale;
                 }
-
-                m_KnownStatus[labeledEntity.instanceId] = cached;
-            }
-
-            var cachedData = m_KnownStatus[labeledEntity.instanceId];
-
-            if (cachedData.status)
-            {
-                var animator = cachedData.animator;
 
                 var listStart = checkLocations.Length;
                 checkLocations.Resize(checkLocations.Length + activeTemplate.keypoints.Length, NativeArrayOptions.ClearMemory);
                 //grab the slice of the list for the current object to assign positions in
                 var checkLocationsSlice = new NativeSlice<float3>(checkLocations, listStart);
 
-                var cameraPosition = perceptionCamera.transform.position;
-                var cameraforward = perceptionCamera.transform.forward;
+                var transform = perceptionCamera.transform;
+                var cameraPosition = transform.position;
+                var cameraForward = transform.forward;
 
-                // Go through all of the rig keypoints and get their location
-                for (var i = 0; i < activeTemplate.keypoints.Length; i++)
+                if (animator != null && animator.gameObject.activeSelf)
                 {
-                    var pt = activeTemplate.keypoints[i];
-                    if (pt.associateToRig)
+                    // Go through all of the rig keypoints and get their location
+                    for (var i = 0; i < activeTemplate.keypoints.Length; i++)
                     {
-                        var bone = animator.GetBoneTransform(pt.rigLabel);
-                        if (bone != null)
+                        var pt = activeTemplate.keypoints[i];
+                        if (pt.associateToRig)
                         {
-                            var bonePosition = bone.position;
+                            var bone = animator.GetBoneTransform(pt.rigLabel);
+                            if (bone != null)
+                            {
+                                var bonePosition = bone.position;
 
-                            var occlusionDistance = pt.selfOcclusionDistance * cachedData.occlusionScalar;
-                            var jointSelfOcclusionDistance = JointSelfOcclusionDistance(bone, bonePosition, cameraPosition, cameraforward, occlusionDistance);
+                                var occlusionDistance = pt.selfOcclusionDistance * occlusionScalar;
+                                var jointSelfOcclusionDistance = JointSelfOcclusionDistance(bone, bonePosition, cameraPosition, cameraForward, occlusionDistance);
 
-                            InitKeypoint(bonePosition, cachedData, checkLocationsSlice, i, jointSelfOcclusionDistance);
+                                InitKeypoint(bonePosition, keypointComponent, checkLocationsSlice, i, jointSelfOcclusionDistance);
+                            }
                         }
                     }
                 }
 
                 // Go through all of the additional or override points defined by joint labels and get
                 // their locations
-                foreach (var (joint, templateIdx) in cachedData.overrides)
+                foreach (var(joint, templateIdx) in overrides)
                 {
                     var jointTransform = joint.transform;
                     var jointPosition = jointTransform.position;
@@ -605,29 +594,21 @@ namespace UnityEngine.Perception.GroundTruth
                     else
                         resolvedSelfOcclusionDistance = activeTemplate.keypoints[templateIdx].selfOcclusionDistance;
 
-                    resolvedSelfOcclusionDistance *= cachedData.occlusionScalar;
+                    resolvedSelfOcclusionDistance *= occlusionScalar;
 
-                    var jointSelfOcclusionDistance = JointSelfOcclusionDistance(joint.transform, jointPosition, cameraPosition, cameraforward, resolvedSelfOcclusionDistance);
+                    var jointSelfOcclusionDistance = JointSelfOcclusionDistance(joint.transform, jointPosition, cameraPosition, cameraForward, resolvedSelfOcclusionDistance);
 
-                    InitKeypoint(jointPosition, cachedData, checkLocationsSlice, templateIdx, jointSelfOcclusionDistance);
+                    InitKeypoint(jointPosition, keypointComponent, checkLocationsSlice, templateIdx, jointSelfOcclusionDistance);
                 }
 
-                cachedData.keypoints.pose = "unset";
+                keypointComponent.pose = "unset";
 
-                if (cachedData.animator != null)
+                if (animator != null && animator.isActiveAndEnabled && animator.runtimeAnimatorController != null)
                 {
-                    cachedData.keypoints.pose = GetPose(cachedData.animator);
+                    keypointComponent.pose = GetPose(animator);
                 }
 
-                var cachedKeypointEntry = cachedData.keypoints;
-                var keypointEntry = new KeypointComponent
-                {
-                    instanceId = cachedKeypointEntry.instanceId,
-                    keypoints = DeepCopyKeypoints(cachedKeypointEntry.keypoints),
-                    labelId = cachedKeypointEntry.labelId,
-                    pose = cachedKeypointEntry.pose,
-                };
-                keypointEntries.Add(keypointEntry);
+                keypointEntries.Add(keypointComponent);
             }
         }
 
@@ -654,21 +635,24 @@ namespace UnityEngine.Perception.GroundTruth
             return worldSpaceCheckVector.magnitude;
         }
 
-        void InitKeypoint(Vector3 position, CachedData cachedData, NativeSlice<float3> checkLocations, int idx,
+        void InitKeypoint(Vector3 position, KeypointComponent keypointComponent, NativeSlice<float3> checkLocations, int idx,
             float occlusionDistance)
         {
             var loc = ConvertToScreenSpace(position);
+            var cameraLoc = ConvertToCameraSpace(position);
 
-            var keypoints = cachedData.keypoints.keypoints;
+            var keypoints = keypointComponent.keypoints;
             keypoints[idx].index = idx;
             if (loc.z < 0)
             {
                 keypoints[idx].location = Vector2.zero;
+                keypoints[idx].cameraCartesianLocation = Vector3.zero;
                 keypoints[idx].state = 0;
             }
             else
             {
                 keypoints[idx].location = new Vector2(loc.x, loc.y);
+                keypoints[idx].cameraCartesianLocation = cameraLoc;
                 keypoints[idx].state = 2;
             }
 
@@ -684,6 +668,11 @@ namespace UnityEngine.Perception.GroundTruth
 
         string GetPose(Animator animator)
         {
+            if (animator == null || !animator.isActiveAndEnabled || !animator.gameObject.activeSelf)
+            {
+                return string.Empty;
+            }
+
             var info = animator.GetCurrentAnimatorClipInfo(0);
 
             if (info != null && info.Length > 0)
@@ -726,6 +715,9 @@ namespace UnityEngine.Perception.GroundTruth
                 var skeletonTexture = activeTemplate.skeletonTexture;
                 if (skeletonTexture == null) skeletonTexture = m_MissingTexture;
 
+                var occludedJointTexture = activeTemplate.occludedJointTexture;
+                if (occludedJointTexture == null) occludedJointTexture = m_MissingTexture;
+
                 foreach (var entry in m_LatestReported)
                 {
                     foreach (var bone in activeTemplate.skeleton)
@@ -742,7 +734,9 @@ namespace UnityEngine.Perception.GroundTruth
                     foreach (var keypoint in entry.keypoints)
                     {
                         if (keypoint.state == 2)
-                            VisualizationHelper.DrawPoint(keypoint.location.x, keypoint.location.y, activeTemplate.keypoints[keypoint.index].color, 8, jointTexture);
+                            VisualizationHelper.DrawPoint(keypoint.location.x, keypoint.location.y, activeTemplate.keypoints[keypoint.index].color, 6, jointTexture);
+                        else if (visualizeOccludedPoints && keypoint.state == 1)
+                            VisualizationHelper.DrawPoint(keypoint.location.x, keypoint.location.y, activeTemplate.occludedJointColor, 6, occludedJointTexture);
                     }
                 }
             }

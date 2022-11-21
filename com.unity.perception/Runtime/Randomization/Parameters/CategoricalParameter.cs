@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -9,18 +9,17 @@ namespace UnityEngine.Perception.Randomization.Parameters
     /// </summary>
     /// <typeparam name="T">The sample type of the categorical parameter</typeparam>
     [Serializable]
-    public abstract class CategoricalParameter<T> : CategoricalParameterBase
+    public class CategoricalParameter<T> : CategoricalParameterBase
     {
         [SerializeField] internal bool uniform = true;
-        [SerializeReference] ISampler m_Sampler = new UniformSampler(0f, 1f);
-
         [SerializeField] List<T> m_Categories = new List<T>();
+        UniformSampler m_Sampler = new UniformSampler(0f, 1f);
         float[] m_NormalizedProbabilities;
 
         /// <summary>
         /// Returns an IEnumerable that iterates over each sampler field in this parameter
         /// </summary>
-        internal override IEnumerable<ISampler> samplers
+        public override IEnumerable<ISampler> samplers
         {
             get { yield return m_Sampler; }
         }
@@ -33,7 +32,15 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// <summary>
         /// Returns the number of stored categories
         /// </summary>
-        /// <returns>The number of stored categories</returns>
+        /// <value>The number of stored categories</value>
+        public int Count => m_Categories.Count;
+
+        /// <summary>
+        /// Returns the number of stored categories
+        /// </summary>
+        /// <value>The number of stored categories</value>
+        /// <returns>Count of categories</returns>
+        [Obsolete("GetCategoryCount method has been deprecated. Please use Count (UnityUpgradable)")]
         public int GetCategoryCount() => m_Categories.Count;
 
         /// <summary>
@@ -71,7 +78,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         {
             m_Categories.Clear();
             probabilities.Clear();
-            foreach (var (category, probability) in categoricalOptions)
+            foreach (var(category, probability) in categoricalOptions)
                 AddOption(category, probability);
             NormalizeProbabilities();
         }
@@ -112,7 +119,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
             var uniqueCategories = new HashSet<T>();
             foreach (var option in m_Categories)
                 if (uniqueCategories.Contains(option))
-                    throw new ParameterValidationException("Duplicate categories");
+                    throw new ParameterValidationException($"Duplicate categories in {typeof(T)}: {option}");
                 else
                     uniqueCategories.Add(option);
 
@@ -123,6 +130,31 @@ namespace UnityEngine.Perception.Randomization.Parameters
                     throw new ParameterValidationException("Number of options must be equal to the number of probabilities");
                 NormalizeProbabilities();
             }
+        }
+
+        /// <summary>
+        /// Generates a sample
+        /// </summary>
+        /// <returns>The generated sample</returns>
+        public T Sample()
+        {
+            var randomValue = m_Sampler.Sample();
+            if (uniform)
+            {
+                var index = (int)(randomValue * m_Categories.Count);
+                index = index == m_Categories.Count ? index - 1 : index;
+                return m_Categories[index];
+            }
+            return m_Categories[BinarySearch(m_NormalizedProbabilities, randomValue)];
+        }
+
+        /// <summary>
+        /// Generates a generic sample
+        /// </summary>
+        /// <returns>The generated sample</returns>
+        public override object GenericSample()
+        {
+            return Sample();
         }
 
         void NormalizeProbabilities()
@@ -148,49 +180,35 @@ namespace UnityEngine.Perception.Randomization.Parameters
             }
         }
 
-        int BinarySearch(float key) {
+        internal static int BinarySearch(float[] normalizedProbabilities, float key)
+        {
             var minNum = 0;
-            var maxNum = m_NormalizedProbabilities.Length - 1;
+            var maxNum = normalizedProbabilities.Length - 1;
 
-            while (minNum <= maxNum) {
-                var mid = (minNum + maxNum) / 2;
+            while (minNum <= maxNum)
+            {
+                var mid = minNum + (maxNum - minNum) / 2;
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
-                if (key == m_NormalizedProbabilities[mid]) {
-                    return ++mid;
+                if (key == normalizedProbabilities[mid])
+                {
+                    return mid;
                 }
-                if (key < m_NormalizedProbabilities[mid]) {
+                if (key < normalizedProbabilities[mid])
+                {
                     maxNum = mid - 1;
                 }
-                else {
+                else
+                {
                     minNum = mid + 1;
                 }
             }
-            return minNum;
-        }
 
-        /// <summary>
-        /// Generates a sample
-        /// </summary>
-        /// <returns>The generated sample</returns>
-        public T Sample()
-        {
-            var randomValue = m_Sampler.Sample();
-            if (uniform)
+            // When the minNum exceeds the length of input array, return last index.
+            if (minNum >= normalizedProbabilities.Length)
             {
-                var index = (int)(randomValue * m_Categories.Count);
-                index = index == m_Categories.Count ? index - 1 : index;
-                return m_Categories[index];
+                return normalizedProbabilities.Length - 1;
             }
-            return m_Categories[BinarySearch(randomValue)];
-        }
-
-        /// <summary>
-        /// Generates a generic sample
-        /// </summary>
-        /// <returns>The generated sample</returns>
-        public override object GenericSample()
-        {
-            return Sample();
+            return minNum;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -19,10 +19,12 @@ namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
 
             var listView = this.Q<ListView>("assets");
             listView.itemsSource = list;
-            listView.itemHeight = 22;
             listView.selectionType = SelectionType.None;
-            listView.style.flexGrow = 1.0f;
-            listView.style.height = new StyleLength(listView.itemHeight * 4);
+            listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
+            listView.horizontalScrollingEnabled = false;
+            listView.Q<ScrollView>().horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+            listView.style.maxHeight = 233;
+
             listView.makeItem = () =>
             {
                 return new AssetListItemElement(m_Property, itemType);
@@ -42,7 +44,7 @@ namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
 
                     m_Property.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = list;
-                    listView.Refresh();
+                    listView.Rebuild();
                 };
             };
 
@@ -52,7 +54,7 @@ namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
                 m_Property.arraySize++;
                 m_Property.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = list;
-                listView.Refresh();
+                listView.Rebuild();
                 listView.ScrollToItem(m_Property.arraySize);
             };
 
@@ -75,7 +77,7 @@ namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
 
                 m_Property.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = list;
-                listView.Refresh();
+                listView.Rebuild();
             };
 
             var clearOptionsButton = this.Q<Button>("clear-assets");
@@ -84,7 +86,7 @@ namespace UnityEditor.Perception.Randomization.VisualElements.AssetSource
                 m_Property.arraySize = 0;
                 m_Property.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = list;
-                listView.Refresh();
+                listView.Rebuild();
             };
         }
     }

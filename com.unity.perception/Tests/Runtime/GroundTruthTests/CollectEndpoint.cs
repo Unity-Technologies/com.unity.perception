@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -47,6 +47,12 @@ namespace GroundTruthTests
             return new CollectEndpoint();
         }
 
+        public bool IsValid(out string errorMessage)
+        {
+            errorMessage = string.Empty;
+            return true;
+        }
+
         public void SimulationStarted(SimulationMetadata metadata)
         {
             currentRun = new SimulationRun
@@ -72,6 +78,12 @@ namespace GroundTruthTests
             currentRun.metadata = metadata;
             collectedRuns.Add(currentRun);
             Debug.Log("Collect Endpoint OnSimulationCompleted");
+        }
+
+        public (string, int) ResumeSimulationFromCrash(int maxFrameCount)
+        {
+            // do nothing :-)
+            return (string.Empty, -1);
         }
     }
 }

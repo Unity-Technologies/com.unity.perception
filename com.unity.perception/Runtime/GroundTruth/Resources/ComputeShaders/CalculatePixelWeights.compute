@@ -1,0 +1,55 @@
+﻿#pragma kernel CalculatePixelWeights
+
+uint width;
+uint height;
+
+// These field-of-view values should be given in radians.
+float verticalFov;
+float horizontalFov;
+
+RWTexture2D<float> pixelWeights;
+
+// Returns the spherical observable surface area captured within a rectangular portion of a perspective projection.
+// Combining four of these integrals, calculated for each corner coordinate of a pixel, can isolate the observable space
+// contained within a single pixel.
+float SphereSurfaceAreaIntegral(float t, float s)
+{
+    return atan(t * s / sqrt(1 + t * t + s * s));
+}
+
+// Assign a weight to each pixel in a 90 degree field of view square image based on how much observable space is
+// captured within their bounds. For perspective projections, pixels nearest to the center of the camera's
+// field of view capture a larger portion of observable space than pixels located further toward the edges.
+// Removing perspective projection bias is key to preventing the location of objects within an image from
+// distorting their visibility metrics.
+//
+// The document linked below provides a more in-depth explanation of
+// perspective projection bias and how to correct for it:
+// https://docs.google.com/document/d/18Or_zxnb9g0dAkf-vWBdfG4MfW73MBJlpN8ETY3DkmU/edit?usp=sharing
+[numthreads(16, 16, 1)]
+void CalculatePixelWeights(uint3 threadId : SV_DispatchThreadID)
+{
+    const float xMax = tan(horizontalFov / 2.0f);
+    const float yMax = tan(verticalFov / 2.0f);
+
+    // Calculate the parametric surface coordinates for the bottom left corner of the current pixel.
+    const float t = xMax * (abs(2.0f * threadId.x - (width - 1)) - 1) / width;
+    const float s = yMax * (abs(2.0f * threadId.y - (height - 1)) - 1) / height;
+
+    // Calculate the width and height of a single parametric pixel.
+    const float hOffset = xMax / (width / 2.0f);
+    const float vOffset = yMax / (height / 2.0f);
+
+    // Calculate the spherical surface area integral at the four corners of the current pixel.
+    const float bottomLeft  = SphereSurfaceAreaIntegral(t,           s          );
+    const float topLeft     = SphereSurfaceAreaIntegral(t,           s + vOffset);
+    const float bottomRight = SphereSurfaceAreaIntegral(t + hOffset, s          );
+    const float topRight    = SphereSurfaceAreaIntegral(t + hOffset, s + vOffset);
+
+    // The observable surface area occupied by the current pixel can be calculated by
+    // appropriately combining the overlapping corner integrals.
+    const float surfaceArea = topRight - topLeft - bottomRight + bottomLeft;
+
+    // Store the calculated pixel weight in the pixelWeights buffer.
+    pixelWeights[threadId.xy] = surfaceArea;
+}

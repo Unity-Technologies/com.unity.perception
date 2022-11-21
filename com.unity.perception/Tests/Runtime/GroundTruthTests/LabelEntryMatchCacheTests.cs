@@ -1,8 +1,8 @@
-﻿using System.Collections;
+using System.Collections;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
-using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 using UnityEngine.TestTools;
 
 namespace GroundTruthTests
@@ -21,6 +21,7 @@ namespace GroundTruthTests
                 Assert.AreEqual(default(IdLabelEntry), labelEntry);
             }
         }
+
         [UnityTest]
         public IEnumerator TryGet_ReturnsTrue_ForMatchingLabel()
         {
@@ -45,6 +46,7 @@ namespace GroundTruthTests
                 Assert.AreEqual(config.labelEntries[0], labelEntry);
             }
         }
+
         [UnityTest]
         public IEnumerator TryGet_ReturnsFalse_ForNonMatchingLabel()
         {
@@ -61,6 +63,7 @@ namespace GroundTruthTests
                 Assert.AreEqual(default(IdLabelEntry), labelEntry);
             }
         }
+
         [UnityTest]
         public IEnumerator TryGet_ReturnsFalse_ForNonMatchingLabel_WithOtherMatches()
         {
@@ -168,6 +171,5 @@ namespace GroundTruthTests
                 Assert.AreEqual(-1, index);
             }
         }
-
     }
 }

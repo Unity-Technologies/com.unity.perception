@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
@@ -30,7 +30,7 @@ namespace RandomizationTests.RandomizerTests
         {
             m_Scenario = m_TestObject.AddComponent<FixedLengthScenario>();
             m_Scenario.constants.iterationCount = iterationCount;
-            m_Scenario.constants.framesPerIteration = framesPerIteration;
+            m_Scenario.framesPerIteration = framesPerIteration;
 
             if (randomizers != null)
             {

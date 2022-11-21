@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Record that maps a pose to a timestamp
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class PoseTimestampRecord
     {
         /// <summary>
@@ -27,6 +29,7 @@ namespace UnityEngine.Perception.GroundTruth
     /// pose. The timestamp record is defined by a pose label and a start time. The timestamp records are order dependent.
     /// </summary>
     [CreateAssetMenu(fileName = "AnimationPoseConfig", menuName = "Perception/Animation Pose Config")]
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class AnimationPoseConfig : ScriptableObject
     {
         const string k_Unset = "unset";

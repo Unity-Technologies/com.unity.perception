@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
@@ -7,6 +7,7 @@ using Newtonsoft.Json.Serialization;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.Labelers;
 using UnityEngine.Perception.Settings;
 
 namespace UnityEngine.Perception.GroundTruth.Consumers
@@ -17,7 +18,10 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
     [Serializable]
     public class PerceptionEndpoint : IConsumerEndpoint, IFileSystemEndpoint
     {
-        const string k_DefaultPathToken = "_DEFAULT_PATH_";
+        /// <summary>
+        /// Current frame in the dataset generation
+        /// </summary>
+        public int currentFrame { get; private set; }
 
         string m_DatasetPath;
         Dictionary<string, SensorInfo> m_SensorMap = new Dictionary<string, SensorInfo>();
@@ -57,18 +61,16 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         /// <summary>
         /// output version
         /// </summary>
-        public static string version => "0.0.1";
+        public static string version => "0.0.2";
 
         /// <inheritdoc/>
-        public string defaultPathToken => k_DefaultPathToken;
-
-        string defaultPath => PerceptionSettings.instance.defaultOutputPath;
+        public string defaultPath => PerceptionSettings.defaultOutputPath;
 
         /// <inheritdoc/>
         public virtual string basePath
         {
-            get => PerceptionSettings.instance.GetOutputBasePath();
-            set => PerceptionSettings.instance.SetOutputBasePath(value);
+            get => PerceptionSettings.GetOutputBasePath();
+            set => PerceptionSettings.SetOutputBasePath(value);
         }
 
         /// <summary>
@@ -99,7 +101,6 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
                         m_CurrentPathDoNotUseDirectly = PathUtils.CombineUniversal(basePath, Guid.NewGuid().ToString());
                     }
                 }
-
                 return m_CurrentPathDoNotUseDirectly;
             }
         }
@@ -161,7 +162,11 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         }
         // ReSharper enable NotAccessedField.Local
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Creates a copy of PerceptionEndpoint.
+        /// Copies capturesPerFile and metricsPerFile
+        /// </summary>
+        /// <returns>New object PerceptionEndpoint</returns>
         public object Clone()
         {
             var cloned = new PerceptionEndpoint
@@ -266,6 +271,19 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         }
 
         /// <inheritdoc/>
+        public bool IsValid(out string errorMessage)
+        {
+            if (!Directory.Exists(basePath))
+            {
+                errorMessage = $"The dataset base path: {basePath} is inaccessible, generated data will not be written out properly";
+                return false;
+            }
+
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        /// <inheritdoc/>
         public void SimulationStarted(SimulationMetadata metadata)
         {
             Directory.CreateDirectory(currentPath);
@@ -274,6 +292,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         /// <inheritdoc/>
         public void FrameGenerated(Frame frame)
         {
+            currentFrame = frame.frame;
             var seqId = GenerateSequenceId(frame);
 
             var captureIdMap = new Dictionary<(int step, string sensorId), string>();
@@ -327,7 +346,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
             //take the randomly generated sequenceGuidStart and increment by the sequence index to get a new unique id
             var hash = m_SequenceGuidStart.ToByteArray();
             var start = BitConverter.ToUInt32(hash, 0);
-            start = start + (uint) frame.sequence;
+            start = start + (uint)frame.sequence;
             var startBytes = BitConverter.GetBytes(start);
             //reverse so that the beginning of the guid always changes
             Array.Reverse(startBytes);
@@ -363,6 +382,16 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 
             WriteCaptures(true);
             WriteMetrics(true);
+        }
+
+        /// <summary>
+        /// Placeholder for crash resumption logic.
+        /// </summary>
+        /// <remarks>Not supported for Perception Endpoint</remarks>
+        public (string, int) ResumeSimulationFromCrash(int maxFrameCount)
+        {
+            Debug.LogError("Crash resumption not supported for output from Perception Endpoint.");
+            return (string.Empty, 0);
         }
 
         int m_CurrentCaptureIndex;
@@ -497,7 +526,6 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
             WriteMetrics();
         }
 
-
         void WriteCaptureFile(int index, IEnumerable<PerceptionCapture> captures)
         {
             var top = new PerceptionJson
@@ -565,12 +593,11 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         {
             return new[]
             {
-                new [] { inF3[0][0], inF3[0][1], inF3[0][2] },
-                new [] { inF3[1][0], inF3[1][1], inF3[1][2] },
-                new [] { inF3[2][0], inF3[2][1], inF3[2][2] }
+                new[] { inF3[0][0], inF3[0][1], inF3[0][2] },
+                new[] { inF3[1][0], inF3[1][1], inF3[1][2] },
+                new[] { inF3[2][0], inF3[2][1], inF3[2][2] }
             };
         }
-
 
         // ReSharper enable NotAccessedField.Local
         // ReSharper enable InconsistentNaming

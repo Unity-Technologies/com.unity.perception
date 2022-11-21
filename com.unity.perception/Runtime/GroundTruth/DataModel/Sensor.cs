@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace UnityEngine.Perception.GroundTruth.DataModel
 {
@@ -7,9 +7,23 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
     /// </summary>
     public abstract class Sensor : DataModelElement
     {
+        /// <summary>
+        /// Holds sensor definition data
+        /// </summary>
         protected SensorDefinition m_Definition;
 
+        /// <inheritdoc />
         public override string modelType => m_Definition.modelType;
+
+        /// <summary>
+        /// Constructs a new sensor.
+        /// </summary>
+        /// <param name="definition"></param>
+        protected Sensor(SensorDefinition definition)
+            : base(definition.id)
+        {
+            m_Definition = definition;
+        }
 
         /// <summary>
         /// Create a new sensor
@@ -27,6 +41,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             acceleration = Vector3.zero;
             annotations = new List<Annotation>();
         }
+
         /// <summary>
         /// Create a new sensor
         /// </summary>

@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using Unity.Mathematics;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Perception.GroundTruth
@@ -14,7 +14,7 @@ namespace UnityEditor.Perception.GroundTruth
         {
             m_StartingIdEnumField.RegisterValueChangedCallback(evt =>
             {
-                var id = (int) ((StartingLabelId) evt.newValue);
+                var id = (int)((StartingLabelId)evt.newValue);
                 serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId)).enumValueIndex = id;
                 serializedObject.ApplyModifiedProperties();
                 AutoAssignIds();
@@ -60,9 +60,7 @@ namespace UnityEditor.Perception.GroundTruth
                 var topProperty = m_SerializedLabelsArray.GetArrayElementAtIndex(selectedIndex - 1)
                     .FindPropertyRelative(nameof(ILabelEntry.label));
 
-                var tmpString = topProperty.stringValue;
-                topProperty.stringValue = currentProperty.stringValue;
-                currentProperty.stringValue = tmpString;
+                (topProperty.stringValue, currentProperty.stringValue) = (currentProperty.stringValue, topProperty.stringValue);
 
                 if (!AutoAssign)
                 {
@@ -72,16 +70,14 @@ namespace UnityEditor.Perception.GroundTruth
                     var topIdProperty = m_SerializedLabelsArray.GetArrayElementAtIndex(selectedIndex - 1)
                         .FindPropertyRelative(nameof(IdLabelEntry.id));
 
-                    var tmpInt = topIdProperty.intValue;
-                    topIdProperty.intValue = currentIdProperty.intValue;
-                    currentIdProperty.intValue = tmpInt;
+                    (topIdProperty.intValue, currentIdProperty.intValue) = (currentIdProperty.intValue, topIdProperty.intValue);
                 }
 
                 m_LabelListView.selectedIndex = selectedIndex - 1;
 
                 serializedObject.ApplyModifiedProperties();
                 RefreshAddedLabels();
-                m_LabelListView.Refresh();
+                m_LabelListView.Rebuild();
                 RefreshListViewHeight();
             }
         }
@@ -97,9 +93,7 @@ namespace UnityEditor.Perception.GroundTruth
                 var bottomProperty = m_SerializedLabelsArray.GetArrayElementAtIndex(selectedIndex + 1)
                     .FindPropertyRelative(nameof(ILabelEntry.label));
 
-                var tmpString = bottomProperty.stringValue;
-                bottomProperty.stringValue = currentProperty.stringValue;
-                currentProperty.stringValue = tmpString;
+                (bottomProperty.stringValue, currentProperty.stringValue) = (currentProperty.stringValue, bottomProperty.stringValue);
 
                 if (!AutoAssign)
                 {
@@ -109,16 +103,14 @@ namespace UnityEditor.Perception.GroundTruth
                     var bottomIdProperty = m_SerializedLabelsArray.GetArrayElementAtIndex(selectedIndex + 1)
                         .FindPropertyRelative(nameof(IdLabelEntry.id));
 
-                    var tmpInt = bottomIdProperty.intValue;
-                    bottomIdProperty.intValue = currentIdProperty.intValue;
-                    currentIdProperty.intValue = tmpInt;
+                    (bottomIdProperty.intValue, currentIdProperty.intValue) = (currentIdProperty.intValue, bottomIdProperty.intValue);
                 }
 
                 m_LabelListView.selectedIndex = selectedIndex + 1;
 
                 serializedObject.ApplyModifiedProperties();
                 RefreshAddedLabels();
-                m_LabelListView.Refresh();
+                m_LabelListView.Rebuild();
                 RefreshListViewHeight();
             }
         }
@@ -135,10 +127,14 @@ namespace UnityEditor.Perception.GroundTruth
                 if (e is IdLabelElementInLabelConfig addedLabel)
                 {
                     addedLabel.indexInList = i;
-                    addedLabel.labelTextField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                    var currentProperty = m_SerializedLabelsArray.GetArrayElementAtIndex(i);
+
+                    addedLabel.labelTextField.BindProperty(currentProperty
                         .FindPropertyRelative(nameof(IdLabelEntry.label)));
-                    addedLabel.labelIdTextField.value = m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                    addedLabel.labelIdTextField.value = currentProperty
                         .FindPropertyRelative(nameof(IdLabelEntry.id)).intValue.ToString();
+                    addedLabel.labelIdParentRelation.BindProperty(currentProperty
+                        .FindPropertyRelative(nameof(IdLabelEntry.hierarchyRelation)));
                 }
             }
 
@@ -162,7 +158,7 @@ namespace UnityEditor.Perception.GroundTruth
             if (maxLabel == -1)
             {
                 var startingLabelId =
-                    (StartingLabelId) serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId)).enumValueIndex;
+                    (StartingLabelId)serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId)).enumValueIndex;
                 if (startingLabelId == StartingLabelId.One)
                     maxLabel = 0;
             }
@@ -196,7 +192,7 @@ namespace UnityEditor.Perception.GroundTruth
                 return;
 
             var startingLabelId =
-                (StartingLabelId) serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId)).enumValueIndex;
+                (StartingLabelId)serializedObject.FindProperty(nameof(IdLabelConfig.startingLabelId)).enumValueIndex;
 
             var nextId = startingLabelId == StartingLabelId.One ? 1 : 0;
             for (int i = 0; i < size; i++)
@@ -222,7 +218,7 @@ namespace UnityEditor.Perception.GroundTruth
 
         public int IndexOfGivenIdInSerializedLabelsArray(int id)
         {
-            for (int i = 0; i < m_SerializedLabelsArray.arraySize; i++)
+            for (var i = 0; i < m_SerializedLabelsArray.arraySize; i++)
             {
                 var element = m_SerializedLabelsArray.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(IdLabelEntry.id));
                 if (element.intValue == id)
@@ -239,6 +235,7 @@ namespace UnityEditor.Perception.GroundTruth
         protected override string UxmlPath => k_UxmlDir + "IdLabelElementInLabelConfig.uxml";
 
         public TextField labelIdTextField;
+        public EnumField labelIdParentRelation;
 
         public IdLabelElementInLabelConfig(LabelConfigEditor<IdLabelEntry> editor, SerializedProperty labelsArray) :
             base(editor, labelsArray)
@@ -247,12 +244,14 @@ namespace UnityEditor.Perception.GroundTruth
 
         protected override void InitExtended()
         {
+            var labelEditor = ((IdLabelConfigEditor)m_LabelConfigEditor);
+
             labelIdTextField = this.Q<TextField>("label-id-value");
             labelIdTextField.isDelayed = true;
-            labelIdTextField.SetEnabled(!((IdLabelConfigEditor) m_LabelConfigEditor).AutoAssign);
+            labelIdTextField.SetEnabled(!labelEditor.AutoAssign);
             labelIdTextField.RegisterValueChangedCallback(evt =>
             {
-                if(int.TryParse(evt.newValue, out int parsedId))
+                if (int.TryParse(evt.newValue, out var parsedId))
                 {
                     m_LabelsArray.GetArrayElementAtIndex(indexInList).FindPropertyRelative(nameof(IdLabelEntry.id))
                         .intValue = parsedId;
@@ -280,6 +279,9 @@ namespace UnityEditor.Perception.GroundTruth
                     labelIdTextField.value = evt.previousValue;
                 }
             });
+
+            labelIdParentRelation = this.Q<EnumField>("label-parent-relation");
+            labelIdParentRelation.value = HierarchyRelation.Independent;
         }
     }
 }

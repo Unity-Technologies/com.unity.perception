@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,7 +11,10 @@ namespace UnityEditor.Perception.Randomization
     /// </summary>
     public abstract class ParameterUIElementsEditor : Editor
     {
-        ///<inheritdoc/>
+        /// <summary>
+        /// Creates proper VisualElement for Editor UI
+        /// </summary>
+        /// <returns>VisualElement</returns>
         public override VisualElement CreateInspectorGUI()
         {
             var rootElement = new VisualElement();

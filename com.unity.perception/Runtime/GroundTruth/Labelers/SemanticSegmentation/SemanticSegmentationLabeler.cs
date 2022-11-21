@@ -4,13 +4,13 @@ using System.Linq;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.GroundTruth.Sensors.Channels;
+using UnityEngine.Perception.GroundTruth.Utilities;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-#if HDRP_PRESENT
-using UnityEngine.Rendering.HighDefinition;
-#endif
-
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Labeler which generates a semantic segmentation image each frame. Each object is rendered to the semantic segmentation
@@ -19,19 +19,17 @@ namespace UnityEngine.Perception.GroundTruth
     /// Only one SemanticSegmentationLabeler can render at once across all cameras.
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public sealed class SemanticSegmentationLabeler : CameraLabeler, IOverlayPanelProvider
     {
+        RenderTexture m_InstanceIndicesTexture;
+        RenderTexture m_SemanticSegmentationColorTexture;
         SemanticSegmentationDefinition m_AnnotationDefinition;
-
-        public string annotationId = "semantic segmentation";
-
-        /// <inheritdoc />
-        public override string labelerId => annotationId;
-
-        /// <summary>
-        /// The SemanticSegmentationLabelConfig which maps labels to pixel values.
-        /// </summary>
-        public SemanticSegmentationLabelConfig labelConfig;
+        Dictionary<int, AsyncFuture<Annotation>> m_PendingFutures = new Dictionary<int, AsyncFuture<Annotation>>();
+        Dictionary<int, List<SemanticSegmentationDefinitionEntry>> m_PendingEntries =
+            new Dictionary<int, List<SemanticSegmentationDefinitionEntry>>();
+        Dictionary<int, NativeArray<byte>> m_PendingEncodedImages = new Dictionary<int, NativeArray<byte>>();
+        Dictionary<int, NativeArray<Color32>> m_LabeledObjectColors = new Dictionary<int, NativeArray<Color32>>();
 
         /// <summary>
         /// The encoding format used when writing the captured segmentation images.
@@ -39,73 +37,24 @@ namespace UnityEngine.Perception.GroundTruth
         const LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Png;
 
         /// <summary>
-        /// Event information for <see cref="SemanticSegmentationLabeler.imageReadback"/>
-        /// </summary>
-        public struct ImageReadbackEventArgs
-        {
-            /// <summary>
-            /// The <see cref="Time.frameCount"/> on which the image was rendered. This may be multiple frames in the past.
-            /// </summary>
-            public int frameCount;
-
-            /// <summary>
-            /// Color pixel data.
-            /// </summary>
-            public NativeArray<Color32> data;
-
-            /// <summary>
-            /// The source image texture.
-            /// </summary>
-            public RenderTexture sourceTexture;
-        }
-
-        /// <summary>
         /// Event which is called each frame a semantic segmentation image is read back from the GPU.
+        /// The first returned parameter is the Time.frameCount when the frame was captured, the second is the
+        /// readback pixel data, and the final parameter is the source segmentation texture.
         /// </summary>
-        public event Action<ImageReadbackEventArgs> imageReadback;
+        public event Action<int, NativeArray<Color32>, RenderTexture> imageReadback;
 
         /// <summary>
-        /// The RenderTexture on which semantic segmentation images are drawn. Will be resized on startup to match
-        /// the camera resolution.
+        /// The string id used to identify this labeler in the dataset.
         /// </summary>
-        public RenderTexture targetTexture => m_TargetTextureOverride;
-
-        /// <inheritdoc cref="IOverlayPanelProvider"/>
-        public Texture overlayImage=> targetTexture;
-
-        /// <inheritdoc cref="IOverlayPanelProvider"/>
-        public string label => "SemanticSegmentation";
-
-        [Tooltip("(Optional) The RenderTexture on which semantic segmentation images will be drawn. Will be reformatted on startup.")]
-        [SerializeField]
-        RenderTexture m_TargetTextureOverride;
-
-#if HDRP_PRESENT
-        SemanticSegmentationPass m_SemanticSegmentationPass;
-        LensDistortionPass m_LensDistortionPass;
-    #elif URP_PRESENT
-        SemanticSegmentationUrpPass m_SemanticSegmentationPass;
-        LensDistortionUrpPass m_LensDistortionPass;
-    #endif
-
-        Dictionary<int, AsyncFuture<Annotation>> m_AsyncAnnotations;
+        public string annotationId = "semantic segmentation";
 
         /// <summary>
-        /// Creates a new SemanticSegmentationLabeler.
-        /// Be sure to assign <see cref="labelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
+        /// The SemanticSegmentationLabelConfig which maps labels to pixel values.
         /// </summary>
-        public SemanticSegmentationLabeler() { }
+        public SemanticSegmentationLabelConfig labelConfig;
 
-        /// <summary>
-        /// Creates a new SemanticSegmentationLabeler with the given <see cref="SemanticSegmentationLabelConfig"/>.
-        /// </summary>
-        /// <param name="labelConfig">The label config associating labels with colors.</param>
-        /// <param name="targetTextureOverride">Override the target texture of the labeler. Will be reformatted on startup.</param>
-        public SemanticSegmentationLabeler(SemanticSegmentationLabelConfig labelConfig, RenderTexture targetTextureOverride = null)
-        {
-            this.labelConfig = labelConfig;
-            m_TargetTextureOverride = targetTextureOverride;
-        }
+        /// <inheritdoc />
+        public override string labelerId => annotationId;
 
         /// <inheritdoc/>
         public override string description => SemanticSegmentationDefinition.labelerDescription;
@@ -113,62 +62,50 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override bool supportsVisualization => true;
 
+        /// <inheritdoc cref="IOverlayPanelProvider"/>
+        public string label => $"SemanticSegmentation {annotationId}";
+
+        /// <inheritdoc cref="IOverlayPanelProvider"/>
+        public Texture overlayImage => m_SemanticSegmentationColorTexture;
+
+        /// <summary>
+        /// Creates a new SemanticSegmentationLabeler.
+        /// Be sure to assign <see cref="labelConfig"/> before adding to a <see cref="PerceptionCamera"/>.
+        /// </summary>
+        public SemanticSegmentationLabeler() {}
+
+        /// <summary>
+        /// Creates a new SemanticSegmentationLabeler with the given <see cref="SemanticSegmentationLabelConfig"/>.
+        /// </summary>
+        /// <param name="labelConfig">The label config associating labels with colors.</param>
+        public SemanticSegmentationLabeler(SemanticSegmentationLabelConfig labelConfig)
+        {
+            this.labelConfig = labelConfig;
+        }
+
         /// <inheritdoc/>
         protected override void Setup()
         {
-            var myCamera = perceptionCamera.GetComponent<Camera>();
-            var camWidth = myCamera.pixelWidth;
-            var camHeight = myCamera.pixelHeight;
-
             if (labelConfig == null)
             {
                 throw new InvalidOperationException(
                     "SemanticSegmentationLabeler's LabelConfig must be assigned");
             }
 
-            m_AsyncAnnotations = new Dictionary<int, AsyncFuture<Annotation>>();
+            var channel = perceptionCamera.EnableChannel<InstanceIdChannel>();
+            m_InstanceIndicesTexture = channel.outputTexture;
+            perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfosCalculated;
 
-            if (targetTexture != null)
+            var sensor = perceptionCamera.cameraSensor;
+            m_SemanticSegmentationColorTexture = new RenderTexture(
+                new RenderTextureDescriptor(sensor.pixelWidth, sensor.pixelHeight, GraphicsFormat.R8G8B8A8_UNorm, 0))
             {
-                if (targetTexture.sRGB)
-                {
-                    Debug.LogError("targetTexture supplied to SemanticSegmentationLabeler must be in Linear mode. Disabling labeler.");
-                    enabled = false;
-                }
-                var renderTextureDescriptor = new RenderTextureDescriptor(camWidth, camHeight, GraphicsFormat.R8G8B8A8_UNorm, 8);
-                targetTexture.descriptor = renderTextureDescriptor;
-            }
-            else
-                m_TargetTextureOverride = new RenderTexture(camWidth, camHeight, 8, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-
-            targetTexture.Create();
-            targetTexture.name = "Labeling";
-
-#if HDRP_PRESENT
-            var gameObject = perceptionCamera.gameObject;
-            var customPassVolume = gameObject.GetComponent<CustomPassVolume>() ?? gameObject.AddComponent<CustomPassVolume>();
-            customPassVolume.injectionPoint = CustomPassInjectionPoint.BeforeRendering;
-            customPassVolume.isGlobal = true;
-            m_SemanticSegmentationPass = new SemanticSegmentationPass(myCamera, targetTexture, labelConfig)
-            {
-                name = "Labeling Pass"
+                name = $"Semantic Segmentation {annotationId}",
+                filterMode = FilterMode.Point,
+                enableRandomWrite = true
             };
-            customPassVolume.customPasses.Add(m_SemanticSegmentationPass);
+            m_SemanticSegmentationColorTexture.Create();
 
-            m_LensDistortionPass = new LensDistortionPass(myCamera, targetTexture)
-            {
-                name = "Lens Distortion Pass"
-            };
-            customPassVolume.customPasses.Add(m_LensDistortionPass);
-#elif URP_PRESENT
-            // Semantic Segmentation
-            m_SemanticSegmentationPass = new SemanticSegmentationUrpPass(myCamera, targetTexture, labelConfig);
-            perceptionCamera.AddScriptableRenderPass(m_SemanticSegmentationPass);
-
-            // Lens Distortion
-            m_LensDistortionPass = new LensDistortionUrpPass(myCamera, targetTexture);
-            perceptionCamera.AddScriptableRenderPass(m_LensDistortionPass);
-#endif
             var specs = labelConfig.labelEntries.Select(l => new SemanticSegmentationDefinitionEntry
             {
                 labelName = l.label,
@@ -184,54 +121,125 @@ namespace UnityEngine.Perception.GroundTruth
                 });
             }
 
-            m_AnnotationDefinition = new SemanticSegmentationDefinition(annotationId, specs);
+            m_AnnotationDefinition = new SemanticSegmentationDefinition(annotationId, specs.ToList());
             DatasetCapture.RegisterAnnotationDefinition(m_AnnotationDefinition);
 
             visualizationEnabled = supportsVisualization;
         }
 
-        void OnSemanticSegmentationImageRead(int frameCount, NativeArray<Color32> data)
-        {
-            if (!m_AsyncAnnotations.TryGetValue(frameCount, out var future))
-                return;
-
-            m_AsyncAnnotations.Remove(frameCount);
-
-            imageReadback?.Invoke(new ImageReadbackEventArgs
-            {
-                data = data,
-                frameCount = frameCount,
-                sourceTexture = targetTexture
-            });
-
-            ImageEncoder.EncodeImage(data, targetTexture.width, targetTexture.height,
-                targetTexture.graphicsFormat, k_ImageEncodingFormat, encodedImageData =>
-            {
-                var toReport = new SemanticSegmentationAnnotation(
-                    m_AnnotationDefinition, perceptionCamera.SensorHandle.Id, ImageEncoder.ConvertFormat(k_ImageEncodingFormat),
-                    new Vector2(targetTexture.width, targetTexture.height),
-                    m_AnnotationDefinition.spec, encodedImageData.ToArray());
-
-                future.Report(toReport);
-            });
-        }
-
-        /// <inheritdoc/>
-        protected override void OnEndRendering(ScriptableRenderContext scriptableRenderContext)
-        {
-            m_AsyncAnnotations[Time.frameCount] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
-            RenderTextureReader.Capture<Color32>(scriptableRenderContext, targetTexture,
-                (frameCount, data, renderTexture) => OnSemanticSegmentationImageRead(frameCount, data));
-        }
-
         /// <inheritdoc/>
         protected override void Cleanup()
         {
+            if (m_SemanticSegmentationColorTexture != null)
+                m_SemanticSegmentationColorTexture.Release();
+            m_SemanticSegmentationColorTexture = null;
+        }
 
-            if (m_TargetTextureOverride != null)
-                m_TargetTextureOverride.Release();
+        /// <inheritdoc/>
+        protected override void OnEndRendering(ScriptableRenderContext ctx)
+        {
+            var frame = Time.frameCount;
+            m_PendingFutures[frame] =
+                perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition);
 
-            m_TargetTextureOverride = null;
+            // Get a new CommandBuffer.
+            var cmd = CommandBufferPool.Get("Semantic Segmentation");
+
+            // Create a compute buffer that maps instanceIndices to unique instance segmentation colors.
+            var instanceIndices = LabelManager.singleton.instanceIds;
+            var colorBuffer = new ComputeBuffer(instanceIndices.Length, sizeof(uint));
+            var labeledObjectColors = GetSegmentationColorForEachLabeledObject();
+            m_LabeledObjectColors[frame] = labeledObjectColors;
+            cmd.SetBufferData(colorBuffer, labeledObjectColors, 0, 0, colorBuffer.count);
+
+            // Use a compute shader to map each pixel instance index to a unique color
+            // to create the instance segmentation color texture.
+            SegmentationUtilities.CreateSegmentationColorTexture(
+                cmd, m_InstanceIndicesTexture, m_SemanticSegmentationColorTexture, colorBuffer);
+
+            // Readback the m_InstanceSegmentationColorTexture.
+            RenderTextureReader.Capture<Color32>(cmd, m_SemanticSegmentationColorTexture,
+                (captureFrame, data, texture) =>
+                {
+                    imageReadback?.Invoke(captureFrame, data, texture);
+                    ImageEncoder.EncodeImage(data, texture.width, texture.height,
+                        texture.graphicsFormat, k_ImageEncodingFormat, encodedImageData =>
+                        {
+                            m_PendingEncodedImages[captureFrame] = new NativeArray<byte>(
+                                encodedImageData, Allocator.Persistent);
+                            ReportFrameIfReady(captureFrame);
+                        }
+                    );
+                    colorBuffer.Dispose();
+                });
+
+            ctx.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
+        }
+
+        NativeArray<Color32> GetSegmentationColorForEachLabeledObject()
+        {
+            var labeledObjectColors = new NativeArray<Color32>(
+                LabelManager.singleton.instanceIds.Length, Allocator.Persistent);
+            labeledObjectColors[0] = new Color32(0, 0, 0, 255);
+
+            var i = 1;
+            foreach (var labeledObject in LabelManager.singleton.registeredLabels)
+            {
+                if (labelConfig.TryGetMatchingConfigurationEntry(labeledObject, out var labelEntry))
+                    labeledObjectColors[i] = labelEntry.color;
+                else
+                    labeledObjectColors[i] = new Color32(0, 0, 0, 255);
+                i++;
+            }
+            return labeledObjectColors;
+        }
+
+        void OnRenderedObjectInfosCalculated(
+            int frame, NativeArray<RenderedObjectInfo> renderedObjectInfos,
+            SceneHierarchyInformation hierarchyInfo
+        )
+        {
+            var labeledObjectColors = m_LabeledObjectColors[frame];
+            m_LabeledObjectColors.Remove(frame);
+
+            // Create a set of all the colors present in the semantic segmentation image.
+            var colorSet = new HashSet<Color32>();
+            foreach (var objectInfos in renderedObjectInfos)
+                colorSet.Add(labeledObjectColors[(int)objectInfos.instanceIndex]);
+            labeledObjectColors.Dispose();
+
+            // Report only the colors that are present within the current segmentation image.
+            m_PendingEntries[frame] = m_AnnotationDefinition.spec.Where(
+                entry => colorSet.Contains(entry.pixelValue)).ToList();
+
+            ReportFrameIfReady(frame);
+        }
+
+        void ReportFrameIfReady(int frame)
+        {
+            if (!m_PendingFutures.ContainsKey(frame) ||
+                !m_PendingEntries.ContainsKey(frame) ||
+                !m_PendingEncodedImages.ContainsKey(frame))
+                return;
+
+            var future = m_PendingFutures[frame];
+            var entries = m_PendingEntries[frame];
+            var encodedImage = m_PendingEncodedImages[frame];
+
+            m_PendingFutures.Remove(frame);
+            m_PendingEntries.Remove(frame);
+            m_PendingEncodedImages.Remove(frame);
+
+            var toReport = new SemanticSegmentationAnnotation(
+                m_AnnotationDefinition, perceptionCamera.SensorHandle.Id,
+                ImageEncoder.ConvertFormat(k_ImageEncodingFormat),
+                new Vector2(m_SemanticSegmentationColorTexture.width, m_SemanticSegmentationColorTexture.height),
+                entries,
+                encodedImage.ToArray());
+
+            future.Report(toReport);
+            encodedImage.Dispose();
         }
     }
 }

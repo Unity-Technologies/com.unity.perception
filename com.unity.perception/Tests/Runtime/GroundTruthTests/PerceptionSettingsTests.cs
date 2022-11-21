@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -26,10 +26,10 @@ namespace GroundTruthTests
             const int delta = 1;
             const int framesBetween = 0;
 
-            PerceptionSettings.instance.endpoint = new CollectEndpoint();
+            PerceptionSettings.endpoint = new CollectEndpoint();
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
+            var(sensorDef, sensorHandle) = TestHelper.RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
             Assert.IsTrue(sensorHandle.IsValid);
 
             yield return null;
@@ -58,6 +58,7 @@ namespace GroundTruthTests
             Assert.AreEqual(sensor.simulationDeltaTime, delta);
             Assert.AreEqual(sensor.framesBetweenCaptures, framesBetween);
         }
+
 #if UNITY_EDITOR
         // Perception only supports setting the output directory from the command line in non editor based simulations
         [UnityTest]
@@ -71,17 +72,17 @@ namespace GroundTruthTests
             const int delta = 1;
             const int framesBetween = 0;
 
-            PerceptionSettings.instance.endpoint = new PerceptionEndpoint();
+            PerceptionSettings.endpoint = new PerceptionEndpoint();
 
-            var savePath = PerceptionSettings.instance.GetOutputBasePath();
+            var savePath = PerceptionSettings.GetOutputBasePath();
 
-            var outputPath = Path.Combine(PerceptionSettings.instance.defaultOutputPath, $"test_{Guid.NewGuid()}");
+            var outputPath = Path.Combine(PerceptionSettings.defaultOutputPath, $"test_{Guid.NewGuid()}");
             Directory.CreateDirectory(outputPath);
-            PerceptionSettings.instance.SetOutputBasePath(outputPath);
+            PerceptionSettings.SetOutputBasePath(outputPath);
 
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = TestHelper.RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
+            var(sensorDef, sensorHandle) = TestHelper.RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
             Assert.IsTrue(sensorHandle.IsValid);
 
             yield return null;
@@ -104,9 +105,9 @@ namespace GroundTruthTests
 
             DirectoryAssert.DoesNotExist(outputPath);
 
-            PerceptionSettings.instance.SetOutputBasePath(savePath);
+            PerceptionSettings.SetOutputBasePath(savePath);
         }
+
 #endif
     }
 }
-

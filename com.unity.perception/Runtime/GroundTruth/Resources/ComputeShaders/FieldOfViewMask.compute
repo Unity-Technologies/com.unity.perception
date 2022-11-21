@@ -1,0 +1,36 @@
+﻿#pragma kernel FieldOfViewMask
+
+int width;
+float verticalFov;
+float horizontalFov;
+float verticalFovOffset;
+float horizontalFovOffset;
+
+Texture2D<float> pixelWeights;
+RWTexture2D<float> maskedPixelWeights;
+
+// Transform an array coordinate from the range [0, width] to the range [-1, 1]
+float FovFromPixelCoordinate(int index)
+{
+    return atan(lerp(-1.0f, 1.0f, (index + 0.5f) / width));
+}
+
+[numthreads(16, 16, 1)]
+void FieldOfViewMask(uint3 threadId : SV_DispatchThreadID)
+{
+    // Sample the float weight for the current pixel.
+    const float pixelWeight = pixelWeights[threadId.xy];
+
+    // Get the pixel's vertical and horizontal field of view coordinates (in radians).
+    const float pixelHFov = FovFromPixelCoordinate(threadId.x);
+    const float pixelVFov = FovFromPixelCoordinate(threadId.y);
+
+    // Confirm whether the current pixel is outside the camera's field of view.
+    const bool outsideFov =
+        abs(pixelHFov + horizontalFovOffset) > horizontalFov / 2 ||
+        abs(pixelVFov + verticalFovOffset) > verticalFov / 2;
+
+    // Mask the stored pixel weight by the camera's fov.
+    // pixelWeights[threadId.xy] = outsideFov * pixelWeight;
+    maskedPixelWeights[threadId.xy] = outsideFov * pixelWeight;
+}

@@ -2,19 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using Unity.Mathematics;
-using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth.DataModel;
-using UnityEngine.Profiling;
+using UnityEngine.Perception.GroundTruth.Sensors;
+using UnityEngine.Perception.GroundTruth.Sensors.Channels;
+using UnityEngine.Perception.GroundTruth.Utilities;
+using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.Rendering;
-#if HDRP_PRESENT
-using UnityEngine.Rendering.HighDefinition;
-#endif
-#if URP_PRESENT
-using UnityEngine.Rendering.Universal;
-#endif
 #pragma warning disable 649
 
 namespace UnityEngine.Perception.GroundTruth
@@ -23,63 +17,63 @@ namespace UnityEngine.Perception.GroundTruth
     /// Captures ground truth from the associated Camera.
     /// </summary>
     [RequireComponent(typeof(Camera))]
-    public partial class PerceptionCamera : MonoBehaviour
+    public class PerceptionCamera : MonoBehaviour
     {
         const float k_PanelWidth = 200;
         const float k_PanelHeight = 250;
 
-        static ProfilerMarker s_WriteFrame = new ProfilerMarker("Write Frame (PerceptionCamera)");
-
-        static PerceptionCamera s_VisualizedPerceptionCamera;
+        internal static PerceptionCamera visualizedPerceptionCamera;
+        internal static HashSet<PerceptionCamera> enabledPerceptionCameras = new();
 
         internal HUDPanel hudPanel;
         internal OverlayPanel overlayPanel;
 
         [SerializeReference]
-        List<CameraLabeler> m_Labelers = new List<CameraLabeler>();
-        Dictionary<string, object> m_PersistentSensorData = new Dictionary<string, object>();
+        CameraSensor m_CameraSensor = new UnityCameraSensor();
+        [SerializeReference]
+        List<CameraLabeler> m_Labelers = new();
+        [SerializeField]
+        LayerMask m_LayerMask = -1;
 
+        bool m_BegunCapturingData;
         bool m_SimulationEnded;
         bool m_ShowingVisualizations;
         bool m_GUIStylesInitialized;
-        int m_LastFrameCaptured = -1;
-        int m_LastFrameEndRendering = -1;
+        int m_PrevBeginFrameCaptured = -1;
+        int m_PrevEndFrameCaptured = -1;
         SensorHandle m_SensorHandle;
         Vector2 m_ScrollPosition;
-        RgbSensor m_RgbSensorCapture;
         RgbSensorDefinition m_SensorDefinition;
-        AsyncFuture<Sensor> m_Future;
+        Dictionary<int, RgbSensor> m_RgbSensorCaptures = new();
+        Dictionary<int, AsyncFuture<Sensor>> m_Futures = new();
+        Dictionary<string, object> m_PersistentSensorData = new();
+        List<CameraChannelBase> m_Channels = new();
 
-#if URP_PRESENT
-        // only used to confirm that GroundTruthRendererFeature is present in URP
-        bool m_IsGroundTruthRendererFeaturePresent;
-        internal List<ScriptableRenderPass> passes = new List<ScriptableRenderPass>();
+        internal static Dictionary<int, SceneHierarchyInformation> savedHierarchies = new();
+
+        /// <summary>
+        /// Number of frames to wait before starting the scenario
+        /// </summary>
+#if UNITY_EDITOR
+        public static int waitFrames = 2;
+#else
+        public static int waitFrames = 1;
 #endif
-
         /// <summary>
         /// The number of capture-able frames that have been generated
         /// </summary>
-#if UNITY_EDITOR
-        public static int captureFrameCount => Time.frameCount - 2;
-#else
-        public static int captureFrameCount => Time.frameCount - 1;
-#endif
+        public static int captureFrameCount => Time.frameCount - waitFrames;
 
         /// <summary>
-        /// A toggle for choosing whether to use async or synchronous readback APIs to transfer captured RGB image
-        /// data from the GPU back to the CPU. The more performant option of async readbacks is enabled by default.
+        /// Invoked when RenderedObjectInfos are calculated. The first parameter is the Time.frameCount at which the
+        /// objects were rendered. This may be called many frames after the objects were rendered.
         /// </summary>
-        public static bool useAsyncReadbackIfSupported = true;
-
-        /// <summary>
-        /// An event that executes for each captured RGB image that is read from GPU memory back to CPU memory.
-        /// </summary>
-        public Action<int, NativeArray<Color32>> RgbCaptureReadback;
+        public event Action<int, NativeArray<RenderedObjectInfo>, SceneHierarchyInformation> RenderedObjectInfosCalculated;
 
         /// <summary>
         /// The string ID of this camera sensor
         /// </summary>
-        public string ID = "camera";
+        public string id = "camera";
 
         /// <summary>
         /// A human-readable description of the camera.
@@ -133,8 +127,59 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Turns on/off the realtime visualization capability.
         /// </summary>
-        [SerializeField]
         public bool showVisualizations = true;
+
+        /// <summary>
+        /// The minimum level of transparency that will be rendered per pixel in the segmentation image.
+        /// </summary>
+        [Tooltip("The minimum level of transparency that will be rendered per pixel in segmentation images.")]
+        [Range(0f, 1f)]
+        public float alphaThreshold = .1f;
+
+        /// <summary>
+        /// Whether to override the camera's LayerMask on its labelers.
+        /// </summary>
+        public bool overrideLayerMask;
+
+        /// <summary>
+        /// The LayerMask used for filtering objects before capturing labeler data.
+        /// The <see cref="PerceptionCamera.overrideLayerMask"/> field must be enabled for this LayerMask to be used.
+        /// The attached <see cref="Camera"/>'s <see cref="Camera.cullingMask"/> is used otherwise.
+        /// </summary>
+        public LayerMask layerMask
+        {
+            get
+            {
+                if (attachedCamera == null)
+                {
+                    attachedCamera = GetComponent<Camera>();
+                }
+
+                return overrideLayerMask ? m_LayerMask : attachedCamera.cullingMask;
+            }
+            set => m_LayerMask = value;
+        }
+
+        /// <summary>
+        /// Whether to use accumulation before capture (e.g. Path Tracing)
+        /// </summary>
+        public bool useAccumulation;
+
+        /// <summary>
+        /// The <see cref="CameraSensor"/> used to generate the PerceptionCamera's output.
+        /// </summary>
+        public CameraSensor cameraSensor
+        {
+            get => m_CameraSensor;
+            set
+            {
+                if (m_BegunCapturingData)
+                    throw new InvalidOperationException(
+                        "The camera sensor cannot be switched to a different sensor " +
+                        "after the PerceptionCamera has begun capturing data.");
+                m_CameraSensor = value;
+            }
+        }
 
         /// <summary>
         /// The <see cref="CameraLabeler"/> instances which will be run for this PerceptionCamera.
@@ -142,7 +187,12 @@ namespace UnityEngine.Perception.GroundTruth
         public IReadOnlyList<CameraLabeler> labelers => m_Labelers;
 
         /// <summary>
-        /// Requests a capture from this camera on the next rendered frame.
+        /// The currently enabled <see cref="CameraChannel{T}"/>s for this PerceptionCamera.
+        /// </summary>
+        public IReadOnlyList<CameraChannelBase> channels => m_Channels;
+
+        /// <summary>
+        /// Requests a capture from this PerceptionCamera on the next rendered frame.
         /// Can only be used when using <see cref="CaptureTriggerMode.Manual"/> capture mode.
         /// </summary>
         public void RequestCapture()
@@ -213,29 +263,159 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 if (cameraLabeler.isInitialized)
                     cameraLabeler.InternalCleanup();
-
                 return true;
             }
+
             return false;
+        }
+
+        /// <summary>
+        /// Enables a channel of the given type on the sensor.
+        /// </summary>
+        /// <typeparam name="T">The type of channel to enable.</typeparam>
+        /// <returns>Newly created Channel</returns>
+        public T EnableChannel<T>() where T : CameraChannelBase, new()
+        {
+            if (m_BegunCapturingData)
+                throw new InvalidOperationException(
+                    "Channels must be enabled before the sensor begins capturing data. " +
+                    "Sensors begin capturing data when rendering starts during the frame the sensor is initialized.");
+            if (!TryGetChannel<T>(out var channel))
+            {
+                channel = new T();
+                m_Channels.Add(channel);
+                channel.Initialize(this);
+                channel.SetOutputTexture(cameraSensor.InternalSetupChannel(channel));
+                return channel;
+            }
+
+            return channel;
+        }
+
+        /// <summary>
+        /// Returns whether a channel of the given type has been enabled on the sensor.
+        /// </summary>
+        /// <typeparam name="T">The type of channel to check the enabled status of.</typeparam>
+        /// <returns>The enabled status of the given channel.</returns>
+        public bool IsChannelEnabled<T>() where T : CameraChannelBase
+        {
+            return m_Channels.Any(enabledChannel => enabledChannel.GetType() == typeof(T));
+        }
+
+        /// <summary>
+        /// Returns the enabled channel of the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type of channel to get.</typeparam>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException">
+        /// Channel's must be enabled before they can be accessed.
+        /// </exception>
+        public T GetChannel<T>() where T : CameraChannelBase
+        {
+            if (!TryGetChannel<T>(out var channel))
+                throw new InvalidOperationException(
+                    "The requested channel must be enabled first before it can be accessed.");
+            return channel;
+        }
+
+        /// <summary>
+        /// Returns whether a channel of the given type is enabled, and additionally outputs the found channel.
+        /// </summary>
+        /// <param name="channel">The found channel of the given type.</param>
+        /// <typeparam name="T">The type of channel to get.</typeparam>
+        /// <returns>True if a channel of the given type is enabled, false if otherwise.</returns>
+        public bool TryGetChannel<T>(out T channel) where T : CameraChannelBase
+        {
+            foreach (var enabledChannel in m_Channels)
+            {
+                if (enabledChannel.GetType() == typeof(T))
+                {
+                    channel = (T) enabledChannel;
+                    return true;
+                }
+            }
+
+            channel = null;
+            return false;
+        }
+
+        internal void ClearNullLabelers()
+        {
+            m_Labelers?.RemoveAll(x => x == null);
+        }
+
+        internal void CheckFixedLengthScenarioHasEnoughFPI()
+        {
+            if (captureTriggerMode == CaptureTriggerMode.Scheduled)
+            {
+                var scenario = ScenarioBase.activeScenario as FixedLengthScenario;
+                if (scenario)
+                {
+                    if (firstCaptureFrame >= scenario.framesPerIteration)
+                    {
+                        Debug.LogError($"The number of frames per Iteration of the {nameof(FixedLengthScenario)} on the object \"{scenario.name}\" is not large " +
+                            $"enough to have any frames captured by the {nameof(PerceptionCamera)} on the object \"{name}\". " +
+                            $"The camera's start frame is currently set to {firstCaptureFrame}. The number of frames per Iteration for the Scenario should be larger than this number ({firstCaptureFrame + 1} or more) for captures to happen.");
+                    }
+                }
+            }
+        }
+
+        void Awake()
+        {
+            CheckHdrp();
+            CheckFixedLengthScenarioHasEnoughFPI();
+            attachedCamera = GetComponent<Camera>();
+            cameraSensor.Setup(this);
+            Application.runInBackground = true;
+        }
+
+        static void CheckHdrp()
+        {
+#if !HDRP_PRESENT
+            Debug.LogError("Perception requires an HDRP project. Application will quit.");
+            if (Application.isEditor)
+                UnityEditor.EditorApplication.isPlaying = false;
+            Application.Quit(-1);
+#endif
         }
 
         void Start()
         {
-            Application.runInBackground = true;
-
-            SetupInstanceSegmentation();
-            attachedCamera = GetComponent<Camera>();
+            var channel = EnableChannel<RGBChannel>();
+            if (captureRgbImages)
+                channel.outputTextureReadback += OnRGBTextureOutputTextureReadback;
 
             SetupVisualizationCamera();
-
             DatasetCapture.SimulationEnding += OnSimulationEnding;
         }
 
         void OnEnable()
         {
-            RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering += CheckForRendererFeature;
-            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+            enabledPerceptionCameras.Add(this);
+            cameraSensor.Enable();
+            PerceptionUpdater.beginFrameRendering += OnBeginFrameRendering;
+            PerceptionUpdater.endFrameRendering += OnEndFrameRendering;
+        }
+
+        void OnDisable()
+        {
+            enabledPerceptionCameras.Remove(this);
+            cameraSensor.Disable();
+            PerceptionUpdater.beginFrameRendering -= OnBeginFrameRendering;
+            PerceptionUpdater.endFrameRendering -= OnEndFrameRendering;
+        }
+
+        void OnValidate()
+        {
+            if (m_Labelers == null)
+            {
+                m_Labelers = new List<CameraLabeler>();
+            }
+            if (m_CameraSensor == null)
+            {
+                m_CameraSensor = new UnityCameraSensor();
+            }
         }
 
         // LateUpdate is called once per frame. It is called after coroutines, ensuring it is called properly after
@@ -256,12 +436,6 @@ namespace UnityEngine.Perception.GroundTruth
 
                 labeler.InternalOnUpdate();
             }
-
-            // Currently there is an issue in the perception camera that causes the UI layer not to be visualized
-            // if we are utilizing async readback and we have to flip our captured image.
-            // We have created a jira issue for this (aisv-779) and have notified the engine team about this.
-            if (m_ShowingVisualizations)
-                useAsyncReadbackIfSupported = false;
         }
 
         void OnGUI()
@@ -314,19 +488,6 @@ namespace UnityEngine.Perception.GroundTruth
             GUILayout.EndArea();
         }
 
-        void OnValidate()
-        {
-            if (m_Labelers == null)
-                m_Labelers = new List<CameraLabeler>();
-        }
-
-        void OnDisable()
-        {
-            RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
-            RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
-        }
-
         void OnDestroy()
         {
             DatasetCapture.SimulationEnding -= OnSimulationEnding;
@@ -338,14 +499,25 @@ namespace UnityEngine.Perception.GroundTruth
                 SensorHandle.Dispose();
 
             SensorHandle = default;
+
+            cameraSensor.InternalCleanup();
+
+            foreach (var channel in m_Channels)
+            {
+                if (channel.outputTexture != null)
+                    channel.outputTexture.Release();
+                if (channel is IPostProcessChannel postProcessChannel)
+                    if (postProcessChannel.preprocessTexture != null)
+                        postProcessChannel.preprocessTexture.Release();
+            }
         }
 
         void EnsureSensorRegistered()
         {
             if (m_SensorHandle.IsNil)
             {
-                m_SensorDefinition = new RgbSensorDefinition(ID, captureTriggerMode, description, firstCaptureFrame,
-                    framesBetweenCaptures, manualSensorAffectSimulationTiming, "camera", simulationDeltaTime);
+                m_SensorDefinition = new RgbSensorDefinition(id, captureTriggerMode, description, firstCaptureFrame,
+                    framesBetweenCaptures, manualSensorAffectSimulationTiming, "camera", simulationDeltaTime, useAccumulation);
                 SensorHandle = DatasetCapture.RegisterSensor(m_SensorDefinition);
             }
         }
@@ -355,7 +527,7 @@ namespace UnityEngine.Perception.GroundTruth
 #if !UNITY_EDITOR && !DEVELOPMENT_BUILD
             showVisualizations = false;
 #else
-            var visualizationAllowed = s_VisualizedPerceptionCamera == null;
+            var visualizationAllowed = visualizedPerceptionCamera == null;
 
             if (!visualizationAllowed && showVisualizations)
             {
@@ -368,37 +540,13 @@ namespace UnityEngine.Perception.GroundTruth
                 return;
 
             m_ShowingVisualizations = true;
-            s_VisualizedPerceptionCamera = this;
+            visualizedPerceptionCamera = this;
 
             hudPanel = gameObject.AddComponent<HUDPanel>();
             overlayPanel = gameObject.AddComponent<OverlayPanel>();
             overlayPanel.perceptionCamera = this;
 #endif
         }
-
-        void CheckForRendererFeature(ScriptableRenderContext context, Camera cam)
-        {
-            if (cam == attachedCamera)
-            {
-#if URP_PRESENT
-                if (!m_IsGroundTruthRendererFeaturePresent)
-                {
-                    Debug.LogError("GroundTruthRendererFeature must be present on the ScriptableRenderer associated " +
-                        "with the camera. The ScriptableRenderer can be accessed through Edit -> Project Settings... " +
-                        "-> Graphics -> Scriptable Render Pipeline Settings -> Renderer List.");
-                    enabled = false;
-                }
-#endif
-                RenderPipelineManager.endCameraRendering -= CheckForRendererFeature;
-            }
-        }
-
-#if URP_PRESENT
-        public void AddScriptableRenderPass(ScriptableRenderPass pass)
-        {
-            passes.Add(pass);
-        }
-#endif
 
         void SetUpGUIStyles()
         {
@@ -437,11 +585,10 @@ namespace UnityEngine.Perception.GroundTruth
 
         void OnSimulationEnding()
         {
-            RenderTextureReader.WaitForAllImages();
+            AsyncGPUReadback.WaitAllRequests();
             ImageEncoder.WaitForAllEncodingJobsToComplete();
 
             m_SimulationEnded = true;
-            CleanUpInstanceSegmentation();
             foreach (var labeler in m_Labelers)
             {
                 if (labeler.isInitialized)
@@ -449,30 +596,116 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        void OnBeginCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera cam)
+        static void CaptureHierarchy()
         {
-            ImageEncoder.ExecutePendingCallbacks();
+            // multiple perception cameras should not calculate the scene hierarchy multiple times
+            // but keep track of how many subscribed so we know when to dispose off the hierarchy information
+            if (!savedHierarchies.ContainsKey(Time.frameCount))
+                savedHierarchies[Time.frameCount] = EnvironmentUtilities.ParseHierarchyFromAllScenes();
 
-            if (!ShouldCaptureThisFrame(cam, m_LastFrameCaptured))
-                return;
-            m_LastFrameCaptured = Time.frameCount;
-            BeginSensorCapture();
-            CallOnLabelers(l => l.InternalOnBeginRendering(scriptableRenderContext));
+            savedHierarchies[Time.frameCount].subscribers += 1;
         }
 
-        void OnEndCameraRendering(ScriptableRenderContext scriptableRenderContext, Camera cam)
+        void OnBeginFrameRendering(ScriptableRenderContext ctx)
         {
-            if (!ShouldCaptureThisFrame(cam, m_LastFrameEndRendering))
+            // Sensors and channels are allowed to continue rendering even when the editor is paused to enable
+            // compatibility with the frame debugger editor window.
+            cameraSensor.BeginFrameRendering(ctx);
+
+            if (!ShouldCaptureThisFrame())
                 return;
 
-            // Submit the graphics commands already queued up in this camera's ScriptableRenderContext to ensure that
-            // the custom passes added by the labelers in this camera have written to their respective RenderTextures.
-            scriptableRenderContext.Submit();
+            // When play mode is paused, the current frame can continue to be repeatedly rendered in the editor.
+            // This check ensures that the current frame is only captured once for each unique frame.
+            if (m_PrevBeginFrameCaptured == Time.frameCount)
+                return;
+            m_PrevBeginFrameCaptured = Time.frameCount;
 
-            m_LastFrameEndRendering = Time.frameCount;
-            CaptureRGB(scriptableRenderContext);
-            CallOnLabelers(l => l.InternalOnEndRendering(scriptableRenderContext));
-            CaptureInstanceSegmentation(scriptableRenderContext);
+            m_BegunCapturingData = true;
+            CaptureHierarchy();
+            RegisterNewCapture();
+            CallOnLabelers(l => l.InternalOnBeginRendering(ctx));
+        }
+
+        void OnEndFrameRendering(ScriptableRenderContext ctx)
+        {
+            // Sensors and channels are allowed to continue rendering even when the editor is paused to enable
+            // compatibility with the frame debugger editor window.
+            cameraSensor.EndFrameRendering(ctx);
+
+            if (!ShouldCaptureThisFrame())
+                return;
+
+            // When play mode is paused, the current frame can continue to be repeatedly rendered in the editor.
+            // This check ensures that the current frame is only captured once for each unique frame.
+            if (m_PrevEndFrameCaptured == Time.frameCount)
+                return;
+            m_PrevEndFrameCaptured = Time.frameCount;
+
+            // Signal the labelers to perform their end of frame operations.
+            CallOnLabelers(l => l.InternalOnEndRendering(ctx));
+
+            // Invoke channel readback events.
+            var cmd = CommandBufferPool.Get($"PerceptionCamera {id} Readbacks");
+            foreach (var channel in m_Channels)
+                channel.InvokeReadbackEvent(cmd);
+
+            // Invoke RenderedObjectInfosCalculated subscribers.
+            if (RenderedObjectInfosCalculated != null)
+            {
+                if (!IsChannelEnabled<InstanceIdChannel>())
+                    throw new InvalidOperationException(
+                        $"The {nameof(InstanceIdChannel)} must be enabled " +
+                        "before subscribing to the RenderedObjectInfosCalculated event.");
+                var texture = GetChannel<InstanceIdChannel>().outputTexture;
+                RenderedObjectInfoComputer.CalculateRenderedObjectInfos(cmd, texture, RenderedObjectInfosCalculated);
+            }
+
+            // Execute the enqueued end-of-frame operations.
+            ctx.ExecuteCommandBuffer(cmd);
+            ctx.Submit();
+        }
+
+        void RegisterNewCapture()
+        {
+            var trans = transform;
+            var sensorIntrinsics = cameraSensor.intrinsics;
+            var capture = new RgbSensor(m_SensorDefinition)
+            {
+                position = trans.position,
+                rotation = trans.rotation,
+                projection = sensorIntrinsics.projection,
+                dimension = new Vector2(cameraSensor.pixelWidth, cameraSensor.pixelHeight),
+                matrix = sensorIntrinsics.matrix,
+                imageEncodingFormat = k_RgbImageEncodingFormat
+            };
+
+            if (!captureRgbImages)
+                SensorHandle.ReportSensor(capture);
+            else
+            {
+                var frame = Time.frameCount;
+                m_RgbSensorCaptures[frame] = capture;
+                m_Futures[frame] = SensorHandle.ReportSensorAsync();
+            }
+        }
+
+        void OnRGBTextureOutputTextureReadback(int frame, NativeArray<Color32> data)
+        {
+            var capture = m_RgbSensorCaptures[frame];
+            m_RgbSensorCaptures.Remove(frame);
+
+            var future = m_Futures[frame];
+            m_Futures.Remove(frame);
+
+            var outputTexture = GetChannel<RGBChannel>().outputTexture;
+            ImageEncoder.EncodeImage(data, outputTexture.width, outputTexture.height,
+                outputTexture.graphicsFormat, k_RgbImageEncodingFormat, encodedImageData =>
+                {
+                    capture.buffer = encodedImageData.ToArray();
+                    future.Report(capture);
+                }
+            );
         }
 
         void CallOnLabelers(Action<CameraLabeler> action)
@@ -489,126 +722,17 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        bool ShouldCaptureThisFrame(Camera cam, int lastFrameCalledThisCallback)
+        bool ShouldCaptureThisFrame()
         {
-            if (m_SimulationEnded)
-                return false;
-            if (cam != attachedCamera)
-                return false;
-            if (!SensorHandle.ShouldCaptureThisFrame)
-                return false;
-            // There are cases when OnBegin/EndCameraRendering is called multiple times in the same frame.
-            // Ignore the subsequent calls.
-            return lastFrameCalledThisCallback != Time.frameCount;
-        }
-
-        void BeginSensorCapture()
-        {
-            var trans = transform;
-
-            var dimension = new Vector2(attachedCamera.pixelWidth, attachedCamera.pixelHeight);
-            var projection = attachedCamera.orthographic
-                ? RgbSensor.ImageProjection.Isometric : RgbSensor.ImageProjection.Perspective;
-            m_RgbSensorCapture = new RgbSensor(
-                m_SensorDefinition,
-                trans.position, trans.rotation, k_RgbImageEncodingFormat, projection, dimension)
-            {
-                matrix = ToProjectionMatrix3x3(attachedCamera.projectionMatrix)
-            };
-
-            if (!captureRgbImages)
-                SensorHandle.ReportSensor(m_RgbSensorCapture);
-            else
-                m_Future = SensorHandle.ReportSensorAsync();
-        }
-
-        void CaptureRGB(ScriptableRenderContext ctx)
-        {
-            if (!captureRgbImages)
-                return;
-
-            Profiler.BeginSample("CaptureDataFromLastFrame");
-            var cmd = CommandBufferPool.Get($"{ID}_PerceptionRGBCapture");
-            var tempRT1 = RenderTexture.GetTemporary(
-                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_SRGB);
-            var tempRT2 = RenderTexture.GetTemporary(
-                attachedCamera.pixelWidth, attachedCamera.pixelHeight, 0, GraphicsFormat.R8G8B8A8_SRGB);
-
-            // Blit the back buffer to a temporary RenderTexture to obtain the RGB output image
-            cmd.Blit(null, tempRT1);
-
-            Vector2 scaleForFlip;
-            Vector2 offset;
-            if (RenderingUtil.ShouldFlipColorY(attachedCamera, false))
-            {
-                scaleForFlip = new Vector2(1, -1);
-                offset = Vector2.up;
-            }
-            else
-            {
-                scaleForFlip = new Vector2(1, 1);
-                offset = Vector2.zero;
-            }
-
-            cmd.Blit(tempRT1, tempRT2, scaleForFlip, offset);
-
-            // Execute the CommandBuffer
-            ctx.ExecuteCommandBuffer(cmd);
-            ctx.Submit();
-
-            // Release the CommandBuffer
-            CommandBufferPool.Release(cmd);
-            tempRT1.Release();
-
-            // Capture these parameters in the method body for the ImageEncoder callback
-            var capture = m_RgbSensorCapture;
-            var future = m_Future;
-
-            RenderTextureReader.Capture<Color32>(ctx, tempRT2, (frame, pixelData, rt) =>
-            {
-                RgbCaptureReadback?.Invoke(frame, pixelData);
-
-                ImageEncoder.EncodeImage(pixelData, rt.width, rt.height,
-                    rt.graphicsFormat, k_RgbImageEncodingFormat, encodedImageData =>
-                {
-                    using (s_WriteFrame.Auto())
-                    {
-                        capture.buffer = encodedImageData.ToArray();
-                        future.Report(capture);
-                    }
-                });
-
-                rt.Release();
-            });
-            Profiler.EndSample();
+            return !m_SimulationEnded && SensorHandle.ShouldCaptureThisFrame;
         }
 
         void CleanupVisualization()
         {
-            if (s_VisualizedPerceptionCamera == this)
+            if (visualizedPerceptionCamera == this)
             {
-                s_VisualizedPerceptionCamera = null;
+                visualizedPerceptionCamera = null;
             }
-        }
-
-#if URP_PRESENT
-        internal void MarkGroundTruthRendererFeatureAsPresent()
-        {
-            // only used to confirm that GroundTruthRendererFeature is present in URP
-            m_IsGroundTruthRendererFeaturePresent = true;
-        }
-#endif
-
-        /// <summary>
-        /// Convert the Unity 4x4 projection matrix to a 3x3 matrix
-        /// </summary>
-        // ReSharper disable once InconsistentNaming
-        static float3x3 ToProjectionMatrix3x3(Matrix4x4 inMatrix)
-        {
-            return new float3x3(
-                inMatrix[0,0], inMatrix[0,1], inMatrix[0,2],
-                inMatrix[1,0], inMatrix[1,1], inMatrix[1,2],
-                inMatrix[2,0],inMatrix[2,1], inMatrix[2,2]);
         }
     }
 }

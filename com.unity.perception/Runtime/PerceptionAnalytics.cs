@@ -4,6 +4,8 @@ using System.Linq;
 using UnityEngine.Analytics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.ReportMetadata;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Scenarios;
 #if UNITY_EDITOR
@@ -23,7 +25,7 @@ namespace UnityEngine.Perception.Analytics
     /// <see cref="TryRegisterPerceptionAnalyticsEvent" /> with the event name defined in step 1.
     /// Note: Remember to use the conditional "#if UNITY_EDITOR" if adding editor analytics.
     /// </remarks>
-    public static class PerceptionAnalytics
+    static class PerceptionAnalytics
     {
         const string k_VendorKey = "unity.perception";
         const int k_MaxElementsInStruct = 100;
@@ -39,9 +41,9 @@ namespace UnityEngine.Perception.Analytics
 
         static void OnSimulationShutdown()
         {
-            var perceptionCamera = Object.FindObjectOfType<PerceptionCamera>();
+            var perceptionCameras = Object.FindObjectsOfType<PerceptionCamera>();
             ReportScenarioInformation(
-                perceptionCamera,
+                perceptionCameras,
                 ScenarioBase.activeScenario
             );
         }
@@ -133,20 +135,24 @@ namespace UnityEngine.Perception.Analytics
         /// </summary>
         public static readonly string[] labelerAllowList = new[]
         {
-            "BoundingBox3DLabeler", "BoundingBox2DLabeler", "InstanceSegmentationLabeler",
-            "KeypointLabeler", "ObjectCountLabeler", "SemanticSegmentationLabeler", "RenderedObjectInfoLabeler"
+            nameof(BoundingBox3DLabeler), nameof(BoundingBox2DLabeler), nameof(InstanceSegmentationLabeler),
+            nameof(KeypointLabeler), nameof(ObjectCountLabeler), nameof(SemanticSegmentationLabeler),
+            nameof(RenderedObjectInfoLabeler), nameof(DepthLabeler), nameof(PixelPositionLabeler),
+            nameof(NormalLabeler), nameof(OcclusionLabeler), nameof(MetadataReporterLabeler)
         };
 
-        static void ReportScenarioInformation(
-            PerceptionCamera cam,
-            ScenarioBase scenario
+        internal static Action<ScenarioCompletedData> scenarioCompletedAnalyticsSent;
+        internal static void ReportScenarioInformation(
+            PerceptionCamera[] cameras,
+            ScenarioBase scenario,
+            Action<ScenarioCompletedData> callback = null
         )
         {
             if (!TryRegisterPerceptionAnalyticsEvent(k_EventScenarioInformation))
                 return;
 
-            var randomizers = scenario ? scenario.activeRandomizers : new List<Randomizer>();
-            var data = ScenarioCompletedData.FromCameraAndRandomizers(cam, randomizers);
+            var data = ScenarioCompletedData.FromCamerasAndRandomizers(cameras, scenario);
+            callback?.Invoke(data);
             SendPerceptionAnalyticsEvent(k_EventScenarioInformation, data);
         }
 

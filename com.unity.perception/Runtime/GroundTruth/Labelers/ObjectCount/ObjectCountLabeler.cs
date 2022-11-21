@@ -1,16 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.GroundTruth.Sensors.Channels;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Labeler which produces object counts for each label in the associated <see cref="IdLabelConfig"/> each frame.
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public sealed class ObjectCountLabeler : CameraLabeler
     {
         struct ObjectCountRecord : IMessageProducer
@@ -27,6 +31,9 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
+        /// <summary>
+        /// Metric Id, that can be set via Unity editor UI
+        /// </summary>
         public string objectCountMetricId = "ObjectCount";
 
         /// <inheritdoc />
@@ -45,13 +52,13 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Fired when the object counts are computed for a frame.
         /// </summary>
-        public event Action<int, NativeSlice<uint>,IReadOnlyList<IdLabelEntry>> ObjectCountsComputed;
+        public event Action<int, NativeSlice<uint>, IReadOnlyList<IdLabelEntry>> ObjectCountsComputed;
 
         static ProfilerMarker s_ClassCountCallback = new ProfilerMarker("OnClassLabelsReceived");
 
         IMessageProducer[] m_ClassCountValues;
 
-        Dictionary<int, AsyncFuture<Metric>> m_AsyncMetrics;
+        Dictionary<int, (AsyncFuture<Metric> metric, LabelEntryMatchCache cache)> m_AsyncMetrics;
         MetricDefinition m_Definition;
 
         /// <summary>
@@ -83,11 +90,13 @@ namespace UnityEngine.Perception.GroundTruth
             if (labelConfig == null)
                 throw new InvalidOperationException("The ObjectCountLabeler idLabelConfig field must be assigned");
 
-            m_AsyncMetrics =  new Dictionary<int, AsyncFuture<Metric>>();
+            m_AsyncMetrics =  new Dictionary<int, (AsyncFuture<Metric>, LabelEntryMatchCache)>();
 
-            perceptionCamera.RenderedObjectInfosCalculated += (frameCount, objectInfo) =>
+            perceptionCamera.EnableChannel<InstanceIdChannel>();
+            perceptionCamera.RenderedObjectInfosCalculated += (frameCount, objectInfo, _) =>
             {
-                var objectCounts = ComputeObjectCounts(objectInfo);
+                var entryCache = m_AsyncMetrics[frameCount].cache;
+                var objectCounts = ComputeObjectCounts(objectInfo, entryCache);
                 ObjectCountsComputed?.Invoke(frameCount, objectCounts, labelConfig.labelEntries);
                 ProduceObjectCountMetric(objectCounts, labelConfig.labelEntries, frameCount);
             };
@@ -101,15 +110,18 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
         {
-            m_AsyncMetrics[Time.frameCount] = perceptionCamera.SensorHandle.ReportMetricAsync(m_Definition);
+            m_AsyncMetrics[Time.frameCount] = (
+                perceptionCamera.SensorHandle.ReportMetricAsync(m_Definition),
+                labelConfig.CreateLabelEntryMatchCache(Allocator.Temp)
+            );
         }
 
-        NativeArray<uint> ComputeObjectCounts(NativeArray<RenderedObjectInfo> objectInfo)
+        NativeArray<uint> ComputeObjectCounts(NativeArray<RenderedObjectInfo> objectInfo, LabelEntryMatchCache cache)
         {
             var objectCounts = new NativeArray<uint>(labelConfig.labelEntries.Count, Allocator.Temp);
             foreach (var info in objectInfo)
             {
-                if (!labelConfig.TryGetLabelEntryFromInstanceId(info.instanceId, out _, out var labelIndex))
+                if (!cache.TryGetLabelEntryFromInstanceId(info.instanceId, out _, out var labelIndex))
                     continue;
 
                 objectCounts[labelIndex]++;
@@ -155,10 +167,11 @@ namespace UnityEngine.Perception.GroundTruth
                     }
                 }
 
-                var (seq, step) = DatasetCapture.GetSequenceAndStepFromFrame(frameCount);
+                var(seq, step) = DatasetCapture.GetSequenceAndStepFromFrame(frameCount);
 
-                var payload = new GenericMetric(m_ClassCountValues, m_Definition, perceptionCamera.ID);
-                classCountAsyncMetric.Report(payload);
+                var payload = new GenericMetric(m_ClassCountValues, m_Definition, perceptionCamera.id);
+                classCountAsyncMetric.metric.Report(payload);
+                classCountAsyncMetric.cache.Dispose();
             }
         }
 
@@ -166,7 +179,11 @@ namespace UnityEngine.Perception.GroundTruth
         protected override void OnVisualizerEnabledChanged(bool isEnabled)
         {
             if (isEnabled) return;
-            hudPanel.RemoveEntries(this);
+
+            if (hudPanel != null)
+            {
+                hudPanel.RemoveEntries(this);
+            }
         }
     }
 }

@@ -22,7 +22,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// <summary>
         /// Returns an IEnumerable that iterates over each sampler field in this parameter
         /// </summary>
-        internal abstract IEnumerable<ISampler> samplers { get; }
+        public abstract IEnumerable<ISampler> samplers { get; }
 
         /// <summary>
         /// Returns the display name of a parameter type
@@ -43,6 +43,6 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// <summary>
         /// Validates parameter settings
         /// </summary>
-        public virtual void Validate() { }
+        public virtual void Validate() {}
     }
 }

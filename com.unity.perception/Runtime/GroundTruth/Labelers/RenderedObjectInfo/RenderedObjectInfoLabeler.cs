@@ -1,19 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Profiling;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.GroundTruth.Sensors.Channels;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Labeler which produces label id, instance id, and visible pixel count in a single metric each frame for
     /// each object which takes up one or more pixels in the camera's frame.
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public sealed class RenderedObjectInfoLabeler : CameraLabeler
     {
         /// <summary>
@@ -21,18 +25,29 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         struct MetricEntry : IMessageProducer
         {
-            public int labelID;
-            public uint instanceID;
-            public Color32 instanceColor;
-            public int visiblePixels;
+            int m_LabelID;
+            uint m_InstanceID;
+            Color32 m_InstanceColor;
+            int m_VisiblePixels;
+            SceneHierarchyNode m_HierarchyNode;
+
+            public MetricEntry(int labelID, uint instanceID, Color32 instanceColor, int visiblePixels, SceneHierarchyNode node)
+            {
+                m_LabelID = labelID;
+                m_InstanceID = instanceID;
+                m_InstanceColor = instanceColor;
+                m_VisiblePixels = visiblePixels;
+                m_HierarchyNode = node;
+            }
 
             /// <inheritdoc/>
             public void ToMessage(IMessageBuilder builder)
             {
-                builder.AddInt("labelId", labelID);
-                builder.AddUInt("instanceId", instanceID);
-                builder.AddIntArray("color", MessageBuilderUtils.ToIntVector(instanceColor));
-                builder.AddInt("visiblePixels", visiblePixels);
+                builder.AddInt("labelId", m_LabelID);
+                builder.AddUInt("instanceId", m_InstanceID);
+                builder.AddIntArray("color", MessageBuilderUtils.ToIntVector(m_InstanceColor));
+                builder.AddInt("visiblePixels", m_VisiblePixels);
+                m_HierarchyNode?.ToMessage(builder);
             }
         }
 
@@ -61,7 +76,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         Dictionary<int, AsyncFuture<Metric>> m_ObjectInfoAsyncMetrics;
         MetricDefinition m_Definition;
-
 
 
         /// <summary>
@@ -94,10 +108,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             m_ObjectInfoAsyncMetrics = new Dictionary<int, AsyncFuture<Metric>>();
 
-            perceptionCamera.RenderedObjectInfosCalculated += (frameCount, objectInfo) =>
-            {
-                ProduceRenderedObjectInfoMetric(objectInfo, frameCount);
-            };
+            perceptionCamera.EnableChannel<InstanceIdChannel>();
+            perceptionCamera.RenderedObjectInfosCalculated += ProduceRenderedObjectInfoMetric;
 
             m_Definition = new RenderedObjectInfoMetricDefinition(objectInfoMetricId, k_Description, idLabelConfig.GetAnnotationSpecification());
 
@@ -112,7 +124,10 @@ namespace UnityEngine.Perception.GroundTruth
             m_ObjectInfoAsyncMetrics[Time.frameCount] = perceptionCamera.SensorHandle.ReportMetricAsync(m_Definition);
         }
 
-        void ProduceRenderedObjectInfoMetric(NativeArray<RenderedObjectInfo> renderedObjectInfos, int frameCount)
+        void ProduceRenderedObjectInfoMetric(
+            int frameCount, NativeArray<RenderedObjectInfo> renderedObjectInfos,
+            SceneHierarchyInformation hierarchyInfo
+        )
         {
             using (s_ProduceRenderedObjectInfoMetric.Auto())
             {
@@ -138,13 +153,15 @@ namespace UnityEngine.Perception.GroundTruth
                     if (!TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry))
                         continue;
 
-                    m_VisiblePixelsValues[i] = new MetricEntry
-                    {
-                        labelID = labelEntry.id,
-                        instanceID = objectInfo.instanceId,
-                        visiblePixels = objectInfo.pixelCount,
-                        instanceColor = objectInfo.instanceColor
-                    };
+                    var hierarchyEntry = hierarchyInfo.hierarchy[objectInfo.instanceId];
+
+                    m_VisiblePixelsValues[i] = new MetricEntry(
+                        labelEntry.id,
+                        objectInfo.instanceId,
+                        objectInfo.instanceColor,
+                        objectInfo.pixelCount,
+                        hierarchyEntry
+                    );
 
                     if (visualize)
                     {
@@ -153,8 +170,7 @@ namespace UnityEngine.Perception.GroundTruth
                     }
                 }
 
-                var (seq, step) = DatasetCapture.GetSequenceAndStepFromFrame(frameCount);
-                var payload = new GenericMetric(m_VisiblePixelsValues.Where(x => x != null).ToArray(), m_Definition, perceptionCamera.ID);
+                var payload = new GenericMetric(m_VisiblePixelsValues.Where(x => x != null).ToArray(), m_Definition, perceptionCamera.id);
                 metric.Report(payload);
             }
         }

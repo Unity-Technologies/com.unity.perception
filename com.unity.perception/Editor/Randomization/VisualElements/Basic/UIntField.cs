@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -28,17 +28,18 @@ namespace UnityEngine.Perception.UIElements
         ///     <para>Constructor.</para>
         /// </summary>
         public UIntField()
-            : this(null) { }
+            : this(null)
+        {
+            AddToClassList("unity-base-field__aligned");
+        }
 
         /// <summary>
         ///     <para>Constructor.</para>
         /// </summary>
         /// <param name="maxLength">Maximum number of characters the field can take.</param>
-        public UIntField(int maxLength)
-            : this(null, maxLength) { }
+        public UIntField(int maxLength) : this(null, maxLength) {}
 
-        public UIntField(string label, int maxLength = -1)
-            : base(label, maxLength, new UIntInput())
+        public UIntField(string label, int maxLength = -1) : base(label, maxLength, new UIntInput())
         {
             AddToClassList(ussClassName);
             labelElement.AddToClassList(labelUssClassName);
@@ -87,12 +88,12 @@ namespace UnityEngine.Perception.UIElements
         /// <summary>
         ///     <para>Instantiates an UIntField using the data read from a UXML file.</para>
         /// </summary>
-        public new class UxmlFactory : UxmlFactory<UIntField, UxmlTraits> { }
+        public new class UxmlFactory : UxmlFactory<UIntField, UxmlTraits> {}
 
         /// <summary>
         ///     <para>Defines UxmlTraits for the UIntField.</para>
         /// </summary>
-        public new class UxmlTraits : TextValueFieldTraits<uint, UxmlUIntAttributeDescription> { }
+        public new class UxmlTraits : TextValueFieldTraits<uint, UxmlUIntAttributeDescription> {}
 
         public static uint ClampInput(long input)
         {

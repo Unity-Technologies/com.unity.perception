@@ -72,6 +72,14 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public Texture2D jointTexture;
         /// <summary>
+        /// Texture to use for the visualization of an occluded joint.
+        /// </summary>
+        public Texture2D occludedJointTexture;
+        /// <summary>
+        /// Color to use for the visualization of an occluded joint.
+        /// </summary>
+        public Color occludedJointColor = Color.black;
+        /// <summary>
         /// Texture to use for the visualization of the skeletal connection.
         /// </summary>
         public Texture2D skeletonTexture;

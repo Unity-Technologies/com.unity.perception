@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using UnityEngine.Perception.GroundTruth;
 
-namespace UnityEditor.Perception.GroundTruth {
+namespace UnityEditor.Perception.GroundTruth
+{
     /// <summary>
     /// Attribute for <see cref="CameraLabelerDrawer"/> types which specifies the <see cref="CameraLabeler"/> type
     /// whose inspector should be drawn using the decorated type.
@@ -10,7 +11,7 @@ namespace UnityEditor.Perception.GroundTruth {
     public class CameraLabelerDrawerAttribute : Attribute
     {
         internal Type targetLabelerType;
-        
+
         /// <summary>
         /// Creates a new CameraLabelerDrawerAttribute specifying the <see cref="CameraLabeler"/> type to be drawn
         /// </summary>

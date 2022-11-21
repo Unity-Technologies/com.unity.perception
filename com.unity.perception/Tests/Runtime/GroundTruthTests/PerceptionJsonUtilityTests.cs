@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -34,7 +34,7 @@ namespace GroundTruthTests
         }
 
         [TearDown]
-        public void Cleanup() { }
+        public void Cleanup() {}
 
         [Test]
         [TestCase(-2f, 0f, 3f, @"[-2.0,0.0,3.0]")]
@@ -42,7 +42,7 @@ namespace GroundTruthTests
         [TestCase(float.NegativeInfinity, float.NaN, float.PositiveInfinity, @"[""-Infinity"",""NaN"",""Infinity""]")]
         public void Vector3ToJToken_ReturnsArrayFormat(float x, float y, float z, string jsonExpected)
         {
-            PerceptionConverter.Instance.WriteJson(m_Writer, new Vector3(x,y,z), m_Serializer);
+            PerceptionConverter.Instance.WriteJson(m_Writer, new Vector3(x, y, z), m_Serializer);
             Assert.AreEqual(TestHelper.NormalizeJson(jsonExpected), TestHelper.NormalizeJson(m_StringBuilder.ToString()));
         }
 
@@ -52,7 +52,7 @@ namespace GroundTruthTests
         [TestCase(float.NegativeInfinity, float.NaN, float.PositiveInfinity, float.NaN, @"[""-Infinity"",""NaN"",""Infinity"",""NaN""]")]
         public void QuaternionToJToken_ReturnsArrayFormat(float x, float y, float z, float w, string jsonExpected)
         {
-            PerceptionConverter.Instance.WriteJson(m_Writer, new Quaternion(x,y,z,w), m_Serializer);
+            PerceptionConverter.Instance.WriteJson(m_Writer, new Quaternion(x, y, z, w), m_Serializer);
             Assert.AreEqual(TestHelper.NormalizeJson(jsonExpected), TestHelper.NormalizeJson(m_StringBuilder.ToString()));
         }
 

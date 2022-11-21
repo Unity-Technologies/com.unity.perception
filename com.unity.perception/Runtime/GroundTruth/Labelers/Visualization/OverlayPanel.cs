@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine.UI;
@@ -168,8 +167,7 @@ namespace UnityEngine.Perception.GroundTruth
                 }
 
                 if (findNewProvider)
-                    m_ActiveProvider= perceptionCamera.labelers.First(l => l is IOverlayPanelProvider && l.enabled) as IOverlayPanelProvider;
-
+                    m_ActiveProvider = perceptionCamera.labelers.First(l => l is IOverlayPanelProvider && l.enabled) as IOverlayPanelProvider;
             }
 
             if (m_ActiveProvider == null)

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9d0176327854820ab53adc46cbec7c1, type: 3}
+  m_Name: SemanticSegmentationLabelingConfiguration
+  m_EditorClassIdentifier: 
+  m_LabelEntries:
+  - label: Box
+    color: {r: 1, g: 0, b: 0, a: 1}
+  - label: Cube
+    color: {r: 0, g: 0.024693727, b: 1, a: 1}
+  - label: Crate
+    color: {r: 0, g: 1, b: 0.16973758, a: 1}
+  - label: Terrain
+    color: {r: 0.35413525, g: 0.509434, b: 0.06968674, a: 1}
+  skyColor: {r: 0, g: 0, b: 0, a: 1}

@@ -1,0 +1,38 @@
+#pragma kernel InitializeBuffer
+#pragma kernel CalculateRenderedObjectInfos
+
+struct InstanceBoundingBox
+{
+    uint bottom;
+    uint top;
+    uint left;
+    uint right;
+    uint pixelCount;
+};
+
+Texture2D<uint> instanceIndicesTexture;
+RWStructuredBuffer<InstanceBoundingBox> boundingBoxBuffer;
+
+[numthreads(256, 1, 1)]
+void InitializeBuffer(uint3 threadId: SV_DispatchThreadID)
+{
+    boundingBoxBuffer[threadId.x].bottom = 0xFFFFFFFF;
+    boundingBoxBuffer[threadId.x].top = 0;
+    boundingBoxBuffer[threadId.x].left = 0xFFFFFFFF;
+    boundingBoxBuffer[threadId.x].right = 0;
+    boundingBoxBuffer[threadId.x].pixelCount = 0;
+}
+
+[numthreads(16, 16, 1)]
+void CalculateRenderedObjectInfos(uint3 threadId: SV_DispatchThreadID)
+{
+    const uint instanceIdIndex = instanceIndicesTexture[threadId.xy];
+
+    InterlockedMin(boundingBoxBuffer[instanceIdIndex].left, threadId.x);
+    InterlockedMax(boundingBoxBuffer[instanceIdIndex].right, threadId.x);
+
+    InterlockedMin(boundingBoxBuffer[instanceIdIndex].bottom, threadId.y);
+    InterlockedMax(boundingBoxBuffer[instanceIdIndex].top, threadId.y);
+
+    InterlockedAdd(boundingBoxBuffer[instanceIdIndex].pixelCount, 1);
+}

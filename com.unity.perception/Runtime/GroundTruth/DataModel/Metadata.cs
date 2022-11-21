@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Unity.Collections;
 
 namespace UnityEngine.Perception.GroundTruth.DataModel
 {
@@ -12,6 +11,10 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
     /// </summary>
     public class Metadata : IMessageProducer
     {
+        /// <summary>
+        /// Public constructor for Metadata.
+        /// Prepares empty dictionary with MetadataEntries
+        /// </summary>
         public Metadata()
         {
             m_Metadata = new Dictionary<string, MetadataEntry>();
@@ -78,6 +81,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                         throw new ArgumentOutOfRangeException();
                 }
         }
+
         /// <summary>
         /// Adds a new metadata value
         /// </summary>
@@ -91,6 +95,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                 value = value
             };
         }
+
         /// <summary>
         /// Adds a new metadata value
         /// </summary>
@@ -104,6 +109,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                 value = value
             };
         }
+
         /// <summary>
         /// Adds a new metadata value
         /// </summary>
@@ -131,6 +137,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                 value = value
             };
         }
+
         /// <summary>
         /// Adds a new metadata value
         /// </summary>
@@ -145,6 +152,11 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             };
         }
 
+        /// <summary>
+        /// Adds a new metadata value
+        /// </summary>
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
         public void Add(string key, Metadata value)
         {
             m_Metadata[key] = new MetadataEntry
@@ -167,6 +179,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                 value = value
             };
         }
+
         /// <summary>
         /// Adds a new metadata value
         /// </summary>
@@ -180,6 +193,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                 value = value
             };
         }
+
         /// <summary>
         /// Adds a new metadata value
         /// </summary>
@@ -193,6 +207,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                 value = value
             };
         }
+
         /// <summary>
         /// Adds a new metadata value
         /// </summary>
@@ -207,6 +222,11 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             };
         }
 
+        /// <summary>
+        /// Adds a new metadata value
+        /// </summary>
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
         public void Add(string key, IEnumerable<Metadata> value)
         {
             m_Metadata[key] = new MetadataEntry
@@ -216,6 +236,11 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             };
         }
 
+        /// <summary>
+        /// Adds a new metadata value
+        /// </summary>
+        /// <param name="key">The key of the metadata</param>
+        /// <param name="value">The value of the metadata</param>
         void Add(string key, MetadataEntry value)
         {
             m_Metadata[key] = value;
@@ -261,6 +286,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return true;
         }
+
         /// <summary>
         /// Gets a value out of the metadata. If the value does not exist, or if a request is made for the improper
         /// data type, an exception will be thrown.
@@ -279,6 +305,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return (float)value.value;
         }
+
         /// <summary>
         /// Tries to get a value from the metadata. This method will fail if the key was not found in the metadata, or
         /// if the metadata stored with the passed in key is associated with a different data type.
@@ -300,6 +327,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return true;
         }
+
         /// <summary>
         /// Gets a value out of the metadata. If the value does not exist, or if a request is made for the improper
         /// data type, an exception will be thrown.
@@ -318,6 +346,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return (string)value.value;
         }
+
         /// <summary>
         /// Tries to get a value from the metadata. This method will fail if the key was not found in the metadata, or
         /// if the metadata stored with the passed in key is associated with a different data type.
@@ -339,6 +368,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return true;
         }
+
         /// <summary>
         /// Gets a value out of the metadata. If the value does not exist, or if a request is made for the improper
         /// data type, an exception will be thrown.
@@ -357,6 +387,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return (uint)value.value;
         }
+
         /// <summary>
         /// Tries to get a value from the metadata. This method will fail if the key was not found in the metadata, or
         /// if the metadata stored with the passed in key is associated with a different data type.
@@ -378,6 +409,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return true;
         }
+
         /// <summary>
         /// Gets a value out of the metadata. If the value does not exist, or if a request is made for the improper
         /// data type, an exception will be thrown.
@@ -396,6 +428,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return (bool)value.value;
         }
+
         /// <summary>
         /// Tries to get a value from the metadata. This method will fail if the key was not found in the metadata, or
         /// if the metadata stored with the passed in key is associated with a different data type.
@@ -418,6 +451,14 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             return true;
         }
 
+        /// <summary>
+        /// Gets a value out of the metadata. If the value does not exist, or if a request is made for the improper
+        /// data type, an exception will be thrown.
+        /// </summary>
+        /// <param name="key">The key of the metadata value</param>
+        /// <returns>The metadata value</returns>
+        /// <exception cref="ArgumentException">The key was not found in the metadata dictionary</exception>
+        /// <exception cref="InvalidOperationException">The query was for the wrong data type</exception>
         public Metadata GetSubMetadata(string key)
         {
             if (!m_Metadata.TryGetValue(key, out var value))
@@ -429,6 +470,14 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             return (Metadata)value.value;
         }
 
+        /// <summary>
+        /// Tries to get a value from the metadata. This method will fail if the key was not found in the metadata, or
+        /// if the metadata stored with the passed in key is associated with a different data type.
+        /// </summary>
+        /// <param name="key">The key of the metadata value</param>
+        /// <param name="value">The value associated with the key</param>
+        /// <returns>Returns true if the data was properly retrieved. This method returns false if the key was not found in the metadata, or
+        /// if the metadata stored with the passed in key is associated with a different data type.</returns>
         public bool TryGetValue(string key, out Metadata value)
         {
             value = null;
@@ -483,6 +532,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return true;
         }
+
         /// <summary>
         /// Gets a value out of the metadata. If the value does not exist, or if a request is made for the improper
         /// data type, an exception will be thrown.
@@ -501,6 +551,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return (float[])value.value;
         }
+
         /// <summary>
         /// Tries to get a value from the metadata. This method will fail if the key was not found in the metadata, or
         /// if the metadata stored with the passed in key is associated with a different data type.
@@ -522,6 +573,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return true;
         }
+
         /// <summary>
         /// Gets a value out of the metadata. If the value does not exist, or if a request is made for the improper
         /// data type, an exception will be thrown.
@@ -540,6 +592,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return (string[])value.value;
         }
+
         /// <summary>
         /// Tries to get a value from the metadata. This method will fail if the key was not found in the metadata, or
         /// if the metadata stored with the passed in key is associated with a different data type.
@@ -561,6 +614,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return true;
         }
+
         /// <summary>
         /// Gets a value out of the metadata. If the value does not exist, or if a request is made for the improper
         /// data type, an exception will be thrown.
@@ -579,6 +633,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
 
             return (bool[])value.value;
         }
+
         /// <summary>
         /// Tries to get a value from the metadata. This method will fail if the key was not found in the metadata, or
         /// if the metadata stored with the passed in key is associated with a different data type.
@@ -601,6 +656,11 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             return true;
         }
 
+        /// <summary>
+        /// Gets a raw SubMetadataArray Value value out of the metadata.
+        /// </summary>
+        /// <param name="key">The key of the metadata value</param>
+        /// <returns>Returns Raw Metadata Array</returns>
         public Metadata[] GetSubMetadataArray(string key)
         {
             if (!m_Metadata.TryGetValue(key, out var value))
@@ -612,6 +672,14 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             return (Metadata[])value.value;
         }
 
+        /// <summary>
+        /// Tries to get a value from the metadata. This method will fail if the key was not found in the metadata, or
+        /// if the metadata stored with the passed in key is associated with a different data type.
+        /// </summary>
+        /// <param name="key">The key of the metadata value</param>
+        /// <param name="value">The value associated with the key</param>
+        /// <returns>Returns true if the data was properly retrieved. This method returns false if the key was not found in the metadata, or
+        /// if the metadata stored with the passed in key is associated with a different data type.</returns>
         public bool TryGetValue(string key, out Metadata[] value)
         {
             value = null;
@@ -641,7 +709,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             SubMetadataArray
         }
 
-        internal struct MetadataEntry
+        struct MetadataEntry
         {
             public ValueType valueType;
             public object value;
@@ -662,11 +730,6 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                 writer.WriteEndObject();
             }
 
-            static void WriteMetadataEntry(JsonWriter writer, Metadata value, JsonSerializer serializer)
-            {
-
-            }
-
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
             {
                 switch (value)
@@ -677,7 +740,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                     case MetadataEntry metadataEntry:
                     {
                         var entry = metadataEntry;
-                        JObject jObject = null;
+                        JObject jObject;
                         switch (entry.valueType)
                         {
                             case ValueType.Int:
@@ -771,9 +834,16 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                     {
                         var sub = new Metadata();
                         var readIn = properties[1].Value.ToObject<Dictionary<string, MetadataEntry>>(serializer);
-                        foreach (var r in readIn.Keys)
+                        if (readIn != null)
                         {
-                            sub.Add(r, readIn[r]);
+                            foreach (var r in readIn.Keys)
+                            {
+                                sub.Add(r, readIn[r]);
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogError($"properties[1].Value has different object structure from expected (Dictionary<string, MetadataEntry>)");
                         }
 
                         value = sub;
@@ -826,12 +896,21 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             }
         }
 
+        /// <summary>
+        /// Parses string to metadata object
+        /// </summary>
+        /// <param name="json">JSON to parse</param>
+        /// <returns>New Metadata map</returns>
         public static Metadata FromJson(string json)
         {
             var map = JsonConvert.DeserializeObject<Dictionary<string, MetadataEntry>>(json, new MetadataEntryConverter());
             return new Metadata(map);
         }
 
+        /// <summary>
+        /// Convert Metadata object to json string
+        /// </summary>
+        /// <returns>Metadata as a JSON in string a value</returns>
         public string ToJson()
         {
             return JsonConvert.SerializeObject(m_Metadata, Formatting.Indented, new MetadataEntryConverter());

@@ -1,11 +1,16 @@
-namespace UnityEngine.Perception.GroundTruth
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.Perception.GroundTruth.Utilities
 {
     /// <summary>
     /// Helper class that contains common visualization methods useful to ground truth labelers.
     /// </summary>
-    public static class VisualizationHelper
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
+    static class VisualizationHelper
     {
         static Texture2D s_OnePixel = new Texture2D(1, 1);
+        static Vector2 s_StandardScreenDimensions = new Vector2(1024, 768);
+        static float s_DrawScalar = float.NaN;
 
         /// <summary>
         /// Converts a 3D world space coordinate to image pixel space.
@@ -48,6 +53,14 @@ namespace UnityEngine.Perception.GroundTruth
         public static void DrawPoint(float x, float y, Color color, float width = 4, Texture texture = null)
         {
             if (texture == null) texture = s_OnePixel;
+            if (float.IsNaN(s_DrawScalar))
+            {
+                var widthRatio = Screen.width / s_StandardScreenDimensions.x;
+                var heightRatio = Screen.height / s_StandardScreenDimensions.y;
+                s_DrawScalar = Mathf.Max(widthRatio, heightRatio);
+            }
+
+            width *= s_DrawScalar;
             var oldColor = GUI.color;
             GUI.color = color;
             GUI.DrawTexture(ToBoxRect(x, y, width * 0.5f), texture);
@@ -84,26 +97,33 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="color">The color of the line</param>
         /// <param name="width">The width of the line</param>
         /// <param name="texture">The texture to use, if null, will draw a solid line of passed in color</param>
-        public static void DrawLine (float p1X, float p1Y, float p2X, float p2Y, Color color, float width = 3.0f, Texture texture = null)
+        public static void DrawLine(float p1X, float p1Y, float p2X, float p2Y, Color color, float width = 3.0f, Texture texture = null)
         {
             if (texture == null) texture = s_OnePixel;
 
+            if (float.IsNaN(s_DrawScalar))
+            {
+                var widthRatio = Screen.width / s_StandardScreenDimensions.x;
+                var heightRatio = Screen.height / s_StandardScreenDimensions.y;
+                s_DrawScalar = Mathf.Max(widthRatio, heightRatio);
+            }
+
+            width *= s_DrawScalar;
             var oldColor = GUI.color;
 
             GUI.color = color;
 
             var matrixBackup = GUI.matrix;
-            var angle = Mathf.Atan2 (p2Y - p1Y, p2X - p1X) * 180f / Mathf.PI;
+            var angle = Mathf.Atan2(p2Y - p1Y, p2X - p1X) * 180f / Mathf.PI;
 
             var length = Magnitude(p1X, p1Y, p2X, p2Y);
 
-            GUIUtility.RotateAroundPivot (angle, new Vector2(p1X, p1Y));
+            GUIUtility.RotateAroundPivot(angle, new Vector2(p1X, p1Y));
             var halfWidth = width * 0.5f;
-            GUI.DrawTexture (new Rect (p1X - halfWidth, p1Y - halfWidth, length, width), texture);
+            GUI.DrawTexture(new Rect(p1X - halfWidth, p1Y - halfWidth, length, width), texture);
 
             GUI.matrix = matrixBackup;
             GUI.color = oldColor;
         }
-
     }
 }

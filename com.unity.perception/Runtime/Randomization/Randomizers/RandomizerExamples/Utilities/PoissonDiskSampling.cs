@@ -1,14 +1,16 @@
-﻿using System;
+using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
+namespace UnityEngine.Perception.Randomization.Utilities
 {
     /// <summary>
     /// Utility for generating lists of poisson disk sampled points
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.Randomization.Randomizers.Utilities")]
     public static class PoissonDiskSampling
     {
         const int k_DefaultSamplingResolution = 30;

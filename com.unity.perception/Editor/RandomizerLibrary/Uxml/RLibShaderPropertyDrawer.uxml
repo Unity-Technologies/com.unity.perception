@@ -1,0 +1,16 @@
+<UXML
+        xmlns="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements"
+>
+    <VisualElement name="shader_property_drawer" class="internal_mat_prop_drawer">
+        <VisualElement class="flex_col">
+            <VisualElement name="upper_row" class="flex_row">
+                <Label name="property_info" tooltip="Information about the shader property." />
+                <Button  class="circle_button" tooltip="Remove this property from the list." text="×" name="delete_button" />
+            </VisualElement>
+            <VisualElement>
+                <editor:PropertyField name="parameter_property" />
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

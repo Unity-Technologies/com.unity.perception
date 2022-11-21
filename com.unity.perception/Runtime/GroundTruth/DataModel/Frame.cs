@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace UnityEngine.Perception.GroundTruth.DataModel
 {
@@ -9,6 +9,9 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
     /// </summary>
     public class Frame : DataModelElement
     {
+        /// <summary>
+        /// Data model type for Frame
+        /// </summary>
         public override string modelType => "type.unity.com/unity.solo.Frame";
 
         /// <summary>
@@ -61,6 +64,8 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             builder.AddInt("frame", frame);
             builder.AddInt("sequence", sequence);
             builder.AddInt("step", step);
+            builder.AddFloat("timestamp", timestamp);
+
             foreach (var s in sensors)
             {
                 var nested = builder.AddNestedMessageToVector("captures");

@@ -1,16 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 {
     #region Interfaces
-    interface IGroupItem { }
+    interface IGroupItem {}
 
-    interface IParameterItem { }
+    interface IParameterItem {}
 
-    interface ISamplerOption { }
+    interface ISamplerOption {}
 
-    interface IScalarValue { }
+    interface IScalarValue {}
     #endregion
 
     #region GroupedObjects

@@ -1,15 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Unity.Profiling;
 using UnityEngine;
+using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
+namespace UnityEngine.Perception.Randomization.Utilities
 {
     /// <summary>
     /// Facilitates object pooling for a pre-specified collection of prefabs with the caveat that objects can be fetched
     /// from the cache but not returned. Every frame, the cache needs to be reset, which will return all objects to the pool
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.Randomization.Randomizers.Utilities")]
     public class GameObjectOneWayCache
     {
         static ProfilerMarker s_ResetAllObjectsMarker = new ProfilerMarker("ResetAllObjects");
@@ -20,18 +23,19 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         Dictionary<int, int> m_InstanceIdToIndex;
         List<CachedObjectData>[] m_InstantiatedObjects;
         int[] m_NumObjectsActive;
-        int NumObjectsInCache { get; set; }
+        int numObjectsInCache { get; set; }
 
         /// <summary>
         /// The number of active cache objects in the scene
         /// </summary>
-        public int NumObjectsActive { get; private set; }
+        public int ActiveCachedObjectsCount { get; private set; }
 
         /// <summary>
         /// Creates a new GameObjectOneWayCache
         /// </summary>
         /// <param name="parent">The parent object all cached instances will be parented under</param>
         /// <param name="gameObjects">The gameObjects to cache</param>
+        /// <param name="randomizer">Randomizer that invoked the method</param>
         public GameObjectOneWayCache(Transform parent, GameObject[] gameObjects, Randomizer randomizer)
         {
             if (gameObjects.Length == 0)
@@ -56,7 +60,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 if (m_InstanceIdToIndex.ContainsKey(instanceId))
                 {
                     Debug.LogException(new Exception("Duplicated objects were added in the categories, the duplicated object will be ignored\n" +
-                        "Randomizer: " + randomizer.GetType().Name + 
+                        "Randomizer: " + randomizer.GetType().Name +
                         "\nDuplicate objects: " + obj.name + "\n"));
                     continue;
                 }
@@ -79,7 +83,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
             if (!m_InstanceIdToIndex.TryGetValue(gameObject.GetInstanceID(), out var index))
                 throw new ArgumentException($"GameObject {gameObject.name} (ID: {gameObject.GetInstanceID()}) is not in cache.");
 
-            ++NumObjectsActive;
+            ++ActiveCachedObjectsCount;
             if (m_NumObjectsActive[index] < m_InstantiatedObjects[index].Count)
             {
                 var nextInCache = m_InstantiatedObjects[index][m_NumObjectsActive[index]];
@@ -89,7 +93,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                 return nextInCache.instance;
             }
 
-            ++NumObjectsInCache;
+            ++numObjectsInCache;
             var newObject = Object.Instantiate(gameObject, m_CacheParent);
             newObject.SetActive(true);
             ++m_NumObjectsActive[index];
@@ -127,7 +131,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
         {
             using (s_ResetAllObjectsMarker.Auto())
             {
-                NumObjectsActive = 0;
+                ActiveCachedObjectsCount = 0;
                 for (var i = 0; i < m_InstantiatedObjects.Length; ++i)
                 {
                     m_NumObjectsActive[i] = 0;
@@ -136,7 +140,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.Utilities
                         foreach (var cachedObjectData in m_InstantiatedObjects[i])
                         {
                             ResetObjectState(cachedObjectData);
-                        }   
+                        }
                     }
                 }
             }

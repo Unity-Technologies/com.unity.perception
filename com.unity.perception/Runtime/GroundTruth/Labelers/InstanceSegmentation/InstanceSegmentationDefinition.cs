@@ -1,12 +1,18 @@
-﻿using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Annotation definition for an instance segmentation
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class InstanceSegmentationDefinition : AnnotationDefinition
     {
+        /// <summary>
+        /// Default description for the InstanceSegmentationDefinition
+        /// </summary>
         public const string labelDescription = "Produces an instance segmentation image for each frame. The image will render the pixels of each labeled object in a distinct color.";
 
         /// <inheritdoc/>

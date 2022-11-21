@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.Collections;
-using System.IO;
 using System.Linq;
 using NUnit.Framework;
-using Tests.Editor;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -11,7 +9,6 @@ using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.DataModel;
 using UnityEngine.TestTools;
 using UnityEditor.SceneManagement;
-using UnityEngine.SceneManagement;
 
 namespace GroundTruthTests
 {
@@ -26,7 +23,7 @@ namespace GroundTruthTests
         {
             public override string modelType => "TestDef";
             public override string description => "description";
-            public TestDef() : base("annotation_test") { }
+            public TestDef() : base("annotation_test") {}
         }
 
         [Test]
@@ -130,7 +127,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator StepFunction_OverridesSimulationDeltaTime_AndRunsSensors()
         {
-            UnityEditor.SceneManagement.EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+            EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
             yield return new EnterPlayMode();
 
             var collector = new TestCollectorEndpoint();

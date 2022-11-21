@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Perception.GroundTruth.DataModel
+namespace UnityEngine.Perception.GroundTruth.DataModel
 {
     /// <summary>
     /// Capture trigger modes for sensors.
@@ -21,6 +21,7 @@
     /// </summary>
     public class SensorDefinition : DataModelElement
     {
+        /// <inheritdoc />
         public override string modelType => "type.unity.com/unity.solo.SensorDefinition";
 
         /// <summary>
@@ -98,7 +99,7 @@
             builder.AddString("@type", modelType);
             builder.AddString("id", id);
             builder.AddString("modality", modality);
-            builder.AddString("definition", description);
+            builder.AddString("description", description);
             builder.AddFloat("firstCaptureFrame", firstCaptureFrame);
             builder.AddString("captureTriggerMode", captureTriggerMode.ToString());
             builder.AddFloat("simulationDeltaTime", simulationDeltaTime);

@@ -12,7 +12,7 @@ namespace RandomizationTests.ScenarioTests
     /// With <see cref="m_IterationDelay" /> set to 2, the iterations 2, 4, 6, ..., etc. will be delayed once.
     /// </remarks>
     [Serializable]
-    [AddRandomizerMenu("Perception Tests/Example Delay Randomizer")]
+    [AddRandomizerMenu("")]
     public class ExampleDelayRandomizer : Randomizer
     {
         int m_IterationDelay = 2;

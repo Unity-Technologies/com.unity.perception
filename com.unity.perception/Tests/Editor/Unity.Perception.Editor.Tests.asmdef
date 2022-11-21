@@ -1,5 +1,6 @@
 {
     "name": "Unity.Perception.Editor.Tests",
+    "rootNamespace": "",
     "references": [
         "UnityEditor.TestRunner",
         "UnityEngine.TestRunner",
@@ -8,7 +9,9 @@
         "Unity.Perception.Editor",
         "Unity.Collections",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.Perception.Runtime.Tests",
+        "Unity.Coding.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -31,14 +34,14 @@
             "define": "HDRP_PRESENT"
         },
         {
-            "name": "com.unity.render-pipelines.universal",
-            "expression": "",
-            "define": "URP_PRESENT"
-        },
-        {
             "name": "nuget.moq",
             "expression": "",
             "define": "MOQ_PRESENT"
+        },
+        {
+            "name": "com.unity.coding",
+            "expression": "",
+            "define": "CODING_PRESENT"
         }
     ],
     "noEngineReferences": false

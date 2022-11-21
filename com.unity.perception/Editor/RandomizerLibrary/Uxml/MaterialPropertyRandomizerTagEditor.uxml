@@ -1,0 +1,26 @@
+<UXML
+        xmlns="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements"
+>
+    <VisualElement class="internal_mat_prop_tag">
+        <Style src="../Uss/Common.uss"/>
+        <Label name="top_warning" text="No parameters added. Shader will not be randomized." class="internal__message warning" />
+        <VisualElement name="material_container" class="internal__group_container">
+            <VisualElement name="material_choice_container" />
+        </VisualElement>
+        <VisualElement name="shader_container" class="internal__group_container">
+            <VisualElement name="parameter_top_menu">
+                <Label 
+                    tooltip="The shader properties included below will be randomized based on the chosen parameter values."
+                    text="Shader Properties to Randomize" 
+                />
+                <Button name="clear_parameters" text="Delete Properties" />
+            </VisualElement>
+            <ListView class="internal__list" name="properties" item-height="240" style="height: 280px;" />
+            <VisualElement name="parameter_control_container">
+                <VisualElement name="parameter_popup_container" />
+                <Button name="add_parameter" text="Add to List" />
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

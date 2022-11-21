@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Perception.Randomization
@@ -30,7 +29,8 @@ namespace UnityEditor.Perception.Randomization
                 {
                     var propertyField = CreatePropertyField(iterator, fieldType);
                     containerElement.Add(propertyField);
-                } while (iterator.NextVisible(false));
+                }
+                while (iterator.NextVisible(false));
             }
         }
 
@@ -57,7 +57,8 @@ namespace UnityEditor.Perception.Randomization
                         break;
                     var propertyField = CreatePropertyField(iterator, fieldType);
                     containerElement.Add(propertyField);
-                } while (iterator.NextVisible(false));
+                }
+                while (iterator.NextVisible(false));
             }
         }
 
@@ -75,10 +76,10 @@ namespace UnityEditor.Perception.Randomization
             FieldInfo originalField;
             do
             {
-                originalField = parentPropertyType.GetField(iterator.name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance );
+                originalField = parentPropertyType.GetField(iterator.name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 parentPropertyType = parentPropertyType.BaseType;
             }
-            while (originalField == null && parentPropertyType != null) ;
+            while (originalField == null && parentPropertyType != null);
 
             if (originalField == null)
                 return null;

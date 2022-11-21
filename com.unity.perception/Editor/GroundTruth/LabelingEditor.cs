@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 using UnityEngine.UIElements;
 using Button = UnityEngine.UIElements.Button;
 using Toggle = UnityEngine.UIElements.Toggle;
@@ -121,7 +121,7 @@ namespace UnityEditor.Perception.GroundTruth
                         var serializedLabelingObject2 = new SerializedObject(labeling);
                         var serializedLabelArray2 = serializedLabelingObject2.FindProperty(nameof(Labeling.labels));
                         serializedLabelArray2.InsertArrayElementAtIndex(serializedLabelArray2.arraySize);
-                        serializedLabelArray2.GetArrayElementAtIndex(serializedLabelArray2.arraySize-1).stringValue = newLabel;
+                        serializedLabelArray2.GetArrayElementAtIndex(serializedLabelArray2.arraySize - 1).stringValue = newLabel;
                         serializedLabelingObject2.ApplyModifiedProperties();
                         serializedLabelingObject2.SetIsDifferentCacheDirty();
                         serializedObject.SetIsDifferentCacheDirty();
@@ -175,7 +175,7 @@ namespace UnityEditor.Perception.GroundTruth
         bool IsValidLabelingSchemeName(string schemeName)
         {
             return schemeName != string.Empty &&
-                   m_LabelingSchemes.FindAll(scheme => scheme.GetType().Name == schemeName).Count > 0;
+                m_LabelingSchemes.FindAll(scheme => scheme.GetType().Name == schemeName).Count > 0;
         }
 
         bool m_ItIsPossibleToAddMultipleAutoLabelsToConfig;
@@ -203,7 +203,7 @@ namespace UnityEditor.Perception.GroundTruth
                 m_AddAutoLabelToConfButton.SetEnabled(true);
             }
 
-            if(m_AutoLabelingToggle.value && serializedObject.targetObjects.Length > 1 && m_ItIsPossibleToAddMultipleAutoLabelsToConfig)
+            if (m_AutoLabelingToggle.value && serializedObject.targetObjects.Length > 1 && m_ItIsPossibleToAddMultipleAutoLabelsToConfig)
             {
                 m_AddAutoLabelToConfButton.SetEnabled(true);
             }
@@ -438,12 +438,17 @@ namespace UnityEditor.Perception.GroundTruth
             List<string> labelConfigGuids = new List<string>();
             foreach (var type in m_LabelConfigTypes)
             {
-                labelConfigGuids.AddRange(AssetDatabase.FindAssets("t:"+type.Name));
+                labelConfigGuids.AddRange(AssetDatabase.FindAssets("t:" + type.Name));
             }
 
             m_AllLabelConfigsInProject.Clear();
+            var addedGuids = new HashSet<string>();
             foreach (var configGuid in labelConfigGuids)
             {
+                if (addedGuids.Contains(configGuid))
+                    continue;
+
+                addedGuids.Add(configGuid);
                 var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(configGuid));
                 m_AllLabelConfigsInProject.Add(asset);
             }
@@ -536,7 +541,6 @@ namespace UnityEditor.Perception.GroundTruth
             }
         }
 
-
         void RefreshCommonLabels()
         {
             CommonLabels.Clear();
@@ -544,7 +548,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             foreach (var obj in serializedObject.targetObjects)
             {
-                CommonLabels = CommonLabels.Intersect(((Labeling) obj).labels).ToList();
+                CommonLabels = CommonLabels.Intersect(((Labeling)obj).labels).ToList();
             }
         }
 
@@ -568,7 +572,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_CurrentLabelsListView.bindItem = BindItem;
             m_CurrentLabelsListView.makeItem = MakeItem;
-            m_CurrentLabelsListView.itemHeight = itemHeight;
+            m_CurrentLabelsListView.fixedItemHeight = itemHeight;
 
             m_CurrentLabelsListView.itemsSource = CommonLabels;
             m_CurrentLabelsListView.selectionType = SelectionType.None;
@@ -598,9 +602,10 @@ namespace UnityEditor.Perception.GroundTruth
 
             labelsListView.bindItem = BindItem;
             labelsListView.makeItem = MakeItem;
-            labelsListView.itemHeight = itemHeight;
+            labelsListView.fixedItemHeight = itemHeight;
             labelsListView.selectionType = SelectionType.None;
         }
+
         void SetupLabelConfigsScrollView()
         {
             m_LabelConfigsScrollView.Clear();
@@ -710,7 +715,7 @@ namespace UnityEditor.Perception.GroundTruth
 
                     foreach (var obj in editor.targets)
                     {
-                        commonLabels = commonLabels.Intersect(((Labeling) obj).labels).ToList();
+                        commonLabels = commonLabels.Intersect(((Labeling)obj).labels).ToList();
                     }
 
                     foreach (var targetObject in editor.targets)
@@ -776,7 +781,7 @@ namespace UnityEditor.Perception.GroundTruth
                         var serializedLabelingObject2 = new SerializedObject(targetObject);
                         var serializedLabelArray2 = serializedLabelingObject2.FindProperty("labels");
                         serializedLabelArray2.InsertArrayElementAtIndex(serializedLabelArray2.arraySize);
-                        serializedLabelArray2.GetArrayElementAtIndex(serializedLabelArray2.arraySize-1).stringValue = label.text;
+                        serializedLabelArray2.GetArrayElementAtIndex(serializedLabelArray2.arraySize - 1).stringValue = label.text;
                         serializedLabelingObject2.ApplyModifiedProperties();
                         serializedLabelingObject2.SetIsDifferentCacheDirty();
                         editor.serializedObject.SetIsDifferentCacheDirty();
@@ -811,10 +816,10 @@ namespace UnityEditor.Perception.GroundTruth
                 Selection.SetActiveObjectWithContext(config, null);
             };
 
-            var propertyInfo = config.GetType().GetProperty(IdLabelConfig.publicLabelEntriesFieldName);
+            var propertyInfo = config.GetType().GetProperty(nameof(IdLabelConfig.labelEntries));
             if (propertyInfo != null)
             {
-                var objectList = (IEnumerable) propertyInfo.GetValue(config);
+                var objectList = (IEnumerable)propertyInfo.GetValue(config);
                 var labelEntryList = objectList.Cast<ILabelEntry>().ToList();
                 var labelList = labelEntryList.Select(entry => entry.label).ToList();
 
@@ -839,7 +844,7 @@ namespace UnityEditor.Perception.GroundTruth
 
                 m_LabelsListView.bindItem = BindItem;
                 m_LabelsListView.makeItem = MakeItem;
-                m_LabelsListView.itemHeight = itemHeight;
+                m_LabelsListView.fixedItemHeight = itemHeight;
                 m_LabelsListView.selectionType = SelectionType.None;
             }
 
@@ -934,7 +939,7 @@ namespace UnityEditor.Perception.GroundTruth
             string assetPath = LabelingEditor.GetAssetOrPrefabPath(asset);
             var stringList = assetPath.Split(LabelingEditor.PathSeparators, StringSplitOptions.RemoveEmptyEntries)
                 .ToList();
-            return stringList.Count > 1 ? stringList[stringList.Count-2] : null;
+            return stringList.Count > 1 ? stringList[stringList.Count - 2] : null;
         }
     }
 }

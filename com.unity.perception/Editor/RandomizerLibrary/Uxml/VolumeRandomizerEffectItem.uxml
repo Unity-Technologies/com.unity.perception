@@ -1,0 +1,17 @@
+<UXML
+        xmlns="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements"
+>
+    <VisualElement class="internal_vol_tag_effect">
+        <Style src="../Uss/Common.uss"/>
+        <VisualElement name="single_effect_container">
+            <VisualElement name="top_container">
+                <Label name="effect_name" text="Volume Effect" />
+                <Button name="delete_btn" text="X" />
+            </VisualElement>
+            <VisualElement name="prop_container">
+                <editor:PropertyField name="effect_prop" />
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

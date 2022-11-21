@@ -1,7 +1,7 @@
 using System;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Utilities;
 
 namespace GroundTruthTests
 {
@@ -13,6 +13,7 @@ namespace GroundTruthTests
         {
             Assert.DoesNotThrow(InstanceIdToColorMapping.InitializeMaps);
         }
+
         [Test]
         public void InstanceIdToColorMappingTests_TestHslColors()
         {
@@ -49,20 +50,20 @@ namespace GroundTruthTests
         }
 
         [Test]
-        [TestCase(1u, 255,0,0,255)]
-        [TestCase(2u,0,74,255,255)]
-        [TestCase(3u,149,255,0,255)]
-        [TestCase(4u,255,0,223,255)]
-        [TestCase(5u,0,255,212,255)]
-        [TestCase(6u,255,138,0,255)]
-        [TestCase(1024u,30, 0, 11,255)]
-        [TestCase(1025u,0,0,1,254)]
-        [TestCase(1026u,0,0,2,254)]
-        [TestCase(1024u + 256u,0,1,0,254)]
-        [TestCase(1025u + 256u,0,1,1,254)]
-        [TestCase(1024u + 65536u,1,0,0,254)]
-        [TestCase(1024u + 16777216u,0,0,0,253)]
-        [TestCase(1024u + (16777216u * 2),0,0,0,252)]
+        [TestCase(1u, 255, 0, 0, 255)]
+        [TestCase(2u, 0, 74, 255, 255)]
+        [TestCase(3u, 149, 255, 0, 255)]
+        [TestCase(4u, 255, 0, 223, 255)]
+        [TestCase(5u, 0, 255, 212, 255)]
+        [TestCase(6u, 255, 138, 0, 255)]
+        [TestCase(1024u, 30, 0, 11, 255)]
+        [TestCase(1025u, 0, 0, 1, 254)]
+        [TestCase(1026u, 0, 0, 2, 254)]
+        [TestCase(1024u + 256u, 0, 1, 0, 254)]
+        [TestCase(1025u + 256u, 0, 1, 1, 254)]
+        [TestCase(1024u + 65536u, 1, 0, 0, 254)]
+        [TestCase(1024u + 16777216u, 0, 0, 0, 253)]
+        [TestCase(1024u + (16777216u * 2), 0, 0, 0, 252)]
         public void InstanceIdToColorMappingTests_TestColorForId(uint id, byte r, byte g, byte b, byte a)
         {
             Assert.IsTrue(InstanceIdToColorMapping.TryGetColorFromInstanceId(id, out var color));
@@ -135,14 +136,14 @@ namespace GroundTruthTests
         [Test]
         public void InstanceIdToColorMappingTests_ThrowExceptionIdNotMapped()
         {
-            var c = new Color32(28,92,14,255);
+            var c = new Color32(28, 92, 14, 255);
             Assert.Throws<InvalidOperationException>(() => InstanceIdToColorMapping.GetInstanceIdFromColor(c));
         }
 
         [Test]
         public void InstanceIdToColorMappingTests_TryGetReturnsFalseIdNotMapped()
         {
-            var c = new Color32(28,92,14,255);
+            var c = new Color32(28, 92, 14, 255);
             Assert.IsFalse(InstanceIdToColorMapping.TryGetInstanceIdFromColor(c, out var id));
         }
     }

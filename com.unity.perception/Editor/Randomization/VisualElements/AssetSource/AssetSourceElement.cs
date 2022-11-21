@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
-using UnityEditor;
-using UnityEditor.Perception.Randomization;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.Randomization;

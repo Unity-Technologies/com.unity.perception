@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Perception.Randomization.Samplers;
 
@@ -33,7 +33,7 @@ namespace UnityEngine.Perception.Randomization.Parameters
         /// <summary>
         /// Returns an IEnumerable that iterates over each sampler field in this parameter
         /// </summary>
-        internal override IEnumerable<ISampler> samplers
+        public override IEnumerable<ISampler> samplers
         {
             get
             {

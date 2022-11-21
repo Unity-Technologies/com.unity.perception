@@ -1,0 +1,60 @@
+﻿#pragma kernel SuperSampling_2X
+#pragma kernel SuperSampling_4X
+#pragma kernel SuperSampling_8X
+
+Texture2D<float4> superSamplingTexture;
+RWTexture2D<float4> downscaledTexture;
+
+[numthreads(16, 16, 1)]
+void SuperSampling_2X(uint3 threadId: SV_DispatchThreadID)
+{
+    float4 SuperSamplingPixel = 0;
+
+    [unroll]
+    for (int i = 0; i < 2; i++)
+    {
+        [unroll]
+        for (int j = 0; j < 2; j++)
+        {
+            SuperSamplingPixel += superSamplingTexture[threadId.xy * 2 + uint2(i, j)];
+        }
+    }
+
+    downscaledTexture[threadId.xy] = SuperSamplingPixel / 4.0f;
+}
+
+[numthreads(16, 16, 1)]
+void SuperSampling_4X(uint3 threadId: SV_DispatchThreadID)
+{
+    float4 SuperSamplingPixel = 0;
+
+    [unroll]
+    for (int i = 0; i < 4; i++)
+    {
+        [unroll]
+        for (int j = 0; j < 4; j++)
+        {
+            SuperSamplingPixel += superSamplingTexture[threadId.xy * 4 + uint2(i, j)];
+        }
+    }
+
+    downscaledTexture[threadId.xy] = SuperSamplingPixel / 16.0f;
+}
+
+[numthreads(16, 16, 1)]
+void SuperSampling_8X(uint3 threadId: SV_DispatchThreadID)
+{
+    float4 SuperSamplingPixel = 0;
+
+    [unroll]
+    for (int i = 0; i < 8; i++)
+    {
+        [unroll]
+        for (int j = 0; j < 8; j++)
+        {
+            SuperSamplingPixel += superSamplingTexture[threadId.xy * 8 + uint2(i, j)];
+        }
+    }
+
+    downscaledTexture[threadId.xy] = SuperSamplingPixel / 64.0f;
+}

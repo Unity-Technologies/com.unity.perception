@@ -1,8 +1,11 @@
-﻿namespace UnityEngine.Perception.GroundTruth
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Keypoint filtering modes.
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public enum KeypointObjectFilter
     {
         /// <summary>

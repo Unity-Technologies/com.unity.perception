@@ -1,0 +1,11 @@
+﻿#pragma kernel StoreTextureSum
+
+int index;
+Texture2D<float> sumTexture;
+RWStructuredBuffer<float> outputBuffer;
+
+[numthreads(1, 1, 1)]
+void StoreTextureSum()
+{
+    outputBuffer[index] += sumTexture[uint2(0, 0)];
+}

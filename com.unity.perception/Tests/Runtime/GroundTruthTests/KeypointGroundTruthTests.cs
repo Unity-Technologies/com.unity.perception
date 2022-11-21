@@ -5,38 +5,20 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Scenarios;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace GroundTruthTests
 {
     [TestFixture]
-    public class KeyPointGroundTruthTests : GroundTruthTestBase, IPrebuildSetup, IPostBuildCleanup
+    public class KeyPointGroundTruthTests : GroundTruthTestBase
     {
-        private const string kAnimatedCubeScenePath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/AnimatedCubeScene.unity";
-        private const string kCubeScenePath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/CubeScene.unity";
-        private const string kUnlitObjectPath = "Packages/com.unity.perception/Tests/Runtime/TestAssets/UnlitObject.unity";
-        private const double k_Delta = .01;
-
-        public void Setup()
-        {
-#if UNITY_EDITOR
-            var scenes = UnityEditor.EditorBuildSettings.scenes.ToList();
-            scenes.Add(new UnityEditor.EditorBuildSettingsScene(kAnimatedCubeScenePath, true));
-            scenes.Add(new UnityEditor.EditorBuildSettingsScene(kCubeScenePath, true));
-            scenes.Add(new UnityEditor.EditorBuildSettingsScene(kUnlitObjectPath, true));
-            UnityEditor.EditorBuildSettings.scenes = scenes.ToArray();
-#endif
-        }
-
-        public void Cleanup()
-        {
-#if UNITY_EDITOR
-            var scenes = UnityEditor.EditorBuildSettings.scenes;
-            scenes = scenes.Where(s => s.path != kAnimatedCubeScenePath && s.path != kCubeScenePath && s.path != kUnlitObjectPath).ToArray();
-            UnityEditor.EditorBuildSettings.scenes = scenes;
-#endif
-        }
+        const double k_Delta = .01;
 
         [UnitySetUp]
         public IEnumerator SetupTest()
@@ -317,6 +299,7 @@ namespace GroundTruthTests
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
+            var instanceId = cube.GetComponent<Labeling>().instanceId;
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -335,7 +318,7 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
 
             Assert.AreEqual(9, t.keypoints.Length);
@@ -349,12 +332,118 @@ namespace GroundTruthTests
             Assert.AreEqual(t.keypoints[4].location.y, t.keypoints[7].location.y);
             Assert.AreEqual(t.keypoints[5].location.y, t.keypoints[6].location.y);
 
+            // test camera coordinates
+            var expectedMinX = -3f;
+            var expectedMaxX = 3f;
+            var expectedMinY = -3f;
+            var expectedMaxY = 3f;
+            var expectedMinZ = 15f;
+            var expectedMaxZ = 21f;
+
+            Assert.AreEqual(9, t.keypoints.Length);
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.x, t.keypoints[1].cameraCartesianLocation.x);
+            Assert.AreEqual(t.keypoints[2].cameraCartesianLocation.x, t.keypoints[3].cameraCartesianLocation.x);
+            Assert.AreEqual(t.keypoints[4].cameraCartesianLocation.x, t.keypoints[5].cameraCartesianLocation.x);
+            Assert.AreEqual(t.keypoints[6].cameraCartesianLocation.x, t.keypoints[7].cameraCartesianLocation.x);
+
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.y, t.keypoints[3].cameraCartesianLocation.y);
+            Assert.AreEqual(t.keypoints[1].cameraCartesianLocation.y, t.keypoints[2].cameraCartesianLocation.y);
+            Assert.AreEqual(t.keypoints[4].cameraCartesianLocation.y, t.keypoints[7].cameraCartesianLocation.y);
+            Assert.AreEqual(t.keypoints[5].cameraCartesianLocation.y, t.keypoints[6].cameraCartesianLocation.y);
+
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.z, t.keypoints[1].cameraCartesianLocation.z);
+            Assert.AreEqual(t.keypoints[2].cameraCartesianLocation.z, t.keypoints[3].cameraCartesianLocation.z);
+            Assert.AreEqual(t.keypoints[4].cameraCartesianLocation.z, t.keypoints[5].cameraCartesianLocation.z);
+            Assert.AreEqual(t.keypoints[6].cameraCartesianLocation.z, t.keypoints[7].cameraCartesianLocation.z);
+
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.x, expectedMinX);
+            Assert.AreEqual(t.keypoints[2].cameraCartesianLocation.x, expectedMaxX);
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.y, expectedMinY);
+            Assert.AreEqual(t.keypoints[1].cameraCartesianLocation.y, expectedMaxY);
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.z, expectedMinZ);
+            Assert.AreEqual(t.keypoints[4].cameraCartesianLocation.z, expectedMaxZ);
+
             for (var i = 0; i < 9; i++) Assert.AreEqual(i, t.keypoints[i].index);
             for (var i = 0; i < 4; i++) Assert.AreEqual(2, t.keypoints[i].state);
             for (var i = 4; i < 8; i++) Assert.AreEqual(1, t.keypoints[i].state);
             Assert.Zero(t.keypoints[8].state);
             Assert.Zero(t.keypoints[8].location.x);
             Assert.Zero(t.keypoints[8].location.y);
+        }
+
+        [UnityTest]
+        public IEnumerator Keypoint_TestStaticLabeledCube_CameraCartesianForCameraOffset()
+        {
+            var incoming = new List<List<KeypointComponent>>();
+            var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
+            var texture = new RenderTexture(1024, 768, 16);
+            texture.Create();
+            var cam = SetupCamera(SetUpLabelConfig(), template, (frame, data) =>
+            {
+                incoming.Add(new List<KeypointComponent>(data));
+            }, texture);
+
+            cam.transform.position = new Vector3(2500, 17, -52);
+            cam.transform.rotation = Quaternion.Euler(0, 90, 0);
+
+            var cube = SetupLabeledCube(scale: 6, z: 8);
+            SetupCubeJoints(cube, template);
+            var labelingComponent = cube.GetComponent<Labeling>();
+            var instanceId = labelingComponent.instanceId;
+
+            cube.transform.position = new Vector3(2510, 17, -52);
+
+            cube.SetActive(true);
+            cam.SetActive(true);
+
+            AddTestObjectForCleanup(cam);
+            AddTestObjectForCleanup(cube);
+
+            yield return null;
+
+            //force all async readbacks to complete
+            DestroyTestObject(cam);
+            texture.Release();
+
+            var testCase = incoming.Last();
+            Assert.AreEqual(1, testCase.Count);
+            var t = testCase.First();
+            Assert.NotNull(t);
+            Assert.AreEqual(instanceId, t.instanceId);
+            Assert.AreEqual(1, t.labelId);
+
+            Assert.AreEqual(9, t.keypoints.Length);
+
+            // test camera coordinates
+            var expectedMinX = -3f;
+            var expectedMaxX = 3f;
+            var expectedMinY = -3f;
+            var expectedMaxY = 3f;
+            var expectedMinZ = 7f;
+            var expectedMaxZ = 13f;
+
+            Assert.AreEqual(9, t.keypoints.Length);
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.x, t.keypoints[1].cameraCartesianLocation.x);
+            Assert.AreEqual(t.keypoints[2].cameraCartesianLocation.x, t.keypoints[3].cameraCartesianLocation.x);
+            Assert.AreEqual(t.keypoints[4].cameraCartesianLocation.x, t.keypoints[5].cameraCartesianLocation.x);
+            Assert.AreEqual(t.keypoints[6].cameraCartesianLocation.x, t.keypoints[7].cameraCartesianLocation.x);
+
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.y, t.keypoints[3].cameraCartesianLocation.y);
+            Assert.AreEqual(t.keypoints[1].cameraCartesianLocation.y, t.keypoints[2].cameraCartesianLocation.y);
+            Assert.AreEqual(t.keypoints[4].cameraCartesianLocation.y, t.keypoints[7].cameraCartesianLocation.y);
+            Assert.AreEqual(t.keypoints[5].cameraCartesianLocation.y, t.keypoints[6].cameraCartesianLocation.y);
+
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.z, t.keypoints[1].cameraCartesianLocation.z);
+            Assert.AreEqual(t.keypoints[2].cameraCartesianLocation.z, t.keypoints[3].cameraCartesianLocation.z);
+            Assert.AreEqual(t.keypoints[4].cameraCartesianLocation.z, t.keypoints[5].cameraCartesianLocation.z);
+            Assert.AreEqual(t.keypoints[6].cameraCartesianLocation.z, t.keypoints[7].cameraCartesianLocation.z);
+
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.x, expectedMaxX, delta: 0.001f);
+            Assert.AreEqual(t.keypoints[4].cameraCartesianLocation.x, expectedMinX, delta: 0.001f);
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.y, expectedMinY, delta: 0.001f);
+            Assert.AreEqual(t.keypoints[1].cameraCartesianLocation.y, expectedMaxY, delta: 0.001f);
+            Assert.AreEqual(t.keypoints[0].cameraCartesianLocation.z, expectedMinZ, delta: 0.001f);
+            Assert.AreEqual(t.keypoints[2].cameraCartesianLocation.z, expectedMaxZ, delta: 0.001f);
         }
 
         [UnityTest]
@@ -370,6 +459,7 @@ namespace GroundTruthTests
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
+            var instanceId = cube.GetComponent<Labeling>().instanceId;
             SetupCubeJoints(cube, template);
             var labeling = cube.GetComponent<Labeling>();
 
@@ -399,7 +489,7 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
@@ -487,6 +577,7 @@ namespace GroundTruthTests
             cam.GetComponent<PerceptionCamera>().showVisualizations = false;
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
+            var instanceId = cube.GetComponent<Labeling>().instanceId;
             SetupCubeJoint(cube, "Center", 0, 0, -.5f);
 
             cube.SetActive(true);
@@ -508,7 +599,7 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(1, t.keypoints.Length);
 
@@ -518,7 +609,6 @@ namespace GroundTruthTests
             Assert.AreEqual(0, t.keypoints[0].index);
             Assert.AreEqual(2, t.keypoints[0].state);
 
-
             var testCase2 = incoming[1];
             Assert.AreEqual(1, testCase2.Count);
             var t2 = testCase2.First();
@@ -527,7 +617,7 @@ namespace GroundTruthTests
         }
 
         [UnityTest]
-        public IEnumerator Keypoint_TestPartialOffScreen([Values(1,5)] int framesToRunBeforeAsserting)
+        public IEnumerator Keypoint_TestPartialOffScreen([Values(1, 5)] int framesToRunBeforeAsserting)
         {
             var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
@@ -539,6 +629,7 @@ namespace GroundTruthTests
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
+            var instanceId = cube.GetComponent<Labeling>().instanceId;
             SetupCubeJoints(cube, template);
             cube.transform.position += Vector3.right * 13.5f;
 
@@ -559,7 +650,7 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
@@ -592,6 +683,7 @@ namespace GroundTruthTests
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
+            var instanceId = cube.GetComponent<Labeling>().instanceId;
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -612,7 +704,7 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
@@ -632,11 +724,10 @@ namespace GroundTruthTests
             Assert.Zero(t.keypoints[8].state);
             Assert.Zero(t.keypoints[8].location.x);
             Assert.Zero(t.keypoints[8].location.y);
-
-
         }
 
         [UnityTest]
+
         public IEnumerator Keypoint_FullyOccluded_DoesNotReport()
         {
             var incoming = new List<List<KeypointComponent>>();
@@ -660,6 +751,7 @@ namespace GroundTruthTests
             var testCase = incoming.Last();
             Assert.AreEqual(0, testCase.Count);
         }
+
         [UnityTest]
         public IEnumerator Keypoint_FullyOccluded_WithIncludeOccluded_ReportsProperly(
             [Values(KeypointObjectFilter.VisibleAndOccluded, KeypointObjectFilter.All)] KeypointObjectFilter keypointObjectFilter)
@@ -673,7 +765,7 @@ namespace GroundTruthTests
                 incoming.Add(data);
             }, texture, keypointObjectFilter);
 
-            CreateFullyOccludedScene(template, cam);
+            var instanceId = CreateFullyOccludedScene(template, cam);
 
             yield return null;
 
@@ -687,7 +779,7 @@ namespace GroundTruthTests
 
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
@@ -700,7 +792,7 @@ namespace GroundTruthTests
             Assert.Zero(t.keypoints[8].location.y);
         }
 
-        private void CreateFullyOccludedScene(KeypointTemplate template, GameObject cam)
+        uint CreateFullyOccludedScene(KeypointTemplate template, GameObject cam)
         {
             var cube = SetupLabeledCube(scale: 6, z: 8);
             SetupCubeJoints(cube, template);
@@ -715,8 +807,9 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(cam);
             AddTestObjectForCleanup(cube);
             AddTestObjectForCleanup(blocker);
-        }
 
+            return cube.GetComponent<Labeling>().instanceId;
+        }
 
         [UnityTest]
         public IEnumerator Keypoint_Offscreen_DoesNotReport(
@@ -750,6 +843,7 @@ namespace GroundTruthTests
             var testCase = incoming.Last();
             Assert.AreEqual(0, testCase.Count);
         }
+
         [UnityTest]
         public IEnumerator Keypoint_Offscreen_WithIncludeAll_ReportsProperly()
         {
@@ -763,6 +857,7 @@ namespace GroundTruthTests
             }, texture, KeypointObjectFilter.All);
 
             var cube = SetupLabeledCube(scale: 6, z: -20);
+            var instanceId = cube.GetComponent<Labeling>().instanceId;
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -783,7 +878,7 @@ namespace GroundTruthTests
 
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
@@ -807,6 +902,7 @@ namespace GroundTruthTests
             }, texture);
 
             var cube = SetupLabeledCube(scale: 6, z: 8);
+            var instanceId = cube.GetComponent<Labeling>().instanceId;
             SetupCubeJoints(cube, template);
 
             var blocker = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -830,7 +926,7 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
@@ -850,9 +946,9 @@ namespace GroundTruthTests
             Assert.Zero(t.keypoints[8].location.y);
         }
 
-
         [UnityTest]
-        public IEnumerator Keypoint_AnimatedCube_PositionsCaptured()
+
+        public IEnumerator Keypoint_AnimatedCube_PositionsCaptured([Values("AnimatedCube", "NonAnimatedCube")] string testPrefix)
         {
             var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
@@ -873,17 +969,17 @@ namespace GroundTruthTests
             cam.transform.position = new Vector3(0, 0, -10);
 
             // ReSharper disable once Unity.LoadSceneUnknownSceneName
-            SceneManager.LoadScene("AnimatedCubeScene", LoadSceneMode.Additive);
-            AddSceneForCleanup("AnimatedCubeScene");
+            SceneManager.LoadScene($"{testPrefix}Scene", LoadSceneMode.Additive);
+            AddSceneForCleanup($"{testPrefix}Scene");
             //scenes are loaded at the end of the frame
             yield return null;
 
-            var cube = GameObject.Find("AnimatedCube");
+            var cube = GameObject.Find(testPrefix);
             cube.SetActive(false);
             var labeling = cube.AddComponent<Labeling>();
             labeling.labels.Add("label");
 
-            SetupCubeJoint(cube, "Center",0f, 0f, -.5f);
+            SetupCubeJoint(cube, "Center", 0f, 0f, -.5f);
 
             cube.SetActive(true);
             cam.SetActive(true);
@@ -902,18 +998,26 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(labeling.instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
             //large delta because the animation will already have taken it some distance from the starting location
-            Assert.AreEqual(screenPointCenterExpected.x, t.keypoints[8].location.x, Screen.width * .1);
-            Assert.AreEqual(screenPointCenterExpected.y, t.keypoints[8].location.y, Screen.height * .1);
+            Assert.AreEqual(screenPointCenterExpected.x, t.keypoints[8].location.x, Screen.width * .2);
+            Assert.AreEqual(screenPointCenterExpected.y, t.keypoints[8].location.y, Screen.height * .2);
             Assert.AreEqual(8, t.keypoints[8].index);
             Assert.AreEqual(2, t.keypoints[8].state);
         }
 
-        static IEnumerable<(float scale, bool expectObject, int expectedStateFront, int expectedStateBack, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight)> Keypoint_OnBox_ReportsProperCoordinates_TestCases()
+        static IEnumerable<(
+            float scale,
+            bool expectObject,
+            int expectedStateFront,
+            int expectedStateBack,
+            KeypointObjectFilter keypointFilter,
+            Vector2 expectedTopLeft,
+            Vector2 expectedBottomRight)>
+        Keypoint_OnBox_ReportsProperCoordinates_TestCases()
         {
             yield return (
                 1,
@@ -956,10 +1060,11 @@ namespace GroundTruthTests
                 new Vector2(512, 512),
                 new Vector2(512, 512));
         }
+
         [UnityTest]
         public IEnumerator Keypoint_OnBox_ReportsProperCoordinates(
             [ValueSource(nameof(Keypoint_OnBox_ReportsProperCoordinates_TestCases))]
-            (float scale, bool expectObject, int expectedStateFront, int expectedStateBack, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight) args)
+                (float scale, bool expectObject, int expectedStateFront, int expectedStateBack, KeypointObjectFilter keypointFilter, Vector2 expectedTopLeft, Vector2 expectedBottomRight) args)
         {
             var incoming = new List<List<KeypointComponent>>();
             var template = CreateTestTemplate(Guid.NewGuid(), "TestTemplate");
@@ -977,6 +1082,7 @@ namespace GroundTruthTests
 
             //For some reason the back of this cube is being resolved to 7.5 away from the camera, but on the CPU side it is being recorded as 18.34375
             var cube = SetupLabeledCube(scale: args.scale, z: 0);
+            var instanceId = cube.GetComponent<Labeling>().instanceId;
             SetupCubeJoints(cube, template);
 
             cube.SetActive(true);
@@ -1001,7 +1107,7 @@ namespace GroundTruthTests
             Assert.AreEqual(1, testCase.Count);
             var t = testCase.First();
             Assert.NotNull(t);
-            Assert.AreEqual(1, t.instanceId);
+            Assert.AreEqual(instanceId, t.instanceId);
             Assert.AreEqual(1, t.labelId);
             Assert.AreEqual(9, t.keypoints.Length);
 
@@ -1036,8 +1142,8 @@ namespace GroundTruthTests
         }
 
         public static IEnumerable<(CheckDistanceType checkDistanceType, Vector3 origin, Vector3 objectScale, Quaternion rotation,
-                float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded)>
-            Keypoint_InsideBox_RespectsThreshold_TestCases()
+            float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded)>
+        Keypoint_InsideBox_RespectsThreshold_TestCases()
         {
             foreach (var checkDistanceType in new[] {CheckDistanceType.Global, CheckDistanceType.JointLabel})
             {
@@ -1139,7 +1245,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_InsideBox_RespectsThreshold(
             [ValueSource(nameof(Keypoint_InsideBox_RespectsThreshold_TestCases))]
-            (CheckDistanceType checkDistanceType, Vector3 origin, Vector3 objectScale, Quaternion rotation,
+                (CheckDistanceType checkDistanceType, Vector3 origin, Vector3 objectScale, Quaternion rotation,
                 float checkDistance, float pointDistance, float cameraFieldOfView, bool expectOccluded) args,
             [Values(ProjectionKind.Orthographic, ProjectionKind.Projection)] ProjectionKind projectionKind)
         {
@@ -1163,11 +1269,11 @@ namespace GroundTruthTests
                 camComponent.orthographicSize = .5f;
             }
             var cube = GameObject.Find("Cube");
-            TestHelper.SetupLabeledCube(cube, scale: 1f, x: args.origin.x, y: args.origin.y, z: args.origin.z);
+            TestHelper.SetupLabeledObject(cube, scale: 1f, x: args.origin.x, y: args.origin.y, z: args.origin.z);
             cube.transform.localScale = args.objectScale;
             cube.transform.localRotation = args.rotation;
             var localSelfOcclusionDistance = args.checkDistanceType == CheckDistanceType.JointLabel ? (float?)args.checkDistance : null;
-            SetupCubeJoint(cube, "Center", 0f, 0f, -.5f + args.pointDistance, localSelfOcclusionDistance);
+            SetupCubeJoint(cube, "Center", 0f, 0f, args.pointDistance - 0.5f, localSelfOcclusionDistance);
 
             cube.SetActive(true);
             cam.SetActive(true);
@@ -1176,7 +1282,7 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(cube);
 
             //for (int i = 0; i < 10000; i++)
-             yield return null;
+            yield return null;
 
             //force all async readbacks to complete
             DestroyTestObject(cam);
@@ -1195,9 +1301,8 @@ namespace GroundTruthTests
             yield return null;
         }
 
-
         public static IEnumerable<(Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, bool expectOccluded)>
-            Keypoint_OnCorner_OfRotatedScaledBox_RespectsThreshold_TestCases()
+        Keypoint_OnCorner_OfRotatedScaledBox_RespectsThreshold_TestCases()
         {
             yield return (
                 new Vector3(90f, 90f, 10f),
@@ -1234,7 +1339,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_OnCorner_OfRotatedScaledBox_RespectsThreshold(
             [ValueSource(nameof(Keypoint_OnCorner_OfRotatedScaledBox_RespectsThreshold_TestCases))]
-            (Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, bool expectOccluded) args)
+                (Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, bool expectOccluded) args)
         {
             var incoming = new List<List<KeypointComponent>>();
             var labelerSelfOcclusionDistance = 0.5f;
@@ -1251,7 +1356,7 @@ namespace GroundTruthTests
             cam.transform.localPosition = new Vector3(0, 0, -95f);
 
             var cube = GameObject.Find("Cube");
-            TestHelper.SetupLabeledCube(cube, scale: 1f);
+            TestHelper.SetupLabeledObject(cube, scale: 1f);
             cube.transform.localScale = args.objectScale;
             cube.transform.localRotation = args.rotation;
             SetupCubeJoint(cube, "Center", args.pointLocalPosition.x, args.pointLocalPosition.y, args.pointLocalPosition.z, args.checkDistance);
@@ -1263,7 +1368,7 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(cube);
 
             //for (int i = 0; i < 10000; i++)
-             yield return null;
+            yield return null;
 
             //force all async readbacks to complete
             DestroyTestObject(cam);
@@ -1276,7 +1381,7 @@ namespace GroundTruthTests
         }
 
         public static IEnumerable<(Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, float overrideScalar, bool expectOccluded)>
-            Keypoint_OnCorner_OfRotatedScaledBox_RespectsModelOverrideThreshold_TestCases()
+        Keypoint_OnCorner_OfRotatedScaledBox_RespectsModelOverrideThreshold_TestCases()
         {
             yield return (
                 new Vector3(90f, 90f, 10f),
@@ -1325,7 +1430,7 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator Keypoint_OnCorner_OfRotatedScaledBox_RespectsModelOverrideThreshold(
             [ValueSource(nameof(Keypoint_OnCorner_OfRotatedScaledBox_RespectsModelOverrideThreshold_TestCases))]
-            (Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, float overrideScalar, bool expectOccluded) args)
+                (Vector3 objectScale, Quaternion rotation, float checkDistance, Vector3 pointLocalPosition, float overrideScalar, bool expectOccluded) args)
         {
             var incoming = new List<List<KeypointComponent>>();
             var labelerSelfOcclusionDistance = 0.5f;
@@ -1356,7 +1461,7 @@ namespace GroundTruthTests
             AddTestObjectForCleanup(cube);
 
             //for (int i = 0; i < 10000; i++)
-             yield return null;
+            yield return null;
 
             //force all async readbacks to complete
             DestroyTestObject(cam);
@@ -1371,7 +1476,7 @@ namespace GroundTruthTests
         public static GameObject SetupLabeledCube(float scale = 10, string label = "label", float x = 0, float y = 0,
             float z = 0, float roll = 0, float pitch = 0, float yaw = 0)
         {
-            return TestHelper.SetupLabeledCube(GameObject.Find("Cube"), scale, label, x, y, z, roll, pitch, yaw);
+            return TestHelper.SetupLabeledObject(GameObject.Find("Cube"), scale, label, x, y, z, roll, pitch, yaw);
         }
 
         [UnityTest]
@@ -1395,7 +1500,7 @@ namespace GroundTruthTests
                     for (int y = 0; y < count.y; y++)
                     {
                         var cube = GameObject.Instantiate(cubeBase);
-                        TestHelper.SetupLabeledCube(
+                        TestHelper.SetupLabeledObject(
                             cube,
                             scale: rect.width / count.x - .001f,
                             x: rect.width / count.x * x + rect.xMin,
@@ -1413,7 +1518,7 @@ namespace GroundTruthTests
 
             AddTestObjectForCleanup(cam);
 
-            //TestHelper.LoadAndStartRenderDocCapture();
+            // TestHelper.LoadAndStartRenderDocCapture();
             yield return null;
 
             PlaceObjects(new Rect(0, 0, 4, 4), 0, new Vector2Int(25, 25));
@@ -1424,7 +1529,7 @@ namespace GroundTruthTests
             DestroyTestObject(cam);
             texture.Release();
 
-            //TestHelper.EndCaptureRenderDoc();
+            // TestHelper.EndCaptureRenderDoc();
 
             Assert.AreEqual(2, incoming.Count);
 
@@ -1442,6 +1547,127 @@ namespace GroundTruthTests
                     entry.keypoints.Skip(4).Take(4).Select(k => k.state),
                     $"State mismatch on back in entry {idx}");
                 idx++;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Keypoint_DeleteAndRecreateForegroundRandomizer()
+        {
+            SceneManager.LoadScene("Keypoint_Null_Check_On_Animator", LoadSceneMode.Additive);
+            AddSceneForCleanup("Keypoint_Null_Check_On_Animator");
+            yield return null;
+
+            var prefab = GameObject.Find("LabeledAndRandomized");
+
+            var scenarioGO = new GameObject("scenario");
+            AddTestObjectForCleanup(scenarioGO);
+            var scenario = scenarioGO.AddComponent<FixedLengthScenario>();
+            var randomizer = new DeleteAndRecreateForegroundRandomizer();
+
+            randomizer.prefabs = new CategoricalParameter<GameObject>();
+            randomizer.prefabs.SetOptions(new[] { prefab });
+
+            scenario.AddRandomizer(randomizer);
+            scenario.AddRandomizer(new AnimationRandomizer());
+            scenario.constants.iterationCount = 10;
+            scenario.constants.totalIterations = 10;
+            scenario.constants.startIteration = 0;
+
+            // wait for a few frames
+            for (var i = 0; i < 6; i++)
+            {
+                yield return null;
+            }
+
+            //No error logs should be at this point
+            Assert.AreEqual(0, 0);
+        }
+
+        [UnityTest]
+        public IEnumerator Keypoint_ForegroundObjectPlacementRandomizer()
+        {
+            SceneManager.LoadScene("Keypoint_Null_Check_On_Animator_Foreground", LoadSceneMode.Additive);
+            AddSceneForCleanup("Keypoint_Null_Check_On_Animator_Foreground");
+            yield return null;
+
+            var prefab = GameObject.Find("LabeledAndRandomized_Foreground");
+            var scenarioGO = new GameObject("scenario");
+            AddTestObjectForCleanup(scenarioGO);
+
+            var scenario = scenarioGO.AddComponent<FixedLengthScenario>();
+            var randomizer = new ForegroundObjectPlacementRandomizer();
+            randomizer.placementArea = new Vector2(1, 10);
+            randomizer.depth = 5;
+            randomizer.prefabs = new CategoricalParameter<GameObject>();
+            randomizer.prefabs.SetOptions(new[] { prefab });
+
+            scenario.AddRandomizer(randomizer);
+            scenario.AddRandomizer(new AnimationRandomizer());
+            scenario.constants.iterationCount = 10;
+            scenario.constants.totalIterations = 10;
+            scenario.constants.startIteration = 0;
+
+            // wait for a few frames
+            for (var i = 0; i < 6; i++)
+            {
+                yield return null;
+            }
+
+            //No error logs should be at this point
+            Assert.AreEqual(0, 0);
+        }
+
+        [AddRandomizerMenu("")]
+        internal class DeleteAndRecreateForegroundRandomizer : Randomizer
+        {
+            /// <summary>
+            /// The list of prefabs sample and randomly place
+            /// </summary>
+            [Tooltip("The list of Prefabs to be placed by this Randomizer.")]
+            public CategoricalParameter<GameObject> prefabs;
+
+            GameObject m_Instance;
+
+            /// <inheritdoc/>
+            protected override void OnAwake()
+            {
+            }
+
+            /// <inheritdoc/>
+            protected override void OnDestroy()
+            {
+                if (m_Instance != null)
+                {
+                    GameObject.Destroy(m_Instance);
+                    m_Instance = null;
+                }
+            }
+
+            /// <summary>
+            /// Generates a foreground layer of objects at the start of each scenario iteration
+            /// </summary>
+            protected override void OnIterationStart()
+            {
+                if (m_Instance != null)
+                {
+                    GameObject.Destroy(m_Instance);
+                    m_Instance = null;
+                }
+                m_Instance = GameObject.Instantiate(prefabs.Sample());
+                m_Instance.SetActive(true);
+                m_Instance.transform.position = Vector3.zero;
+            }
+
+            /// <summary>
+            /// Deletes generated foreground objects after each scenario iteration is complete
+            /// </summary>
+            protected override void OnIterationEnd()
+            {
+                if (m_Instance != null)
+                {
+                    GameObject.Destroy(m_Instance);
+                    m_Instance = null;
+                }
             }
         }
     }

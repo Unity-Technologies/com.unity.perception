@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Labelers;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Perception.GroundTruth.Sensors;
+using UnityEngine.Perception.Randomization.Scenarios;
 
 namespace UnityEngine.Perception.Analytics
 {
@@ -44,15 +47,18 @@ namespace UnityEngine.Perception.Analytics
         // same as "firstCaptureFrame" of the Perception Camera
         public int startAtFrame;
         public int framesBetweenCaptures;
+        public int perceptionCameraIndex = -1;
     }
 
     [Serializable]
     class LabelerData
     {
         public string name;
-        public int labelConfigCount;
+        public bool enabled = false;
+        public int perceptionCameraIndex = -1;
+        public int labelConfigCount = -1;
         public string objectFilter = "";
-        public int animationPoseCount;
+        public int animationPoseCount = -1;
 
         public static LabelerData FromLabeler(CameraLabeler labeler)
         {
@@ -61,12 +67,13 @@ namespace UnityEngine.Perception.Analytics
 
             var labelerType = labeler.GetType();
             var labelerName = labelerType.Name;
+
             if (!PerceptionAnalytics.labelerAllowList.Contains(labelerName))
                 return null;
 
-            var labelerData = new LabelerData()
-            {
+            var labelerData = new LabelerData() {
                 name = labelerName,
+                enabled = labeler.enabled
             };
 
             switch (labeler)
@@ -83,7 +90,7 @@ namespace UnityEngine.Perception.Analytics
                 case KeypointLabeler kpl when kpl.idLabelConfig != null:
                     labelerData.labelConfigCount = kpl.idLabelConfig.labelEntries.Count;
                     labelerData.objectFilter = kpl.objectFilter.ToString();
-                    labelerData.animationPoseCount = kpl.animationPoseConfigs.Count;
+                    labelerData.animationPoseCount = kpl.animationPoseConfigs?.Count ?? 0;
                     break;
                 case ObjectCountLabeler ocl when ocl.labelConfig != null:
                     labelerData.labelConfigCount = ocl.labelConfig.labelEntries.Count;
@@ -94,9 +101,38 @@ namespace UnityEngine.Perception.Analytics
                 case RenderedObjectInfoLabeler rol when rol.idLabelConfig != null:
                     labelerData.labelConfigCount = rol.idLabelConfig.labelEntries.Count;
                     break;
+                case OcclusionLabeler occl when occl.idLabelConfig != null:
+                    labelerData.labelConfigCount = occl.idLabelConfig.labelEntries.Count;
+                    break;
             }
 
             return labelerData;
+        }
+    }
+
+    [Serializable]
+    class SensorData
+    {
+        public string type;
+        public int width;
+        public int height;
+        public int perceptionCameraIndex = -1;
+
+        public static SensorData FromCameraSensor(CameraSensor sensor)
+        {
+            if (sensor == null)
+                return null;
+            var sensorData = new SensorData() {
+                type = "Unknown",
+                width = sensor.pixelWidth,
+                height = sensor.pixelHeight
+            };
+
+            if (sensor is UnityCameraSensor _) {
+                sensorData.type = "Unity Camera";
+            }
+
+            return sensorData;
         }
     }
 
@@ -197,10 +233,12 @@ namespace UnityEngine.Perception.Analytics
                 // If member is either a categorical or numeric parameter
                 if (memberType.IsSubclassOf(typeof(Parameter)))
                 {
+                    var type = memberType.IsSubclassOf(typeof(CategoricalParameterBase))
+                        ? "CategoricalParameter" : memberType.Name;
                     var pd = new ParameterData()
                     {
                         name = field.Name,
-                        type = memberType.Name,
+                        type = type,
                         fields = new List<ParameterField>()
                     };
 
@@ -264,46 +302,97 @@ namespace UnityEngine.Perception.Analytics
     class ScenarioCompletedData
     {
         public string platform;
-        public PerceptionCameraData perceptionCamera;
+        public PerceptionCameraData[] perceptionCameras;
+        public SensorData[] sensors;
         public LabelerData[] labelers;
         public RandomizerData[] randomizers;
+        public int framesPerIteration = -1;
+        public int iterationsRun = -1;
+        public int iterationsPlanned = -1;
+        public int totalFrameCount = -1;
+        public int startIteration = -1;
 
-        internal static ScenarioCompletedData FromCameraAndRandomizers(
-            PerceptionCamera cam,
-            IEnumerable<Randomizer> randomizers
+        internal static ScenarioCompletedData FromCamerasAndRandomizers(
+            PerceptionCamera[] cams,
+            ScenarioBase scenario
         )
         {
-            var data = new ScenarioCompletedData()
-            {
-                platform = Application.platform.ToString()
+            var data = new ScenarioCompletedData {
+                platform = Application.platform.ToString(),
+                perceptionCameras = new PerceptionCameraData[cams.Length]
             };
 
-            if (cam != null)
+            // Record data from all Perception cameras
+            var allLabelerData = new List<LabelerData>();
+            var allPerceptionCameraData = new List<PerceptionCameraData>();
+            var allSensorData = new List<SensorData>();
+
+            // for all perception cameras
+            for (var i = 0; i < cams.Length; i++)
             {
+                var cam = cams[i];
+                if (cam == null)
+                    continue;
+
                 // Perception Camera Data
-                data.perceptionCamera = new PerceptionCameraData()
+                var perceptionCameraData = new PerceptionCameraData()
                 {
                     captureTriggerMode = cam.captureTriggerMode.ToString(),
                     startAtFrame = cam.firstCaptureFrame,
-                    framesBetweenCaptures = cam.framesBetweenCaptures
+                    framesBetweenCaptures = cam.framesBetweenCaptures,
+                    perceptionCameraIndex = i
                 };
+                allPerceptionCameraData.Add(perceptionCameraData);
+
+                // Sensor Data
+                var sensorData = SensorData.FromCameraSensor(cam.cameraSensor);
+                if (sensorData != null)
+                {
+                    sensorData.perceptionCameraIndex = i;
+                    allSensorData.Add(sensorData);
+                }
 
                 // Labeler Data
-                data.labelers = cam.labelers
-                    .Select(LabelerData.FromLabeler)
-                    .Where(labeler => labeler != null).ToArray();
+                foreach (var labeler in cam.labelers)
+                {
+                    if (labeler == null)
+                        continue;
+
+                    var labelerData = LabelerData.FromLabeler(labeler);
+                    if (labelerData == null)
+                        continue;
+
+                    labelerData.perceptionCameraIndex = i;
+                    allLabelerData.Add(labelerData);
+                }
             }
 
-            var randomizerList = randomizers.ToArray();
-            if (randomizerList.Any())
+            data.perceptionCameras = allPerceptionCameraData.ToArray();
+            data.sensors = allSensorData.ToArray();
+            data.labelers = allLabelerData.ToArray();
+
+            if (scenario != null)
             {
-                data.randomizers = randomizerList
-                    .Select(RandomizerData.FromRandomizer)
-                    .Where(x => x != null).ToArray();
-            }
-            else
-            {
-                data.randomizers = new RandomizerData[] { };
+                data.totalFrameCount = scenario.framesSinceInitialization;
+                data.iterationsRun = scenario.currentIteration;
+                if (scenario is FixedLengthScenario fls) {
+                    data.framesPerIteration = fls.framesPerIteration;
+                    data.iterationsPlanned = fls.constants.iterationCount;
+                    data.startIteration = fls.constants.startIteration;
+                }
+
+                // Randomizers
+                var randomizerList = scenario.randomizers.ToArray();
+                if (randomizerList.Any())
+                {
+                    data.randomizers = randomizerList
+                        .Select(RandomizerData.FromRandomizer)
+                        .Where(x => x != null).ToArray();
+                }
+                else
+                {
+                    data.randomizers = new RandomizerData[] { };
+                }
             }
 
             return data;

@@ -1,10 +1,15 @@
-﻿using UnityEngine.Perception.GroundTruth.DataModel;
+using System;
+using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.Serialization;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// An instance segmentation entry
     /// </summary>
+    [Serializable]
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public struct InstanceSegmentationEntry
     {
         /// <summary>
@@ -22,7 +27,8 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The color (rgba) value
         /// </summary>
-        public Color32 rgba { get; set; }
+        [field: FormerlySerializedAs("rgba")]
+        public Color32 color { get; set; }
 
         /// <inheritdoc/>
         public void ToMessage(IMessageBuilder builder)
@@ -30,7 +36,7 @@ namespace UnityEngine.Perception.GroundTruth
             builder.AddInt("instanceId", instanceId);
             builder.AddInt("labelId", labelId);
             builder.AddString("labelName", labelName);
-            builder.AddIntArray("color", MessageBuilderUtils.ToIntVector(rgba));
+            builder.AddIntArray("color", MessageBuilderUtils.ToIntVector(color));
         }
     }
 }

@@ -4,7 +4,8 @@ using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.RandomizationTests.ScenarioTests
 {
-    public class AllMembersAndParametersTestRandomizer: Randomizer
+    [AddRandomizerMenu("")]
+    public class AllMembersAndParametersTestRandomizer : Randomizer
     {
         // Members
         public bool booleanMember = false;
@@ -45,6 +46,6 @@ namespace UnityEngine.Perception.RandomizationTests.ScenarioTests
             z = new AnimationCurveSampler(),
             w = new UniformSampler(-12, 42)
         };
-        public ColorRgbCategoricalParameter colorRgbCategoricalParam = new ColorRgbCategoricalParameter();
+        public CategoricalParameter<Color> colorRgbCategoricalParam = new CategoricalParameter<Color>();
     };
 }

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Scenarios;
@@ -138,7 +138,8 @@ namespace UnityEditor.Perception.Randomization
                         break;
                     }
                 }
-            } while (iterator.NextVisible(false));
+            }
+            while (iterator.NextVisible(false));
 
             if (!foundProperties)
                 m_InspectorPropertiesContainer.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);

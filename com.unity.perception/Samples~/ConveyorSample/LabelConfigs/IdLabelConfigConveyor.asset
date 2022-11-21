@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f09f279848e42cea259348b13bce4c5, type: 3}
+  m_Name: IdLabelConfigConveyor
+  m_EditorClassIdentifier: 
+  m_LabelEntries:
+  - label: cup_paper_01
+    id: 1
+    hierarchyRelation: 0
+  - label: cup_paper_02
+    id: 2
+    hierarchyRelation: 0
+  - label: tincan_01
+    id: 3
+    hierarchyRelation: 0
+  - label: bottle_glass_01
+    id: 4
+    hierarchyRelation: 0
+  - label: bottle
+    id: 5
+    hierarchyRelation: 0
+  - label: bottle_glass_01_prefab
+    id: 6
+    hierarchyRelation: 0
+  autoAssignIds: 1
+  startingLabelId: 1

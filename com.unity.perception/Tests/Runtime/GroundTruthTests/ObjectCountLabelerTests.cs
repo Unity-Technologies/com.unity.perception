@@ -8,12 +8,10 @@ using Unity.Collections;
 #endif
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
-#if HDRP_PRESENT
-using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.HighDefinition;
-#endif
 
 namespace GroundTruthTests
 {
@@ -28,9 +26,12 @@ namespace GroundTruthTests
             // ReSharper disable once ObjectCreationAsStatement
             Assert.Throws<ArgumentNullException>(() => new ObjectCountLabeler(null));
         }
+
         [UnityTest]
         public IEnumerator ProducesCorrectValuesWithChangingObjects()
         {
+            TearDown();
+
             var label = "label";
             var labelingConfiguration = ScriptableObject.CreateInstance<IdLabelConfig>();
 
@@ -44,18 +45,16 @@ namespace GroundTruthTests
             });
 
             var receivedResults = new List<(uint[] counts, IdLabelEntry[] labels, int frameCount)>();
-
             var cameraObject = SetupCamera(labelingConfiguration, (frameCount, counts, labels) =>
             {
                 receivedResults.Add((counts.ToArray(), labels.ToArray(), frameCount));
             });
             AddTestObjectForCleanup(cameraObject);
 
-            //TestHelper.LoadAndStartRenderDocCapture(out EditorWindow gameView);
             var startFrameCount = Time.frameCount;
             var expectedFramesAndCounts = new Dictionary<int, int>()
             {
-                {Time.frameCount    , 0},
+                {startFrameCount    , 0},
                 {startFrameCount + 1, 1},
                 {startFrameCount + 2, 1},
                 {startFrameCount + 3, 2},
@@ -63,26 +62,31 @@ namespace GroundTruthTests
                 {startFrameCount + 5, 1},
             };
 
+            // Frame: 0 | Nothing on camera
             yield return null;
             //Put a plane in front of the camera
             var planeObject = TestHelper.CreateLabeledPlane(.1f, label);
+            // Frame: 1 | 1 Plane on camera
             yield return null;
             Object.DestroyImmediate(planeObject);
             planeObject = TestHelper.CreateLabeledPlane(.1f, label);
+            // Frame: 2 | 1 Plane on camera
             yield return null;
             var planeObject2 = TestHelper.CreateLabeledPlane(.1f, label);
-            planeObject2.transform.Translate(.5f, 0, 0);
-
+            planeObject2.transform.Translate(.5f, 0, 0.1f);
+            // Frame: 3 | 2 Planes on camera
             yield return null;
             Object.DestroyImmediate(planeObject);
+            // Frame: 4 | 1 Plane on camera
             yield return null;
+            // Frame: 5 | 1 Plane on camera
             yield return null;
-
             Object.DestroyImmediate(planeObject2);
             //destroy the object to force all pending segmented image readbacks to finish and events to be fired.
             DestroyTestObject(cameraObject);
 
-            //RenderDoc.EndCaptureRenderDoc(gameView);
+            yield return null;
+            yield return null;
 
             foreach (var result in receivedResults)
             {

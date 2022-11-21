@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
 
@@ -24,8 +24,8 @@ namespace RandomizationTests.ParameterTests
                 new Vector3Parameter(),
                 new Vector4Parameter(),
                 new ColorHsvaParameter(),
-                new StringParameter(),
-                new MaterialParameter()
+                new CategoricalParameter<string>(),
+                new CategoricalParameter<Material>()
             };
         }
 

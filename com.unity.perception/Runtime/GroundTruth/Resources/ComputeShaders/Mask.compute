@@ -1,0 +1,21 @@
+﻿#pragma kernel Mask
+
+Texture2D<float> inputTexture;
+Texture2D<float4> maskTexture;
+RWTexture2D<float> outputTexture;
+
+[numthreads(16, 16, 1)]
+void Mask(uint3 threadId : SV_DispatchThreadID)
+{
+    // Identify the weight for the current pixel.
+    const float pixelWeight = inputTexture[threadId.xy];
+
+    // Sample a pixel from object mask texture.
+    const float4 maskPixel = maskTexture[threadId.xy];
+
+    // Use the mask pixel to determine whether the input pixel should be hidden.
+    const bool visibility = any(maskPixel > float4(0, 0, 0, 0));
+
+    // Hide the current pixel if the sampled mask pixel is not visible.
+    outputTexture[threadId.xy] = visibility * pixelWeight;
+}

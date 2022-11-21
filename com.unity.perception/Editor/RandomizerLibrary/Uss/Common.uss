@@ -1,0 +1,284 @@
+/* Foundation */
+.internal__group_container {
+    padding: 8px 8px;
+    background-color: rgba(0, 0, 0, 0.12);
+    margin: 2px 0;
+}
+
+.internal__list {
+    height: 320px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-width: 1px;
+    border-radius: 4px;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+.internal__list .unity-list-view__item--selected {
+    background-color: rgba(0, 0, 0, 0);
+}
+.internal__list .unity-list-view__item:hover {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* Elements */
+.circle_button {
+    padding: 2px;
+    background-color: rgba(80, 80, 80, 0.7);
+}
+
+/*** Material Property UI ***/
+/* Material Property Tag */
+.internal_mat_prop_tag #top_warning {
+    white-space: normal;
+}
+.internal_mat_prop_tag #parameter_top_menu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.internal_mat_prop_tag #parameter_control_container {
+    display: flex;
+    flex-direction: row;
+    margin-top: 8px;
+}
+.internal_mat_prop_tag #parameter_popup_container {
+    flex-grow: 5;
+}
+/* Material Property InternalShaderProperty List Item Drawer */
+.internal_mat_prop_drawer {
+    padding: 4px 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.75);
+}
+.internal_mat_prop_drawer.odd_row {
+    background-color: rgba(0, 0, 0, 0.35);
+}
+.internal_mat_prop_drawer #upper_row {
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2px;
+    padding: 2px 0;
+}
+.internal_mat_prop_drawer #property_info {
+    padding: 16px 8px;
+    -unity-text-align: middle-left;
+    flex-grow: 4;
+    font-size: 14px;
+}
+.internal_mat_prop_drawer #delete_button {
+    max-width: 20px;
+    max-height: 20px;
+    flex-grow: 1;
+}
+.internal_mat_prop_drawer #parameter_property {
+    height: auto;
+    min-height: 40px;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 8px 4px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+}
+
+/* Messages */
+.internal__list {
+    height: 90px;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.internal__list_item_container {
+    display: flex;
+    flex-direction: row;
+}
+.internal__list_item_container:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.internal__list_item {
+    height: auto;
+    padding: 8px 16px;
+    flex-grow: 1;
+}
+
+.internal__list_item_button {
+    margin: 6px 8px;
+    border-radius: 4px;
+}
+
+/* Substance Randomizer */
+.internal_substance_tag #parameters {
+    height: 160px;
+    background-color: rgba(255, 255, 255, 0.075);
+    margin: 2px 4px;
+    border-radius: 4px;
+}
+.internal_substance_tag #parameter_top_bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 2px 6px;
+}
+.internal_substance_tag #parameter_control_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.internal_substance_tag #parameter_popup_container {
+    flex-grow: 1;
+}
+.internal_substance_tag #parameter_popup_label {
+    -unity-text-align: middle-left;
+    padding: 0 6px;
+}
+.internal_substance_list_item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 30px;
+    padding: 3px 6px;
+    margin: 1px;
+}
+.internal_substance_list_item #item_label {
+    -unity-text-align: middle-left;
+}
+
+.internal__list {
+    height: 90px;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.internal__list_item_container {
+    display: flex;
+    flex-direction: row;
+}
+.internal__list_item_container:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.internal__list_item {
+    height: auto;
+    padding: 8px 16px;
+    flex-grow: 1;
+}
+
+.internal__list_item_button {
+    margin: 6px 8px;
+    border-radius: 4px;
+}
+
+/* Substance Randomizer */
+.internal_substance_tag #parameters {
+    height: 160px;
+    background-color: rgba(255, 255, 255, 0.075);
+    margin: 2px 4px;
+    border-radius: 4px;
+}
+.internal_substance_tag #parameter_top_bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 2px 6px;
+}
+.internal_substance_tag #parameter_control_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.internal_substance_tag #parameter_popup_container {
+    flex-grow: 1;
+}
+.internal_substance_tag #parameter_popup_label {
+    -unity-text-align: middle-left;
+    padding: 0 6px;
+}
+.internal_substance_list_item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 30px;
+    padding: 3px 6px;
+    margin: 1px;
+}
+.internal_substance_list_item #item_label {
+    -unity-text-align: middle-left;
+}
+
+/* Volume Randomizer */
+.internal_vol_tag {
+    padding: 8px 16px 8px 0;
+}
+.internal_vol_tag #delete_button_container {
+    display: flex;
+    flex-direction: row;
+}
+.internal_vol_tag #delete_button_container #effect_chance {
+    flex-grow: 1;
+}
+.internal_vol_tag #delete_button_container #effect_chance > .unity-base-slider__input {
+    padding: 0 8px;
+}
+.internal_vol_tag #effect_options_container {
+    display: flex;
+    flex-direction: row;
+    padding-top: 8px;
+}
+.internal_vol_tag #available_effects_container {
+    flex-grow: 1;
+}
+.internal_vol_tag #effect_container {
+    margin-top: 8px;
+}
+.internal_vol_tag #effect_container #single_effect_container {
+    padding: 8px 8px 8px 8px;
+    background-color: rgba(0, 0, 0, 0.24);
+    margin-bottom: 8px;
+    border-radius: 8px;
+    position: relative;
+}
+
+.internal_vol_tag .internal_vol_tag_effect #top_container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.internal_vol_tag .internal_vol_tag_effect #effect_prop > Foldout > Toggle {
+    font-size: 14px;
+    -unity-font-style: bold;
+    position: absolute;
+    left: 22px;
+    top: -22px;
+}
+.internal_vol_tag .internal_vol_tag_effect #effect_prop > Foldout > Toggle #unity-checkmark {
+    margin: 4px 8px 4px 4px;
+}
+.internal_vol_tag .internal_vol_tag_effect #effect_prop > Foldout > #unity-content {
+    margin-top: 8px;
+}
+
+    /* Messages */
+.internal__message {
+    margin: 6px 3px;
+    padding: 8px 8px;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    -unity-font-style: bold;
+}
+.internal__message.info {
+    background-color: rgba(95, 158, 160, 0.45);
+}
+.internal__message.warning {
+    background-color: rgb(130, 30, 0);
+}
+
+/* Utility Classes */
+.flex_row {
+    display: flex;
+    flex-direction: row;
+}
+.flex_col {
+    display: flex;
+    flex-direction: column;
+}

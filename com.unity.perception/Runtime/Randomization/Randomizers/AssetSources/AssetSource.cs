@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Perception.Randomization.Samplers;
 
 namespace UnityEngine.Perception.Randomization

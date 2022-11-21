@@ -1,0 +1,175 @@
+// Some code adapted from https://github.com/Unity-Technologies/MeshApiExamples/blob/master/Assets/ProceduralWaterMesh/WaterComputeShader.compute
+#pragma enable_d3d11_debug_symbols
+
+#pragma kernel AABBReduceFromVertices
+#pragma kernel AABBReduceFromAABBs
+
+#define GROUP_THREAD_WIDTH 1024
+#define GROUP_THREAD_COUNT GROUP_THREAD_WIDTH
+
+ByteAddressBuffer vertexBuffer;
+RWStructuredBuffer<float3> bb3dOut;
+float4x4 gRootToLabeledObjectTransform;
+int gStrideBytes;
+int gVertexCount;
+
+groupshared float2x3 sharedMemory[GROUP_THREAD_COUNT];
+
+float2x3 Reduce(float2x3 first, float2x3 second)
+{
+    return float2x3(min(first[0], second[0]), max(first[1], second[1]));
+}
+
+inline void ReduceParallel(uint3 threadId, uint groupIndex)
+{
+}
+
+// This kernel is an implementation of a parallel sum reduction.
+//
+// This kernel calculates the sum of all the float values in a thread group and writes the sum back to the
+// original texture, but at an index corresponding to the id of the thread group the sum was aggregated from.
+//
+// Example: calculating the sum of all the values in a 512x512 float texture. Since each thread group is of size 32x32,
+// this particular work load would require 256 thread groups to be dispatched to create 256 partial sums.
+// By dispatching this kernel multiple times on the same texture, these intermediate partial sums will
+// eventually combine into a sum for the whole texture.
+//
+// This kernel's execution is broken into multiple dispatches to utilize faster lookup performance of on device
+// shared memory in instead of performing slower reads and writes directly on the input texture.
+[numthreads(GROUP_THREAD_WIDTH, 1, 1)]
+void AABBReduceFromVertices(
+    uint3 threadId   : SV_DispatchThreadId,
+    uint  groupIndex : SV_GroupIndex)
+{
+    // Cache one input buffer value per thread in this thread group in the allocated shared memory array.
+    // All threads should be synced after memory writes to prevent race-conditions.
+    int idx = min(gVertexCount - 1, threadId.x);
+
+    // We assume the float3 position is at the beginning of each value, which is gStrideBytes long
+    int vidx = idx * gStrideBytes;
+    uint3 praw = vertexBuffer.Load3(vidx);
+    float3 p = asfloat(praw);
+    p = mul(gRootToLabeledObjectTransform, float4(p, 1.0)).xyz;
+    sharedMemory[groupIndex] = float2x3(p, p);
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Calculate the sum of all the values stored in shared memory using a tree reduction.
+    // Each value will be added together with another value at an index offset by an iteratively decreasing power of 2.
+    // The sum of each pair is written back to the first's index, and the sequence continues with half the number of
+    // pairs. This continues until the sum for the entire thread group is calculated.
+    if (groupIndex < 512)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 512]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 256)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 256]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 128)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 128]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 64)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 64]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 32)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 32]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 16)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 16]);
+    GroupMemoryBarrierWithGroupSync();
+
+
+    if (groupIndex < 8)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 8]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 4)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 4]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 2)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 2]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 1)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 1]);
+    GroupMemoryBarrierWithGroupSync();
+    ReduceParallel(threadId, groupIndex);
+
+    // After the sum of the entire thread group is calculated and stored at index 0 of the shared memory array,
+    // write the result back to the texture at an index corresponding to the id of the entire thread group.
+    if (groupIndex == 0)
+    {
+        bb3dOut[threadId.x / GROUP_THREAD_WIDTH * 2] = sharedMemory[0][0];
+        bb3dOut[threadId.x / GROUP_THREAD_WIDTH * 2 + 1] = sharedMemory[0][1];
+    }
+}
+
+[numthreads(GROUP_THREAD_WIDTH, 1, 1)]
+void AABBReduceFromAABBs(
+    uint3 threadId   : SV_DispatchThreadId,
+    uint  groupIndex : SV_GroupIndex)
+{
+    int totalBbs = (gVertexCount + GROUP_THREAD_WIDTH - 1) / GROUP_THREAD_WIDTH;
+    int idx = min(threadId.x, totalBbs - 1);
+    sharedMemory[groupIndex] = float2x3(bb3dOut[idx * 2], bb3dOut[idx * 2 + 1]);
+    GroupMemoryBarrierWithGroupSync();
+
+    // Calculate the sum of all the values stored in shared memory using a tree reduction.
+    // Each value will be added together with another value at an index offset by an iteratively decreasing power of 2.
+    // The sum of each pair is written back to the first's index, and the sequence continues with half the number of
+    // pairs. This continues until the sum for the entire thread group is calculated.
+    if (groupIndex < 512)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 512]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 256)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 256]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 128)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 128]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 64)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 64]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 32)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 32]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 16)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 16]);
+    GroupMemoryBarrierWithGroupSync();
+
+
+    if (groupIndex < 8)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 8]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 4)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 4]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 2)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 2]);
+    GroupMemoryBarrierWithGroupSync();
+
+    if (groupIndex < 1)
+        sharedMemory[groupIndex] = Reduce(sharedMemory[groupIndex], sharedMemory[groupIndex + 1]);
+    GroupMemoryBarrierWithGroupSync();
+    ReduceParallel(threadId, groupIndex);
+
+    // After the sum of the entire thread group is calculated and stored at index 0 of the shared memory array,
+    // write the result back to the texture at an index corresponding to the id of the entire thread group.
+    if (groupIndex == 0)
+    {
+        bb3dOut[threadId.x / GROUP_THREAD_WIDTH * 2] = sharedMemory[0][0];
+        bb3dOut[threadId.x / GROUP_THREAD_WIDTH * 2 + 1] = sharedMemory[0][1];
+    }
+}

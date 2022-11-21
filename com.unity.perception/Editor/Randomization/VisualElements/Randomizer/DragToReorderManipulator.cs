@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEditor.Perception.Randomization;
+using System;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Perception.Randomization

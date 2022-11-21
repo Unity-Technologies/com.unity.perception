@@ -7,6 +7,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.Settings;
 using UnityEngine.TestTools;
 using Random = UnityEngine.Random;
 
@@ -18,6 +19,8 @@ namespace GroundTruthTests
     {
         IDictionary<SensorHandle, SimulationState.SensorData> m_SensorsReference;
         MethodInfo m_SequenceTimeOfNextCaptureMethod;
+        MethodInfo m_ComputeTotalFramesWithAccumulationMethod;
+
         SimulationState m_State;
 
         internal SimulationStateTestHelper()
@@ -26,6 +29,10 @@ namespace GroundTruthTests
             var bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
             m_SequenceTimeOfNextCaptureMethod = m_State.GetType().GetMethod("GetSequenceTimeOfNextCapture", bindingFlags);
             Debug.Assert(m_SequenceTimeOfNextCaptureMethod != null, "Couldn't find sequence time method.");
+#if HDRP_PRESENT
+            m_ComputeTotalFramesWithAccumulationMethod = m_State.GetType().GetMethod("ComputeTotalFramesWithAccumulation", bindingFlags);
+            Debug.Assert(m_ComputeTotalFramesWithAccumulationMethod != null, "Couldn't find compute total frames method.");
+#endif
             var sensorsField = m_State.GetType().GetField("m_Sensors", bindingFlags);
             Debug.Assert(sensorsField != null, "Couldn't find internal sensors field");
             m_SensorsReference = (IDictionary<SensorHandle, SimulationState.SensorData>)(sensorsField.GetValue(m_State));
@@ -36,6 +43,14 @@ namespace GroundTruthTests
         {
             return (float)m_SequenceTimeOfNextCaptureMethod.Invoke(m_State, new object[] { sensorData });
         }
+
+#if HDRP_PRESENT
+        internal int CallComputeTotalFramesWithAccumulation(int framesPerIteration)
+        {
+            return (int)m_ComputeTotalFramesWithAccumulationMethod.Invoke(m_State, new object[] { framesPerIteration });
+        }
+
+#endif
 
         internal SimulationState.SensorData GetSensorData(SensorHandle sensorHandle)
         {
@@ -69,9 +84,382 @@ namespace GroundTruthTests
                 captureTriggerMode = mode,
                 simulationDeltaTime = deltaTime,
                 framesBetweenCaptures = framesBetween,
-                manualSensorsAffectTiming = manualSensorAffectSimulationTiming
+                manualSensorsAffectTiming = manualSensorAffectSimulationTiming,
             };
         }
+
+        RgbSensorDefinition CreateRgbSensorDefinition(string id, string modality, string def, int firstFrame, CaptureTriggerMode mode, float deltaTime, int framesBetween, bool manualSensorAffectSimulationTiming = false, bool useAccumulation = false)
+        {
+            return new RgbSensorDefinition(id, modality, def)
+            {
+                firstCaptureFrame = firstFrame,
+                captureTriggerMode = mode,
+                simulationDeltaTime = deltaTime,
+                framesBetweenCaptures = framesBetween,
+                manualSensorsAffectTiming = manualSensorAffectSimulationTiming,
+                useAccumulation = useAccumulation
+            };
+        }
+
+#if HDRP_PRESENT
+
+
+        [UnityTest]
+        [TestCase(5, 1, 1, new int[] {0}, new int[] {0}, 1 + 5, ExpectedResult = (IEnumerator)null)]
+        [TestCase(5, 300, 1, new int[] {0}, new int[] {0}, 300 + 300 * 5, ExpectedResult = (IEnumerator)null)]
+        [TestCase(5, 60, 1, new int[] {0}, new int[] {15}, 60 + 4 * 5, ExpectedResult = (IEnumerator)null)]
+        [TestCase(5, 11, 1, new int[] {10}, new int[] {0}, 11 + 5, ExpectedResult = (IEnumerator)null)]
+        [TestCase(5, 11, 1, new int[] {10, 10}, new int[] {10, 10}, 11 + 5, ExpectedResult = (IEnumerator)null)]
+        [TestCase(5, 22, 1, new int[] {10}, new int[] {10}, 22 + 2 * 5, ExpectedResult = (IEnumerator)null)]
+        [TestCase(5, 20, 1, new int[] {0, 0}, new int[] {5, 10}, 20 + 4 * 5, ExpectedResult = (IEnumerator)null)]
+        [TestCase(5, 23, 1, new int[] {0, 10}, new int[] {10, 10}, 23 + 3 * 5, ExpectedResult = (IEnumerator)null)]
+        public IEnumerator FixedLengthScenarioChangesToCorrectFramesPerIteration(int accumulationSamples, int framesPerIteration, int numberOfCameras, int[] startAtFrames, int[] framesBetweenCapture, int expectedFramesPerIteration)
+        {
+            Time.fixedDeltaTime = 0.02f;
+            Time.timeScale = 1;
+
+            PerceptionSettings.instance.accumulationSettings = new AccumulationSettings()
+            {
+                accumulationSamples = accumulationSamples,
+                shutterInterval = 1,
+                shutterFullyOpen = 0,
+                shutterBeginsClosing = 1,
+                adaptFixedLengthScenarioFrames = true
+            };
+
+            yield return null;
+            yield return null;
+            yield return null;
+
+            for (int i = 0; i < numberOfCameras; i++)
+            {
+                DatasetCapture.RegisterSensor(CreateRgbSensorDefinition("cam" + i, "", "", startAtFrames[i], CaptureTriggerMode.Scheduled, 0.0166f, framesBetweenCapture[i], useAccumulation: true));
+            }
+
+            int result = m_TestHelper.CallComputeTotalFramesWithAccumulation(framesPerIteration);
+
+            Assert.AreEqual(expectedFramesPerIteration, result);
+            yield return null;
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator SequenceTimeOfNextCapture_ReportsCorrectTime_WithAccumulation()
+        {
+            var firstCaptureFrame = 2;
+            var simulationDeltaTime = .4f;
+
+            Time.fixedDeltaTime = 0.02f;
+            Time.timeScale = 1;
+
+            PerceptionSettings.instance.accumulationSettings = new AccumulationSettings()
+            {
+                accumulationSamples = 6,
+                shutterInterval = 1,
+                shutterFullyOpen = 0,
+                shutterBeginsClosing = 1,
+                adaptFixedLengthScenarioFrames = true
+            };
+
+            var sensorHandle = DatasetCapture.RegisterSensor(CreateRgbSensorDefinition("cam", "", "", firstCaptureFrame, CaptureTriggerMode.Scheduled, simulationDeltaTime, 0, useAccumulation: true));
+
+            var startTime = firstCaptureFrame * simulationDeltaTime;
+            float[] sequenceTimesExpected =
+            {
+                simulationDeltaTime * (6 + 1) + startTime,
+                simulationDeltaTime * ((6 + 1) * 2) + startTime,
+                simulationDeltaTime * ((6 + 1) * 3) + startTime,
+                simulationDeltaTime * ((6 + 1) * 4) + startTime
+            };
+
+            for (var i = 0; i < 3; i++)
+            {
+                yield return null;
+            }
+
+            for (var i = 0; i < firstCaptureFrame; i++)
+            {
+                //render the non-captured frames before firstCaptureFrame
+                yield return null;
+            }
+
+            for (var i = 0; i < sequenceTimesExpected.Length; i++)
+            {
+                var sensorData = m_TestHelper.GetSensorData(sensorHandle);
+                var sequenceTimeActual = m_TestHelper.CallSequenceTimeOfNextCapture(sensorData);
+                Assert.AreEqual(sequenceTimesExpected[i], sequenceTimeActual, 0.0001f);
+                for (int j = 0; j < (6 + 1); j++)
+                {
+                    yield return null;
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator SequenceTimeOfNextCapture_ReportsCorrectTime_WithAccumulation_WithoutMotionBlur()
+        {
+            var firstCaptureFrame = 2;
+            var simulationDeltaTime = .4f;
+
+            Time.fixedDeltaTime = 0.02f;
+            Time.timeScale = 1;
+
+            PerceptionSettings.instance.accumulationSettings = new AccumulationSettings()
+            {
+                accumulationSamples = 6,
+                shutterInterval = 0,
+                shutterFullyOpen = 0,
+                shutterBeginsClosing = 1,
+                adaptFixedLengthScenarioFrames = true
+            };
+
+            var sensorHandle = DatasetCapture.RegisterSensor(CreateRgbSensorDefinition("cam", "", "", firstCaptureFrame, CaptureTriggerMode.Scheduled, simulationDeltaTime, 0, useAccumulation: true));
+
+            var startTime = firstCaptureFrame * simulationDeltaTime;
+            float[] sequenceTimesExpected =
+            {
+                simulationDeltaTime * (6 + 1) + startTime,
+                simulationDeltaTime * ((6 + 1) * 2) + startTime,
+                simulationDeltaTime * ((6 + 1) * 3) + startTime,
+                simulationDeltaTime * ((6 + 1) * 4) + startTime
+            };
+
+            for (var i = 0; i < 3; i++)
+            {
+                yield return null;
+            }
+
+            for (var i = 0; i < firstCaptureFrame; i++)
+            {
+                //render the non-captured frames before firstCaptureFrame
+                yield return null;
+            }
+
+            for (var i = 0; i < sequenceTimesExpected.Length; i++)
+            {
+                var sensorData = m_TestHelper.GetSensorData(sensorHandle);
+                var sequenceTimeActual = m_TestHelper.CallSequenceTimeOfNextCapture(sensorData);
+                Assert.AreEqual(sequenceTimesExpected[i], sequenceTimeActual, 0.0001f);
+                for (int j = 0; j < (6 + 1); j++)
+                {
+                    yield return null;
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator SequenceTimeOfNextCapture_WithInBetweenFrames_WithAccumulation_ReportsCorrectTime()
+        {
+            var firstCaptureFrame = 2;
+            var simulationDeltaTime = .4f;
+            var framesBetweenCaptures = 2;
+
+            Time.fixedDeltaTime = 0.02f;
+            Time.timeScale = 1;
+
+            PerceptionSettings.instance.accumulationSettings = new AccumulationSettings()
+            {
+                accumulationSamples = 5,
+                shutterInterval = 1,
+                shutterFullyOpen = 0,
+                shutterBeginsClosing = 1,
+                adaptFixedLengthScenarioFrames = true
+            };
+
+            var sensorHandle = DatasetCapture.RegisterSensor(
+                CreateRgbSensorDefinition("cam", "", "", firstCaptureFrame, CaptureTriggerMode.Scheduled, simulationDeltaTime, framesBetweenCaptures, useAccumulation: true));
+
+            var startingFrame = Time.frameCount;
+
+            var startTime = firstCaptureFrame * simulationDeltaTime;
+            var interval = (framesBetweenCaptures) * simulationDeltaTime;
+            float[] sequenceTimesExpected =
+            {
+                startTime + (5 + 1) * simulationDeltaTime,
+                interval + startTime + (5 + 1) * 2 * simulationDeltaTime,
+                interval * 2 + startTime + (5 + 1) * 3 * simulationDeltaTime,
+                interval * 3 + startTime + (5 + 1) * 4 * simulationDeltaTime
+            };
+
+            int[] simulationFramesToCheck =
+            {
+                firstCaptureFrame + (5 + 1) - 1,
+                firstCaptureFrame + (framesBetweenCaptures) + (5 + 1) * 2 - 1,
+                firstCaptureFrame + (framesBetweenCaptures) * 2 + (5 + 1) * 3 - 1,
+                firstCaptureFrame + (framesBetweenCaptures) * 3 + (5 + 1) * 4 - 1,
+            };
+
+            int checkedFrame = 0;
+            var currentSimFrame = Time.frameCount - startingFrame;
+            while (currentSimFrame <= simulationFramesToCheck[simulationFramesToCheck.Length - 1] && checkedFrame < simulationFramesToCheck.Length)
+            {
+                currentSimFrame = Time.frameCount - startingFrame;
+                if (currentSimFrame == simulationFramesToCheck[checkedFrame])
+                {
+                    var sensorData = m_TestHelper.GetSensorData(sensorHandle);
+                    var sequenceTimeActual = m_TestHelper.CallSequenceTimeOfNextCapture(sensorData);
+                    Assert.AreEqual(sequenceTimesExpected[checkedFrame], sequenceTimeActual, 0.0001f);
+                    checkedFrame++;
+                }
+                else
+                {
+                    yield return null;
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator FramesScheduled_WithTimeScale_WithAccumulation_ResultsInProperDeltaTime()
+        {
+            var firstCaptureFrame = 2;
+            var simulationDeltaTime = 1f;
+            var timeScale = 2;
+            Time.timeScale = timeScale;
+
+            PerceptionSettings.instance.accumulationSettings = new AccumulationSettings()
+            {
+                accumulationSamples = 5,
+                shutterInterval = 1,
+                shutterFullyOpen = 0,
+                shutterBeginsClosing = 1,
+                adaptFixedLengthScenarioFrames = true
+            };
+
+            DatasetCapture.RegisterSensor(
+                CreateRgbSensorDefinition("cam", "", "", firstCaptureFrame, CaptureTriggerMode.Scheduled, simulationDeltaTime, 0, useAccumulation: true));
+
+            float[] deltaTimeSamplesExpected =
+            {
+                timeScale * simulationDeltaTime / (5 + 1),
+                timeScale * simulationDeltaTime / (5 + 1),
+                timeScale * simulationDeltaTime / (5 + 1),
+                timeScale * simulationDeltaTime / (5 + 1)
+            };
+            var deltaTimeSamples = new float[deltaTimeSamplesExpected.Length];
+            for (var i = 0; i < deltaTimeSamples.Length; i++)
+            {
+                for (var j = 0; j < 5 + 1; j++)
+                    yield return null;
+                deltaTimeSamples[i] = Time.deltaTime;
+            }
+
+            CollectionAssert.AreEqual(deltaTimeSamplesExpected, deltaTimeSamples);
+        }
+
+        [UnityTest]
+        public IEnumerator ShouldCaptureFlagsMultipleSensorsAndRenderTimesAreCorrectWithAccumulation()
+        {
+            Time.fixedDeltaTime = 0.02f;
+            Time.timeScale = 1;
+
+            PerceptionSettings.instance.accumulationSettings = new AccumulationSettings()
+            {
+                accumulationSamples = 5,
+                shutterInterval = 1,
+                shutterFullyOpen = 0,
+                shutterBeginsClosing = 1,
+                adaptFixedLengthScenarioFrames = true
+            };
+
+            var simDeltaTime = 4;
+
+            var firstCaptureFrame1 = 2;
+            var framesBetweenCaptures1 = 5;
+            var sensor1 = DatasetCapture.RegisterSensor(CreateRgbSensorDefinition("cam1", "", "", firstCaptureFrame1, CaptureTriggerMode.Scheduled, simDeltaTime, framesBetweenCaptures1, useAccumulation: true));
+
+            var firstCaptureFrame2 = 2;
+            var framesBetweenCaptures2 = 10;
+            var sensor2 = DatasetCapture.RegisterSensor(CreateRgbSensorDefinition("cam2", "", "", firstCaptureFrame2, CaptureTriggerMode.Scheduled, simDeltaTime, framesBetweenCaptures2, useAccumulation: true));
+
+            (float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture)[] samplesExpected =
+            {
+                (4, false, false), //Simulation time since sensors created: 4
+                (4 / 6f, false, false),
+                (4 / 6f, false, false),
+                (4 / 6f, false, false),
+                (4 / 6f, false, false),
+                (4 / 6f, true, true),
+                (4 / 6f, false, false),
+                (4, false, false),
+                (4, false, false),
+                (4, false, false),
+                (4, false, false),
+                (4, false, false),
+                (4 / 6f, false, false),
+                (4 / 6f, false, false),
+                (4 / 6f, false, false),
+                (4 / 6f, false, false),
+                (4 / 6f, true, false),
+                (4 / 6f, false, false),
+                (4, false, false),
+            };
+
+            for (var i = 0; i < 3; i++)
+            {
+                yield return null;
+            }
+            var samplesActual = new(float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture)[samplesExpected.Length];
+            for (int i = 0; i < samplesExpected.Length; i++)
+            {
+                samplesActual[i] = (Time.deltaTime, sensor1.ShouldCaptureThisFrame, sensor2.ShouldCaptureThisFrame);
+                yield return null;
+            }
+
+            CollectionAssert.AreEqual(samplesExpected, samplesActual);
+        }
+
+        [UnityTest]
+        [TestCase(5, 1, 6, 12, 18, 24, 30, ExpectedResult = (IEnumerator)null)]
+        [TestCase(5, 10, 50, 560, 620, 680, 740, ExpectedResult = (IEnumerator)null)]
+        [TestCase(5, 55, 0, 330, 660, 990, 1320, ExpectedResult = (IEnumerator)null)]
+        public IEnumerator SequenceTimeOfNextCapture_ReportsCorrectTime_WithAccumulationVariedDeltaTimesAndStartFrames(int accumulationSamples, float simulationDeltaTime, int firstCaptureFrame, float firstCaptureTime, float secondCaptureTime, float thirdCaptureTime, float fourthCaptureTime)
+        {
+            Time.fixedDeltaTime = 0.02f;
+            Time.timeScale = 1;
+
+            PerceptionSettings.instance.accumulationSettings = new AccumulationSettings()
+            {
+                accumulationSamples = accumulationSamples,
+                shutterInterval = 1,
+                shutterFullyOpen = 0,
+                shutterBeginsClosing = 1,
+                adaptFixedLengthScenarioFrames = true
+            };
+
+            var sensorHandle = DatasetCapture.RegisterSensor(CreateRgbSensorDefinition("cam", "", "", firstCaptureFrame, CaptureTriggerMode.Scheduled, simulationDeltaTime, 0, useAccumulation: true));
+
+            float[] sequenceTimesExpected =
+            {
+                firstCaptureTime,
+                secondCaptureTime,
+                thirdCaptureTime,
+                fourthCaptureTime
+            };
+
+            for (var i = 0; i < 3; i++)
+            {
+                yield return null;
+            }
+
+            for (var i = 0; i < firstCaptureFrame; i++)
+            {
+                //render the non-captured frames before firstCaptureFrame
+                yield return null;
+            }
+
+            for (var i = 0; i < sequenceTimesExpected.Length; i++)
+            {
+                var sensorData = m_TestHelper.GetSensorData(sensorHandle);
+                var sequenceTimeActual = m_TestHelper.CallSequenceTimeOfNextCapture(sensorData);
+                Assert.AreEqual(sequenceTimesExpected[i], sequenceTimeActual, 0.0001f);
+                for (int j = 0; j < (5 + 1); j++)
+                {
+                    yield return null;
+                }
+            }
+        }
+
+#endif
 
         [UnityTest]
         public IEnumerator SequenceTimeOfNextCapture_ReportsCorrectTime()
@@ -301,7 +689,7 @@ namespace GroundTruthTests
                 (4, false, false, false), //24
                 (1, false, false, false), //25
             };
-            var samplesActual = new (float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture, bool sensor3ShouldCapture)[samplesExpected.Length];
+            var samplesActual = new(float deltaTime, bool sensor1ShouldCapture, bool sensor2ShouldCapture, bool sensor3ShouldCapture)[samplesExpected.Length];
             for (int i = 0; i < samplesActual.Length; i++)
             {
                 yield return null;
@@ -357,7 +745,7 @@ namespace GroundTruthTests
             while (framesToCaptureOn.Count < 10)
             {
                 var randomFrame = Random.Range(startFrame, startFrame + 100);
-                if(!framesToCaptureOn.Contains(randomFrame))
+                if (!framesToCaptureOn.Contains(randomFrame))
                     framesToCaptureOn.Add(randomFrame);
             }
 

@@ -1,14 +1,16 @@
-﻿using System;
+using System;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
+using UnityEngine.Perception.Randomization.Randomizers.Tags;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Randomizes the material texture of objects tagged with a TextureRandomizerTag
     /// </summary>
     [Serializable]
     [AddRandomizerMenu("Perception/Texture Randomizer")]
+    [MovedFrom("UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")]
     public class TextureRandomizer : Randomizer
     {
         static readonly int k_BaseMap = Shader.PropertyToID("_BaseMap");
@@ -21,7 +23,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
         /// The list of textures to sample and apply to target objects
         /// </summary>
         [Tooltip("The list of textures to sample and apply to target objects.")]
-        public Texture2DParameter texture;
+        public CategoricalParameter<Texture2D> texture;
 
         /// <summary>
         /// Randomizes the material texture of tagged objects at the start of each scenario iteration
@@ -38,8 +40,6 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
                 var material = renderer.material;
                 var propertyId = material.shader.name == k_TutorialHueShaderName ? k_BaseMap : k_BaseColorMap;
                 material.SetTexture(propertyId, texture.Sample());
-#else
-                renderer.material.SetTexture(k_BaseMap, texture.Sample());
 #endif
             }
         }

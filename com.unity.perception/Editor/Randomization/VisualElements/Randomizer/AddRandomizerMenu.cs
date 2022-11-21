@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Mathematics;
@@ -170,6 +170,11 @@ namespace UnityEditor.Perception.Randomization
                     randomizerType, typeof(AddRandomizerMenuAttribute));
                 if (menuAttribute != null)
                 {
+                    // Using null or an empty string enables users to hide their
+                    // test randomizers from the add randomizer menu.
+                    if (string.IsNullOrWhiteSpace(menuAttribute.menuPath))
+                        continue;
+
                     var pathItems = menuAttribute.menuPath.Split('/');
                     if (pathItems.Length > 1)
                     {

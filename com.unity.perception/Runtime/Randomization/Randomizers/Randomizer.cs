@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Scenarios;
@@ -53,6 +53,9 @@ namespace UnityEngine.Perception.Randomization.Randomizers
         /// </summary>
         public RandomizerTagManager tagManager => RandomizerTagManager.singleton;
 
+        /// <inheritdoc cref="RandomizerTagManager.Query" />
+        public IEnumerable<T> Query<T>() where T : RandomizerTag => tagManager.Query<T>();
+
         internal IEnumerable<Parameter> parameters
         {
             get
@@ -83,37 +86,37 @@ namespace UnityEngine.Perception.Randomization.Randomizers
         /// <summary>
         /// OnAwake is called when the Randomizer is added or loaded to a scenario
         /// </summary>
-        protected virtual void OnAwake() { }
+        protected virtual void OnAwake() {}
 
         /// <summary>
         /// OnEnabled is called when the Randomizer becomes enabled and active
         /// </summary>
-        protected virtual void OnEnable() { }
+        protected virtual void OnEnable() {}
 
         /// <summary>
         /// OnDisable is called when the Randomizer becomes disabled
         /// </summary>
-        protected virtual void OnDisable() { }
+        protected virtual void OnDisable() {}
 
         /// <summary>
         /// OnScenarioStart is called on the frame the scenario begins iterating
         /// </summary>
-        protected virtual void OnScenarioStart() { }
+        protected virtual void OnScenarioStart() {}
 
         /// <summary>
         /// OnScenarioComplete is called the after the entire Scenario has completed
         /// </summary>
-        protected virtual void OnScenarioComplete() { }
+        protected virtual void OnScenarioComplete() {}
 
         /// <summary>
         /// OnIterationStart is called at the start of a new Scenario iteration
         /// </summary>
-        protected virtual void OnIterationStart() { }
+        protected virtual void OnIterationStart() {}
 
         /// <summary>
         /// OnIterationEnd is called the after a Scenario iteration has completed
         /// </summary>
-        protected virtual void OnIterationEnd() { }
+        protected virtual void OnIterationEnd() {}
 
         /// <summary>
         /// OnStartRunning is called on the first frame a Randomizer is enabled
@@ -132,7 +135,12 @@ namespace UnityEngine.Perception.Randomization.Randomizers
         /// <summary>
         /// OnUpdate is executed every frame for enabled Randomizers
         /// </summary>
-        protected virtual void OnUpdate() { }
+        protected virtual void OnUpdate() {}
+
+        /// <summary>
+        /// OnDestroy is called at once Scenario is destroyed
+        /// </summary>
+        protected virtual void OnDestroy() {}
 
         #region InternalScenarioMethods
         internal void Awake() => OnAwake();
@@ -146,6 +154,8 @@ namespace UnityEngine.Perception.Randomization.Randomizers
         internal void IterationEnd() => OnIterationEnd();
 
         internal void Update() => OnUpdate();
+
+        internal void Destroy() => OnDestroy();
         #endregion
     }
 }

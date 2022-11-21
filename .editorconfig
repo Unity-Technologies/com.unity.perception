@@ -13,7 +13,7 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 ; keeping auto-format enabled helps avoid merge hell for projects without CI-based format validation
-#disable_auto_format = true
+;disable_auto_format = true
 
 [*.cs]
 ; uncomment to enable full formatting of c# files

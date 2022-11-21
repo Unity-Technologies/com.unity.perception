@@ -1,0 +1,26 @@
+<UXML
+        xmlns="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements"
+>
+    <VisualElement style="margin: 2 4 2 4;">
+        <Style src="../Uss/Common.uss"/>
+        <VisualElement class="internal__group_container" style="margin-top: 6;">
+            <editor:PropertyField name="state" binding-path="state"/>
+        </VisualElement>
+        <VisualElement class="internal__group_container">
+            <Toggle label="Specify Intensity as a List      " name="specifyIntensityAsList" binding-path="specifyIntensityAsList"/>
+            <editor:PropertyField name="intensity" binding-path="intensity"/>
+            <editor:PropertyField name="intensityList" binding-path="intensityList"/>
+        </VisualElement>
+        <VisualElement class="internal__group_container">
+            <Toggle label="Specify Temperature as a List    " name="specifyTemperatureAsList" binding-path="specifyTemperatureAsList"/>
+            <editor:PropertyField name="temperature" binding-path="temperature"/>
+            <editor:PropertyField name="temperatureList" binding-path="temperatureList"/>
+        </VisualElement>
+        <VisualElement class="internal__group_container">
+            <Toggle label="Specify Color as a List  " name="specifyColorAsList" binding-path="specifyColorAsList"/>
+            <editor:PropertyField name="color" binding-path="color"/>
+            <editor:PropertyField name="colorList" binding-path="colorList" />
+        </VisualElement>
+    </VisualElement>
+</UXML>

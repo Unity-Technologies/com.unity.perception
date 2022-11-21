@@ -1,10 +1,12 @@
-﻿using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// The specifics of each reported box
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public struct BoundingBox3D : IMessageProducer
     {
         /// <summary>

@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using UnityEditor.SceneManagement;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.Perception.Settings;
 using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
 
 namespace UnityEditor.Perception.GroundTruth
 {
@@ -27,7 +24,9 @@ namespace UnityEditor.Perception.GroundTruth
 
         const string k_ProjectPath = "Project/Perception";
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Use this function to implement a handler for when the user clicks on another setting or when the Settings window closes.
+        /// </summary>
         public override void OnDeactivate()
         {
             customSettings = null;
@@ -39,9 +38,13 @@ namespace UnityEditor.Perception.GroundTruth
         }
 
         PerceptionSettingsProvider(string path, SettingsScope scope = SettingsScope.User)
-            : base(path, scope) { }
+            : base(path, scope) {}
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Use this function to implement a handler for when the user clicks on the Settings in the Settings window. You can fetch a settings Asset or set up UIElements UI from this function.
+        /// </summary>
+        /// <param name="searchContext">Search context in the search box on the Settings window.</param>
+        /// <param name="rootElement">Root of the UIElements tree. If you add to this root, the SettingsProvider uses UIElements instead of calling SettingsProvider.OnGUI to build the UI. If you do not add to this VisualElement, then you must use the IMGUI to build the UI.</param>
         public override void OnActivate(string searchContext, VisualElement rootElement)
         {
             EditorSceneManager.activeSceneChangedInEditMode += (arg0, scene) => { customSettings = null; };
@@ -64,7 +67,7 @@ namespace UnityEditor.Perception.GroundTruth
             var to = (PerceptionSettings)customSettings.targetObject;
 
             Undo.RecordObject(to, "Set new endpoint");
-            to.endpoint = endpoint;
+            to.consumerEndpoint = endpoint;
             var modified = customSettings.hasModifiedProperties;
 
             customSettings.ApplyModifiedProperties();
@@ -72,7 +75,10 @@ namespace UnityEditor.Perception.GroundTruth
             customSettings.Update();
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Use this function to draw the UI based on IMGUI. This assumes you haven't added any children to the rootElement passed to the OnActivate function.
+        /// </summary>
+        /// <param name="searchContext">Search context for the Settings window. Used to show or hide relevant properties</param>
         public override void OnGUI(string searchContext)
         {
             EditorGUI.BeginChangeCheck();
@@ -84,20 +90,7 @@ namespace UnityEditor.Perception.GroundTruth
 
             EditorGUILayout.BeginVertical(s);
 
-            var itr = customSettings.GetIterator();
-            var firstTime = true;
-            while (itr.NextVisible(firstTime))
-            {
-                // Do not display the box that shows the script name
-                if (itr.name.Contains("cript")) continue;
-
-                firstTime = false;
-                EditorGUILayout.PropertyField(itr);
-            }
-
-            EditorGUILayout.EndVertical();
-
-            EditorGUILayout.Space(5);
+            EditorGUILayout.PropertyField(customSettings.FindProperty(nameof(PerceptionSettings.consumerEndpoint)));
 
             if (GUILayout.Button("Change Endpoint Type"))
             {
@@ -106,7 +99,7 @@ namespace UnityEditor.Perception.GroundTruth
                 foreach (var option in dropdownOptions)
                 {
                     // filter out types that have HideFromCreateMenuAttribute
-                    if (option.CustomAttributes.Any(att => att.AttributeType == typeof(HideFromCreateMenu)))
+                    if (option.CustomAttributes.Any(att => att.AttributeType == typeof(HideFromCreateMenuAttribute)))
                         continue;
 
                     var localOption = option;
@@ -117,6 +110,21 @@ namespace UnityEditor.Perception.GroundTruth
 
                 menu.ShowAsContext();
             }
+
+            EditorGUILayout.EndVertical();
+            var accumulationMenu = new GUIStyle(EditorStyles.helpBox)
+            {
+                padding = new RectOffset(10, 10, 10, 10)
+            };
+
+
+            EditorGUILayout.Space(5);
+
+            EditorGUILayout.BeginVertical(accumulationMenu);
+
+            EditorGUILayout.PropertyField(customSettings.FindProperty("accumulationSettings"));
+
+            EditorGUILayout.EndVertical();
 
             if (EditorGUI.EndChangeCheck())
                 customSettings.ApplyModifiedProperties();
@@ -139,4 +147,3 @@ namespace UnityEditor.Perception.GroundTruth
         }
     }
 }
-

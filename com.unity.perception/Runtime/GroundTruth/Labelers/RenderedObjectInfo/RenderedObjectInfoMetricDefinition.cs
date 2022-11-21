@@ -1,11 +1,15 @@
-﻿namespace UnityEngine.Perception.GroundTruth
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Scripting.APIUpdating;
+
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Definition of the metric.
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class RenderedObjectInfoMetricDefinition : DataModel.MetricDefinition
     {
-        public const string metricType = "type.unity.com/unity.solo.RenderedObjectInfoMetric";
+        const string k_MetricType = "type.unity.com/unity.solo.RenderedObjectInfoMetric";
 
         /// <summary>
         /// Label config entries
@@ -13,7 +17,7 @@
         public IdLabelConfig.LabelEntrySpec[] spec { get; }
 
         internal RenderedObjectInfoMetricDefinition(string id, string description, IdLabelConfig.LabelEntrySpec[] spec)
-            : base(metricType, id, description)
+            : base(k_MetricType, id, description)
         {
             this.spec = spec;
         }

@@ -1,9 +1,0 @@
-{
-  "version": "0.0.1",
-  "egos": [
-    {
-      "id": "4f80234d-4342-420f-9187-07004613cd1f",
-      "description": "the main car driving in simulation"
-    }
-  ]
-}

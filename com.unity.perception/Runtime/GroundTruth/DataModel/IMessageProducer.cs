@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Perception.GroundTruth.DataModel
+namespace UnityEngine.Perception.GroundTruth.DataModel
 {
     /// <summary>
     /// Interface for classes that can write their contents to a <see cref="IMessageBuilder" />

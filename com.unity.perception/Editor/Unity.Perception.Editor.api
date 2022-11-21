@@ -1,0 +1,112 @@
+// This file is generated. Do not modify by hand.
+// XML documentation file not found. To check if public methods have XML comments,
+// make sure the XML doc file is present and located next to the scraped dll
+namespace UnityEditor.Perception.GroundTruth
+{
+    public class BaseCustomPassDrawer : UnityEditor.Rendering.HighDefinition.CustomPassDrawer
+    {
+        public BaseCustomPassDrawer() {}
+        protected void AddProperty(SerializedProperty property);
+        protected override void DoPassGUI(SerializedProperty customPass, UnityEngine.Rect rect);
+        protected override float GetPassHeight(SerializedProperty customPass);
+    }
+
+    [CameraLabelerDrawer(typeof(UnityEngine.Perception.GroundTruth.CameraLabeler))] public class CameraLabelerDrawer
+    {
+        public UnityEngine.Perception.GroundTruth.CameraLabeler cameraLabeler { get; }
+        public SerializedProperty cameraLabelerProperty { get; }
+        public CameraLabelerDrawer() {}
+        protected virtual void DoLabelerGUI(UnityEngine.Rect rect);
+        protected virtual float GetHeight();
+        protected virtual void Initialize();
+    }
+
+    [System.AttributeUsage(System.AttributeTargets.Class)] public class CameraLabelerDrawerAttribute : System.Attribute
+    {
+        public CameraLabelerDrawerAttribute(System.Type targetLabelerType) {}
+    }
+
+    [CustomPropertyDrawer(typeof(UnityEngine.Perception.GroundTruth.ConsumerEndpointDrawerAttribute))] public class ConsumerEndpointDrawer : PropertyDrawer
+    {
+        public ConsumerEndpointDrawer() {}
+        public override float GetPropertyHeight(SerializedProperty property, UnityEngine.GUIContent label);
+        public override void OnGUI(UnityEngine.Rect position, SerializedProperty property, UnityEngine.GUIContent label);
+    }
+
+    [CanEditMultipleObjects] [CustomEditor(typeof(UnityEngine.Perception.GroundTruth.JointLabel))] public class JointLabelEditor : Editor
+    {
+        public JointLabelEditor() {}
+        public override void OnInspectorGUI();
+    }
+
+    public class PerceptionSettingsProvider : SettingsProvider
+    {
+        [SettingsProvider] public static SettingsProvider CreateProvider();
+        public override void OnActivate(string searchContext, UnityEngine.UIElements.VisualElement rootElement);
+        public override void OnDeactivate();
+        public override void OnGUI(string searchContext);
+    }
+}
+
+namespace UnityEditor.Perception.Randomization
+{
+    public abstract class ParameterUIElementsEditor : Editor
+    {
+        protected ParameterUIElementsEditor() {}
+        public override UnityEngine.UIElements.VisualElement CreateInspectorGUI();
+    }
+}
+
+namespace UnityEditor.Perception.Randomization.PropertyDrawers
+{
+    [CustomPropertyDrawer(typeof(System.UInt32))] public class UIntDrawer : PropertyDrawer
+    {
+        public UIntDrawer() {}
+        public override UnityEngine.UIElements.VisualElement CreatePropertyGUI(SerializedProperty property);
+        public override float GetPropertyHeight(SerializedProperty property, UnityEngine.GUIContent label);
+        public override void OnGUI(UnityEngine.Rect position, SerializedProperty property, UnityEngine.GUIContent label);
+    }
+}
+
+namespace UnityEngine.Perception.Settings
+{
+    [UnityEditor.CustomPropertyDrawer(typeof(AccumulationSettings))] public class AccumulationSettingsDrawer : UnityEditor.PropertyDrawer
+    {
+        public AccumulationSettingsDrawer() {}
+        public override float GetPropertyHeight(UnityEditor.SerializedProperty property, GUIContent label);
+        public override void OnGUI(Rect position, UnityEditor.SerializedProperty property, GUIContent label);
+    }
+}
+
+namespace UnityEngine.Perception.UIElements
+{
+    public class UIntField : UnityEditor.UIElements.TextValueField<System.UInt32>
+    {
+        public static readonly string inputUssClassName;
+        public static readonly string labelUssClassName;
+        public static readonly string ussClassName = @"unity-uint-field";
+        public UIntField() {}
+        public UIntField(int maxLength) {}
+        public UIntField(string label, int maxLength = -1) {}
+        public override void ApplyInputDeviceDelta(Vector3 delta, UnityEditor.UIElements.DeltaSpeed speed, System.UInt32 startValue);
+        public static System.UInt32 ClampInput(long input);
+        protected override System.UInt32 StringToValue(string str);
+        protected override string ValueToString(System.UInt32 v);
+        public class UxmlFactory : UnityEngine.UIElements.UxmlFactory<UIntField, UIntField.UxmlTraits>
+        {
+            public UxmlFactory() {}
+        }
+        public class UxmlTraits : UnityEditor.UIElements.TextValueFieldTraits<System.UInt32, UxmlUIntAttributeDescription>
+        {
+            public UxmlTraits() {}
+        }
+    }
+
+    public class UxmlUIntAttributeDescription : UnityEngine.UIElements.TypedUxmlAttributeDescription<System.UInt32>
+    {
+        public override string defaultValueAsString { get; }
+        public UxmlUIntAttributeDescription() {}
+        public override System.UInt32 GetValueFromBag(UnityEngine.UIElements.IUxmlAttributes bag, UnityEngine.UIElements.CreationContext cc);
+        public bool TryGetValueFromBag(UnityEngine.UIElements.IUxmlAttributes bag, UnityEngine.UIElements.CreationContext cc, ref System.UInt32 value);
+    }
+}

@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 4b79fedbe04dad4499002c49b73d89f3
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 9801397f829a1ed42984340315cbf362, type: 3}
+  iesMetaData:
+    FileFormatVersion: LM-63-2002
+    IESPhotometricType: Type C
+    IESMaximumIntensity: 10784
+    IESMaximumIntensityUnit: Candelas
+    Manufacturer: GE Lighting Solutions www.currentbyge.com
+    LuminaireCatalogNumber: ABV3530H471Qxxxxxxx - 347-480V
+    LuminaireDescription: ABV3 30H 4000K 70 CRI 120DEG NO LENS
+    LampCatalogNumber: 
+    LampDescription: 
+    PrefabLightType: 0
+    SpotAngle: 120
+    iesSize: 128
+    ApplyLightAttenuation: 1
+    UseIESMaximumIntensity: 1
+    CookieCompression: 2
+    LightAimAxisRotation: -90

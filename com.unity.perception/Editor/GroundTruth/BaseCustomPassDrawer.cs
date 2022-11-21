@@ -1,6 +1,5 @@
 #if HDRP_PRESENT
 
-using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEngine;

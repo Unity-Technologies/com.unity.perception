@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
@@ -24,7 +24,7 @@ namespace UnityEditor.Perception.Randomization
             m_V = m_Property.FindPropertyRelative("v");
             m_A = m_Property.FindPropertyRelative("a");
 
-            rawValue = (Color)new ColorHsva(m_H.floatValue, m_S.floatValue, m_V.floatValue, m_A.floatValue);
+            rawValue = (Color) new ColorHsva(m_H.floatValue, m_S.floatValue, m_V.floatValue, m_A.floatValue);
 
             this.RegisterValueChangedCallback(evt =>
             {

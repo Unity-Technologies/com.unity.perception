@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Linq;
-using Unity.Collections;
 
 namespace UnityEngine.Perception.GroundTruth.DataModel
 {
@@ -74,13 +73,13 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
         public GenericMetric(float value, MetricDefinition definition, string sensorId = default, string annotationId = default)
             : base(definition, sensorId, annotationId)
         {
-            m_Values = new [] { value };
+            m_Values = new[] { value };
         }
 
         /// <summary>
         /// Creates a new metric.
         /// </summary>
-        /// <param name="value">The metric value</param>
+        /// <param name="values">The metric value</param>
         /// <param name="definition">The metric definition</param>
         /// <param name="sensorId">The sensor ID, set as default for a metric not associated with a sensor</param>
         /// <param name="annotationId">The annotation ID associated with this metric, set as default for a metric not associated to an annotation</param>
@@ -100,13 +99,13 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
         public GenericMetric(int value, MetricDefinition definition, string sensorId = default, string annotationId = default)
             : base(definition, sensorId, annotationId)
         {
-            m_Values = new [] { value };
+            m_Values = new[] { value };
         }
 
         /// <summary>
         /// Creates a new metric.
         /// </summary>
-        /// <param name="value">The metric value</param>
+        /// <param name="values">The metric value</param>
         /// <param name="definition">The metric definition</param>
         /// <param name="sensorId">The sensor ID, set as default for a metric not associated with a sensor</param>
         /// <param name="annotationId">The annotation ID associated with this metric, set as default for a metric not associated to an annotation</param>
@@ -126,13 +125,13 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
         public GenericMetric(string value, MetricDefinition definition, string sensorId = default, string annotationId = default)
             : base(definition, sensorId, annotationId)
         {
-            m_Values = new [] { value };
+            m_Values = new[] { value };
         }
 
         /// <summary>
         /// Creates a new metric.
         /// </summary>
-        /// <param name="value">The metric value</param>
+        /// <param name="values">The metric value</param>
         /// <param name="definition">The metric definition</param>
         /// <param name="sensorId">The sensor ID, set as default for a metric not associated with a sensor</param>
         /// <param name="annotationId">The annotation ID associated with this metric, set as default for a metric not associated to an annotation</param>
@@ -152,12 +151,13 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
         public GenericMetric(uint value, MetricDefinition definition, string sensorId = default, string annotationId = default)
             : base(definition, sensorId, annotationId)
         {
-            m_Values = new [] { value };
+            m_Values = new[] { value };
         }
+
         /// <summary>
         /// Creates a new metric.
         /// </summary>
-        /// <param name="value">The metric value</param>
+        /// <param name="values">The metric value</param>
         /// <param name="definition">The metric definition</param>
         /// <param name="sensorId">The sensor ID, set as default for a metric not associated with a sensor</param>
         /// <param name="annotationId">The annotation ID associated with this metric, set as default for a metric not associated to an annotation</param>
@@ -177,13 +177,13 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
         public GenericMetric(IMessageProducer value, MetricDefinition definition, string sensorId = default, string annotationId = default)
             : base(definition, sensorId, annotationId)
         {
-            m_Values = new [] { value };
+            m_Values = new[] { value };
         }
 
         /// <summary>
         /// Creates a new metric.
         /// </summary>
-        /// <param name="value">The metric value</param>
+        /// <param name="values">The metric value</param>
         /// <param name="definition">The metric definition</param>
         /// <param name="sensorId">The sensor ID, set as default for a metric not associated with a sensor</param>
         /// <param name="annotationId">The annotation ID associated with this metric, set as default for a metric not associated to an annotation</param>
@@ -218,20 +218,22 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
                     break;
                 case string[] strings:
                     if (strings.Length == 1)
-                        builder.AddString("value", strings[0]);
+                    {
+                        builder.AddString("value", strings[0] ?? string.Empty);
+                    }
                     else
-                        builder.AddStringArray("values", strings);
+                        builder.AddStringArray("values", strings.Select(s => s ?? string.Empty).ToArray());
                     break;
                 case uint[] uints:
                     if (uints.Length == 1)
                         builder.AddUInt("value", uints[0]);
                     else
-                        builder.AddUintArray("values", uints);
+                        builder.AddUIntArray("values", uints);
                     break;
                 case IMessageProducer[] mps:
                     foreach (var mp in mps)
                     {
-                        var nested = builder.AddNestedMessage("values");
+                        var nested = builder.AddNestedMessageToVector("values");
                         mp.ToMessage(nested);
                     }
                     break;

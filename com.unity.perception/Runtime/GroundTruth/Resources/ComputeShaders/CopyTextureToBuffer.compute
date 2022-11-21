@@ -1,0 +1,24 @@
+#pragma kernel CopyUIntTextureToBuffer
+#pragma kernel CopyFloatTextureToBuffer
+
+int textureWidth;
+
+Texture2D<uint> uintTexture;
+RWStructuredBuffer<uint> uintBuffer;
+
+Texture2D<uint> floatTexture;
+RWStructuredBuffer<uint> floatBuffer;
+
+[numthreads(16, 16, 1)]
+void CopyUIntTextureToBuffer(uint3 threadId: SV_DispatchThreadID)
+{
+    const uint index = threadId.y * textureWidth + threadId.x;
+    uintBuffer[index] = uintTexture[threadId.xy];
+}
+
+[numthreads(16, 16, 1)]
+void CopyFloatTextureToBuffer(uint3 threadId: SV_DispatchThreadID)
+{
+    const uint index = threadId.y * textureWidth + threadId.x;
+    floatBuffer[index] = floatTexture[threadId.xy];
+}

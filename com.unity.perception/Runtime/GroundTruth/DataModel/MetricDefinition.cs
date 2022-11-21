@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Perception.GroundTruth.DataModel
+namespace UnityEngine.Perception.GroundTruth.DataModel
 {
     /// <summary>
     /// The metric definition holds of the associated metadata for a metric.
@@ -7,6 +7,7 @@
     {
         string m_ModelType = "type.unity.com/unity.solo.GenericMetric";
 
+        /// <inheritdoc />
         public override string modelType => m_ModelType;
 
         /// <summary>

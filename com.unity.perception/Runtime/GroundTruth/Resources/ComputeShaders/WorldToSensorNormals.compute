@@ -1,0 +1,30 @@
+﻿#pragma kernel WorldToSensorNormals
+
+float4x4 worldToSensorMatrix;
+Texture2D<float4> worldNormalsTexture;
+RWTexture2D<float4> sensorNormalsTexture;
+
+[numthreads(16, 16, 1)]
+void WorldToSensorNormals(uint3 threadId: SV_DispatchThreadID)
+{
+    // Sample world normal.
+    const float4 worldNormal = worldNormalsTexture[threadId.xy];
+
+    // Decode world normal.
+    const float3 decodedWorldNormal = worldNormal.xyz * 2 - 1;
+
+    // Transform normal from world space to sensor space.
+    float4 sensorNormal = float4(mul((float3x3)worldToSensorMatrix, decodedWorldNormal), 1);
+
+    // Encode sensor normal.
+    sensorNormal = (sensorNormal + 1) / 2;
+
+    // Invert Z direction
+    sensorNormal.z = 1 - sensorNormal.z;
+
+    // Ensure that invalid normals are preserved.
+    const float4 outputNormal = all(worldNormal.xyz == float3(0, 0, 0)) ? worldNormal : sensorNormal;
+
+    // Write out the transformed normal.
+    sensorNormalsTexture[threadId.xy] = outputNormal;
+}

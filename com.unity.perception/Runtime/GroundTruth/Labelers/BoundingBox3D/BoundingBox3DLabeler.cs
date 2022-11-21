@@ -2,16 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.GroundTruth.Sensors.Channels;
+using UnityEngine.Perception.GroundTruth.Utilities;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Produces 3d bounding box ground truth for all visible and <see cref="Labeling"/> objects each frame.
     /// </summary>
-    /// <remarks>The BoundingBox3DLabeler does not support <see cref="SkinnedMeshRenderer"/> objects, they will be ignored.</remarks>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class BoundingBox3DLabeler : CameraLabeler
     {
         ///<inheritdoc/>
@@ -35,19 +40,25 @@ namespace UnityEngine.Perception.GroundTruth
         static ProfilerMarker s_BoundingBoxCallback = new ProfilerMarker("OnBoundingBoxes3DReceived");
         BoundingBox3DDefinition m_Definition;
 
-        Dictionary<int, AsyncFuture<Annotation>> m_AsyncAnnotations;
-        Dictionary<int, Dictionary<uint, BoundingBox3D>> m_BoundingBoxValues;
+        class PendingFrame
+        {
+            public AsyncFuture<Annotation> asyncAnnotation;
+            public Dictionary<uint, (bool pending, bool visible, BoundingBox3D bb)> pendingObjectsByInstanceId = new();
+            public int remainingPendingObjects;
+            public bool visibilityCheckComplete = false;
+        }
 
+        Dictionary<int, PendingFrame> m_PendingFrames;
         List<BoundingBox3D> m_LatestReported;
-
         int m_CurrentFrame;
-
 
         /// <summary>
         /// Color to use for 3D visualization box
         /// </summary>
-        // ReSharper disable once MemberCanBePrivate.Global
         public Color visualizationColor = Color.green;
+
+        ComputeShader m_Calculate3DBoundingBox;
+        int3 m_ThreadGroupSizes;
 
         /// <inheritdoc/>
         protected override bool supportsVisualization => true;
@@ -78,200 +89,297 @@ namespace UnityEngine.Perception.GroundTruth
                 throw new InvalidOperationException("BoundingBox3DLabeler's idLabelConfig field must be assigned");
 
             m_Definition = new BoundingBox3DDefinition(annotationId, idLabelConfig.GetAnnotationSpecification());
-
             DatasetCapture.RegisterAnnotationDefinition(m_Definition);
 
+            perceptionCamera.EnableChannel<InstanceIdChannel>();
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderObjectInfosCalculated;
-
-            m_AsyncAnnotations = new Dictionary<int, AsyncFuture<Annotation>>();
-            m_BoundingBoxValues = new Dictionary<int, Dictionary<uint, BoundingBox3D>>();
+            m_PendingFrames = new Dictionary<int, PendingFrame>();
             visualizationEnabled = supportsVisualization;
+            m_Calculate3DBoundingBox = ComputeUtilities.LoadShader("Calculate3DBoundingBox");
         }
 
-        static BoundingBox3D ConvertToBoxData(IdLabelEntry label, uint instanceId, Vector3 center, Vector3 extents, Quaternion rot)
+        protected override void OnUpdate()
         {
-            return new BoundingBox3D
+            foreach (var label in LabelManager.singleton.registeredLabels)
             {
-                labelId = label.id,
-                labelName = label.label,
-                instanceId = instanceId,
-                translation = center,
-                size = extents * 2,
-                rotation = rot,
-                acceleration = Vector3.zero,
-                velocity = Vector3.zero
-            };
-        }
-
-        static Vector3[] GetBoxCorners(Bounds bounds, Quaternion rotation)
-        {
-            var boundsCenter = bounds.center;
-            var right = Vector3.right * bounds.extents.x;
-            var up = Vector3.up * bounds.extents.y;
-            var forward = Vector3.forward * bounds.extents.z;
-
-            right = rotation * right;
-            up = rotation * up;
-            forward = rotation * forward;
-
-            var doubleRight = right * 2;
-            var doubleUp = up * 2;
-            var doubleForward = forward * 2;
-
-            var corners = new Vector3[8];
-            corners[0] = boundsCenter - right - up - forward;
-            corners[1] = corners[0] + doubleUp;
-            corners[2] = corners[1] + doubleRight;
-            corners[3] = corners[0] + doubleRight;
-            for (var i = 0; i < 4; i++)
-            {
-                corners[i + 4] = corners[i] + doubleForward;
+                var skinnedMeshRenderers = label.GetComponentsInChildren<SkinnedMeshRenderer>();
+                foreach (var renderer in skinnedMeshRenderers)
+                {
+                    //set vertexBufferTarget here so that it is available in endCameraRendering
+                    renderer.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+                }
             }
-
-            return corners;
         }
 
         /// <inheritdoc/>
-        protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
+        protected override void OnEndRendering(ScriptableRenderContext scriptableRenderContext)
         {
             m_CurrentFrame = Time.frameCount;
 
-            m_BoundingBoxValues[m_CurrentFrame] = new Dictionary<uint, BoundingBox3D>();
-
-            m_AsyncAnnotations[m_CurrentFrame] = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_Definition);
+            var pendingData = new PendingFrame();
+            m_PendingFrames[m_CurrentFrame] = pendingData;
+            pendingData.asyncAnnotation = perceptionCamera.SensorHandle.ReportAnnotationAsync(m_Definition);
 
             foreach (var label in LabelManager.singleton.registeredLabels)
-                ProcessLabel(label);
+                ProcessLabel(label, scriptableRenderContext, pendingData);
         }
 
-        void OnRenderObjectInfosCalculated(int frameCount, NativeArray<RenderedObjectInfo> renderedObjectInfos)
+        void OnRenderObjectInfosCalculated(
+            int frameCount,
+            NativeArray<RenderedObjectInfo> renderedObjectInfos,
+            SceneHierarchyInformation hierarchyInfo
+        )
         {
-            if (!m_AsyncAnnotations.TryGetValue(frameCount, out var asyncAnnotation))
+            if (!m_PendingFrames.TryGetValue(frameCount, out var pendingData))
                 return;
 
-            if (!m_BoundingBoxValues.TryGetValue(frameCount, out var boxes))
-            {
-                Debug.LogError($"Could not find a 3D bounding box for frame: {asyncAnnotation.pendingId}");
-                return;
-            }
-
-
-            m_AsyncAnnotations.Remove(frameCount);
-            m_BoundingBoxValues.Remove(frameCount);
-
+            //filter to only visible objects
             using (s_BoundingBoxCallback.Auto())
             {
-                var reportList = new List<BoundingBox3D>();
-
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
 
-                    if (boxes.TryGetValue(objectInfo.instanceId, out var box))
+                    if (pendingData.pendingObjectsByInstanceId.TryGetValue(objectInfo.instanceId, out var box))
                     {
-                        reportList.Add(box);
+                        box.visible = true;
+                        pendingData.pendingObjectsByInstanceId[objectInfo.instanceId] = box;
                     }
                 }
 
-                BoundingBoxComputed?.Invoke(frameCount, reportList);
+                pendingData.visibilityCheckComplete = true;
 
-                var toReport = new BoundingBox3DAnnotation(m_Definition, perceptionCamera.ID, reportList);
-                asyncAnnotation.Report(toReport);
-                m_LatestReported = reportList;
+                ReportIfComplete(frameCount);
             }
         }
 
-        void ProcessLabel(Labeling labeledEntity)
+        void ReportIfComplete(int frameCount)
+        {
+            var pendingData = m_PendingFrames[frameCount];
+            if (!pendingData.visibilityCheckComplete || pendingData.remainingPendingObjects != 0)
+                return;
+
+            m_PendingFrames.Remove(frameCount);
+            var reportList = pendingData.pendingObjectsByInstanceId
+                .Where(v => v.Value.visible)
+                .Select(v => v.Value.bb).ToList();
+            BoundingBoxComputed?.Invoke(frameCount, reportList);
+
+            var toReport = new BoundingBox3DAnnotation(m_Definition, perceptionCamera.id, reportList);
+            pendingData.asyncAnnotation.Report(toReport);
+            m_LatestReported = reportList;
+        }
+
+        class PendingBounds
+        {
+            public uint instanceId;
+            public BoundingBox3D boundingBox3D;
+            public Vector3 labelObjectScale;
+            public Vector3 labeledObjectToCameraPosition;
+            public Quaternion cameraRotation;
+            public Bounds? bounds;
+            public int pendingChildBoundsCount;
+            public int frame;
+            public Matrix4x4 labeledObjectToCameraMatrix;
+        }
+        Bounds CombineBounds(Bounds? bounds, Bounds meshBounds)
+        {
+            // If this is the first time, create a new bounds struct
+            if (!bounds.HasValue)
+                bounds = meshBounds;
+            else
+            {
+                var newBounds = bounds.Value;
+                newBounds.Encapsulate(meshBounds);
+                bounds = newBounds;
+            }
+
+            return bounds.Value;
+        }
+
+        bool ProcessMeshFiltersAsync(MeshFilter[] meshFilters, SkinnedMeshRenderer[] skinnedMeshRenderers, Labeling labeledEntity, PendingBounds pendingBounds,
+            ScriptableRenderContext context)
+        {
+            var entityGameObject = labeledEntity.gameObject;
+            var labelTransform = entityGameObject.transform;
+            bool any = false;
+
+            // Compute the object bounds on the GPU using the vertices of the mesh transformed into the space of the labeled object
+            foreach (var mesh in meshFilters)
+            {
+                if (!mesh.GetComponent<Renderer>().enabled)
+                    continue;
+
+                mesh.mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+                var objectToLabelSpaceTransform =
+                    labelTransform.worldToLocalMatrix * mesh.transform.localToWorldMatrix;
+
+                var graphicsBuffer = mesh.mesh.GetVertexBuffer(0);
+                Compute3DbbAsync(context, graphicsBuffer, objectToLabelSpaceTransform, pendingBounds);
+                graphicsBuffer.Dispose();
+                any = true;
+            }
+            foreach (var mesh in skinnedMeshRenderers)
+            {
+                if (!mesh.GetComponent<Renderer>().enabled)
+                    continue;
+
+                var rootBoneLocalToWorldMatrix = mesh.rootBone.localToWorldMatrix;
+                var objectToLabelSpaceTransform =
+                    labelTransform.worldToLocalMatrix *
+                    rootBoneLocalToWorldMatrix *
+                    //skinnedMeshRenderer's scale is baked into its vertex buffer
+                    Matrix4x4.Scale(rootBoneLocalToWorldMatrix.lossyScale).inverse;
+
+                var graphicsBuffer = mesh.GetVertexBuffer();
+                Compute3DbbAsync(context, graphicsBuffer, objectToLabelSpaceTransform, pendingBounds);
+                graphicsBuffer.Dispose();
+                any = true;
+            }
+
+            return any;
+        }
+
+        // Calculates the 3d bounding box of the given vertices on the GPU using a reduction algorithm in a compute shader
+        void Compute3DbbAsync(ScriptableRenderContext scriptableRenderContext, GraphicsBuffer vertexBuffer,
+            Matrix4x4 rootToLabeledObjectTransform, PendingBounds pendingBounds)
+        {
+            m_ThreadGroupSizes = ComputeUtilities.GetKernelThreadGroupSizes(m_Calculate3DBoundingBox, 0);
+            var commandBuffer = CommandBufferPool.Get("BoundingBox3D for SkinnedMeshRenderer");
+            commandBuffer.SetComputeMatrixParam(m_Calculate3DBoundingBox, "gRootToLabeledObjectTransform", rootToLabeledObjectTransform);
+            commandBuffer.SetComputeBufferParam(m_Calculate3DBoundingBox, 0, "vertexBuffer", vertexBuffer);
+            commandBuffer.SetComputeIntParam(m_Calculate3DBoundingBox, "gStrideBytes", vertexBuffer.stride);
+            //round up to the nearest set of groups
+            var threadGroups = ComputeUtilities.ThreadGroupsCount(vertexBuffer.count, m_ThreadGroupSizes.x);
+            var resultBuffer = new ComputeBuffer(threadGroups * 2, 3 * sizeof(float));
+            commandBuffer.SetComputeBufferParam(m_Calculate3DBoundingBox, 0, "bb3dOut", resultBuffer);
+            commandBuffer.SetComputeBufferParam(m_Calculate3DBoundingBox, 1, "bb3dOut", resultBuffer);
+            commandBuffer.SetComputeIntParam(m_Calculate3DBoundingBox, "gVertexCount", vertexBuffer.count);
+
+            //Dispatch one to reduce from vertices to bounding boxes. This will result in N bounding box, where N is
+            //the # of thread groups
+            commandBuffer.DispatchCompute(m_Calculate3DBoundingBox, 0, threadGroups, 1, 1);
+
+            //reduce the bounding boxes calculated in the first pass multiple times until we reduce all AABBs to a single AABB
+            while (threadGroups > 1)
+            {
+                threadGroups = ComputeUtilities.ThreadGroupsCount(threadGroups, m_ThreadGroupSizes.x);
+                commandBuffer.DispatchCompute(m_Calculate3DBoundingBox, 1, threadGroups, 1, 1);
+            }
+
+            pendingBounds.pendingChildBoundsCount++;
+            commandBuffer.RequestAsyncReadback(resultBuffer,
+                request =>
+                {
+                    var result = request.GetData<Vector3>();
+                    resultBuffer.Release();
+                    if (request.hasError)
+                        Debug.LogError("Error reading back bounding box from compute buffer");
+
+                    var minPosition = result[0];
+                    var maxPosition = result[1];
+                    var bounds = new Bounds((maxPosition + minPosition) / 2, maxPosition - minPosition);
+
+                    pendingBounds.bounds = CombineBounds(pendingBounds.bounds, bounds);
+                    pendingBounds.pendingChildBoundsCount--;
+                    if (pendingBounds.pendingChildBoundsCount == 0)
+                        CommitBoundingBox(pendingBounds);
+                });
+            scriptableRenderContext.ExecuteCommandBuffer(commandBuffer);
+            CommandBufferPool.Release(commandBuffer);
+        }
+
+        void ProcessLabel(Labeling labeledEntity, ScriptableRenderContext scriptableRenderContext,
+            PendingFrame pendingFrame)
         {
             using (s_BoundingBoxCallback.Auto())
             {
                 // Unfortunately to get the non-axis aligned bounding prism from a game object is not very
                 // straightforward. A game object's default bounding prism is always axis aligned. To find a "tight"
                 // fitting prism for a game object we must calculate the oriented bounds of all of the meshes in a
-                // game object. These meshes (in the object tree) may go through a series of transformations. We need
-                // to transform all of the children mesh bounds into the coordinate space of the "labeled" game object
-                // and then intersect all of those bounds together. We then need to apply the "labeled" game object's
-                // transform to the combined bounds to transform the bounds into world space. Finally, we then need
-                // to take the bounds in world space and transform it to camera space to record it to json...
+                // game object. These meshes (in the object tree) may go through a series of transformations.
                 //
                 // Currently we are only reporting objects that are a) labeled and b) are visible based on the perception
-                // camera's rendered object info. In the future we plan on reporting how much of the object can be seen, including
-                // none if it is off camera
-                if (idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
+                // camera's rendered object info.
+                if (!idLabelConfig.TryGetLabelEntryFromInstanceId(labeledEntity.instanceId, out var labelEntry))
+                    return;
+
+                var entityGameObject = labeledEntity.gameObject;
+
+                var skinnedMeshRenderers = entityGameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
+                var meshFilters = entityGameObject.GetComponentsInChildren<MeshFilter>();
+
+                if ((meshFilters == null || meshFilters.Length == 0) &&
+                    (skinnedMeshRenderers == null || skinnedMeshRenderers.Length == 0))
+                    return;
+
+                var labelTransform = labeledEntity.transform;
+                var cameraTransform = perceptionCamera.transform;
+
+                // Convert the combined bounds into world space
+                var rotationToCameraSpace = Quaternion.Inverse(cameraTransform.rotation) * labelTransform.rotation;
+
+                var converted = new BoundingBox3D
                 {
-                    var entityGameObject = labeledEntity.gameObject;
+                    labelId = labelEntry.id,
+                    labelName = labelEntry.label,
+                    instanceId = labeledEntity.instanceId,
+                    translation = Vector3.negativeInfinity, //will be filled in later
+                    size = Vector3.negativeInfinity,
+                    rotation = rotationToCameraSpace,
+                    acceleration = Vector3.zero,
+                    velocity = Vector3.zero
+                };
 
-                    var meshFilters = entityGameObject.GetComponentsInChildren<MeshFilter>();
-                    if (meshFilters == null || meshFilters.Length == 0) return;
+                var pendingBounds = new PendingBounds()
+                {
+                    instanceId = labeledEntity.instanceId,
+                    frame = m_CurrentFrame,
+                    labeledObjectToCameraMatrix = Matrix4x4.Scale(cameraTransform.worldToLocalMatrix.lossyScale).inverse *
+                        cameraTransform.worldToLocalMatrix *
+                        labelTransform.localToWorldMatrix,
+                    boundingBox3D = converted,
+                    bounds = null
+                };
 
-                    var labelTransform = entityGameObject.transform;
-                    var cameraTransform = perceptionCamera.transform;
-                    var combinedBounds = new Bounds(Vector3.zero, Vector3.zero);
-                    var areBoundsUnset = true;
+                if (!ProcessMeshFiltersAsync(
+                    meshFilters, skinnedMeshRenderers, labeledEntity, pendingBounds, scriptableRenderContext))
+                    return;
 
-                    // Need to convert all bounds into labeling mesh space...
-                    foreach (var mesh in meshFilters)
-                    {
-                        if (!mesh.GetComponent<Renderer>().enabled)
-                            continue;
-
-                        var currentTransform = mesh.gameObject.transform;
-                        // Grab the bounds of the game object from the mesh, although these bounds are axis-aligned,
-                        // they are axis-aligned with respect to the current component's coordinate space. This, in theory
-                        // could still provide non-ideal fitting bounds (if the model is made strangely, but garbage in; garbage out)
-                        var meshBounds = mesh.mesh.bounds;
-
-                        var transformedBounds = new Bounds(meshBounds.center, meshBounds.size);
-                        var transformedRotation = Quaternion.identity;
-
-                        // Apply the transformations on this object until we reach the labeled transform
-                        while (currentTransform != labelTransform)
-                        {
-                            var localScale = currentTransform.localScale;
-                            var localRotation = currentTransform.localRotation;
-
-                            transformedBounds.center = Vector3.Scale(transformedBounds.center, localScale);
-                            transformedBounds.center = localRotation * transformedBounds.center;
-                            transformedBounds.center += currentTransform.localPosition;
-                            transformedBounds.extents = Vector3.Scale(transformedBounds.extents, localScale);
-                            transformedRotation *= localRotation;
-                            currentTransform = currentTransform.parent;
-                        }
-
-                        // Due to rotations that may be applied, we cannot simply use the extents of the bounds, but
-                        // need to calculate all 8 corners of the bounds and combine them with the current combined
-                        // bounds
-                        var corners = GetBoxCorners(transformedBounds, transformedRotation);
-
-                        // If this is the first time, create a new bounds struct
-                        if (areBoundsUnset)
-                        {
-                            combinedBounds = new Bounds(corners[0], Vector3.zero);
-                            areBoundsUnset = false;
-                        }
-
-                        // Go through each corner add add it to the bounds
-                        foreach (var c2 in corners)
-                        {
-                            combinedBounds.Encapsulate(c2);
-                        }
-                    }
-
-                    // Convert the combined bounds into world space
-                    combinedBounds.center = labelTransform.TransformPoint(combinedBounds.center);
-                    combinedBounds.extents = Vector3.Scale(combinedBounds.extents,  labelTransform.lossyScale);
-
-                    var camRotation = cameraTransform.rotation;
-                    // Now adjust the center and rotation to camera space. Camera space transforms never rescale objects
-                    combinedBounds.center -= cameraTransform.position;
-                    combinedBounds.center = Quaternion.Inverse(camRotation) * combinedBounds.center;
-                    var cameraRotation = Quaternion.Inverse(camRotation) * labelTransform.rotation;
-
-                    var converted = ConvertToBoxData(labelEntry, labeledEntity.instanceId, combinedBounds.center, combinedBounds.extents, cameraRotation);
-
-                    m_BoundingBoxValues[m_CurrentFrame][labeledEntity.instanceId] = converted;
-                }
+                pendingFrame.remainingPendingObjects++;
+                pendingFrame.pendingObjectsByInstanceId[labeledEntity.instanceId] = (true, false, converted);
             }
+        }
+
+        void CommitBoundingBox(PendingBounds pendingBounds)
+        {
+            var objectLocalBounds = pendingBounds.bounds.Value;
+            var cameraLocalBounds = BoundsFromObjectToCameraSpace(
+                pendingBounds.labeledObjectToCameraMatrix,
+                objectLocalBounds);
+
+            pendingBounds.bounds = cameraLocalBounds;
+            pendingBounds.boundingBox3D.size = cameraLocalBounds.size;
+            pendingBounds.boundingBox3D.translation = cameraLocalBounds.center;
+
+            var pendingData = m_PendingFrames[pendingBounds.frame];
+            var boundingBoxInfo = pendingData.pendingObjectsByInstanceId[pendingBounds.instanceId];
+            boundingBoxInfo.pending = false;
+            boundingBoxInfo.bb = pendingBounds.boundingBox3D;
+            pendingData.remainingPendingObjects--;
+            Debug.Assert(pendingData.remainingPendingObjects >= 0, "remainingPendingBounds should not be < 0");
+
+            pendingData.pendingObjectsByInstanceId[pendingBounds.instanceId] = boundingBoxInfo;
+
+            ReportIfComplete(pendingBounds.frame);
+        }
+
+        static Bounds BoundsFromObjectToCameraSpace(Matrix4x4 localToCameraTransform, Bounds bounds)
+        {
+            // Now adjust the center and rotation to camera space. Camera space transforms never rescale objects
+            bounds.center = localToCameraTransform.MultiplyPoint(bounds.center);
+            bounds.extents = Vector3.Scale(localToCameraTransform.lossyScale, bounds.extents);
+            return bounds;
         }
 
         static Vector3 CalculateRotatedPoint(Camera cam, Vector3 start, Vector3 xDirection, Vector3 yDirection, Vector3 zDirection, float xScalar, float yScalar, float zScalar)
@@ -298,20 +406,20 @@ namespace UnityEngine.Perception.GroundTruth
                 var forward = box.rotation * Vector3.forward;
 
                 var s = box.size * 0.5f;
-                var bbl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x,-s.y, -s.z);
-                var btl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x, s.y, -s.z);
-                var btr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, s.y, -s.z);
-                var bbr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, -s.y, -s.z);
+                var bbl = CalculateRotatedPoint(cam, t, right, up, forward, -s.x, -s.y, -s.z);
+                var btl = CalculateRotatedPoint(cam, t, right, up, forward, -s.x, s.y, -s.z);
+                var btr = CalculateRotatedPoint(cam, t, right, up, forward, s.x, s.y, -s.z);
+                var bbr = CalculateRotatedPoint(cam, t, right, up, forward, s.x, -s.y, -s.z);
 
                 VisualizationHelper.DrawLine(bbl, btl, visualizationColor);
                 VisualizationHelper.DrawLine(bbl, bbr, visualizationColor);
                 VisualizationHelper.DrawLine(btr, btl, visualizationColor);
                 VisualizationHelper.DrawLine(btr, bbr, visualizationColor);
 
-                var fbl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x,-s.y, s.z);
-                var ftl = CalculateRotatedPoint(cam, t,right, up, forward,-s.x, s.y, s.z);
-                var ftr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, s.y, s.z);
-                var fbr = CalculateRotatedPoint(cam, t,right, up, forward,s.x, -s.y, s.z);
+                var fbl = CalculateRotatedPoint(cam, t, right, up, forward, -s.x, -s.y, s.z);
+                var ftl = CalculateRotatedPoint(cam, t, right, up, forward, -s.x, s.y, s.z);
+                var ftr = CalculateRotatedPoint(cam, t, right, up, forward, s.x, s.y, s.z);
+                var fbr = CalculateRotatedPoint(cam, t, right, up, forward, s.x, -s.y, s.z);
 
                 VisualizationHelper.DrawLine(fbl, ftl, visualizationColor);
                 VisualizationHelper.DrawLine(fbl, fbr, visualizationColor);
@@ -322,7 +430,6 @@ namespace UnityEngine.Perception.GroundTruth
                 VisualizationHelper.DrawLine(fbr, bbr, visualizationColor);
                 VisualizationHelper.DrawLine(ftl, btl, visualizationColor);
                 VisualizationHelper.DrawLine(ftr, btr, visualizationColor);
-
             }
         }
     }

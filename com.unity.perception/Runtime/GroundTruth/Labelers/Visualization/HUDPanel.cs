@@ -1,10 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -30,7 +28,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The number of labelers currently displaying real-time information on the visualization HUD
         /// </summary>
-        public int entryCount => m_Entries.Keys.Count();
+        public int entryCount => m_Entries.Count;
 
         void Awake()
         {
@@ -114,7 +112,7 @@ namespace UnityEngine.Perception.GroundTruth
                     GUILayout.BeginHorizontal();
                     GUILayout.Space(5);
                     var k = new StringBuilder(entry.Key.Substring(0, Math.Min(entry.Key.Length, k_MaxKeyLength)));
-                    if (k.Length != entry.Key.Length) 
+                    if (k.Length != entry.Key.Length)
                         k.Append("...");
                     GUILayout.Label(k.ToString());
                     GUILayout.FlexibleSpace();

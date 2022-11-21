@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -90,7 +90,7 @@ namespace UnityEditor.Perception.Randomization
             if (type == null)
                 return null;
             const BindingFlags flags =
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |BindingFlags.DeclaredOnly;
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
             var fields = type.GetFields(flags);
             foreach (var field in fields)
                 if (field.Name == fieldName)

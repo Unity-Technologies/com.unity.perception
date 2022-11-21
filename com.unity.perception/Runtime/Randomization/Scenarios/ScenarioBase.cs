@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
 using UnityEngine.Perception.Randomization.Randomizers;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.Randomization.Scenarios.Serialization;
+using UnityEngine.Perception.Utilities;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -17,6 +17,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     [DefaultExecutionOrder(-1)]
     public abstract class ScenarioBase : MonoBehaviour
     {
+        const string k_RestoreCrashCommandLineKey = "-restoreCrash";
+
         static ScenarioBase s_ActiveScenario;
 
         /// <summary>
@@ -145,6 +147,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             if (!File.Exists(filePath))
                 throw new FileNotFoundException($"No configuration file found at {filePath}");
             var jsonText = File.ReadAllText(filePath);
+
+            Debug.Log($"Configuration file data: {jsonText}");
+
             configuration = new TextAsset(jsonText);
         }
 
@@ -152,7 +157,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         /// Deserialize scenario settings from a file passed through a command line argument
         /// </summary>
         /// <param name="commandLineArg">The command line argument to look for</param>
-        protected void LoadConfigurationFromCommandLine(string commandLineArg="--scenario-config-file")
+        void LoadConfigurationFromCommandLine(string commandLineArg = "--scenario-config-file")
         {
             var filePath = string.Empty;
 
@@ -225,41 +230,47 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         #region LifecycleHooks
+
+        /// <summary>
+        /// Tries to restore previous simulation state
+        /// </summary>
+        protected virtual void OnResumeSimulation() {}
+
         /// <summary>
         /// OnAwake is called when this scenario MonoBehaviour is created or instantiated
         /// </summary>
-        protected virtual void OnAwake() { }
+        protected virtual void OnAwake() {}
 
         /// <summary>
         /// OnStart is called when the scenario first begins playing
         /// </summary>
-        protected virtual void OnStart() { }
+        protected virtual void OnStart() {}
 
         /// <summary>
         /// OnIterationStart is called before a new iteration begins
         /// </summary>
-        protected virtual void OnIterationStart() { }
+        protected virtual void OnIterationStart() {}
 
         /// <summary>
         /// OnIterationStart is called after each iteration has completed
         /// </summary>
-        protected virtual void OnIterationEnd() { }
+        protected virtual void OnIterationEnd() {}
 
         /// <summary>
         /// OnUpdate is called every frame while the scenario is playing
         /// </summary>
-        protected virtual void OnUpdate() { }
+        protected virtual void OnUpdate() {}
 
         /// <summary>
         /// OnComplete is called when this scenario's isScenarioComplete property
         /// returns true during its main update loop
         /// </summary>
-        protected virtual void OnComplete() { }
+        protected virtual void OnComplete() {}
 
         /// <summary>
         /// OnIdle is called each frame after the scenario has completed
         /// </summary>
-        protected virtual void OnIdle() { }
+        protected virtual void OnIdle() {}
 
         /// <summary>
         /// Restart the scenario
@@ -286,7 +297,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             Application.Quit();
 #endif
         }
+
         #endregion
+
 
         #region MonoBehaviourMethods
         void Awake()
@@ -301,13 +314,32 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             }
             catch (Exception e)
             {
-                Debug.LogError(e.Message);
-                Application.Quit();
+                QuitApplication(e);
             }
 
-            OnAwake();
+            ValidateCrashRestore();
+
+            try
+            {
+                OnAwake();
+            }
+            catch (Exception e)
+            {
+                QuitApplication(e);
+            }
+
             foreach (var randomizer in activeRandomizers)
-                randomizer.Awake();
+            {
+                try
+                {
+                    randomizer.Awake();
+                }
+                catch (Exception e)
+                {
+                    QuitApplication(e);
+                }
+            }
+
             ValidateParameters();
         }
 
@@ -327,7 +359,25 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             activeScenario = null;
         }
 
-        void Update()
+        /// <summary>
+        /// OnDestroy is called before this scenario destroyed
+        /// </summary>
+        protected void OnDestroy()
+        {
+            foreach (var randomizer in activeRandomizers)
+            {
+                try
+                {
+                    randomizer.Destroy();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"OnDestroy randomizer {randomizer.GetType()} thrown an exception {e}");
+                }
+            }
+        }
+
+        internal virtual void Update()
         {
             switch (state)
             {
@@ -355,6 +405,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                         $"Invalid state {state} encountered while updating scenario");
             }
         }
+
         #endregion
 
         static void QuitApplication(Exception e)
@@ -366,7 +417,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
             EditorApplication.isPlaying = false;
 #else
-            Application.Quit(-1);
+            Environment.ExitCode = 1;
+            Application.Quit(1);
+            Diagnostics.Utils.ForceCrash(UnityEngine.Diagnostics.ForcedCrashCategory.Abort);
 #endif
         }
 
@@ -492,7 +545,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                     }
                     if (m_ShouldDelayIteration)
                         break;
-                } while (m_ShouldRestartIteration && iterationStartCount < k_MaxIterationStartCount);
+                }
+                while (m_ShouldRestartIteration && iterationStartCount < k_MaxIterationStartCount);
 
                 if (m_ShouldRestartIteration)
                 {
@@ -524,7 +578,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                     QuitApplication(e);
                 }
             }
-
 
             // Iterate scenario frame count
             if (!m_ShouldDelayIteration)
@@ -589,8 +642,15 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public void RemoveRandomizerAt(int index)
         {
             if (state != State.Initializing)
-                throw new ScenarioException("Randomizers cannot be added to the scenario after it has started");
+                throw new ScenarioException("Randomizers cannot be removed from the scenario after it has started");
             m_Randomizers.RemoveAt(index);
+        }
+
+        internal void ClearNullRandomizers()
+        {
+            if (state != State.Initializing)
+                throw new ScenarioException("Randomizers cannot be removed from the scenario after it has started");
+            m_Randomizers.RemoveAll(x => x == null);
         }
 
         /// <summary>
@@ -619,12 +679,12 @@ namespace UnityEngine.Perception.Randomization.Scenarios
 
         void ValidateParameters()
         {
-            foreach (var randomizer in activeRandomizers)
-            foreach (var parameter in randomizer.parameters)
-            {
-                try { parameter.Validate(); }
-                catch (ParameterValidationException exception) { Debug.LogException(exception, this); }
-            }
+            foreach (var randomizer in m_Randomizers)
+                foreach (var parameter in randomizer.parameters)
+                {
+                    try { parameter.Validate(); }
+                    catch (ParameterValidationException exception) { Debug.LogException(exception, this); }
+                }
         }
 
         /// <summary>
@@ -648,6 +708,9 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             Idle
         }
 
+        /// <summary>
+        /// Set a flag, that current simulation should be restarted
+        /// </summary>
         public void RestartIteration()
         {
             m_ShouldRestartIteration = true;
@@ -664,6 +727,31 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         public void DelayIteration()
         {
             m_ShouldDelayIteration = true;
+        }
+
+        /// <summary>
+        /// Try to restore previous simulation
+        /// </summary>
+        void ValidateCrashRestore()
+        {
+            if (!ExecutionTools.HasCommandLineArgumentValue(k_RestoreCrashCommandLineKey))
+            {
+                return;
+            }
+
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+
+            try
+            {
+                OnResumeSimulation();
+            }
+            catch (Exception e)
+            {
+                QuitApplication(e);
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.Randomization;
-using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
+using UnityEngine.Perception.Randomization.Randomizers.Tags;
 
 namespace RandomizationTests.AssetSourceTests
 {

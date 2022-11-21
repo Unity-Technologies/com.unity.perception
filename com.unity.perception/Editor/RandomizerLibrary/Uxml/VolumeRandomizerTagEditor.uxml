@@ -1,0 +1,19 @@
+<UXML
+        xmlns="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements"
+>
+    <VisualElement class="internal_vol_tag">
+        <Style src="../Uss/Common.uss"/>
+        <VisualElement name="main_container">
+            <VisualElement name="delete_button_container">
+                <Slider name="effect_chance" tooltip="The independent chance that each effect has of being enabled. For example, at 40%, each effect has a 40% probability of being independently enabled. " />
+                <Button name="delete_all_button" text="Delete All Effects" tooltip="Delete all added effects from the list." />
+            </VisualElement>
+            <VisualElement name="effect_container" tooltip="The list of volume effects that will be randomized." />
+            <VisualElement name="effect_options_container">
+                <VisualElement name="available_effects_container" tooltip="The volume effect to be added." />
+                <Button name="add_effect_button" text="Add Effect" tooltip="Add the effect selected on the left to the list of effects randomized." />
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

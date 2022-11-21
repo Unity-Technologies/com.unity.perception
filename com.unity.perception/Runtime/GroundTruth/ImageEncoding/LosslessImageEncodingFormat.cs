@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Lossless image file formats supported by Perception

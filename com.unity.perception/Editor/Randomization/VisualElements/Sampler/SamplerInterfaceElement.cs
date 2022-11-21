@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.UIElements;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.UIElements;

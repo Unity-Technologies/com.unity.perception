@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Perception.GroundTruth;
 
 namespace UnityEngine.Perception.Randomization.Scenarios
 {
@@ -6,7 +7,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
     /// A scenario that runs for a fixed number of frames during each iteration
     /// </summary>
     [AddComponentMenu("Perception/Scenarios/Fixed Length Scenario")]
-    public class FixedLengthScenario: PerceptionScenario<FixedLengthScenario.Constants>
+    public class FixedLengthScenario : PerceptionScenario<FixedLengthScenario.Constants>
     {
         /// <summary>
         /// Constants describing the execution of this scenario
@@ -26,12 +27,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             /// </summary>
             [Tooltip("The number of iterations to run.")]
             public int iterationCount = 100;
-
-            /// <summary>
-            /// The number of frames to render per iteration.
-            /// </summary>
-            [Tooltip("The number of frames to render per iteration.")]
-            public int framesPerIteration = 1;
 
             [HideInInspector]
             [SerializeField]
@@ -53,25 +48,61 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         /// <summary>
+        /// The number of frames to render per iteration.
+        /// </summary>
+        [Tooltip("The number of frames to render per iteration.")]
+        public int framesPerIteration = 1;
+
+        /// <summary>
         /// This serialized progress field is used by the Scenario inspector to track the scenario's completion progress.
         /// </summary>
         [SerializeField, HideInInspector]
         float m_ProgressPercentage;
+
+        int m_RestoredFrameId;
 
         internal bool m_SimulationRunningInCloudOverride = false;
 
         /// <summary>
         /// The proportion of the scenario iterations that have been completed expressed as a percentage.
         /// </summary>
-        public float progressPercentage => m_ProgressPercentage;
+        internal float progressPercentage => m_ProgressPercentage;
 
+        /// <summary>
+        /// Tries to restore previous simulation state
+        /// </summary>
+        protected override void OnResumeSimulation()
+        {
+            var(status, lastFrame) = DatasetCapture.activateEndpoint.ResumeSimulationFromCrash(constants.iterationCount);
+            SimulationState.frameOffset = lastFrame;
+            SimulationState.sequenceId = lastFrame - 1;
+            SimulationState.dataCaptured = true;
+            m_RestoredFrameId = lastFrame;
+        }
+
+        /// <summary>
+        /// OnAwake is called when this scenario MonoBehaviour is created or instantiated
+        /// </summary>
         protected override void OnAwake()
         {
             base.OnAwake();
+
             if (!IsSimulationRunningInCloud())
-                this.currentIteration = constants.startIteration;
+            {
+                currentIteration = constants.startIteration;
+            }
+
+            if (m_RestoredFrameId != 0)
+            {
+                currentIteration = m_RestoredFrameId + 1;
+                constants.startIteration = m_RestoredFrameId + 1;
+                constants.iterationCount -= m_RestoredFrameId;
+            }
         }
 
+        /// <summary>
+        /// Loads Configuration file
+        /// </summary>
         protected override void LoadConfigurationAsset()
         {
             base.LoadConfigurationAsset();
@@ -79,7 +110,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 constants.startIteration = 0;
         }
 
-        internal bool IsSimulationRunningInCloud()
+        bool IsSimulationRunningInCloud()
         {
 #if UNITY_SIMULATION_CORE_PRESENT
             if (Unity.Simulation.Configuration.Instance.IsSimulationRunningInCloud())
@@ -102,7 +133,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         }
 
         /// <inheritdoc/>
-        protected override bool isIterationComplete => currentIterationFrame >= constants.framesPerIteration;
+        protected override bool isIterationComplete => currentIterationFrame >= framesPerIteration;
 
 #if UNITY_SIMULATION_CORE_PRESENT
         protected sealed override void IncrementIteration()
@@ -116,6 +147,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios
                 base.IncrementIteration();
             }
         }
+
 #endif
         /// <inheritdoc/>
         protected override void OnUpdate()
@@ -139,8 +171,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios
             }
             else
             {
-                var totalFrames = constants.totalIterations * constants.framesPerIteration;
-                var currentFrame = (currentIteration - constants.startIteration) * constants.framesPerIteration + currentIterationFrame;
+                var totalFrames = constants.iterationCount * framesPerIteration;
+                var currentFrame = (currentIteration - constants.startIteration) * framesPerIteration + currentIterationFrame;
                 var delta = (currentFrame + 1) / (float)totalFrames;
                 m_ProgressPercentage = Mathf.Clamp01(delta) * 100f;
             }

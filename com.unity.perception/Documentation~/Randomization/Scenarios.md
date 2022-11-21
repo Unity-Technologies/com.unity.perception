@@ -13,7 +13,7 @@ By default, the Perception package includes one ready-made Scenario, the `FixedL
 Scenarios have a number of lifecycle hooks that are called during execution. Below is a diagram visualizing the sequence of operations run by a typical scenario:
 
 <p align="center">
-<img src="../images/Randomization/Images/scenario-lifecycle-diagram.png" width="600"/>
+<img src="../images/Randomization/scenario-lifecycle-diagram.png" width="600"/>
 </p>
 
 

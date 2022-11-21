@@ -1,19 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Utilities
 {
     /// <summary>
     /// A utility for encoding raw pixel data into a variety of formats using the Unity Job System.
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public static class ImageEncoder
     {
         static JobHandle s_EncodingJobs;
@@ -29,13 +30,13 @@ namespace UnityEngine.Perception.GroundTruth
 
         static bool IsMainThread()
         {
-            return Thread.CurrentThread == s_MainThread;
+            return s_MainThread != null && Thread.CurrentThread == s_MainThread;
         }
 
         /// <summary>
         /// Whether to encode images in parallel (using the JobSystem), or to synchronously encode images.
         /// </summary>
-        public static bool encodeImagesAsynchronously = true;
+        public static bool encodeImagesAsynchronously { get; set; } = true;
 
         /// <summary>
         /// Wait for all in flight encoding jobs to complete, along with their callbacks.
@@ -81,6 +82,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Encodes raw pixel data asynchronously.
         /// The callback assigned to this method however will be executed on the main thread.
         /// </summary>
+        /// <typeparam name="T"> Where T is a pixel suitable format for ImageConversion.EncodeNativeArrayToJPG </typeparam>
         /// <param name="rawImageData">A native buffer of raw pixel data.</param>
         /// <param name="width"></param>
         /// <param name="height"></param>
@@ -98,6 +100,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Encodes raw pixel data asynchronously.
         /// The callback assigned to this method however will be executed on the main thread.
         /// </summary>
+        /// <typeparam name="T"> Where T is a pixel suitable format for ImageConversion.EncodeNativeArrayToJPG </typeparam>
         /// <param name="rawImageData">A native buffer of raw pixel data.</param>
         /// <param name="width"></param>
         /// <param name="height"></param>
@@ -115,7 +118,7 @@ namespace UnityEngine.Perception.GroundTruth
             else if (encodeImagesAsynchronously)
             {
                 // Copy the raw image data to ensure the encoding job doesn't potentially access deallocated memory.
-                rawImageData = new NativeArray<T>(rawImageData, Allocator.TempJob);
+                rawImageData = new NativeArray<T>(rawImageData, Allocator.Persistent);
 
                 Profiler.BeginSample("Queuing Encoding Worker");
                 var encodedData = new NativeList<byte>(Allocator.Persistent);
@@ -270,8 +273,6 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-
-        [BurstCompile]
         struct EncodeJob<T> : IJob where T : unmanaged
         {
             public int width;

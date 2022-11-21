@@ -1,15 +1,17 @@
-﻿using System;
+using System;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
+using UnityEngine.Perception.Randomization.Randomizers.Tags;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Randomizes the rotation of objects tagged with a RotationRandomizerTag
     /// </summary>
     [Serializable]
     [AddRandomizerMenu("Perception/Rotation Randomizer")]
+    [MovedFrom("UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")]
     public class RotationRandomizer : Randomizer
     {
         /// <summary>

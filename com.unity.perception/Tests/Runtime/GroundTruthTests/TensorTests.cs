@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
@@ -14,9 +14,9 @@ namespace GroundTruthTests
         {
             var t = new Tensor(Tensor.ElementType.Float, new[] { 2, 2 });
             const int i = 7;
-            Assert.Throws<ArgumentException>(() => t.SetElementAt(new []{ 0, 1 }, i));
+            Assert.Throws<ArgumentException>(() => t.SetElementAt(new[] { 0, 1 }, i));
             const float f = 7;
-            Assert.DoesNotThrow(() => t.SetElementAt(new []{0, 1}, f));
+            Assert.DoesNotThrow(() => t.SetElementAt(new[] {0, 1}, f));
         }
 
         [Test]
@@ -24,19 +24,19 @@ namespace GroundTruthTests
         {
             var t = new Tensor(Tensor.ElementType.Float, new[] { 2, 2 });
             const float i = 7;
-            Assert.Throws<ArgumentException>(() => t.SetElementAt(new []{ 0 }, i));
-            Assert.Throws<ArgumentException>(() => t.SetElementAt(new []{ 1, 8, 14, 27 }, i));
-            Assert.Throws<ArgumentException>(() => t.SetElementAt(new []{ 2, 2 }, i));
-            Assert.Throws<ArgumentException>(() => t.SetElementAt(new []{ 2, -1 }, i));
-            Assert.Throws<ArgumentException>(() => t.SetElementAt(new []{ -1, 0 }, i));
-            Assert.Throws<ArgumentException>(() => t.SetElementAt(new []{ 0, 2 }, i));
-            Assert.Throws<ArgumentException>(() => t.SetElementAt(new []{ 2, 0 }, i));
+            Assert.Throws<ArgumentException>(() => t.SetElementAt(new[] { 0 }, i));
+            Assert.Throws<ArgumentException>(() => t.SetElementAt(new[] { 1, 8, 14, 27 }, i));
+            Assert.Throws<ArgumentException>(() => t.SetElementAt(new[] { 2, 2 }, i));
+            Assert.Throws<ArgumentException>(() => t.SetElementAt(new[] { 2, -1 }, i));
+            Assert.Throws<ArgumentException>(() => t.SetElementAt(new[] { -1, 0 }, i));
+            Assert.Throws<ArgumentException>(() => t.SetElementAt(new[] { 0, 2 }, i));
+            Assert.Throws<ArgumentException>(() => t.SetElementAt(new[] { 2, 0 }, i));
 
             const float f = 7;
-            Assert.DoesNotThrow(() => t.SetElementAt(new []{0, 0}, f));
-            Assert.DoesNotThrow(() => t.SetElementAt(new []{0, 1}, f));
-            Assert.DoesNotThrow(() => t.SetElementAt(new []{1, 0}, f));
-            Assert.DoesNotThrow(() => t.SetElementAt(new []{1, 1}, f));
+            Assert.DoesNotThrow(() => t.SetElementAt(new[] {0, 0}, f));
+            Assert.DoesNotThrow(() => t.SetElementAt(new[] {0, 1}, f));
+            Assert.DoesNotThrow(() => t.SetElementAt(new[] {1, 0}, f));
+            Assert.DoesNotThrow(() => t.SetElementAt(new[] {1, 1}, f));
         }
 
         [Test]
@@ -50,7 +50,7 @@ namespace GroundTruthTests
 
             var tensor = new Tensor(Tensor.ElementType.Byte, new[] { 3, 3, 3 }, buffer);
 
-            var idx = new [] { 0, 0, 0 };
+            var idx = new[] { 0, 0, 0 };
             tensor.GetElementAt(idx, out byte b);
 
             // Test some locations
@@ -86,7 +86,7 @@ namespace GroundTruthTests
 
             var tensor = new Tensor(Tensor.ElementType.Float, new[] { 3, 3, 3 }, buffer);
 
-            var idx = new [] { 0, 0, 0 };
+            var idx = new[] { 0, 0, 0 };
             tensor.GetElementAt(idx, out float b);
 
             // Test some locations
@@ -122,7 +122,7 @@ namespace GroundTruthTests
 
             var tensor = new Tensor(Tensor.ElementType.Int, new[] { 3, 3, 3 }, buffer);
 
-            var idx = new [] { 0, 0, 0 };
+            var idx = new[] { 0, 0, 0 };
             tensor.GetElementAt(idx, out int b);
 
             // Test some locations
@@ -158,7 +158,7 @@ namespace GroundTruthTests
 
             var tensor = new Tensor(Tensor.ElementType.Uint, new[] { 3, 3, 3 }, buffer);
 
-            var idx = new [] { 0, 0, 0 };
+            var idx = new[] { 0, 0, 0 };
             tensor.GetElementAt(idx, out uint b);
 
             // Test some locations
@@ -194,7 +194,7 @@ namespace GroundTruthTests
 
             var tensor = new Tensor(Tensor.ElementType.Double, new[] { 3, 3, 3 }, buffer);
 
-            var idx = new [] { 0, 0, 0 };
+            var idx = new[] { 0, 0, 0 };
             tensor.GetElementAt(idx, out double b);
 
             // Test some locations
@@ -230,7 +230,7 @@ namespace GroundTruthTests
 
             var tensor = new Tensor(Tensor.ElementType.Long, new[] { 3, 3, 3 }, buffer);
 
-            var idx = new [] { 0, 0, 0 };
+            var idx = new[] { 0, 0, 0 };
             tensor.GetElementAt(idx, out long b);
 
             // Test some locations
@@ -266,7 +266,7 @@ namespace GroundTruthTests
 
             var tensor = new Tensor(Tensor.ElementType.Char, new[] { 3, 3, 3 }, buffer);
 
-            var idx = new [] { 0, 0, 0 };
+            var idx = new[] { 0, 0, 0 };
             tensor.GetElementAt(idx, out char b);
 
             // Test some locations
@@ -302,7 +302,7 @@ namespace GroundTruthTests
 
             var tensor = new Tensor(Tensor.ElementType.Bool, new[] { 3, 3, 3 }, buffer);
 
-            var idx = new [] { 0, 0, 0 };
+            var idx = new[] { 0, 0, 0 };
             tensor.GetElementAt(idx, out bool b);
 
             // Test some locations
@@ -327,10 +327,10 @@ namespace GroundTruthTests
         }
 
         [Test]
-        [TestCase(0,0,0,0)]
-        [TestCase(255,255,255,255)]
-        [TestCase(255,0,0,255)]
-        [TestCase(128,128,128,128)]
+        [TestCase(0, 0, 0, 0)]
+        [TestCase(255, 255, 255, 255)]
+        [TestCase(255, 0, 0, 255)]
+        [TestCase(128, 128, 128, 128)]
         public void Color32TensorTest(byte r, byte g, byte b, byte a)
         {
             var c = new Color32(r, g, b, a);
@@ -347,23 +347,23 @@ namespace GroundTruthTests
         }
 
         [Test]
-        [TestCase(0,0,0)]
-        [TestCase(255,255,255)]
-        [TestCase(255,0,0)]
-        [TestCase(128,128,128)]
-        [TestCase(-128,-128,-128)]
-        [TestCase(0.1f,0.2f,-4.2f)]
+        [TestCase(0, 0, 0)]
+        [TestCase(255, 255, 255)]
+        [TestCase(255, 0, 0)]
+        [TestCase(128, 128, 128)]
+        [TestCase(-128, -128, -128)]
+        [TestCase(0.1f, 0.2f, -4.2f)]
         public void Vector3TensorTest(float x, float y, float z)
         {
-            var c = new Vector3(x,y,z);
+            var c = new Vector3(x, y, z);
             var t = TensorBuilder.ToTensor(c);
             Assert.AreEqual(1, t.shape.Length);
             Assert.AreEqual(3, t.shape[0]);
             Assert.AreEqual(Tensor.ElementType.Float, t.elementType);
 
-            t.GetElementAt(new []{0}, out float oX);
-            t.GetElementAt(new []{1}, out float oY);
-            t.GetElementAt(new []{2}, out float oZ);
+            t.GetElementAt(new[] {0}, out float oX);
+            t.GetElementAt(new[] {1}, out float oY);
+            t.GetElementAt(new[] {2}, out float oZ);
             Assert.AreEqual(x, oX);
             Assert.AreEqual(y, oY);
             Assert.AreEqual(z, oZ);
@@ -372,22 +372,22 @@ namespace GroundTruthTests
         }
 
         [Test]
-        [TestCase(0,0)]
-        [TestCase(255,255)]
-        [TestCase(255,0)]
-        [TestCase(128,128)]
-        [TestCase(-128,-128)]
-        [TestCase(0.1f,0.2f)]
+        [TestCase(0, 0)]
+        [TestCase(255, 255)]
+        [TestCase(255, 0)]
+        [TestCase(128, 128)]
+        [TestCase(-128, -128)]
+        [TestCase(0.1f, 0.2f)]
         public void Vector2TensorTest(float x, float y)
         {
-            var c = new Vector2(x,y);
+            var c = new Vector2(x, y);
             var t = TensorBuilder.ToTensor(c);
             Assert.AreEqual(1, t.shape.Length);
             Assert.AreEqual(2, t.shape[0]);
             Assert.AreEqual(Tensor.ElementType.Float, t.elementType);
 
-            t.GetElementAt(new []{0}, out float oX);
-            t.GetElementAt(new []{1}, out float oY);
+            t.GetElementAt(new[] {0}, out float oX);
+            t.GetElementAt(new[] {1}, out float oY);
             Assert.AreEqual(x, oX);
             Assert.AreEqual(y, oY);
             var c2 = TensorBuilder.ToVector2(t);
@@ -410,8 +410,8 @@ namespace GroundTruthTests
             Assert.AreEqual(3, t.shape[1]);
             Assert.AreEqual(Tensor.ElementType.Float, t.elementType);
 
-            t.GetElementAt(new []{0, 0}, out float oX);
-            t.GetElementAt(new []{2, 2}, out float oY);
+            t.GetElementAt(new[] {0, 0}, out float oX);
+            t.GetElementAt(new[] {2, 2}, out float oY);
             Assert.AreEqual(0, oX);
             Assert.AreEqual(8, oY);
             var c2 = TensorBuilder.ToFloat3X3(t);

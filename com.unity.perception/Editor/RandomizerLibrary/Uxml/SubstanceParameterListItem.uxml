@@ -1,0 +1,9 @@
+<UXML
+        xmlns="UnityEngine.UIElements"
+>
+    <VisualElement class="internal_substance_list_item">
+        <Style src="../Uss/Common.uss"/>
+        <Label name="item_label" />
+        <Button name="delete_button" text="✕" />
+    </VisualElement>
+</UXML>

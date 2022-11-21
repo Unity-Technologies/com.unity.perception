@@ -2,15 +2,20 @@ using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Profiling;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.GroundTruth.Sensors.Channels;
+using UnityEngine.Perception.GroundTruth.Utilities;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Produces 2d bounding box annotations for all visible objects each frame.
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public sealed class BoundingBox2DLabeler : CameraLabeler
     {
         BoundingBoxDefinition m_AnnotationDefinition;
@@ -68,7 +73,7 @@ namespace UnityEngine.Perception.GroundTruth
         internal struct BoundingBoxesCalculatedEventArgs
         {
             /// <summary>
-            /// The <see cref="Time.frameCount"/> on which the data was derived. This may be multiple frames in the past.
+            /// The <see cref="SimulationState.CurrentFrameIndex"/> on which the data was derived. This may be multiple frames in the past.
             /// </summary>
             public int frameCount;
             /// <summary>
@@ -94,6 +99,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             DatasetCapture.RegisterAnnotationDefinition(m_AnnotationDefinition);
 
+            perceptionCamera.EnableChannel<InstanceIdChannel>();
             perceptionCamera.RenderedObjectInfosCalculated += OnRenderedObjectInfosCalculated;
 
             visualizationEnabled = supportsVisualization;
@@ -118,10 +124,22 @@ namespace UnityEngine.Perception.GroundTruth
         {
             m_AsyncData[Time.frameCount] =
                 (perceptionCamera.SensorHandle.ReportAnnotationAsync(m_AnnotationDefinition),
-                 idLabelConfig.CreateLabelEntryMatchCache(Allocator.TempJob));
+                    idLabelConfig.CreateLabelEntryMatchCache(Allocator.TempJob));
         }
 
-        void OnRenderedObjectInfosCalculated(int frameCount, NativeArray<RenderedObjectInfo> renderedObjectInfos)
+        class IntermediaryBoundingBoxData
+        {
+            public BoundingBox boundingBox;
+            public IdLabelEntry? labelEntry;
+            public bool IsInLabelConfig => labelEntry.HasValue;
+            public bool hasEncapsulatedAlready = false;
+        }
+
+        void OnRenderedObjectInfosCalculated(
+            int frameCount,
+            NativeArray<RenderedObjectInfo> renderedObjectInfos,
+            SceneHierarchyInformation hierarchyInfo
+        )
         {
             if (!m_AsyncData.TryGetValue(frameCount, out var asyncData))
                 return;
@@ -129,36 +147,86 @@ namespace UnityEngine.Perception.GroundTruth
             m_AsyncData.Remove(frameCount);
             using (s_BoundingBoxCallback.Auto())
             {
-                var bbValues = new List<BoundingBox>();
+                var boxes = new Dictionary<uint, IntermediaryBoundingBoxData>();
+                // go through the array once and make the individual separate bounding boxes
                 for (var i = 0; i < renderedObjectInfos.Length; i++)
                 {
                     var objectInfo = renderedObjectInfos[i];
-                    if (!asyncData.labelEntryMatchCache.TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry, out _))
-                        continue;
+                    var instanceId = objectInfo.instanceId;
 
-                    bbValues.Add(new BoundingBox
+                    var im = new IntermediaryBoundingBoxData()
+                    {
+                        boundingBox = new BoundingBox
                         {
-                            labelId = labelEntry.id,
-                            labelName = labelEntry.label,
-                            instanceId = (int)objectInfo.instanceId,
+                            instanceId = (int)instanceId,
                             origin = new Vector2(objectInfo.boundingBox.x, objectInfo.boundingBox.y),
                             dimension = new Vector2(objectInfo.boundingBox.width, objectInfo.boundingBox.height)
                         }
-                    );
+                    };
+
+                    // if the current bounding box is in the selected label config,
+                    // add some extra labelEntry-related information
+                    if (asyncData.labelEntryMatchCache.TryGetLabelEntryFromInstanceId(instanceId, out var labelEntry, out _))
+                    {
+                        im.boundingBox.labelId = labelEntry.id;
+                        im.boundingBox.labelName = labelEntry.label;
+                        im.labelEntry = labelEntry;
+                    }
+
+                    boxes[instanceId] = im;
                 }
 
-                if (!PerceptionCamera.useAsyncReadbackIfSupported && frameCount != Time.frameCount)
-                    Debug.LogWarning("Not on current frame: " + frameCount + "(" + Time.frameCount + ")");
-
-                m_ToVisualize = bbValues;
-
-                boundingBoxesCalculated?.Invoke(new BoundingBoxesCalculatedEventArgs()
+                // Combination Process
+                // for each bounding box, if it wants to be merged into parent, we:
+                //   1. ensure its the largest it can be (recursively make it as big as its children)
+                //   2. enlarge its parent bounding box with its bounding box
+                void EnlargeIfNeeded(uint nodeInstanceId)
                 {
-                    data = bbValues,
+                    // get bounding box and hierarchy of current node
+                    var nodeIB = boxes[nodeInstanceId];
+                    if (nodeIB.hasEncapsulatedAlready)
+                        return;
+
+                    var hierarchyNode = hierarchyInfo.hierarchy[nodeInstanceId];
+                    // for each child, check if the our bounding box needs to expand to fit it
+                    foreach (var childInstanceId in hierarchyNode.childrenInstanceIds)
+                    {
+                        // recursively make sure that the child bounding box is big enough!
+                        EnlargeIfNeeded(childInstanceId);
+
+                        // invariant: child is as big as it should be
+                        var childNodeIb = boxes[childInstanceId];
+                        if (
+                            !childNodeIb.IsInLabelConfig ||
+                            childNodeIb.labelEntry is { hierarchyRelation: HierarchyRelation.AddToParent }
+                        )
+                        {
+                            nodeIB.boundingBox.Encapsulate(childNodeIb.boundingBox);
+                        }
+                    }
+
+                    nodeIB.hasEncapsulatedAlready = true;
+                    boxes[nodeInstanceId] = nodeIB;
+                }
+
+                // go through all instance ids again for the "combination" process
+                foreach (var instanceId in renderedObjectInfos)
+                    EnlargeIfNeeded(instanceId.instanceId);
+
+                var finalBoxes = new List<BoundingBox>();
+                foreach (var(instanceId, im) in boxes)
+                {
+                    if (im.IsInLabelConfig)
+                        finalBoxes.Add(im.boundingBox);
+                }
+
+                m_ToVisualize = finalBoxes;
+                boundingBoxesCalculated?.Invoke(new BoundingBoxesCalculatedEventArgs() {
+                    data = finalBoxes,
                     frameCount = frameCount
                 });
 
-                var toReport = new BoundingBoxAnnotation(m_AnnotationDefinition, perceptionCamera.ID, bbValues);
+                var toReport = new BoundingBoxAnnotation(m_AnnotationDefinition, perceptionCamera.id, finalBoxes);
                 asyncData.annotation.Report(toReport);
                 asyncData.labelEntryMatchCache.Dispose();
             }
@@ -180,12 +248,13 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 var x = box.origin.x * screenRatioWidth;
                 var y = box.origin.y * screenRatioHeight;
+                InstanceIdToColorMapping.TryGetColorFromInstanceId((uint)box.instanceId, out var color);
 
                 var boxRect = new Rect(x, y, box.dimension.x * screenRatioWidth, box.dimension.y * screenRatioHeight);
                 var labelWidth = Math.Min(120, box.dimension.x * screenRatioWidth);
                 var labelRect = new Rect(x, y - 17, labelWidth, 17);
-                GUI.DrawTexture(boxRect, m_BoundingBoxTexture, ScaleMode.StretchToFill, true, 0, Color.yellow, 3, 0.25f);
-                GUI.DrawTexture(labelRect, m_LabelTexture, ScaleMode.StretchToFill, true, 0, Color.yellow, 0, 0);
+                GUI.DrawTexture(boxRect, m_BoundingBoxTexture, ScaleMode.StretchToFill, true, 0, color, 3, 0.25f);
+                GUI.DrawTexture(labelRect, m_LabelTexture, ScaleMode.StretchToFill, true, 0, color, 0, 0);
                 GUI.Label(labelRect, box.labelName + "_" + box.instanceId, m_Style);
             }
         }

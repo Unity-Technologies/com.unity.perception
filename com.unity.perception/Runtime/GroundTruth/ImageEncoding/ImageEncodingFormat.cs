@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth
 {
     /// <summary>
     /// Image encoding format identifiers.

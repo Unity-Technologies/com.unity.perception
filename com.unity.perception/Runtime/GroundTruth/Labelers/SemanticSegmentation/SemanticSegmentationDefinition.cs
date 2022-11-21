@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// Annotation definition for semantic segmentation
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class SemanticSegmentationDefinition : AnnotationDefinition
     {
         /// <inheritdoc/>
@@ -19,9 +21,12 @@ namespace UnityEngine.Perception.GroundTruth
         /// <inheritdoc/>
         public override string description => labelerDescription;
 
-        public IEnumerable<SemanticSegmentationDefinitionEntry> spec;
+        /// <summary>
+        /// The list of all color-to-string-label mappings in the dataset for this semantic segmentation definition.
+        /// </summary>
+        public IReadOnlyList<SemanticSegmentationDefinitionEntry> spec;
 
-        internal SemanticSegmentationDefinition(string id, IEnumerable<SemanticSegmentationDefinitionEntry> spec)
+        internal SemanticSegmentationDefinition(string id, IReadOnlyList<SemanticSegmentationDefinitionEntry> spec)
             : base(id)
         {
             this.spec = spec;

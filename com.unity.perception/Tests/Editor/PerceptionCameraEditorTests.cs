@@ -4,15 +4,12 @@ using System.IO;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
-#if !UNITY_EDITOR_LINUX
-using UnityEditor.Perception.Visualizer;
-#endif
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.Consumers;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 using UnityEngine.Perception.Settings;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 #if MOQ_PRESENT
 using Moq;
@@ -25,19 +22,19 @@ namespace EditorTests
     [TestFixture]
     public class PerceptionCameraEditorTests
     {
-        [UnityTest]
+        [UnityTest, Ignore("Fails due to editor SceneView bug")]
         public IEnumerator EditorPause_DoesNotLogErrors()
         {
             var cameraObject = SetupCamera(p =>
             {
-                var idLabelConfig = ScriptableObject.CreateInstance<IdLabelConfig>();
                 p.captureRgbImages = true;
+                var idLabelConfig = ScriptableObject.CreateInstance<IdLabelConfig>();
                 p.AddLabeler(new BoundingBox2DLabeler(idLabelConfig));
                 p.AddLabeler(new RenderedObjectInfoLabeler(idLabelConfig));
             });
             cameraObject.name = "Camera";
 
-            PerceptionSettings.instance.endpoint = new PerceptionEndpoint();
+            PerceptionSettings.endpoint = new PerceptionEndpoint();
 
             yield return new EnterPlayMode();
 
@@ -74,59 +71,6 @@ namespace EditorTests
             yield return new ExitPlayMode();
         }
 
-#if !UNITY_EDITOR_LINUX
-        //[Test]
-        //[Category("Python")]
-        public void VisualizerInstallationTest()
-        {
-            var cameraObject = SetupCamera(null);
-            cameraObject.GetComponent<PerceptionCamera>();
-#if UNITY_EDITOR_WIN
-            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets", "/Library/PythonInstall/Scripts"));
-            packagesPath = packagesPath.Replace("/", "\\");
-#elif UNITY_EDITOR_OSX
-            var packagesPath = Path.GetFullPath(Application.dataPath.Replace("/Assets","/Library/PythonInstall/bin"));
-#endif
-            // Install the Visualizer and check if it exists
-            InstallOrUninstallVisualizerAsync(packagesPath, installFlag:true);
-            string[] files = Directory.GetFiles(packagesPath, "datasetvisualizer.*");
-            Assert.IsTrue(files.Length > 0);
-            // Uninstall the visualizer after check
-            InstallOrUninstallVisualizerAsync(packagesPath, installFlag:false);
-        }
-
-        static void InstallOrUninstallVisualizerAsync(string packagesPath, bool installFlag)
-        {
-            const int steps = 3;
-            var exitCode = 0;
-            // If install flag is true, install the visualizer
-            if (installFlag)
-            {
-                EditorUtility.DisplayProgressBar("Setting up the Visualizer", "Installing Visualizer (This may take a few minutes)", 2f / steps);
-                Task.WaitAll(VisualizerInstaller.InstallationCommand(ref exitCode, packagesPath));
-                if (exitCode != 0)
-                {
-                    Debug.LogWarning("Fail to Install the Visualizer");
-                    EditorUtility.ClearProgressBar();
-                    return;
-                }
-            }
-            // if install flag is false, uninstall the visualizer
-            else
-            {
-                EditorUtility.DisplayProgressBar("Uninstall the Visualizer", "Uninstalling Visualizer (This may take a few minutes)", 2f / steps);
-                Task.WaitAll(VisualizerInstaller.UninstallCommand(ref exitCode, packagesPath));
-                if (exitCode != 0)
-                {
-                    Debug.LogWarning("Fail to Uninstall the Visualizer");
-                    EditorUtility.ClearProgressBar();
-                    return;
-                }
-            }
-            EditorUtility.ClearProgressBar();
-        }
-#endif
-
 #if MOQ_PRESENT
         [UnityTest]
         public IEnumerator AddLabelerAfterStart_ShouldInitialize()
@@ -140,6 +84,7 @@ namespace EditorTests
             mockLabeler.Protected().Verify("Setup", Times.Once());
             yield return new ExitPlayMode();
         }
+
         [UnityTest]
         public IEnumerator Labeler_ShouldRunCallbacksInFirstFrame()
         {
@@ -155,6 +100,7 @@ namespace EditorTests
             mockLabeler.Protected().Verify("OnEndRendering", Times.Once(), ItExpr.IsAny<ScriptableRenderContext>());
             yield return new ExitPlayMode();
         }
+
         [UnityTest]
         public IEnumerator Labeler_ShouldNotRunCallbacksWhenCameraDisabled()
         {
@@ -173,6 +119,7 @@ namespace EditorTests
             mockLabeler.Protected().Verify("OnEndRendering", Times.Once(), ItExpr.IsAny<ScriptableRenderContext>());
             yield return new ExitPlayMode();
         }
+
         [UnityTest]
         public IEnumerator AddAndRemoveLabelerInSameFrame_ShouldDoNothing()
         {
@@ -190,6 +137,7 @@ namespace EditorTests
             mockLabeler.Protected().Verify("Cleanup", Times.Never());
             yield return new ExitPlayMode();
         }
+
         [UnityTest]
         public IEnumerator RemoveLabeler_ShouldCallCleanup()
         {
@@ -203,6 +151,7 @@ namespace EditorTests
             mockLabeler.Protected().Verify("Cleanup", Times.Once());
             yield return new ExitPlayMode();
         }
+
         [UnityTest]
         public IEnumerator RemoveLabeler_OnLabelerNotAdded_ShouldNotCallCleanup()
         {
@@ -215,6 +164,7 @@ namespace EditorTests
             mockLabeler.Protected().Verify("Cleanup", Times.Never());
             yield return new ExitPlayMode();
         }
+
         [UnityTest]
         public IEnumerator DestroyPerceptionCameraObject_ShouldCallCleanup()
         {
@@ -228,6 +178,7 @@ namespace EditorTests
             mockLabeler.Protected().Verify("Cleanup", Times.Once());
             yield return new ExitPlayMode();
         }
+
         [UnityTest]
         public IEnumerator SetupThrows_ShouldDisable()
         {
@@ -246,6 +197,7 @@ namespace EditorTests
             Assert.IsFalse(labeler.enabled);
             yield return new ExitPlayMode();
         }
+
 #endif
 
         static GameObject SetupCamera(Action<PerceptionCamera> initPerceptionCameraCallback)
@@ -258,8 +210,6 @@ namespace EditorTests
 
 #if HDRP_PRESENT
             cameraObject.AddComponent<UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData>();
-#elif URP_PRESENT
-            cameraObject.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
 #endif
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();

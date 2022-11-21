@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -20,10 +20,10 @@ namespace UnityEngine.Perception.Randomization
         public override int count => assets.Count;
 
         /// <inheritdoc/>
-        public override void Initialize<T>(AssetRole<T> assetRole) { }
+        public override void Initialize<T>(AssetRole<T> assetRole) {}
 
         /// <inheritdoc/>
-        public override void ReleaseAssets() { }
+        public override void ReleaseAssets() {}
 
         /// <inheritdoc/>
         public override T LoadAsset<T>(int index)

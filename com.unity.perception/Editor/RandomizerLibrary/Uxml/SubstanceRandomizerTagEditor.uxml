@@ -1,0 +1,26 @@
+<UXML
+        xmlns="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements"
+>
+    <VisualElement class="internal_substance_tag" style="margin: 2 4 2 4;">
+        <Style src="../Uss/Common.uss"/>
+        <Label name="no_items_warning" text="No parameters added. Substance will not be randomized." class="internal__message warning" />
+        <VisualElement class="internal__group_container">
+            <editor:PropertyField name="m_SubstanceGraph" binding-path="m_SubstanceGraph"/>
+            <editor:PropertyField name="mode" binding-path="mode"/>
+        </VisualElement>
+        <VisualElement class="internal__group_container">
+            <VisualElement name="parameter_top_bar">
+                <Label text="Parameters to Randomize" 
+                       tooltip="The parameters included below will be randomized based on the constraints defined in the substance graph." />
+                <Button name="clear_parameters" text="Clear All" />
+            </VisualElement>
+            <ListView name="parameters" />
+            <VisualElement name="parameter_control_container">
+                <Label name="parameter_popup_label" text="Substance Parameter"/>
+                <VisualElement name="parameter_popup_container" />
+                <Button name="add_parameter" text="Add" />
+            </VisualElement>
+        </VisualElement>
+    </VisualElement>
+</UXML>

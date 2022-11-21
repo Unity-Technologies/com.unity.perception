@@ -6,6 +6,9 @@ using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.GroundTruth.Utilities;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
@@ -54,7 +57,6 @@ namespace GroundTruthTests
                         instanceId = 1,
                         pixelCount = 4,
                         instanceColor = color1
-
                     }
                 },
                 2,
@@ -152,8 +154,6 @@ namespace GroundTruthTests
                 }
             });
 
-            var renderedObjectInfoGenerator = new RenderedObjectInfoGenerator();
-
             //Put a plane in front of the camera
             AddTestObjectForCleanup(TestHelper.CreateLabeledPlane(.1f, label));
             AddTestObjectForCleanup(TestHelper.CreateLabeledPlane(.1f, label2));
@@ -162,7 +162,7 @@ namespace GroundTruthTests
             var dataNativeArray = new NativeArray<Color32>(producesCorrectObjectInfoData.data, Allocator.Persistent);
 
             var cache = labelingConfiguration.CreateLabelEntryMatchCache(Allocator.Persistent);
-            renderedObjectInfoGenerator.Compute(dataNativeArray, producesCorrectObjectInfoData.stride, producesCorrectObjectInfoData.boundingBoxOrigin, out var boundingBoxes, Allocator.Temp);
+            RenderedObjectInfoGenerator.Compute(dataNativeArray, producesCorrectObjectInfoData.stride, producesCorrectObjectInfoData.boundingBoxOrigin, out var boundingBoxes, Allocator.Temp);
 
             CollectionAssert.AreEqual(producesCorrectObjectInfoData.renderedObjectInfosExpected, boundingBoxes.ToArray());
 
@@ -174,6 +174,8 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator LabelsCorrectWhenIdsReset()
         {
+            TearDown();
+
             int timesInfoReceived = 0;
             Dictionary<int, int> expectedLabelIdAtFrame = null;
 
@@ -192,7 +194,7 @@ namespace GroundTruthTests
             }
 
             var idLabelConfig = ScriptableObject.CreateInstance<IdLabelConfig>();
-            idLabelConfig.Init(new []
+            idLabelConfig.Init(new[]
             {
                 new IdLabelEntry()
                 {

@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Perception.GroundTruth.DataModel
+namespace UnityEngine.Perception.GroundTruth.DataModel
 {
     /// <summary>
     /// An annotation definition describes a particular type of annotation and contains an annotation-specific

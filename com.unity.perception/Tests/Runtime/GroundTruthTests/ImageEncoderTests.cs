@@ -1,9 +1,10 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Utilities;
 using UnityEngine.TestTools;
 
 namespace GroundTruthTests
@@ -27,7 +28,7 @@ namespace GroundTruthTests
             const int width = 32;
 
             // Create an all black source texture
-            var texture = CreateBlankTexture(width, width, GraphicsFormat.R8G8B8A8_UNorm, Color.black);
+            var texture = TestHelper.CreateBlankTexture(width, width, GraphicsFormat.R8G8B8A8_UNorm, Color.black);
 
             // Draw a few pixels in the source texture so the encoded image can be validated later
             var validationPixels = new List<(int, Color)>();
@@ -92,8 +93,8 @@ namespace GroundTruthTests
             const int width = 16;
             ImageEncoder.encodeImagesAsynchronously = false;
 
-            var tex16Bit = CreateBlankTexture(width, width, GraphicsFormat.R16G16B16A16_UNorm, Color.black);
-            var tex32Bit = CreateBlankTexture(width, width, GraphicsFormat.R32G32B32A32_SFloat, Color.black);
+            var tex16Bit = TestHelper.CreateBlankTexture(width, width, GraphicsFormat.R16G16B16A16_UNorm, Color.black);
+            var tex32Bit = TestHelper.CreateBlankTexture(width, width, GraphicsFormat.R32G32B32A32_SFloat, Color.black);
 
             DrawRectangleInCenterOfTexture(tex16Bit, tex16Bit.width / 2, tex16Bit.height / 2, Color.blue);
             DrawRectangleInCenterOfTexture(tex32Bit, tex32Bit.width / 2, tex32Bit.height / 2, Color.blue);
@@ -108,17 +109,17 @@ namespace GroundTruthTests
             var size16Bit = 0;
             ImageEncoder.EncodeImage(rawData16Bit, tex16Bit.width, tex16Bit.height, tex16Bit.graphicsFormat,
                 ImageEncodingFormat.Exr, encodedData =>
-            {
-                size16Bit = encodedData.Length;
-            });
+                {
+                    size16Bit = encodedData.Length;
+                });
 
             // Encode 32 bit image
             var size32Bit = 0;
             ImageEncoder.EncodeImage(rawData32Bit, tex32Bit.width, tex32Bit.height, tex32Bit.graphicsFormat,
                 ImageEncodingFormat.Exr, encodedData =>
-            {
-                size32Bit = encodedData.Length;
-            });
+                {
+                    size32Bit = encodedData.Length;
+                });
 
             // Confirm that the 32-bit EXR file is larger than the 16-bit EXR file
             Assert.Greater(size32Bit, size16Bit);
@@ -130,17 +131,6 @@ namespace GroundTruthTests
             Object.DestroyImmediate(tex32Bit);
         }
 
-        static Texture2D CreateBlankTexture(int width, int height, GraphicsFormat graphicsFormat, Color backgroundColor)
-        {
-            var texture = new Texture2D(width, height, graphicsFormat, TextureCreationFlags.None);
-            texture.filterMode = FilterMode.Point;
-            var blankPixels = new Color[width * height];
-            for (var i = 0; i < blankPixels.Length; i++)
-                blankPixels[i] = backgroundColor;
-            texture.SetPixels(blankPixels, 0);
-            return texture;
-        }
-
         static void DrawRectangleInCenterOfTexture(Texture2D texture, int rectWidth, int rectHeight, Color color)
         {
             var xStartCoord = texture.width / 2 - rectWidth / 2;
@@ -150,8 +140,8 @@ namespace GroundTruthTests
             var yEndCoord = texture.height / 2 + rectHeight / 2;
 
             for (var i = xStartCoord; i < xEndCoord; i++)
-            for (var j = yStartCoord; j < yEndCoord; j++)
-                texture.SetPixel(i, j, color);
+                for (var j = yStartCoord; j < yEndCoord; j++)
+                    texture.SetPixel(i, j, color);
             texture.Apply();
         }
 

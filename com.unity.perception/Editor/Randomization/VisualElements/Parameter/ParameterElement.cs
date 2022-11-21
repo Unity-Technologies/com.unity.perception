@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
@@ -49,7 +48,8 @@ namespace UnityEditor.Perception.Randomization
                     var propertyField = new PropertyField(currentProperty.Copy());
                     propertyField.Bind(currentProperty.serializedObject);
                     m_PropertiesContainer.Add(propertyField);
-                } while (currentProperty.NextVisible(false));
+                }
+                while (currentProperty.NextVisible(false));
         }
 
         void CreateCategoricalParameterFields()
@@ -63,10 +63,11 @@ namespace UnityEditor.Perception.Randomization
 
             var listView = template.Q<ListView>("options");
             listView.itemsSource = probabilities;
-            listView.itemHeight = 44;
             listView.selectionType = SelectionType.None;
-            listView.style.flexGrow = 1.0f;
-            listView.style.height = new StyleLength(listView.itemHeight * 4);
+            listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
+            listView.horizontalScrollingEnabled = false;
+            listView.Q<ScrollView>().horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+            listView.style.maxHeight = 233;
 
             // Enable dragging behavior
             // When the mouse enters the visual element, show a visual indication that it can be dropped
@@ -107,7 +108,7 @@ namespace UnityEditor.Perception.Randomization
 
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = categoricalParameter.probabilities;
-                listView.Refresh();
+                listView.RefreshItems();
 
                 DragAndDrop.visualMode = DragAndDropVisualMode.None;
             });
@@ -142,7 +143,7 @@ namespace UnityEditor.Perception.Randomization
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
 
                     listView.itemsSource = categoricalParameter.probabilities;
-                    listView.Refresh();
+                    listView.RefreshItems();
                 };
             }
 
@@ -181,7 +182,7 @@ namespace UnityEditor.Perception.Randomization
 
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = categoricalParameter.probabilities;
-                listView.Refresh();
+                listView.RefreshItems();
                 listView.ScrollToItem(probabilitiesProperty.arraySize);
             };
 
@@ -212,7 +213,7 @@ namespace UnityEditor.Perception.Randomization
 
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = categoricalParameter.probabilities;
-                    listView.Refresh();
+                    listView.RefreshItems();
                 };
             else
                 addFolderButton.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.None);
@@ -224,7 +225,7 @@ namespace UnityEditor.Perception.Randomization
                 optionsProperty.arraySize = 0;
                 m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                 listView.itemsSource = categoricalParameter.probabilities;
-                listView.Refresh();
+                listView.RefreshItems();
             };
 
             var scrollView = listView.Q<ScrollView>();
@@ -248,6 +249,7 @@ namespace UnityEditor.Perception.Randomization
                 else
                     listView.RemoveFromClassList("collapsed");
             }
+
             ToggleUniform();
 
             if (Application.isPlaying)
@@ -268,7 +270,7 @@ namespace UnityEditor.Perception.Randomization
 
                     m_SerializedProperty.serializedObject.ApplyModifiedProperties();
                     listView.itemsSource = categoricalParameter.probabilities;
-                    listView.Refresh();
+                    listView.RefreshItems();
                 });
 
             m_PropertiesContainer.Add(template);

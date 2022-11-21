@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using UnityEngine.UIElements;
 
@@ -40,6 +40,16 @@ namespace UnityEngine.Perception.UIElements
             return GetValueFromBag(bag, cc, (s, i) => ConvertValueToUInt(s, i), defaultValue);
         }
 
+        /// <summary>
+        ///     <para>
+        ///         Tries to retrieve the value of this attribute from the attribute bag. Returns it if it is found, otherwise return
+        ///         defaultValue.
+        ///     </para>
+        /// </summary>
+        /// <param name="bag">The bag of attributes.</param>
+        /// <param name="cc">The context in which the values are retrieved.</param>
+        /// <param name="value">Output value of the attribute</param>
+        /// <returns>True if value was successfully received</returns>
         public bool TryGetValueFromBag(IUxmlAttributes bag, CreationContext cc, ref uint value)
         {
             return TryGetValueFromBag(bag, cc, (s, i) => ConvertValueToUInt(s, i), defaultValue, ref value);

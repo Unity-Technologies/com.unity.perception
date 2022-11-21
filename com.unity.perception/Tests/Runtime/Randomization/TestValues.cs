@@ -1,4 +1,4 @@
-﻿namespace RandomizationTests
+namespace RandomizationTests
 {
     public static class TestValues
     {

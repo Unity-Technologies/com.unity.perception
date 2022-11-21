@@ -1,11 +1,13 @@
-﻿using System;
+using System;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// The definition of the keypoint
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class KeypointAnnotationDefinition : AnnotationDefinition
     {
         internal const string labelerDescription = "Produces keypoint annotations for all visible labeled objects that have a humanoid animation avatar component.";
@@ -18,7 +20,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal Template template;
 
-        internal KeypointAnnotationDefinition(string id) : base(id) { }
+        internal KeypointAnnotationDefinition(string id) : base(id) {}
 
         internal KeypointAnnotationDefinition(string id, Template template)
             : base(id)
@@ -26,12 +28,36 @@ namespace UnityEngine.Perception.GroundTruth
             this.template = template;
         }
 
+        /// <inheritdoc/>
+        public override void ToMessage(IMessageBuilder builder)
+        {
+            base.ToMessage(builder);
+            var nested = builder.AddNestedMessage("template");
+            template.ToMessage(nested);
+        }
+
+        /// <summary>
+        /// The definition of a keypoint skeleton joint.
+        /// </summary>
         [Serializable]
         public struct JointDefinition : IMessageProducer
         {
+            /// <summary>
+            /// The label associated with this joint.
+            /// </summary>
             public string label;
+
+            /// <summary>
+            /// The index of this joint.
+            /// </summary>
             public int index;
+
+            /// <summary>
+            /// The color associated with this joint.
+            /// </summary>
             public Color color;
+
+            /// <inheritdoc/>
             public void ToMessage(IMessageBuilder builder)
             {
                 builder.AddString("label", label);
@@ -40,12 +66,28 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
+        /// <summary>
+        /// A struct defining a bone connection in a keypoint skeleton.
+        /// </summary>
         [Serializable]
         public struct SkeletonDefinition : IMessageProducer
         {
+            /// <summary>
+            /// The id of the first joint connection of this bone.
+            /// </summary>
             public int joint1;
+
+            /// <summary>
+            /// The id of the second joint connection of this bone.
+            /// </summary>
             public int joint2;
+
+            /// <summary>
+            /// The color of this bone.
+            /// </summary>
             public Color color;
+
+            /// <inheritdoc/>
             public void ToMessage(IMessageBuilder builder)
             {
                 builder.AddInt("joint1", joint1);
@@ -54,14 +96,33 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
+        /// <summary>
+        /// A struct defining a skeleton of keypoints and their connections.
+        /// </summary>
         [Serializable]
         public struct Template : IMessageProducer
         {
+            /// <summary>
+            /// The id of this template.
+            /// </summary>
             public string templateId;
+
+            /// <summary>
+            /// The name of this template.
+            /// </summary>
             public string templateName;
+
+            /// <summary>
+            /// The list of keypoint joints in this template.
+            /// </summary>
             public JointDefinition[] keyPoints;
+
+            /// <summary>
+            /// The list of joint connections in this template.
+            /// </summary>
             public SkeletonDefinition[] skeleton;
 
+            /// <inheritdoc/>
             public void ToMessage(IMessageBuilder builder)
             {
                 builder.AddString("templateId", templateId);
@@ -79,13 +140,6 @@ namespace UnityEngine.Perception.GroundTruth
                     bone.ToMessage(nested);
                 }
             }
-        }
-
-        public override void ToMessage(IMessageBuilder builder)
-        {
-            base.ToMessage(builder);
-            var nested = builder.AddNestedMessage("template");
-            template.ToMessage(nested);
         }
     }
 }

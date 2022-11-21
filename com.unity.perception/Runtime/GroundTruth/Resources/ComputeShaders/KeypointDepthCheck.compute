@@ -1,0 +1,58 @@
+﻿#pragma kernel KeypointDepthCheck
+
+struct KeypointData
+{
+    int2 screenCoord;
+    float depth;
+};
+
+struct KeypointOcclusionResults
+{
+    bool isOccluded;
+    float2 screenCoordinate;
+    float keypointDepth;
+    float sampledDepth;
+    float minSampledDepth;
+};
+
+Texture2D<float> depthTexture;
+StructuredBuffer<KeypointData> keypointDataBuffer;
+RWStructuredBuffer<KeypointOcclusionResults> occlusionResultsBuffer;
+
+[numthreads(64, 1, 1)]
+void KeypointDepthCheck(uint3 threadId : SV_DispatchThreadID)
+{
+    // Load the keypoint data (screen coordinate and depth).
+    const KeypointData keypointData = keypointDataBuffer[threadId.x];
+
+    // Sample the depth pixels surrounding the keypoint's screen coordinate.
+    float depth = 0.0f;
+    float minDepth = 100000.0f;
+    [unroll(3)]
+    for (int i = -1; i <= 1; i++)
+    {
+        [unroll(3)]
+        for (int j = -1; j <= 1; j++)
+        {
+            const int2 offsetScreenCoord = keypointData.screenCoord + int2(i, j);
+            const float sampledDepth = depthTexture[offsetScreenCoord].r;
+            depth = max(depth, sampledDepth);
+            minDepth = min(minDepth, sampledDepth);
+        }
+    }
+    // const float sampledDepth = depthTexture[keypointData.screenCoord].r;
+    // depth = max(depth, sampledDepth);
+    // minDepth = min(minDepth, sampledDepth);
+
+    // Check whether the keypoint is occluded or not.
+    const bool isOccluded = depth < keypointData.depth;
+
+    // Return the keypoint's occlusion status and some debug information.
+    KeypointOcclusionResults result;
+    result.isOccluded = isOccluded;
+    result.screenCoordinate = keypointData.screenCoord;
+    result.keypointDepth = keypointData.depth;
+    result.sampledDepth = depth;
+    result.minSampledDepth = minDepth;
+    occlusionResultsBuffer[threadId.x] = result;
+}

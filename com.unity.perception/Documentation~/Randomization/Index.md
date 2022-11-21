@@ -24,6 +24,13 @@ After adding the necessary Randomizers, configure the random Parameters assigned
 
 Once the project has been randomized and your scene has been configured with the data capture tools available in the Perception package, enter play mode in the editor or execute your Scenario through the Unity Simulation cloud service to generate domain randomized perception data.
 
+### Randomizers Included with Perception
+
+The Perception package comes with a plethora of randomizers that you can use to randomize your dataset projects – swap materials, textures, randomize lighting, material properties and more! For a description of what kinds of randomizers we have to offer, take a look at the [Randomizer Library](RandomizerLibrary.md)!
+
+
+## Further Reading
+
 Continue reading for more details concerning the primary components driving randomizations in the Perception package, including:
 1. Scenarios
 2. Randomizers
@@ -33,7 +40,7 @@ Continue reading for more details concerning the primary components driving rand
 
 <br>
 <p align="center">
-<img src="../images/Randomization/Images/randomization_uml.png" width="900"/>
+<img src="../images/Randomization/randomization_uml.png" width="900"/>
   <br><i>Class diagram for the randomization framework included in the Perception package</i>
 </p>
 

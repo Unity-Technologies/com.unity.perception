@@ -6,7 +6,12 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.Perception.GroundTruth.DataModel;
-
+using UnityEngine.Perception.Randomization.Scenarios;
+using UnityEngine.Perception.Settings;
+#if HDRP_PRESENT
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+#endif
 namespace UnityEngine.Perception.GroundTruth
 {
     class SimulationState
@@ -16,11 +21,16 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal enum ExecutionStateType
         {
+            InitializingAccumulation,
             NotStarted,
             Starting,
             Running,
             Complete
         }
+
+        internal static int frameOffset;
+        internal static int sequenceId;
+        internal static bool dataCaptured;
 
         internal bool IsRunning()
         {
@@ -39,8 +49,6 @@ namespace UnityEngine.Perception.GroundTruth
 
         internal IConsumerEndpoint consumerEndpoint { get; }
 
-        int m_SequenceId = 0;
-
         HashSet<string> m_Ids = new HashSet<string>();
 
         // Always use the property SequenceTimeMs instead
@@ -55,6 +63,10 @@ namespace UnityEngine.Perception.GroundTruth
         Dictionary<int, FrameId> m_FrameToPendingIdMap = new Dictionary<int, FrameId>();
         Dictionary<FrameId, int> m_PendingIdToFrameMap = new Dictionary<FrameId, int>();
         SortedDictionary<FrameId, PendingFrame> m_PendingFrames = new SortedDictionary<FrameId, PendingFrame>();
+
+#if HDRP_PRESENT
+        HDRenderPipeline m_RenderPipeline = null;
+#endif
 
         float m_LastTimeScale;
 
@@ -118,9 +130,9 @@ namespace UnityEngine.Perception.GroundTruth
             if (definition == null)
                 throw new ArgumentNullException(nameof(definition));
 
-            var metricId = PendingId.CreateMetricId(m_SequenceId, AcquireStep(), definition.id);
+            var metricId = PendingId.CreateMetricId(sequenceId, AcquireStep(), definition.id);
 
-            var frameId = new FrameId(m_SequenceId, AcquireStep());
+            var frameId = new FrameId(sequenceId, AcquireStep());
 
             var pendingFrame = GetOrCreatePendingFrame(frameId);
 
@@ -136,6 +148,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             m_SimulationMetadata.Add(key, value);
         }
+
         public void ReportMetadata(string key, uint value)
         {
             m_SimulationMetadata.Add(key, value);
@@ -175,6 +188,7 @@ namespace UnityEngine.Perception.GroundTruth
         {
             m_SimulationMetadata.Add(key, value);
         }
+
         #endregion
 
         class PendingSensor
@@ -401,7 +415,23 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 if (!id.IsValidMetricId) throw new ArgumentException("Passed in ID is not a valid metric ID");
                 m_Metrics[id.MetricId] = metric;
-             }
+            }
+        }
+
+        public interface IAdditionalSensorData {}
+        public struct RgbSensorAdditionalSensorData : IAdditionalSensorData
+        {
+            public bool useAccumulation;
+        }
+
+        public static bool SensorUsesAccumulation(SensorData sd)
+        {
+            if (sd.additionalSensorData is RgbSensorAdditionalSensorData data)
+            {
+                return data.useAccumulation;
+            }
+
+            return false;
         }
 
         public struct SensorData
@@ -413,7 +443,9 @@ namespace UnityEngine.Perception.GroundTruth
             public float renderingDeltaTime;
             public int framesBetweenCaptures;
             public bool manualSensorAffectSimulationTiming;
+            public IAdditionalSensorData additionalSensorData;
 
+            public float sequenceTimeOfNextAccumulation;
             public float sequenceTimeOfNextCapture;
             public float sequenceTimeOfNextRender;
             public int lastCaptureFrameCount;
@@ -472,11 +504,19 @@ namespace UnityEngine.Perception.GroundTruth
             else if (m_FrameCountLastUpdatedSequenceTime != Time.frameCount)
             {
                 m_SequenceTimeDoNotUse += Time.deltaTime;
-                if (Time.timeScale > 0)
-                    m_UnscaledSequenceTimeDoNotUse += Time.deltaTime / Time.timeScale;
-
-                CheckTimeScale();
-
+                if (m_Accumulating)
+                {
+                    var sensorData = m_Sensors[m_AccumulatingSensorsCapturedOrNot.First().Key];
+                    m_UnscaledSequenceTimeDoNotUse += sensorData.renderingDeltaTime;
+                }
+                else
+                {
+                    if (Time.timeScale > 0)
+                    {
+                        m_UnscaledSequenceTimeDoNotUse += Time.deltaTime / Time.timeScale;
+                    }
+                    CheckTimeScale();
+                }
                 m_FrameCountLastUpdatedSequenceTime = Time.frameCount;
             }
         }
@@ -484,7 +524,9 @@ namespace UnityEngine.Perception.GroundTruth
         void CheckTimeScale()
         {
             if (m_LastTimeScale != Time.timeScale)
+            {
                 Debug.LogError($"Time.timeScale may not change mid-sequence. This can cause sensors to get out of sync and corrupt the data. Previous: {m_LastTimeScale} Current: {Time.timeScale}");
+            }
 
             m_LastTimeScale = Time.timeScale;
         }
@@ -498,25 +540,27 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        bool m_DataCaptured = false;
-
         public void StartNewSequence()
         {
+            EndAccumulation();
             ResetTimings();
+
             m_FrameCountLastStepIncremented = -1;
-            if (!m_DataCaptured)
+            if (!dataCaptured)
             {
-                m_SequenceId = 0;
-                m_DataCaptured = true;
+                sequenceId = 0;
+                dataCaptured = true;
             }
             else
             {
-                m_SequenceId++;
+                sequenceId++;
             }
+
             m_Step = -1;
             foreach (var kvp in m_Sensors.ToArray())
             {
                 var sensorData = kvp.Value;
+                sensorData.sequenceTimeOfNextAccumulation = GetSequenceTimeOfNextAccumulation(sensorData);
                 sensorData.sequenceTimeOfNextCapture = GetSequenceTimeOfNextCapture(sensorData);
                 sensorData.sequenceTimeOfNextRender = 0;
                 m_Sensors[kvp.Key] = sensorData;
@@ -546,6 +590,14 @@ namespace UnityEngine.Perception.GroundTruth
 
         public SensorHandle AddSensor(SensorDefinition sensor, float renderingDeltaTime)
         {
+            IAdditionalSensorData additionalSensorData = null;
+            bool useAccumulation = false;
+            if (sensor is RgbSensorDefinition rgbSensorDef)
+            {
+                useAccumulation = rgbSensorDef.useAccumulation;
+                additionalSensorData = new RgbSensorAdditionalSensorData { useAccumulation = useAccumulation };
+            }
+
             var sensorData = new SensorData()
             {
                 modality = sensor.modality,
@@ -555,8 +607,10 @@ namespace UnityEngine.Perception.GroundTruth
                 renderingDeltaTime = renderingDeltaTime,
                 framesBetweenCaptures = sensor.framesBetweenCaptures,
                 manualSensorAffectSimulationTiming = sensor.manualSensorsAffectTiming,
-                lastCaptureFrameCount = -1
+                lastCaptureFrameCount = -1,
+                additionalSensorData = additionalSensorData
             };
+            sensorData.sequenceTimeOfNextAccumulation = GetSequenceTimeOfNextAccumulation(sensorData);
             sensorData.sequenceTimeOfNextCapture = GetSequenceTimeOfNextCapture(sensorData);
             sensorData.sequenceTimeOfNextRender = UnscaledSequenceTime;
 
@@ -568,12 +622,177 @@ namespace UnityEngine.Perception.GroundTruth
 
             consumerEndpoint.SensorRegistered(sensor);
 
-            if (ExecutionState == ExecutionStateType.NotStarted)
+            if (ExecutionState == ExecutionStateType.NotStarted || (ExecutionState == ExecutionStateType.Starting && useAccumulation))
             {
-                ExecutionState = ExecutionStateType.Starting;
+                if (useAccumulation)
+                    ExecutionState = ExecutionStateType.InitializingAccumulation;
+                else
+                    ExecutionState = ExecutionStateType.Starting;
             }
 
             return sensorHandle;
+        }
+
+        float GetSequenceTimeOfNextAccumulation(SensorData sensorData)
+        {
+            if (!SensorUsesAccumulation(sensorData)) return float.MaxValue;
+
+            // If the first capture hasn't happened yet, sequenceTimeNextCapture field won't be valid
+            if (sensorData.firstCaptureTime >= UnscaledSequenceTime)
+            {
+                return sensorData.captureTriggerMode == CaptureTriggerMode.Scheduled ? sensorData.firstCaptureTime : float.MaxValue;
+            }
+
+            return sensorData.sequenceTimeOfNextAccumulation;
+        }
+
+        bool usingAccumulation
+        {
+            get
+            {
+                // We know that we use accumulation if any of the active sensors have accumulation enabled
+                foreach (var sensor in m_ActiveSensors)
+                {
+                    if (SensorUsesAccumulation(m_Sensors[sensor]))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        int ComputeTotalFramesWithAccumulation(int framesPerIteration)
+        {
+            var realCapturesOccurAt = new HashSet<int>();
+            foreach (var cam in m_Sensors)
+            {
+                if (cam.Value.captureTriggerMode == CaptureTriggerMode.Manual || !SensorUsesAccumulation(cam.Value))
+                    continue;
+                var frameCounter = 0;
+                var firstCaptureFrame = UnityEngine.Mathf.CeilToInt((cam.Value.firstCaptureTime - UnscaledSequenceTime) / cam.Value.renderingDeltaTime);
+                if (framesPerIteration < firstCaptureFrame)
+                    continue;
+                frameCounter += firstCaptureFrame + 1;
+                realCapturesOccurAt.Add(frameCounter);
+                while (frameCounter <= framesPerIteration)
+                {
+                    frameCounter += cam.Value.framesBetweenCaptures + 1;
+                    if (frameCounter <= framesPerIteration)
+                    {
+                        realCapturesOccurAt.Add(frameCounter);
+                    }
+                }
+            }
+            return framesPerIteration + (realCapturesOccurAt.Count * PerceptionSettings.instance.accumulationSettings.accumulationSamples);
+        }
+
+        int m_FindingRenderPipelineAttempts = 0;
+        static int s_FindRenderPipelineTimeout = 20;
+
+        void AccumulationSetup()
+        {
+            // If we have a scenario and the user has set the "adaptFixedLengthScenarioFrames" checkbox to true then:
+            if (ScenarioBase.activeScenario != null && PerceptionSettings.instance.accumulationSettings.adaptFixedLengthScenarioFrames && Time.frameCount == 1)
+            {
+                // Only in the case of it being a FixedLengthScenario
+                var scenario = ScenarioBase.activeScenario as FixedLengthScenario;
+                if (scenario != null)
+                {
+                    // Update the total amount of framesPerIteration
+                    scenario.framesPerIteration = ComputeTotalFramesWithAccumulation(scenario.framesPerIteration);
+                }
+            }
+            // Try to cache the renderPipeline
+            FindRenderPipeline();
+            // for each frame that we try to get the renderPipeline we increase the waitFrames value (static) of the PerceptionCamera
+            PerceptionCamera.waitFrames++;
+            // for each frame of waiting we need to delay each sensor by its renderDeltaTime
+            foreach (var sensor in m_ActiveSensors)
+            {
+                var sensorData = m_Sensors[sensor];
+                sensorData.sequenceTimeOfNextAccumulation += m_Sensors[sensor].renderingDeltaTime;
+                sensorData.sequenceTimeOfNextCapture += m_Sensors[sensor].renderingDeltaTime;
+                // without this line the changes do not get saved
+                m_Sensors[sensor] = sensorData;
+            }
+#if HDRP_PRESENT
+            if (m_RenderPipeline != null)
+                ExecutionState = ExecutionStateType.Starting;
+            else
+                m_FindingRenderPipelineAttempts++;
+
+            if (m_FindingRenderPipelineAttempts == s_FindRenderPipelineTimeout)
+            {
+                Debug.LogError($"Fatal error: perception timed out looking for a HDRenderPipeline object. The simulation will now shutdown.");
+                Shutdown();
+            }
+#else
+            Debug.LogError("Accumulation is only supported in HDRP, initalizing accumulation should never have been attempted in this project");
+            Shutdown();
+#endif
+        }
+
+        void FindRenderPipeline()
+        {
+#if HDRP_PRESENT
+            // this only works after a few frames so this method must be called multiple times at the start
+            m_RenderPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+#endif
+        }
+
+#if HDRP_PRESENT
+        void PrepareSubFrameCallBack(ScriptableRenderContext cntx, Camera[] cams)
+        {
+            // required for accumulation
+            m_RenderPipeline?.PrepareNewSubFrame();
+        }
+
+#endif
+
+        void StartAccumulation()
+        {
+#if HDRP_PRESENT
+            // Makes sure it is only added once
+            RenderPipelineManager.beginFrameRendering -= PrepareSubFrameCallBack;
+            RenderPipelineManager.beginFrameRendering += PrepareSubFrameCallBack;
+            var acc = PerceptionSettings.instance.accumulationSettings;
+
+            // We use +1 on accumulation samples because the last frame of accumulation can be the denoised frame which doesn't include actual accumulation samples, for this reason it is best to add an extra frame
+            m_RenderPipeline?.BeginRecording(acc.accumulationSamples + 1, acc.shutterInterval, Mathf.Min(acc.shutterFullyOpen + (1f / (acc.accumulationSamples + 1)), 1), acc.shutterBeginsClosing);
+#endif
+        }
+
+        void EndAccumulation()
+        {
+#if HDRP_PRESENT
+            // Needed in order to change back Time variables before continuing with normal simulation
+            RenderPipelineManager.beginFrameRendering -= PrepareSubFrameCallBack;
+            m_RenderPipeline?.EndRecording();
+#endif
+            m_AccumulatingSensorsCapturedOrNot = null;
+        }
+
+        bool m_Accumulating
+        {
+            get
+            {
+#if HDRP_PRESENT
+                return m_AccumulatingSensorsCapturedOrNot != null;
+#else
+                return false;
+#endif
+            }
+        }
+
+        public void CleanUp()
+        {
+#if HDRP_PRESENT
+            // Time variables change within PrepareSubFrameCallBack, without this the time variables keep changing
+            // Even when exiting play mode
+            RenderPipelineManager.beginFrameRendering -= PrepareSubFrameCallBack;
+            m_RenderPipeline?.EndRecording();
+#endif
         }
 
         float GetSequenceTimeOfNextCapture(SensorData sensorData)
@@ -581,7 +800,13 @@ namespace UnityEngine.Perception.GroundTruth
             // If the first capture hasn't happened yet, sequenceTimeNextCapture field won't be valid
             if (sensorData.firstCaptureTime >= UnscaledSequenceTime)
             {
-                return sensorData.captureTriggerMode == CaptureTriggerMode.Scheduled? sensorData.firstCaptureTime : float.MaxValue;
+                // If we are using accumulation the actual capture time needs to be on the last frame of accumulation
+                // which is at sensorData.renderingDeltaTime * PerceptionSettings.instance.accumulationSettings.accumulationSamples after the normal
+                // capture time
+                if (SensorUsesAccumulation(sensorData))
+                    return sensorData.captureTriggerMode == CaptureTriggerMode.Scheduled ? sensorData.firstCaptureTime + sensorData.renderingDeltaTime * PerceptionSettings.instance.accumulationSettings.accumulationSamples : float.MaxValue;
+
+                return sensorData.captureTriggerMode == CaptureTriggerMode.Scheduled ? sensorData.firstCaptureTime : float.MaxValue;
             }
 
             return sensorData.sequenceTimeOfNextCapture;
@@ -617,6 +842,13 @@ namespace UnityEngine.Perception.GroundTruth
                 return;
             }
 
+            // the renderPipeline will be available after an indeterminate amount of frames (between 3 and 7 typically)
+            // Hence, we need to wait for these frames to pass by before we start capturing when using accumulation
+            if (ExecutionState == ExecutionStateType.InitializingAccumulation)
+            {
+                AccumulationSetup();
+            }
+
             if (ExecutionState == ExecutionStateType.Starting)
             {
                 UpdateStarting();
@@ -649,21 +881,70 @@ namespace UnityEngine.Perception.GroundTruth
             //simulation starts now
             m_FrameCountLastUpdatedSequenceTime = Time.frameCount;
             m_LastTimeScale = Time.timeScale;
-
             ExecutionState = ExecutionStateType.Running;
         }
 
+        /// <summary>
+        /// returns true if all sensors that are accumulating captured last frame
+        /// </summary>
+        bool allAccumulatingSensorsCapturedLastFrame
+        {
+            get
+            {
+                foreach (var sensor in m_AccumulatingSensorsCapturedOrNot)
+                {
+                    if (!sensor.Value)
+                        return false;
+                }
+
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// returns true if at least one sensor will start accumulation this frame
+        /// </summary>
+        bool oneOrMoreSensorsAccumulateThisFrame
+        {
+            get
+            {
+                foreach (var otherSensor in m_ActiveSensors)
+                {
+                    var otherSensorData = m_Sensors[otherSensor];
+                    if (SensorUsesAccumulation(otherSensorData) && m_AccumulatingSensorsCapturedOrNot != null && m_AccumulatingSensorsCapturedOrNot.ContainsKey(otherSensor))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        // This helps us keep track of which sensors have been set to accumulate this frame
+        // the boolean value keeps track of whether or not the sensor has captured already
+        IDictionary<SensorHandle, Boolean> m_AccumulatingSensorsCapturedOrNot;
+        // This helps us keep track of which non accumulating sensors have been updated by an accumulation
+        List<SensorHandle> m_NonAccumulatingSensorsThatHaveBeenUpdatedByAccumulation;
+        // This helps us keep track of which accumulating sensors THAT DO NOT ACCUMULATE IN THE CURRENT FRAME have been updated by an accumulation
+        List<SensorHandle> m_OtherAccumulatingSensorsUpdatedByAccumulation;
         void UpdateRunning()
         {
             EnsureSequenceTimingsUpdated();
+            m_NonAccumulatingSensorsThatHaveBeenUpdatedByAccumulation = new List<SensorHandle>();
+            m_OtherAccumulatingSensorsUpdatedByAccumulation = new List<SensorHandle>();
+
+            if (m_Accumulating && allAccumulatingSensorsCapturedLastFrame)
+            {
+                EndAccumulation();
+            }
 
             //update the active sensors sequenceTimeNextCapture and lastCaptureFrameCount
             foreach (var activeSensor in m_ActiveSensors)
             {
                 var sensorData = m_Sensors[activeSensor];
-
 #if UNITY_EDITOR
-                if (UnityEditor.EditorApplication.isPaused)
+                if (UnityEditor.EditorApplication.isPaused && !usingAccumulation)
                 {
                     //When the user clicks the 'step' button in the editor, frames will always progress at .02 seconds per step.
                     //In this case, just run all sensors each frame to allow for debugging
@@ -677,15 +958,99 @@ namespace UnityEngine.Perception.GroundTruth
 
                 if (Mathf.Abs(sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime) < k_SimulationTimingAccuracy)
                 {
-                    //means this frame fulfills this sensor's simulation time requirements, we can move target to next frame.
+                    // Means this frame fulfills this sensor's simulation time requirements, we can move target to next frame.
                     sensorData.sequenceTimeOfNextRender += sensorData.renderingDeltaTime;
                 }
 
+                if (activeSensor.ShouldAccumulateThisFrame)
+                {
+                    // If this is the first sensor to start accumulation on this frame then create a new Dictionary
+                    // and start the accumulation
+                    // However if this is not the first one then the accumulation already started and there is no need
+                    // to start accumulation again
+                    if (!m_Accumulating)
+                    {
+                        m_AccumulatingSensorsCapturedOrNot = new Dictionary<SensorHandle, Boolean>();
+                        StartAccumulation();
+                    }
+
+                    // add the current sensor to the dictionary
+                    m_AccumulatingSensorsCapturedOrNot[activeSensor] = false;
+
+                    if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
+                    {
+                        var timeToLastFrameOfAccumulation = sensorData.renderingDeltaTime * PerceptionSettings.instance.accumulationSettings.accumulationSamples;
+                        var timeToFrameAfterAccumulationEnds = timeToLastFrameOfAccumulation + sensorData.renderingDeltaTime;
+                        var timeBeforeNextAccumulation = timeToFrameAfterAccumulationEnds + sensorData.renderingDeltaTime * sensorData.framesBetweenCaptures;
+
+                        // Now that this sensor is accumulating we need to update the timings of all other sensors
+                        foreach (var otherSensor in m_ActiveSensors)
+                        {
+                            // This gives us all sensors that haven't started accumulation this frame (at least not yet)
+                            if (!m_AccumulatingSensorsCapturedOrNot.ContainsKey(otherSensor))
+                            {
+                                var otherSensorData = m_Sensors[otherSensor];
+                                var timeDelayToAdd = timeToLastFrameOfAccumulation;
+                                // if it does use accumulation but not on this frame then increase its timings by the length of the current accumulation
+                                if (SensorUsesAccumulation(otherSensorData) && otherSensorData.sequenceTimeOfNextAccumulation - sensorData.sequenceTimeOfNextAccumulation > k_SimulationTimingAccuracy && !m_OtherAccumulatingSensorsUpdatedByAccumulation.Contains(otherSensor))
+                                {
+                                    m_OtherAccumulatingSensorsUpdatedByAccumulation.Add(otherSensor);
+                                    otherSensorData.sequenceTimeOfNextAccumulation += timeDelayToAdd;
+                                    otherSensorData.sequenceTimeOfNextCapture += timeDelayToAdd;
+                                    m_Sensors[otherSensor] = otherSensorData;
+                                }
+                                // if it is not an accumulating sensor and it is not capturing on this frame then increase its timings by the length of the current accumulation
+                                // and we have not already updated it's value previously
+                                else if (!SensorUsesAccumulation(otherSensorData) && otherSensorData.sequenceTimeOfNextCapture - sensorData.sequenceTimeOfNextAccumulation > k_SimulationTimingAccuracy && !m_NonAccumulatingSensorsThatHaveBeenUpdatedByAccumulation.Contains(otherSensor))
+                                {
+                                    m_NonAccumulatingSensorsThatHaveBeenUpdatedByAccumulation.Add(otherSensor);
+                                    otherSensorData.sequenceTimeOfNextCapture += timeDelayToAdd;
+                                    m_Sensors[otherSensor] = otherSensorData;
+                                }
+                            }
+                        }
+                        // update the current sensor timings for the next accumulation
+                        sensorData.sequenceTimeOfNextAccumulation += timeBeforeNextAccumulation;
+
+                        Debug.Assert(sensorData.sequenceTimeOfNextAccumulation > UnscaledSequenceTime,
+                            $"Next scheduled accumulation should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeOfNextAccumulation}");
+                        while (sensorData.sequenceTimeOfNextAccumulation <= UnscaledSequenceTime)
+                            sensorData.sequenceTimeOfNextAccumulation += timeBeforeNextAccumulation;
+                    }
+                    else if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Manual))
+                    {
+                        sensorData.sequenceTimeOfNextAccumulation = float.MaxValue;
+                    }
+                }
                 if (activeSensor.ShouldCaptureThisFrame)
                 {
                     if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
                     {
-                        sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + 1);
+                        if (usingAccumulation)
+                        {
+                            // if the current sensor uses accumulation, or another sensor will start accumulation this frame and the current sensor is trying to capture exactly when another sensor is starting to accumulate (hence it is not part of the UpdatedSensors)
+                            if (SensorUsesAccumulation(sensorData) || (oneOrMoreSensorsAccumulateThisFrame && !m_NonAccumulatingSensorsThatHaveBeenUpdatedByAccumulation.Contains(activeSensor)))
+                            {
+                                // if it doesn't use accumulation add it to the updated sensors
+                                if (!SensorUsesAccumulation(sensorData))
+                                {
+                                    m_NonAccumulatingSensorsThatHaveBeenUpdatedByAccumulation.Add(activeSensor);
+                                }
+                                // Move the time of next capture past the accumulation that is about to start
+                                sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + PerceptionSettings.instance.accumulationSettings.accumulationSamples + 1);
+                            }
+                            // if it doesn't use accumulation (and there are no accumulations happening this frame)
+                            else if (!SensorUsesAccumulation(sensorData))
+                            {
+                                m_NonAccumulatingSensorsThatHaveBeenUpdatedByAccumulation.Add(activeSensor);
+                                sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + 1);
+                            }
+                        }
+                        else
+                        {
+                            sensorData.sequenceTimeOfNextCapture += sensorData.renderingDeltaTime * (sensorData.framesBetweenCaptures + 1);
+                        }
+
                         Debug.Assert(sensorData.sequenceTimeOfNextCapture > UnscaledSequenceTime,
                             $"Next scheduled capture should be after {UnscaledSequenceTime} but is {sensorData.sequenceTimeOfNextCapture}");
                         while (sensorData.sequenceTimeOfNextCapture <= UnscaledSequenceTime)
@@ -697,44 +1062,53 @@ namespace UnityEngine.Perception.GroundTruth
                     }
 
                     sensorData.lastCaptureFrameCount = Time.frameCount;
+                    // update sensors just captured and were accumulating
+                    if (SensorUsesAccumulation(sensorData))
+                    {
+                        m_AccumulatingSensorsCapturedOrNot[activeSensor] = true;
+                    }
                 }
 
                 m_Sensors[activeSensor] = sensorData;
             }
 
-            //find the deltatime required to land on the next active sensor that needs simulation
-            var nextFrameDt = float.PositiveInfinity;
-            foreach (var activeSensor in m_ActiveSensors)
+            // only update renderDeltaTime if no sensors will accumulate this frame
+            if (!m_Accumulating)
             {
-                float thisSensorNextFrameDt = -1;
-
-                var sensorData = m_Sensors[activeSensor];
-                if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
+                //find the deltatime required to land on the next active sensor that needs simulation
+                var nextFrameDt = float.PositiveInfinity;
+                foreach (var activeSensor in m_ActiveSensors)
                 {
-                    thisSensorNextFrameDt = sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime;
+                    float thisSensorNextFrameDt = -1;
 
-                    Debug.Assert(thisSensorNextFrameDt > 0f, "Sensor was scheduled to capture in the past but got skipped over.");
+                    var sensorData = m_Sensors[activeSensor];
+                    if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Scheduled))
+                    {
+                        thisSensorNextFrameDt = sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime;
+
+                        Debug.Assert(thisSensorNextFrameDt > 0f, "Sensor was scheduled to capture in the past but got skipped over.");
+                    }
+                    else if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Manual) && sensorData.manualSensorAffectSimulationTiming)
+                    {
+                        thisSensorNextFrameDt = sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime;
+                    }
+
+                    if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
+                    {
+                        nextFrameDt = thisSensorNextFrameDt;
+                    }
                 }
-                else if (sensorData.captureTriggerMode.Equals(CaptureTriggerMode.Manual) && sensorData.manualSensorAffectSimulationTiming)
+
+                if (float.IsPositiveInfinity(nextFrameDt))
                 {
-                    thisSensorNextFrameDt = sensorData.sequenceTimeOfNextRender - UnscaledSequenceTime;
+                    //means no sensor is controlling simulation timing, so we set Time.captureDeltaTime to 0 (default) which means the setting does not do anything
+                    nextFrameDt = 0;
                 }
-
-                if (thisSensorNextFrameDt > 0f && thisSensorNextFrameDt < nextFrameDt)
-                {
-                    nextFrameDt = thisSensorNextFrameDt;
-                }
-            }
-
-            if (float.IsPositiveInfinity(nextFrameDt))
-            {
-                //means no sensor is controlling simulation timing, so we set Time.captureDeltaTime to 0 (default) which means the setting does not do anything
-                nextFrameDt = 0;
+                
+                Time.captureDeltaTime = nextFrameDt;
             }
 
             ReportFramesToConsumer();
-
-            Time.captureDeltaTime = nextFrameDt;
         }
 
         void Shutdown()
@@ -754,8 +1128,8 @@ namespace UnityEngine.Perception.GroundTruth
 
             if (readyToShutdown)
             {
-                m_SimulationMetadata.Add("totalFrames", m_TotalFrames);
-                m_SimulationMetadata.Add("totalSequences", m_SequenceId + 1);
+                m_SimulationMetadata.Add("totalFrames", m_TotalFrames + frameOffset);
+                m_SimulationMetadata.Add("totalSequences", sequenceId + 1);
 
                 var i = 0;
                 var sensors = new string[m_Sensors.Count];
@@ -815,11 +1189,30 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             var data = m_Sensors[sensorHandle];
-            data.sequenceTimeOfNextCapture = UnscaledSequenceTime;
+            if (SensorUsesAccumulation(data))
+            {
+                data.sequenceTimeOfNextAccumulation = UnscaledSequenceTime;
+                data.sequenceTimeOfNextCapture = UnscaledSequenceTime + PerceptionSettings.instance.accumulationSettings.accumulationSamples * data.renderingDeltaTime;
+            }
+            else
+            {
+                data.sequenceTimeOfNextCapture = UnscaledSequenceTime;
+            }
+
             m_Sensors[sensorHandle] = data;
         }
 
-        public int currentFrame => Time.frameCount;
+        public bool ShouldAccumulateThisFrame(SensorHandle sensorHandle)
+        {
+            if (!m_Sensors.ContainsKey(sensorHandle))
+                return false;
+
+            var data = m_Sensors[sensorHandle];
+            if (!SensorUsesAccumulation(data))
+                return false;
+
+            return data.sequenceTimeOfNextAccumulation - UnscaledSequenceTime < k_SimulationTimingAccuracy;
+        }
 
         public bool ShouldCaptureThisFrame(SensorHandle sensorHandle)
         {
@@ -832,6 +1225,7 @@ namespace UnityEngine.Perception.GroundTruth
 
             return data.sequenceTimeOfNextCapture - UnscaledSequenceTime < k_SimulationTimingAccuracy;
         }
+
         internal bool CapturesLeft()
         {
             return m_PendingFrames.Count > 0;
@@ -869,7 +1263,7 @@ namespace UnityEngine.Perception.GroundTruth
         internal PendingId ReportSensor(SensorHandle handle, Sensor sensor)
         {
             var step = AcquireStep();
-            var id = PendingId.CreateSensorId(m_SequenceId, step, handle.Id);
+            var id = PendingId.CreateSensorId(sequenceId, step, handle.Id);
             var pendingFrame = GetOrCreatePendingFrame(id);
             pendingFrame.AddSensor(id, sensor);
             return id;
@@ -878,12 +1272,12 @@ namespace UnityEngine.Perception.GroundTruth
         internal PendingId ReportAnnotation(SensorHandle sensorHandle, AnnotationDefinition definition, Annotation annotation)
         {
             var step = AcquireStep();
-            var sensorId = PendingId.CreateSensorId(m_SequenceId, step, sensorHandle.Id);
+            var sensorId = PendingId.CreateSensorId(sequenceId, step, sensorHandle.Id);
 
             var pendingFrame = GetOrCreatePendingFrame(sensorId);
             var sensor = pendingFrame.GetOrCreatePendingSensor(sensorId);
 
-            var annotationId = PendingId.CreateAnnotationId(m_SequenceId, step, sensorHandle.Id, definition.id);
+            var annotationId = PendingId.CreateAnnotationId(sequenceId, step, sensorHandle.Id, definition.id);
 
             sensor.Annotations[annotationId] = annotation;
             return annotationId;
@@ -902,7 +1296,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         PendingFrame GetOrCreatePendingFrame(FrameId frameId, out bool created)
         {
-            m_DataCaptured = true;
+            dataCaptured = true;
 
             created = false;
             EnsureStepIncremented();
@@ -975,7 +1369,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (definition == null)
                 throw new ArgumentNullException(nameof(definition));
 
-            var pendingId = PendingId.CreateMetricId(m_SequenceId, AcquireStep(), sensorId, annotationId, definition.id);
+            var pendingId = PendingId.CreateMetricId(sequenceId, AcquireStep(), sensorId, annotationId, definition.id);
 
             var pendingFrame = GetOrCreatePendingFrame(pendingId);
 
@@ -998,7 +1392,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (definition == null)
                 throw new ArgumentNullException(nameof(metric));
 
-            var pendingId = PendingId.CreateMetricId(m_SequenceId, AcquireStep(), sensor.Id, annotation.Id, definition.id);
+            var pendingId = PendingId.CreateMetricId(sequenceId, AcquireStep(), sensor.Id, annotation.Id, definition.id);
             var pendingFrame = GetOrCreatePendingFrame(pendingId);
 
             if (pendingFrame == null)
@@ -1021,6 +1415,9 @@ namespace UnityEngine.Perception.GroundTruth
         Frame ConvertToFrameData(PendingFrame pendingFrame, SimulationState simState)
         {
             var frameId = m_PendingIdToFrameMap[pendingFrame.pendingId];
+
+            // in case of simulation restore - include offset to the output frame
+            frameId += frameOffset;
 
             var frame = new Frame(frameId, pendingFrame.pendingId.sequence, pendingFrame.pendingId.step, pendingFrame.timestamp)
             {
@@ -1046,7 +1443,7 @@ namespace UnityEngine.Perception.GroundTruth
             {
                 var recordedFrame = m_PendingIdToFrameMap[frame.Key];
 
-                if ((writeCapturesFromThisFrame || recordedFrame < currentFrame) &&
+                if ((writeCapturesFromThisFrame || recordedFrame < Time.frameCount) &&
                     frame.Value.IsReadyToReport())
                 {
                     m_PendingFramesToReport.Enqueue(frame);
@@ -1107,6 +1504,7 @@ namespace UnityEngine.Perception.GroundTruth
                 if (consumerEndpoint == null)
                 {
                     Debug.LogError("Consumer endpoint is null");
+                    continue;
                 }
 
                 consumerEndpoint.FrameGenerated(converted);

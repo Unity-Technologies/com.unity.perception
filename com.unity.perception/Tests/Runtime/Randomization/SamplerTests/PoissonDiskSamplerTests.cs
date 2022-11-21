@@ -1,5 +1,5 @@
-﻿using NUnit.Framework;
-using UnityEngine.Perception.Randomization.Randomizers.Utilities;
+using NUnit.Framework;
+using UnityEngine.Perception.Randomization.Utilities;
 
 namespace RandomizationTests.SamplerTests
 {

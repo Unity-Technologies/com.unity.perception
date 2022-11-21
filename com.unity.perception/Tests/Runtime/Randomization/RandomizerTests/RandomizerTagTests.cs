@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -9,9 +9,9 @@ namespace RandomizationTests.RandomizerTests
     [TestFixture]
     public class RandomizerTagTests
     {
-        public class BaseTag : RandomizerTag { }
+        public class BaseTag : RandomizerTag {}
 
-        public class DerivedTag : BaseTag { }
+        public class DerivedTag : BaseTag {}
 
         [TearDown]
         public void Teardown()

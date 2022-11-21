@@ -29,7 +29,7 @@ All Parameters derive from the `Parameter` abstract class. Additionally, the Par
 After adding a public Parameter field to a MonoBehaviour or ScriptableObject, you may have noticed that the Parameter's UI does not look the same as it does when added to a Randomizer. This is because the Inspector UI for most Perception randomization components is authored using Unity's relatively new UI Elements framework, though by default, Unity uses the old IMGUI framework to render default inspector editors.
 
 Say you have the following CustomMonoBehaviour that has a public GameObjectParameter field:
-```
+```csharp
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
 
@@ -41,7 +41,7 @@ public class CustomMonoBehaviour : MonoBehaviour
 
 To force Unity to use UI Elements to render your CustomMonoBehaviour's inspector window, create a custom editor for your MonoBehaviour by deriving the ParameterUIElementsEditor class like so:
 
-```
+```csharp
 using UnityEditor;
 using UnityEngine.Perception.Editor;
 
@@ -54,18 +54,6 @@ public class CustomMonoBehaviourEditor : ParameterUIElementsEditor { }
 ### Categorical Parameters
 
 Categorical Parameters choose a value from a list of options that have no intrinsic ordering. For example, a material Parameter randomly chooses from a list of material options, but the list of material options itself can be rearranged into any particular order without affecting the distribution of materials selected.
-
-If your custom Parameter is categorical in nature, take a look at the [StringParameter]() class included in the perception package as a reference for how to derive the `CategoricalParameter` class.
-```
-using UnityEngine.Perception.Randomization.Parameters.Attributes;
-
-namespace UnityEngine.Perception.Randomization.Parameters
-{
-    [AddComponentMenu("")]
-    [ParameterMetaData("String")]
-    public class StringParameter : CategoricalParameter<string> {}
-}
-```
 
 **Note:** the AddComponentMenu attribute with an empty string prevents Parameters from appearing in the Add Component GameObject menu. Randomization Parameters should only be created with by a `ParameterConfiguration`
 

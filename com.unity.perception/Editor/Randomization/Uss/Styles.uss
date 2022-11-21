@@ -51,6 +51,13 @@
 .scenario__error-box {
     color: #FF4040;
 }
+.scenario__warning-box {
+    color: #f5ce27;
+    margin-top: 24px;
+    padding: 8px 20px;
+    -unity-text-align: middle-center;
+    font-size: 16px;
+}
 
 .scenario__dark-viewport {
     border-radius: 5px;
@@ -124,8 +131,9 @@
 /* Parameter classes */
 .parameter__categorical-option {
     flex-direction: row;
+    padding: 2px 4px;
     background-color: #3F3F3F;
-    margin: 1px;
+    margin: 2px 0;
     border-radius: 4px;
 }
 
@@ -152,13 +160,14 @@
     border-width: 0;
     border-top-right-radius: 0;
     border-top-left-radius: 0;
-    background-color: #191919;
+    background-color: #585858;
     margin-top: 0;
     margin-right: 2px;
+    margin-bottom: 8px;
 }
 
 .parameter__categorical-options-list-button:hover {
-    background-color: #2A2A2A;
+    background-color: #757474;
 }
 
 .parameter__categorical-options-list-button:active {

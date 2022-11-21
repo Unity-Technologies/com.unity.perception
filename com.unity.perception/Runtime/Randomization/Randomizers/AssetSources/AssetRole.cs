@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Perception.Randomization
+namespace UnityEngine.Perception.Randomization
 {
     /// <summary>
     /// Derive this class to create a typed asset role.

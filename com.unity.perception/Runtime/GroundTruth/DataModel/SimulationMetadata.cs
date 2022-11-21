@@ -1,5 +1,8 @@
-﻿namespace UnityEngine.Perception.GroundTruth.DataModel
+namespace UnityEngine.Perception.GroundTruth.DataModel
 {
+    /// <summary>
+    /// Object that represent the data will be passed during the cloud simulation
+    /// </summary>
     public class SimulationMetadata : Metadata
     {
         const string k_UnityVersionLabel = "unityVersion";
@@ -15,8 +18,6 @@
             perceptionVersion = "not_set";
 #if HDRP_PRESENT
             renderPipeline = "HDRP";
-#elif URP_PRESENT
-            renderPipeline = "URP";
 #else
             renderPipeline = "built-in";
 #endif

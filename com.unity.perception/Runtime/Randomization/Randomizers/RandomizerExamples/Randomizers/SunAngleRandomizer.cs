@@ -1,15 +1,17 @@
-﻿using System;
+using System;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
+using UnityEngine.Perception.Randomization.Randomizers.Tags;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Randomizes the rotation of directional lights tagged with a SunAngleRandomizerTag
     /// </summary>
     [Serializable]
     [AddRandomizerMenu("Perception/Sun Angle Randomizer")]
+    [MovedFrom("UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")]
     public class SunAngleRandomizer : Randomizer
     {
         /// <summary>
@@ -43,7 +45,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
                 var earthTilt = Quaternion.Euler(Mathf.Cos(timeOfYearRads) * 23.5f, 0, Mathf.Sin(timeOfYearRads) * 23.5f);
                 var earthLat = Quaternion.AngleAxis(latitude.Sample(), Vector3.right);
                 var lightRotation = earthTilt * earthSpin * earthLat;
-                tag.transform.rotation = Quaternion.Euler(90,0,0) * Quaternion.Inverse(lightRotation);
+                tag.transform.rotation = Quaternion.Euler(90, 0, 0) * Quaternion.Inverse(lightRotation);
             }
         }
     }

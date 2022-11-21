@@ -1,12 +1,12 @@
 ﻿<UXML xmlns="UnityEngine.UIElements">
     <VisualElement class="randomizer__element">
         <VisualElement name="drag-handle" class="randomizer__drag-handle"/>
-        <VisualElement style="flex-grow: 1;">
-            <VisualElement style="flex-direction: row; justify-content: space-between;">
+        <VisualElement style="flex-grow: 1; margin-right: 6px;">
+            <VisualElement style="flex-direction: row; justify-content: space-between; align-items: center; padding: 1px 0px;">
                 <VisualElement style="flex-direction: row; align-items: center;">
                     <VisualElement name="collapse" class="randomization__collapse-toggle foldout-open"/>
                     <Toggle name="enabled"/>
-                    <TextElement name="class-name" text="Randomizer Class Name"/>
+                    <TextElement style="margin-left: 8px; margin-bottom: 2px; padding: 3px 3px; -unity-font-style: bold;" name="class-name" text="Randomizer Class Name"/>
                 </VisualElement>
                 <Button name="remove" class="randomization__remove-item-button"/>
             </VisualElement>

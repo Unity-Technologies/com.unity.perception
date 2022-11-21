@@ -1,35 +1,51 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// The instance segmentation image recorded for a capture. This
     /// includes the data that associates a pixel color to an object.
     /// </summary>
     [Serializable]
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class InstanceSegmentationAnnotation : Annotation
     {
-        internal InstanceSegmentationAnnotation(InstanceSegmentationDefinition def, string sensorId, List<InstanceSegmentationEntry> instances)
-            : base(def, sensorId)
+        internal InstanceSegmentationAnnotation(
+            InstanceSegmentationDefinition def, string sensorId,
+            IEnumerable<InstanceSegmentationEntry> instances,
+            ImageEncodingFormat imageFormat,
+            Vector2 dimension,
+            byte[] buffer
+        ) : base(def, sensorId)
         {
             this.instances = instances;
+            this.imageFormat = imageFormat;
+            this.dimension = dimension;
+            this.buffer = buffer;
         }
 
         /// <summary>
-        /// This instance to pixel map
+        /// This instance to pixel map.
         /// </summary>
-        public List<InstanceSegmentationEntry> instances { get; set; }
+        public IEnumerable<InstanceSegmentationEntry> instances { get; private set; }
 
-        // The format of the image type
-        public ImageEncodingFormat imageFormat { get; set; }
+        /// <summary>
+        /// The format of the image type.
+        /// </summary>
+        public ImageEncodingFormat imageFormat { get; private set; }
 
-        // The dimensions (width, height) of the image
-        public Vector2 dimension { get; set; }
+        /// <summary>
+        /// The dimensions (width, height) of the image.
+        /// </summary>
+        public Vector2 dimension { get; private set; }
 
-        // The raw bytes of the image file
-        public byte[] buffer { get; set; }
+        /// <summary>
+        /// The raw bytes of the image file.
+        /// </summary>
+        public byte[] buffer { get; private set; }
 
         /// <inheritdoc/>
         public override void ToMessage(IMessageBuilder builder)
@@ -38,7 +54,7 @@ namespace UnityEngine.Perception.GroundTruth
             builder.AddString("imageFormat", imageFormat.ToString());
             builder.AddFloatArray("dimension", new[] { dimension.x, dimension.y });
             var key = $"{sensorId}.{annotationId}";
-            builder.AddByteArray(key, buffer);
+            builder.AddEncodedImage(key, "png", buffer);
 
             foreach (var e in instances)
             {

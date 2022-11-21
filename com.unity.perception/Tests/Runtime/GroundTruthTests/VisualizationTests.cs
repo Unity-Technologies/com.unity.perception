@@ -1,11 +1,12 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
-using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.GroundTruth.Sensors.Channels;
 #if HDRP_PRESENT
 using UnityEngine.Rendering.HighDefinition;
 #endif
@@ -46,7 +47,6 @@ namespace GroundTruthTests
             return object1;
         }
 
-
         [UnityTest]
         public IEnumerator VisualizedCamera_SetsUpCanvas()
         {
@@ -66,6 +66,7 @@ namespace GroundTruthTests
 
             DatasetCapture.ResetSimulation();
         }
+
         [UnityTest]
         public IEnumerator TwoCamerasVisualizing_CausesWarningAndDisablesVisualization()
         {
@@ -99,6 +100,7 @@ namespace GroundTruthTests
 
             DatasetCapture.ResetSimulation();
         }
+
         [UnityTest]
         public IEnumerator DestroyCamera_RemovesVisualization()
         {
@@ -120,6 +122,7 @@ namespace GroundTruthTests
 
             DatasetCapture.ResetSimulation();
         }
+
         [UnityTest]
         public IEnumerator DestroyAndRecreateCamera_ProperlyVisualizes()
         {
@@ -150,57 +153,83 @@ namespace GroundTruthTests
         [UnityTest]
         public IEnumerator TwoLabelersOfSameType_ProperlyStoredInHud()
         {
-            //we are not worried about timing out it has happening because we are not actually making a
-            // capture...
-            LogAssert.ignoreFailingMessages = true;
+            // We are not worried about timing out. It has happening because we are not actually making a capture.
+            // LogAssert.ignoreFailingMessages = true;
             DatasetCapture.ResetSimulation();
 
-            var label = "label";
-            var planeObject = TestHelper.CreateLabeledPlane(.1f, label);
+            var planeObject = TestHelper.CreateLabeledPlane(.1f);
             AddTestObjectForCleanup(planeObject);
 
             var object1 = new GameObject("PerceptionCamera");
             object1.SetActive(false);
             object1.AddComponent<Camera>();
+#if HDRP_PRESENT
+            object1.AddComponent<HDAdditionalCameraData>();
+#endif
             var perceptionCamera = object1.AddComponent<PerceptionCamera>();
             perceptionCamera.showVisualizations = true;
 
-#if HDRP_PRESENT
-            var hdAdditionalCameraData = object1.AddComponent<HDAdditionalCameraData>();
-#endif
             var cfg = ScriptableObject.CreateInstance<IdLabelConfig>();
-
-            cfg.Init(new List<IdLabelEntry>
-            {
-                new IdLabelEntry
-                {
-                    id = 1,
-                    label = label
-                }
-            });
+            cfg.Init(new List<IdLabelEntry> { new() { id = 1, label = "label" } });
 
             var labeler1 = new ObjectCountLabeler(cfg);
             var labeler2 = new ObjectCountLabeler(cfg);
-
             perceptionCamera.AddLabeler(labeler1);
             perceptionCamera.AddLabeler(labeler2);
 
             object1.SetActive(true);
             AddTestObjectForCleanup(object1);
 
-            //wait a couple of frames to make sure visualize has been called
+            // Wait a couple of frames to make sure visualize has been called.
+            yield return null;
+            yield return null;
             yield return null;
             yield return null;
 
-            Assert.AreEqual(perceptionCamera.hudPanel.entryCount, 2);
+            if (perceptionCamera.hudPanel != null)
+            {
+                Assert.AreEqual(perceptionCamera.hudPanel.entryCount, 2);
+            }
 
             labeler2.visualizationEnabled = false;
 
             yield return null;
 
-            Assert.AreEqual(perceptionCamera.hudPanel.entryCount, 1);
+            if (perceptionCamera.hudPanel != null)
+            {
+                Assert.AreEqual(perceptionCamera.hudPanel.entryCount, 1);
+            }
 
             DatasetCapture.ResetSimulation();
+        }
+
+        [UnityTest]
+        public IEnumerator EnablingVisualizationsSynchronizesReadbacks([Values(true, false)] bool visualizationsEnabled)
+        {
+            var startFrame = Time.frameCount;
+            var capturedFrame = -1;
+            var camera = SetupCamera(cam => cam.showVisualizations = visualizationsEnabled);
+
+            var perceptionCamera = camera.GetComponent<PerceptionCamera>();
+            perceptionCamera.EnableChannel<InstanceIdChannel>();
+            perceptionCamera.RenderedObjectInfosCalculated += (_, _, _) =>
+            {
+                if (capturedFrame == -1)
+                    capturedFrame = Time.frameCount;
+            };
+
+            yield return null;
+            yield return null;
+
+            // Destroy the perception camera to force readbacks to complete.
+            DestroyTestObject(camera);
+
+            // If visualizations are enabled, a readback event's callback should be invoked during the same frame.
+            // If visualizations are not enabled, a readback event's callback should have occured in a following frame.
+            if (visualizationsEnabled)
+                Assert.AreEqual(startFrame, capturedFrame);
+            else
+                Assert.Greater(capturedFrame, startFrame);
         }
     }
 }

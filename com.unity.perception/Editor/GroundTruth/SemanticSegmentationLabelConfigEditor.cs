@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
@@ -28,7 +28,7 @@ namespace UnityEditor.Perception.GroundTruth
         }
 
         public override void PostRemoveOperations()
-        { }
+        {}
 
         protected override void SetupPresentLabelsListView()
         {
@@ -46,7 +46,7 @@ namespace UnityEditor.Perception.GroundTruth
                         .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.label)));
                     addedLabel.colorField.BindProperty(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
                         .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)));
-                    addedLabel.hexLabel.text = "#"+ColorUtility.ToHtmlStringRGBA(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
+                    addedLabel.hexLabel.text = "#" + ColorUtility.ToHtmlStringRGBA(m_SerializedLabelsArray.GetArrayElementAtIndex(i)
                         .FindPropertyRelative(nameof(SemanticSegmentationLabelEntry.color)).colorValue);
                 }
             }
@@ -106,7 +106,7 @@ namespace UnityEditor.Perception.GroundTruth
         public Label hexLabel;
 
         public ColoredLabelElementInLabelConfig(LabelConfigEditor<SemanticSegmentationLabelEntry> editor, SerializedProperty labelsArray) : base(editor, labelsArray)
-        { }
+        {}
 
         protected override void InitExtended()
         {
@@ -126,9 +126,8 @@ namespace UnityEditor.Perception.GroundTruth
                     Debug.LogWarning("A label with the chosen color " + cEvent.newValue + " has already been added to this label configuration.");
                 }
 
-                hexLabel.text = "#"+ColorUtility.ToHtmlStringRGBA(colorField.value);
+                hexLabel.text = "#" + ColorUtility.ToHtmlStringRGBA(colorField.value);
             });
-
         }
     }
 }

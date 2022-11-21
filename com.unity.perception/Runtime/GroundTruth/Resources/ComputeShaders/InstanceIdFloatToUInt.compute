@@ -1,0 +1,10 @@
+﻿#pragma kernel InstanceIdFloatToUInt
+
+Texture2D<float> floatTexture;
+RWTexture2D<uint> uintTexture;
+
+[numthreads(16, 16, 1)]
+void InstanceIdFloatToUInt(uint3 threadId: SV_DispatchThreadID)
+{
+    uintTexture[threadId.xy] = (uint)floatTexture[threadId.xy];
+}

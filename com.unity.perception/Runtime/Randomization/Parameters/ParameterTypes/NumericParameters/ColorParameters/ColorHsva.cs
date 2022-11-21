@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Mathematics;
 
 namespace UnityEngine.Perception.Randomization.Parameters

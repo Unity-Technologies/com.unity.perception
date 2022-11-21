@@ -4,32 +4,33 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using Random = UnityEngine.Random;
 
 namespace PerformanceTests
 {
     static class TestHelper
     {
-        public static (PerceptionCamera, IdLabelConfig, SemanticSegmentationLabelConfig, GameObject) CreateThreeBlockScene()
+        public static (PerceptionCamera, IdLabelConfig, SemanticSegmentationLabelConfig, GameObject) CreateHundredBlockScene()
         {
             var labels = new List<string> { "Crate", "Cube", "Box" };
-            var idConfig = CreateDefaultLabelConfig();
-            var ssConfig = CreateDefaultSemanticSegmentationLabelConfig();
-            var camPos = new Vector3(198.0188f, 126.5455f, -267.4195f);
-            var camRot = Quaternion.Euler(20.834f, -36.337f, 0);
-            var camScale = new Vector3(36.24997f, 36.24997f, 36.24997f);
-            var cam = CreatePerceptionCamera(position: camPos, rotation: camRot, scale: camScale);
+            var idConfig = CreateDefaultLabelConfig(labels);
+            var ssConfig = CreateDefaultSemanticSegmentationLabelConfig(labels);
+            var camPos = new Vector3(2, 5, -8);
+            var camRot = Quaternion.Euler(20, 10, 0);
+            var cam = CreatePerceptionCamera(position: camPos, rotation: camRot, orthoSize: 3.5f);
 
-            const float scale = 36.24997f;
-            const float y = 82.92603f;
-
-            var crate = CreateLabeledCube(labels[0], new Vector3(155.9981f, y, -149.9762f), scale: scale);
-            var cube = CreateLabeledCube(labels[1], new Vector3(92.92311f, y, -136.2012f), scale: scale);
-            var box = CreateLabeledCube(labels[2], new Vector3(96.1856f, y, -193.8386f), scale: scale);
+            const float scale = .5f;
 
             var root = new GameObject();
-            crate.transform.parent = root.transform;
-            cube.transform.parent = root.transform;
-            box.transform.parent = root.transform;
+            for (int x = 0; x < 10; x++)
+            {
+                for (int z = 0; z < 10; z++)
+                {
+                    var cube = CreateLabeledCube(labels[(x * z) % 3], new Vector3(x, 0, z), scale: scale);
+                    cube.transform.parent = root.transform;
+                }
+            }
 
             return (cam, idConfig, ssConfig, root);
         }
@@ -54,17 +55,32 @@ namespace PerformanceTests
             return config;
         }
 
-        static SemanticSegmentationLabelConfig CreateDefaultSemanticSegmentationLabelConfig()
+        static SemanticSegmentationLabelConfig CreateDefaultSemanticSegmentationLabelConfig(List<string> labels = null)
         {
             var labelConfig = ScriptableObject.CreateInstance<SemanticSegmentationLabelConfig>();
-            labelConfig.Init(new List<SemanticSegmentationLabelEntry>()
+            List<SemanticSegmentationLabelEntry> semanticSegmentationLabelEntries;
+            if (labels == null)
             {
-                new SemanticSegmentationLabelEntry()
+                semanticSegmentationLabelEntries = new List<SemanticSegmentationLabelEntry>()
                 {
-                    label = "label",
-                    color = new Color32(0, 0, 255, 255)
-                }
-            });
+                    new SemanticSegmentationLabelEntry()
+                    {
+                        label = "label",
+                        color = new Color32(0, 0, 255, 255)
+                    }
+                };
+            }
+            else
+            {
+                Random.InitState(0);
+                semanticSegmentationLabelEntries = new List<SemanticSegmentationLabelEntry>(
+                    labels.Select(l => new SemanticSegmentationLabelEntry()
+                    {
+                        label = l,
+                        color = Color.HSVToRGB(Random.Range(0f, 1f), 1f, 1f)
+                    }));
+            }
+            labelConfig.Init(semanticSegmentationLabelEntries);
 
             return labelConfig;
         }
@@ -79,18 +95,17 @@ namespace PerformanceTests
             return cube;
         }
 
-        public static PerceptionCamera CreatePerceptionCamera(Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null)
+        public static PerceptionCamera CreatePerceptionCamera(Vector3? position = null, Quaternion? rotation = null, float orthoSize = 1)
         {
             var cameraObject = new GameObject();
             cameraObject.SetActive(false);
 
             cameraObject.transform.localPosition = position ?? Vector3.zero;
             cameraObject.transform.localRotation = rotation ?? Quaternion.identity;
-            cameraObject.transform.localScale = scale ?? Vector3.one;
 
             var camera = cameraObject.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 1;
+            camera.orthographicSize = orthoSize;
 
             var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
             perceptionCamera.captureRgbImages = false;

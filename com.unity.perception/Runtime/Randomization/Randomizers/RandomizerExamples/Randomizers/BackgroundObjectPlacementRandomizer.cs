@@ -1,16 +1,18 @@
-﻿using System;
+using System;
 using System.Linq;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Randomizers.Utilities;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Perception.Randomization.Utilities;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Creates multiple layers of evenly distributed but randomly placed objects
     /// </summary>
     [Serializable]
     [AddRandomizerMenu("Perception/Background Object Placement Randomizer")]
+    [MovedFrom("UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")]
     public class BackgroundObjectPlacementRandomizer : Randomizer
     {
         /// <summary>
@@ -41,7 +43,7 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
         /// A categorical parameter for sampling random prefabs to place
         /// </summary>
         [Tooltip("The list of Prefabs to be placed by this Randomizer.")]
-        public GameObjectParameter prefabs;
+        public CategoricalParameter<GameObject> prefabs;
 
         GameObject m_Container;
         GameObjectOneWayCache m_GameObjectOneWayCache;

@@ -1,0 +1,2370 @@
+// This file is generated. Do not modify by hand.
+// XML documentation file not found. To check if public methods have XML comments,
+// make sure the XML doc file is present and located next to the scraped dll
+namespace UnityEngine.Perception.GroundTruth
+{
+    public readonly struct AnnotationHandle : IDatasetHandle, System.IEquatable<AnnotationHandle>
+    {
+        public string Id { get; }
+        public bool IsNil { get; }
+        public override bool Equals(object obj);
+        public bool Equals(AnnotationHandle other);
+        public override int GetHashCode();
+        public bool IsValid();
+        public void ReportMetric(DataModel.MetricDefinition definition, DataModel.Metric metric);
+        public UnityEngine.Perception.GroundTruth.AsyncFuture<DataModel.Metric> ReportMetricAsync(DataModel.MetricDefinition metricDefinition);
+    }
+
+    public readonly struct AsyncFuture<T> where T : DataModel.DataModelElement
+    {
+        public bool IsPending();
+        public bool IsValid();
+        public void Report(T toReport);
+    }
+
+    public enum BoundingBoxOrigin
+    {
+        BottomLeft = 1,
+        TopLeft = 0,
+    }
+
+    public abstract class CameraLabeler
+    {
+        public bool enabled = true;
+        public abstract string description { get; }
+        public HUDPanel hudPanel { get; }
+        public abstract string labelerId { get; }
+        public OverlayPanel overlayPanel { get; }
+        protected PerceptionCamera perceptionCamera { get; }
+        protected SensorHandle sensorHandle { get; }
+        protected abstract bool supportsVisualization { get; }
+        public bool visualizationEnabled { get; set; }
+        protected CameraLabeler() {}
+        protected virtual void Cleanup();
+        protected virtual void OnBeginRendering(UnityEngine.Rendering.ScriptableRenderContext scriptableRenderContext);
+        protected virtual void OnEndRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected virtual void OnUpdate();
+        protected virtual void OnVisualize();
+        protected virtual void OnVisualizeAdditionalUI();
+        protected virtual void OnVisualizerEnabledChanged(bool visualizerEnabled);
+        protected virtual void Setup();
+    }
+
+    [System.AttributeUsage(System.AttributeTargets.Field)] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEditor.Perception.GroundTruth")] public class ConsumerEndpointDrawerAttribute : PropertyAttribute
+    {
+        public ConsumerEndpointDrawerAttribute(System.Type consumerEndpointType) {}
+    }
+
+    public static class DatasetCapture
+    {
+        public static event System.Action SimulationEnding;
+        public static IConsumerEndpoint activateEndpoint { get; }
+        public static string perceptionVersion { get; }
+        public static string schemaVersion { get; }
+        public static System.ValueTuple<int, int> GetSequenceAndStepFromFrame(int frame);
+        public static void OverrideEndpoint(IConsumerEndpoint endpoint);
+        public static void RegisterAnnotationDefinition(DataModel.AnnotationDefinition definition);
+        public static void RegisterMetric(DataModel.MetricDefinition metricDefinition);
+        public static SensorHandle RegisterSensor(DataModel.SensorDefinition sensor);
+        public static void ReportMetadata(string key, bool value);
+        public static void ReportMetadata(string key, bool[] value);
+        public static void ReportMetadata(string key, int value);
+        public static void ReportMetadata(string key, int[] value);
+        public static void ReportMetadata(string key, float value);
+        public static void ReportMetadata(string key, float[] value);
+        public static void ReportMetadata(string key, string value);
+        public static void ReportMetadata(string key, string[] value);
+        public static void ReportMetadata(string key, System.UInt32 value);
+        public static UnityEngine.Perception.GroundTruth.AsyncFuture<DataModel.Metric> ReportMetric(DataModel.MetricDefinition definition);
+        public static void ReportMetric(DataModel.MetricDefinition definition, DataModel.Metric metric);
+        public static void ResetSimulation();
+        public static void SetOutputPath(string outputPath);
+        public static void StartNewSequence();
+    }
+
+    public class HUDPanel : MonoBehaviour
+    {
+        public int entryCount { get; }
+        public HUDPanel() {}
+        public void RemoveEntries(CameraLabeler labeler);
+        public void RemoveEntry(CameraLabeler labeler, string key);
+        public void UpdateEntry(CameraLabeler labeler, string key, string value);
+    }
+
+    public interface IConsumerEndpoint : System.ICloneable
+    {
+        public string description { get; }
+        public void AnnotationRegistered(DataModel.AnnotationDefinition annotationDefinition);
+        public void FrameGenerated(DataModel.Frame frame);
+        public bool IsValid(out string errorMessage);
+        public void MetricRegistered(DataModel.MetricDefinition metricDefinition);
+        public System.ValueTuple<string, int> ResumeSimulationFromCrash(int maxFrameCount);
+        public void SensorRegistered(DataModel.SensorDefinition sensor);
+        public void SimulationCompleted(DataModel.SimulationMetadata metadata);
+        public void SimulationStarted(DataModel.SimulationMetadata metadata);
+    }
+
+    public interface IDatasetHandle
+    {
+        public string Id { get; }
+        public bool IsValid();
+    }
+
+    public interface IGroundTruthGenerator
+    {
+        public void ClearMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, LabelManagement.Labeling labeling, System.UInt32 instanceId);
+        public void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, LabelManagement.Labeling labeling, Material material, System.UInt32 instanceId);
+    }
+
+    public enum ImageEncodingFormat
+    {
+        Exr = 3,
+        Jpg = 1,
+        Png = 2,
+        Raw = 0,
+    }
+
+    public interface IOverlayPanelProvider
+    {
+        public string label { get; }
+        public Texture overlayImage { get; }
+    }
+
+    [AddComponentMenu(@"Perception/Labeling/Joint Label")] public class JointLabel : MonoBehaviour, ISerializationCallbackReceiver
+    {
+        [SerializeField] public System.Collections.Generic.List<string> labels;
+        public bool overrideSelfOcclusionDistance = false;
+        public float selfOcclusionDistance = 0.15f;
+        public JointLabel() {}
+    }
+
+    public class KeypointDefinition
+    {
+        public bool associateToRig = true;
+        public Color color;
+        public string label;
+        public HumanBodyBones rigLabel = ;
+        public float selfOcclusionDistance = 0.15f;
+        public KeypointDefinition() {}
+    }
+
+    [CreateAssetMenu(fileName = @"KeypointTemplate", menuName = @"Perception/Keypoint Template", order = 2)] public class KeypointTemplate : ScriptableObject
+    {
+        public Texture2D jointTexture;
+        [UnityEngine.Serialization.FormerlySerializedAs(@"keyPoints")] public KeypointDefinition[] keypoints;
+        public Color occludedJointColor;
+        public Texture2D occludedJointTexture;
+        public SkeletonDefinition[] skeleton;
+        public Texture2D skeletonTexture;
+        public string templateID;
+        public string templateName;
+        public KeypointTemplate() {}
+    }
+
+    public enum LosslessImageEncodingFormat
+    {
+        Exr = 2,
+        Png = 1,
+        Raw = 0,
+    }
+
+    public class OverlayPanel : MonoBehaviour
+    {
+        public OverlayPanel() {}
+    }
+
+    [RequireComponent(typeof(Camera))] public class PerceptionCamera : MonoBehaviour
+    {
+        [Range(0f, 1f)] [Tooltip(@"The minimum level of transparency that will be rendered per pixel in segmentation images.")] public float alphaThreshold = 0.1f;
+        public bool captureRgbImages = true;
+        public DataModel.CaptureTriggerMode captureTriggerMode = DataModel.CaptureTriggerMode.Scheduled;
+        public string description;
+        public int firstCaptureFrame;
+        public int framesBetweenCaptures;
+        public string id = @"camera";
+        public bool manualSensorAffectSimulationTiming;
+        public bool overrideLayerMask;
+        public bool showVisualizations = true;
+        public float simulationDeltaTime = 0.0166f;
+        public bool useAccumulation;
+        public static int waitFrames = 2;
+        public event System.Action<int, Unity.Collections.NativeArray<RenderedObjectInfo>, SceneHierarchyInformation> RenderedObjectInfosCalculated;
+        public Camera attachedCamera { get; }
+        public Sensors.CameraSensor cameraSensor { get; set; }
+        public static int captureFrameCount { get; }
+        public System.Collections.Generic.IReadOnlyList<Sensors.Channels.CameraChannelBase> channels { get; }
+        public System.Collections.Generic.IReadOnlyList<CameraLabeler> labelers { get; }
+        public LayerMask layerMask { get; set; }
+        public SensorHandle SensorHandle { get; }
+        public PerceptionCamera() {}
+        public void AddLabeler(CameraLabeler cameraLabeler);
+        public T EnableChannel<T>() where T : Sensors.Channels.CameraChannelBase, new();
+        public T GetChannel<T>() where T : Sensors.Channels.CameraChannelBase;
+        public bool IsChannelEnabled<T>() where T : Sensors.Channels.CameraChannelBase;
+        public bool RemoveLabeler(CameraLabeler cameraLabeler);
+        public bool RemovePersistentSensorData(string key);
+        public void RequestCapture();
+        public void SetPersistentSensorData(string key, object data);
+        public bool TryGetChannel<T>(out T channel) where T : Sensors.Channels.CameraChannelBase;
+    }
+
+    public struct RenderedObjectInfo : System.IEquatable<RenderedObjectInfo>
+    {
+        public Rect boundingBox;
+        public Color32 instanceColor;
+        public System.UInt32 instanceId;
+        public System.UInt32 instanceIndex;
+        public int pixelCount;
+        public override bool Equals(object obj);
+        public bool Equals(RenderedObjectInfo other);
+        public override int GetHashCode();
+        public override string ToString();
+    }
+
+    public static class RenderUtilities
+    {
+        public static UnityEngine.Rendering.ShaderTagId[] shaderPassNames { get; }
+        public static UnityEngine.Rendering.RendererUtils.RendererListDesc CreateRendererListDesc(Camera camera, UnityEngine.Rendering.CullingResults cullingResult, Material overrideMaterial, int overrideMaterialPassIndex, LayerMask layerMask);
+        public static void FlipBackBuffer(UnityEngine.Rendering.CommandBuffer cmd, UnityEngine.Rendering.RenderTargetIdentifier source, UnityEngine.Rendering.RenderTargetIdentifier dest, Camera camera);
+        public static Shader LoadPrewarmedShader(string shaderPath);
+        public static bool ShouldFlipColorY(Camera camera, bool usePassedInRenderTargetId);
+    }
+
+    public sealed class SceneHierarchyInformation
+    {
+        public System.Collections.Generic.IReadOnlyDictionary<System.UInt32, Labelers.SceneHierarchyNode> hierarchy { get; }
+        public bool ContainsInstanceId(System.UInt32 instanceId);
+        public System.Collections.Generic.List<Labelers.SceneHierarchyNode> GetAllNodes();
+        public int GetNodeCount();
+        public bool TryGetNodeForInstanceId(System.UInt32 instanceId, out Labelers.SceneHierarchyNode node);
+    }
+
+    public struct SensorHandle : System.IDisposable, System.IEquatable<SensorHandle>
+    {
+        public string Id { get; }
+        public bool IsNil { get; }
+        public bool IsValid { get; }
+        public bool ShouldAccumulateThisFrame { get; }
+        public bool ShouldCaptureThisFrame { get; }
+        public void Dispose();
+        public override bool Equals(object obj);
+        public bool Equals(SensorHandle other);
+        public override int GetHashCode();
+        public static bool operator ==(SensorHandle left, SensorHandle right);
+        public static bool operator !=(SensorHandle left, SensorHandle right);
+        public AnnotationHandle ReportAnnotation(DataModel.AnnotationDefinition definition, DataModel.Annotation annotation);
+        public UnityEngine.Perception.GroundTruth.AsyncFuture<DataModel.Annotation> ReportAnnotationAsync(DataModel.AnnotationDefinition annotationDefinition);
+        public void ReportMetric(DataModel.MetricDefinition definition, DataModel.Metric metric);
+        public UnityEngine.Perception.GroundTruth.AsyncFuture<DataModel.Metric> ReportMetricAsync(DataModel.MetricDefinition metricDefinition);
+        public void ReportSensor(DataModel.Sensor sensor);
+        public UnityEngine.Perception.GroundTruth.AsyncFuture<DataModel.Sensor> ReportSensorAsync();
+        public void RequestCapture();
+        public override string ToString();
+    }
+
+    public class SkeletonDefinition
+    {
+        public Color color;
+        public int joint1;
+        public int joint2;
+        public SkeletonDefinition() {}
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.Consumers
+{
+    [System.AttributeUsage(System.AttributeTargets.Class)] public class HideFromCreateMenuAttribute : System.Attribute
+    {
+        public HideFromCreateMenuAttribute() {}
+    }
+
+    public interface IFileSystemEndpoint
+    {
+        public string basePath { get; set; }
+        public string currentPath { get; }
+        public string defaultPath { get; }
+    }
+
+    public class JsonMessageBuilder : UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder
+    {
+        protected Newtonsoft.Json.Linq.JToken currentJToken { get; }
+        protected System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<JsonMessageBuilder>> nestedArrays { get; }
+        protected System.Collections.Generic.Dictionary<string, JsonMessageBuilder> nestedValue { get; }
+        public JsonMessageBuilder() {}
+        public virtual void AddBool(string key, bool value);
+        public virtual void AddBoolArray(string key, System.Collections.Generic.IEnumerable<bool> value);
+        public virtual void AddByte(string key, byte value);
+        [System.Obsolete(@"AddByteArray has been deprecated, Use AddEncodedImage instead", true)] public void AddByteArray(string key, System.Collections.Generic.IEnumerable<byte> value);
+        public virtual void AddChar(string key, char value);
+        public virtual void AddDouble(string key, double value);
+        public virtual void AddDoubleArray(string key, System.Collections.Generic.IEnumerable<double> value);
+        public virtual void AddEncodedImage(string key, string extension, byte[] value);
+        public virtual void AddFloat(string key, float value);
+        public virtual void AddFloatArray(string key, System.Collections.Generic.IEnumerable<float> value);
+        public virtual void AddInt(string key, int value);
+        public virtual void AddIntArray(string key, System.Collections.Generic.IEnumerable<int> value);
+        public virtual void AddLong(string key, long value);
+        public virtual void AddLongArray(string key, System.Collections.Generic.IEnumerable<long> value);
+        public virtual UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder AddNestedMessage(string key);
+        public virtual UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder AddNestedMessageToVector(string arrayKey);
+        public virtual void AddString(string key, string value);
+        public virtual void AddStringArray(string key, System.Collections.Generic.IEnumerable<string> value);
+        public virtual void AddTensor(string key, UnityEngine.Perception.GroundTruth.DataModel.Tensor tensor);
+        public virtual void AddUInt(string key, System.UInt32 value);
+        public virtual void AddUIntArray(string key, System.Collections.Generic.IEnumerable<System.UInt32> value);
+        public Newtonsoft.Json.Linq.JToken ToJson();
+    }
+
+    public class NoOutputEndpoint : IConsumerEndpoint, System.ICloneable
+    {
+        public string description { get; }
+        public NoOutputEndpoint() {}
+        public void AnnotationRegistered(UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition annotationDefinition);
+        public object Clone();
+        public void FrameGenerated(UnityEngine.Perception.GroundTruth.DataModel.Frame frame);
+        public bool IsValid(out string errorMessage);
+        public void MetricRegistered(UnityEngine.Perception.GroundTruth.DataModel.MetricDefinition metricDefinition);
+        public System.ValueTuple<string, int> ResumeSimulationFromCrash(int maxFrameCount);
+        public void SensorRegistered(UnityEngine.Perception.GroundTruth.DataModel.SensorDefinition sensor);
+        public void SimulationCompleted(UnityEngine.Perception.GroundTruth.DataModel.SimulationMetadata metadata);
+        public void SimulationStarted(UnityEngine.Perception.GroundTruth.DataModel.SimulationMetadata metadata);
+    }
+
+    public static class PathUtils
+    {
+        public static System.ValueTuple<bool, string> CheckAndFixFileName(string toCheck);
+        public static string CombineUniversal(params string[] paths);
+        public static bool DoesFilenameIncludeIllegalCharacters(string toCheck);
+        public static string EnsurePathsAreUniversal(string path);
+        public static void WriteAndReportImageFile(string path, byte[] bytes);
+        public static void WriteAndReportJsonFile(string filePath, Newtonsoft.Json.Linq.JToken json);
+    }
+
+    public class PerceptionEndpoint : IConsumerEndpoint, IFileSystemEndpoint, System.ICloneable
+    {
+        public int capturesPerFile = 150;
+        protected string m_CurrentPathDoNotUseDirectly;
+        public int metricsPerFile = 150;
+        public virtual string basePath { get; set; }
+        public int currentFrame { get; }
+        public virtual string currentPath { get; }
+        public string datasetPath { get; }
+        public string defaultPath { get; }
+        public string description { get; }
+        public static string version { get; }
+        public PerceptionEndpoint() {}
+        public void AnnotationRegistered(UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition annotationDefinition);
+        public object Clone();
+        public void FrameGenerated(UnityEngine.Perception.GroundTruth.DataModel.Frame frame);
+        public bool IsValid(out string errorMessage);
+        public void MetricRegistered(UnityEngine.Perception.GroundTruth.DataModel.MetricDefinition metricDefinition);
+        public virtual void RegisterFile(string path);
+        public System.ValueTuple<string, int> ResumeSimulationFromCrash(int maxFrameCount);
+        public void SensorRegistered(UnityEngine.Perception.GroundTruth.DataModel.SensorDefinition sensor);
+        public void SimulationCompleted(UnityEngine.Perception.GroundTruth.DataModel.SimulationMetadata metadata);
+        public void SimulationStarted(UnityEngine.Perception.GroundTruth.DataModel.SimulationMetadata metadata);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.Internal.Consumers")] public class SoloEndpoint : IConsumerEndpoint, IFileSystemEndpoint, System.ICloneable
+    {
+        protected string m_CurrentPath;
+        public string soloDatasetName = @"solo";
+        public string basePath { get; set; }
+        public virtual string currentPath { get; }
+        public string defaultPath { get; }
+        public string description { get; }
+        public virtual string metadataPath { get; }
+        public SoloEndpoint() {}
+        public void AnnotationRegistered(UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition annotationDefinition);
+        public object Clone();
+        public void FrameGenerated(UnityEngine.Perception.GroundTruth.DataModel.Frame frame);
+        public bool IsValid(out string errorMessage);
+        public void MetricRegistered(UnityEngine.Perception.GroundTruth.DataModel.MetricDefinition metricDefinition);
+        public virtual void RegisterFile(string path);
+        public System.ValueTuple<string, int> ResumeSimulationFromCrash(int maxFrameCount);
+        public void SensorRegistered(UnityEngine.Perception.GroundTruth.DataModel.SensorDefinition sensor);
+        public void SimulationCompleted(UnityEngine.Perception.GroundTruth.DataModel.SimulationMetadata metadata);
+        public void SimulationStarted(UnityEngine.Perception.GroundTruth.DataModel.SimulationMetadata metadata);
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.DataModel
+{
+    public abstract class Annotation : DataModelElement
+    {
+        protected AnnotationDefinition m_Definition;
+        public string annotationId { get; }
+        public string description { get; }
+        public override string modelType { get; }
+        public string sensorId { get; }
+        protected Annotation(AnnotationDefinition definition, string sensorId) {}
+        public override bool IsValid();
+        public override void ToMessage(IMessageBuilder builder);
+    }
+
+    public abstract class AnnotationDefinition : DataModelElement
+    {
+        public abstract string description { get; }
+        protected AnnotationDefinition(string id) {}
+        public override bool IsValid();
+        public override void ToMessage(IMessageBuilder builder);
+    }
+
+    public enum CaptureTriggerMode
+    {
+        Manual = 1,
+        Scheduled = 0,
+    }
+
+    public abstract class DataModelElement : IMessageProducer
+    {
+        public string id { get; set; }
+        public abstract string modelType { get; }
+        protected DataModelElement(string id) {}
+        public virtual bool IsValid();
+        public virtual void ToMessage(IMessageBuilder builder);
+    }
+
+    public class Frame : DataModelElement
+    {
+        public int frame { get; }
+        public System.Collections.Generic.List<Metric> metrics { get; }
+        public override string modelType { get; }
+        public System.Collections.Generic.List<Sensor> sensors { get; set; }
+        public int sequence { get; }
+        public int step { get; }
+        public float timestamp { get; }
+        public Frame(int frame, int sequence, int step, float timestamp) {}
+        public override bool IsValid();
+        public override void ToMessage(IMessageBuilder builder);
+    }
+
+    public class GenericMetric : Metric
+    {
+        public GenericMetric(bool value, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(bool[] values, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(int value, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(int[] values, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(float value, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(float[] values, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(string value, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(string[] values, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(System.UInt32 value, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(System.UInt32[] values, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(IMessageProducer value, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(IMessageProducer[] values, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public GenericMetric(Vector3 value, MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public override T[] GetValues<T>();
+        public override bool IsValid();
+        public override void ToMessage(IMessageBuilder builder);
+    }
+
+    public interface IMessageBuilder
+    {
+        public void AddBool(string key, bool value);
+        public void AddBoolArray(string key, System.Collections.Generic.IEnumerable<bool> value);
+        public void AddByte(string key, byte value);
+        [System.Obsolete(@"AddByteArray has been deprecated, Use AddEncodedImage instead", true)] public void AddByteArray(string key, System.Collections.Generic.IEnumerable<byte> value);
+        public void AddChar(string key, char value);
+        public void AddDouble(string key, double value);
+        public void AddDoubleArray(string key, System.Collections.Generic.IEnumerable<double> value);
+        public void AddEncodedImage(string key, string extension, byte[] value);
+        public void AddFloat(string key, float value);
+        public void AddFloatArray(string key, System.Collections.Generic.IEnumerable<float> value);
+        public void AddInt(string key, int value);
+        public void AddIntArray(string key, System.Collections.Generic.IEnumerable<int> value);
+        public void AddLong(string key, long value);
+        public void AddLongArray(string key, System.Collections.Generic.IEnumerable<long> value);
+        public IMessageBuilder AddNestedMessage(string key);
+        public IMessageBuilder AddNestedMessageToVector(string arrayKey);
+        public void AddString(string key, string value);
+        public void AddStringArray(string key, System.Collections.Generic.IEnumerable<string> value);
+        public void AddTensor(string key, Tensor tensor);
+        public void AddUInt(string key, System.UInt32 value);
+        public void AddUIntArray(string key, System.Collections.Generic.IEnumerable<System.UInt32> value);
+    }
+
+    public interface IMessageProducer
+    {
+        public void ToMessage(IMessageBuilder builder);
+    }
+
+    public class InMemoryMessageBuilder : IMessageBuilder, IMessageProducer
+    {
+        public InMemoryMessageBuilder() {}
+        public void AddBool(string key, bool value);
+        public void AddBoolArray(string key, System.Collections.Generic.IEnumerable<bool> value);
+        public void AddByte(string key, byte value);
+        public void AddByteArray(string key, System.Collections.Generic.IEnumerable<byte> value);
+        public void AddChar(string key, char value);
+        public void AddDouble(string key, double value);
+        public void AddDoubleArray(string key, System.Collections.Generic.IEnumerable<double> value);
+        public void AddEncodedImage(string key, string extension, byte[] value);
+        public void AddFloat(string key, float value);
+        public void AddFloatArray(string key, System.Collections.Generic.IEnumerable<float> value);
+        public void AddInt(string key, int value);
+        public void AddIntArray(string key, System.Collections.Generic.IEnumerable<int> value);
+        public void AddLong(string key, long value);
+        public void AddLongArray(string key, System.Collections.Generic.IEnumerable<long> value);
+        public IMessageBuilder AddNestedMessage(string key);
+        public IMessageBuilder AddNestedMessageToVector(string arrayKey);
+        public void AddString(string key, string value);
+        public void AddStringArray(string key, System.Collections.Generic.IEnumerable<string> value);
+        public void AddTensor(string key, Tensor tensor);
+        public void AddUInt(string key, System.UInt32 value);
+        public void AddUIntArray(string key, System.Collections.Generic.IEnumerable<System.UInt32> value);
+        public void ToMessage(IMessageBuilder builder);
+    }
+
+    public static class MessageBuilderUtils
+    {
+        public static float[] ToFloatVector(Unity.Mathematics.float3 inData);
+        public static float[] ToFloatVector(Quaternion inData);
+        public static float[] ToFloatVector(Vector2 inData);
+        public static float[] ToFloatVector(Vector3 inData);
+        public static float[][] ToFloatVector2(Unity.Mathematics.float3x3 inData);
+        public static int[] ToIntVector(Color32 inData);
+    }
+
+    public class Metadata : IMessageProducer
+    {
+        public Metadata() {}
+        public void Add(string key, bool value);
+        public void Add(string key, System.Collections.Generic.IEnumerable<bool> value);
+        public void Add(string key, System.Collections.Generic.IEnumerable<int> value);
+        public void Add(string key, System.Collections.Generic.IEnumerable<float> value);
+        public void Add(string key, System.Collections.Generic.IEnumerable<string> value);
+        public void Add(string key, System.Collections.Generic.IEnumerable<Metadata> value);
+        public void Add(string key, int value);
+        public void Add(string key, float value);
+        public void Add(string key, string value);
+        public void Add(string key, System.UInt32 value);
+        public void Add(string key, Metadata value);
+        public static Metadata FromJson(string json);
+        public bool GetBool(string key);
+        public bool[] GetBoolArray(string key);
+        public float GetFloat(string key);
+        public float[] GetFloatArray(string key);
+        public int GetInt(string key);
+        public int[] GetIntArray(string key);
+        public string GetString(string key);
+        public string[] GetStringArray(string key);
+        public Metadata GetSubMetadata(string key);
+        public Metadata[] GetSubMetadataArray(string key);
+        public System.UInt32 GetUInt(string key);
+        public string ToJson();
+        public void ToMessage(IMessageBuilder builder);
+        public bool TryGetValue(string key, out bool value);
+        public bool TryGetValue(string key, out bool[] value);
+        public bool TryGetValue(string key, out int value);
+        public bool TryGetValue(string key, out int[] value);
+        public bool TryGetValue(string key, out float value);
+        public bool TryGetValue(string key, out float[] value);
+        public bool TryGetValue(string key, out string value);
+        public bool TryGetValue(string key, out string[] value);
+        public bool TryGetValue(string key, out System.UInt32 value);
+        public bool TryGetValue(string key, out Metadata value);
+        public bool TryGetValue(string key, out Metadata[] value);
+    }
+
+    public abstract class Metric : DataModelElement
+    {
+        public string annotationId { get; }
+        public override string modelType { get; }
+        public string sensorId { get; }
+        protected Metric(MetricDefinition definition, string sensorId = default(string), string annotationId = default(string)) {}
+        public abstract T[] GetValues<T>();
+        public override void ToMessage(IMessageBuilder builder);
+    }
+
+    public class MetricDefinition : DataModelElement
+    {
+        public string description { get; }
+        public override string modelType { get; }
+        public MetricDefinition(string id, string description) {}
+        public MetricDefinition(string modelType, string id, string description) {}
+        public override bool IsValid();
+        public override void ToMessage(IMessageBuilder builder);
+    }
+
+    public class RgbSensor : Sensor
+    {
+        public byte[] buffer { get; set; }
+        public Vector2 dimension { get; set; }
+        public ImageEncodingFormat imageEncodingFormat { get; set; }
+        public Unity.Mathematics.float3x3 matrix { get; set; }
+        public string projection { get; set; }
+        public RgbSensor(RgbSensorDefinition definition) {}
+        public RgbSensor(RgbSensorDefinition definition, Vector3 position, Quaternion rotation, ImageEncodingFormat encodingFormat = ImageEncodingFormat.Png) {}
+        public RgbSensor(RgbSensorDefinition definition, Vector3 position, Quaternion rotation, string projection, Vector2 dimension, ImageEncodingFormat encodingFormat = ImageEncodingFormat.Png) {}
+        public RgbSensor(RgbSensorDefinition definition, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 acceleration, ImageEncodingFormat encodingFormat = ImageEncodingFormat.Png) {}
+        public RgbSensor(RgbSensorDefinition definition, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 acceleration, string projection, Vector2 dimension, ImageEncodingFormat encodingFormat = ImageEncodingFormat.Png) {}
+        public override bool IsValid();
+        public override void ToMessage(IMessageBuilder builder);
+    }
+
+    public class RgbSensorDefinition : SensorDefinition
+    {
+        public override string modelType { get; }
+        public bool useAccumulation { get; set; }
+        public RgbSensorDefinition(string id, string modality, string description) {}
+        public RgbSensorDefinition(string id, CaptureTriggerMode captureTriggerMode, string description, float firstCaptureFrame, int framesBetweenCaptures, bool manualSensorsAffectTiming, string modality, float simulationDeltaTime, bool useAccumulation = false) {}
+    }
+
+    public abstract class Sensor : DataModelElement
+    {
+        protected SensorDefinition m_Definition;
+        public Vector3 acceleration { get; set; }
+        public System.Collections.Generic.List<Annotation> annotations { get; set; }
+        public string description { get; }
+        public override string modelType { get; }
+        public Vector3 position { get; set; }
+        public Quaternion rotation { get; set; }
+        public Vector3 velocity { get; set; }
+        protected Sensor(SensorDefinition definition) {}
+        protected Sensor(SensorDefinition definition, Vector3 position, Quaternion rotation) {}
+        protected Sensor(SensorDefinition definition, Vector3 position, Quaternion rotation, Vector3 velocity, Vector3 acceleration) {}
+        public override bool IsValid();
+        public override void ToMessage(IMessageBuilder builder);
+    }
+
+    public class SensorDefinition : DataModelElement
+    {
+        public CaptureTriggerMode captureTriggerMode = CaptureTriggerMode.Scheduled;
+        public string description;
+        public float firstCaptureFrame = 0f;
+        public int framesBetweenCaptures = 0;
+        public bool manualSensorsAffectTiming = false;
+        public string modality;
+        public float simulationDeltaTime = 0f;
+        public override string modelType { get; }
+        public SensorDefinition(string id, string modality, string description) {}
+        public SensorDefinition(string id, CaptureTriggerMode captureTriggerMode, string description, float firstCaptureFrame, int framesBetweenCaptures, bool manualSensorsAffectTiming, string modality, float simulationDeltaTime) {}
+        public override bool IsValid();
+        public override void ToMessage(IMessageBuilder builder);
+    }
+
+    public class SimulationMetadata : Metadata
+    {
+        public string perceptionVersion { get; set; }
+        public string renderPipeline { get; }
+        public string unityVersion { get; set; }
+        public SimulationMetadata() {}
+    }
+
+    public struct Tensor
+    {
+        public byte[] buffer { get; }
+        public int count { get; }
+        public Tensor.ElementType elementType { get; }
+        public int[] shape { get; }
+        public int size { get; }
+        public Tensor(Tensor.ElementType elementType, int[] shape) {}
+        public Tensor(Tensor.ElementType elementType, int[] shape, byte[] buffer) {}
+        public void GetElementAt(int[] index, out bool value);
+        public void GetElementAt(int[] index, out byte value);
+        public void GetElementAt(int[] index, out char value);
+        public void GetElementAt(int[] index, out double value);
+        public void GetElementAt(int[] index, out int value);
+        public void GetElementAt(int[] index, out long value);
+        public void GetElementAt(int[] index, out float value);
+        public void GetElementAt(int[] index, out System.UInt32 value);
+        public void SetElementAt(int[] index, bool value);
+        public void SetElementAt(int[] index, byte value);
+        public void SetElementAt(int[] index, char value);
+        public void SetElementAt(int[] index, double value);
+        public void SetElementAt(int[] index, int value);
+        public void SetElementAt(int[] index, long value);
+        public void SetElementAt(int[] index, float value);
+        public void SetElementAt(int[] index, System.UInt32 value);
+        public enum ElementType
+        {
+            Bool = 2,
+            Byte = 0,
+            Char = 1,
+            Double = 6,
+            Float = 5,
+            Int = 3,
+            Long = 7,
+            Uint = 4,
+        }
+    }
+
+    public static class TensorBuilder
+    {
+        public static Color32 ToColor32(Tensor tensor);
+        public static Unity.Mathematics.float3x3 ToFloat3X3(Tensor tensor);
+        public static Tensor ToTensor(Unity.Mathematics.float3x3 m);
+        public static Tensor ToTensor(Color32 c);
+        public static Tensor ToTensor(Vector2 v);
+        public static Tensor ToTensor(Vector3 v);
+        public static Vector2 ToVector2(Tensor tensor);
+        public static Vector3 ToVector3(Tensor tensor);
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.Labelers
+{
+    [CreateAssetMenu(fileName = @"AnimationPoseConfig", menuName = @"Perception/Animation Pose Config")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class AnimationPoseConfig : ScriptableObject
+    {
+        public AnimationClip animationClip;
+        public System.Collections.Generic.List<PoseTimestampRecord> timestamps { get; set; }
+        public AnimationPoseConfig() {}
+        public string GetPoseAtTime(float time);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public struct BoundingBox : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+    {
+        public Vector2 dimension { get; set; }
+        public int instanceId { get; set; }
+        public int labelId { get; set; }
+        public string labelName { get; set; }
+        public Vector2 origin { get; set; }
+        public void Encapsulate(BoundingBox other);
+        public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class BoundingBox2DLabeler : CameraLabeler
+    {
+        public string annotationId = @"bounding box";
+        [UnityEngine.Serialization.FormerlySerializedAs(@"labelingConfiguration")] public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig;
+        public override string description { get; }
+        public override string labelerId { get; }
+        protected override bool supportsVisualization { get; }
+        public BoundingBox2DLabeler() {}
+        public BoundingBox2DLabeler(UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig labelConfig) {}
+        protected override void OnBeginRendering(UnityEngine.Rendering.ScriptableRenderContext scriptableRenderContext);
+        protected override void OnVisualize();
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public struct BoundingBox3D : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+    {
+        public Vector3 acceleration { get; set; }
+        public System.UInt32 instanceId { get; set; }
+        public int labelId { get; set; }
+        public string labelName { get; set; }
+        public Quaternion rotation { get; set; }
+        public Vector3 size { get; set; }
+        public Vector3 translation { get; set; }
+        public Vector3 velocity { get; set; }
+        public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class BoundingBox3DAnnotation : UnityEngine.Perception.GroundTruth.DataModel.Annotation
+    {
+        public System.Collections.Generic.List<BoundingBox3D> boxes { get; }
+        public BoundingBox3DAnnotation(BoundingBox3DDefinition def, string sensorId, System.Collections.Generic.List<BoundingBox3D> boxes) {}
+        public override bool IsValid();
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class BoundingBox3DDefinition : UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition
+    {
+        public override string description { get; }
+        public override string modelType { get; }
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig.LabelEntrySpec[] spec { get; }
+        public BoundingBox3DDefinition(string id, UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig.LabelEntrySpec[] spec) {}
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class BoundingBox3DLabeler : CameraLabeler
+    {
+        public string annotationId = @"bounding box 3D";
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig;
+        public Color visualizationColor;
+        public event System.Action<int, System.Collections.Generic.List<BoundingBox3D>> BoundingBoxComputed;
+        public override string description { get; }
+        public override string labelerId { get; }
+        protected override bool supportsVisualization { get; }
+        public BoundingBox3DLabeler() {}
+        public BoundingBox3DLabeler(UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig labelConfig) {}
+        protected override void OnEndRendering(UnityEngine.Rendering.ScriptableRenderContext scriptableRenderContext);
+        protected override void OnUpdate();
+        protected override void OnVisualize();
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class BoundingBoxAnnotation : UnityEngine.Perception.GroundTruth.DataModel.Annotation
+    {
+        public System.Collections.Generic.List<BoundingBox> boxes { get; set; }
+        public BoundingBoxAnnotation(BoundingBoxDefinition def, string sensorId, System.Collections.Generic.List<BoundingBox> boxes) {}
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class BoundingBoxDefinition : UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition
+    {
+        public override string description { get; }
+        public override string modelType { get; }
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig.LabelEntrySpec[] spec { get; }
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class DepthAnnotation : UnityEngine.Perception.GroundTruth.DataModel.Annotation
+    {
+        public byte[] buffer { get; set; }
+        public Vector2 dimension { get; set; }
+        public ImageEncodingFormat imageFormat { get; set; }
+        public DepthMeasurementStrategy measurementStrategy { get; set; }
+        public DepthAnnotation(DepthDefinition definition, string sensorId, DepthMeasurementStrategy measurementStrategy, ImageEncodingFormat imageFormat, Vector2 dimension, byte[] buffer) {}
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class DepthDefinition : UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition
+    {
+        public override string description { get; }
+        public override string modelType { get; }
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class DepthLabeler : CameraLabeler, IOverlayPanelProvider
+    {
+        public string annotationId = @"Depth";
+        [Tooltip(@"Capturing depth values returns the distance between the surface of the object and the forward plane of the camera. Capturing range values returns the line of sight distance between the surface of the object and the position of the camera.")] public DepthMeasurementStrategy measurementStrategy = DepthMeasurementStrategy.Depth;
+        public override string description { get; }
+        public string label { get; }
+        public override string labelerId { get; }
+        public Texture overlayImage { get; }
+        protected override bool supportsVisualization { get; }
+        public DepthLabeler() {}
+        protected override void Cleanup();
+        protected override void OnEndRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public enum DepthMeasurementStrategy
+    {
+        Depth = 0,
+        Range = 1,
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class InstanceSegmentationAnnotation : UnityEngine.Perception.GroundTruth.DataModel.Annotation
+    {
+        public byte[] buffer { get; }
+        public Vector2 dimension { get; }
+        public ImageEncodingFormat imageFormat { get; }
+        public System.Collections.Generic.IEnumerable<InstanceSegmentationEntry> instances { get; }
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class InstanceSegmentationDefinition : UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition
+    {
+        public const string labelDescription = @"Produces an instance segmentation image for each frame. The image will render the pixels of each labeled object in a distinct color.";
+        public override string description { get; }
+        public override string modelType { get; }
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig.LabelEntrySpec[] spec { get; }
+        public InstanceSegmentationDefinition(string id, UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig.LabelEntrySpec[] spec) {}
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public struct InstanceSegmentationEntry
+    {
+        public Color32 color { get; set; }
+        public int instanceId { get; set; }
+        public int labelId { get; set; }
+        public string labelName { get; set; }
+        public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class InstanceSegmentationLabeler : CameraLabeler, IOverlayPanelProvider
+    {
+        [Tooltip(@"The id to associate with instance segmentation annotations in the dataset.")] public string annotationId = @"instance segmentation";
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig;
+        public System.Action<int, Unity.Collections.NativeArray<Color32>, RenderTexture> imageReadback;
+        public override string description { get; }
+        public string label { get; }
+        public override string labelerId { get; }
+        public Texture overlayImage { get; }
+        protected override bool supportsVisualization { get; }
+        public InstanceSegmentationLabeler() {}
+        public InstanceSegmentationLabeler(UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig labelConfig) {}
+        protected override void Cleanup();
+        protected override void OnEndRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class KeypointAnnotation : UnityEngine.Perception.GroundTruth.DataModel.Annotation
+    {
+        public System.Collections.Generic.IEnumerable<KeypointComponent> entries { get; set; }
+        public string templateId { get; set; }
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class KeypointAnnotationDefinition : UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition
+    {
+        public override string description { get; }
+        public override string modelType { get; }
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+        public struct JointDefinition : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+        {
+            public Color color;
+            public int index;
+            public string label;
+            public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+        }
+        public struct SkeletonDefinition : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+        {
+            public Color color;
+            public int joint1;
+            public int joint2;
+            public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+        }
+        public struct Template : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+        {
+            public KeypointAnnotationDefinition.JointDefinition[] keyPoints;
+            public KeypointAnnotationDefinition.SkeletonDefinition[] skeleton;
+            public string templateId;
+            public string templateName;
+            public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+        }
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public struct KeypointComponent : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+    {
+        public KeypointValue[] keypoints;
+        public System.UInt32 instanceId { get; set; }
+        public int labelId { get; set; }
+        public string pose { get; set; }
+        public KeypointComponent(int inLabelId, System.UInt32 inInstanceId, string inPose, int inLength) {}
+        public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class KeypointLabeler : CameraLabeler
+    {
+        public KeypointTemplate activeTemplate;
+        public System.Collections.Generic.List<AnimationPoseConfig> animationPoseConfigs;
+        public string annotationId = @"keypoints";
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig;
+        public KeypointObjectFilter objectFilter;
+        [Tooltip(@"If checked on the visualizer will draw an empty black circle for occluded points. If unchecked the point will not be drawn.")] public bool visualizeOccludedPoints = true;
+        public event System.Action<int, System.Collections.Generic.List<KeypointComponent>> KeypointsComputed;
+        public override string description { get; }
+        public override string labelerId { get; }
+        protected override bool supportsVisualization { get; }
+        public KeypointLabeler() {}
+        public KeypointLabeler(UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig config, KeypointTemplate template) {}
+        protected override void OnEndRendering(UnityEngine.Rendering.ScriptableRenderContext scriptableRenderContext);
+        protected override void OnVisualize();
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public enum KeypointObjectFilter
+    {
+        [InspectorName(@"All objects")] All = 2,
+        [InspectorName(@"Visible objects")] Visible = 0,
+        [InspectorName(@"Visible and occluded objects")] VisibleAndOccluded = 1,
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class KeypointOcclusionOverrides : MonoBehaviour
+    {
+        [Tooltip(@"Overrides the default occlusion distance values by a scalar. This is necessary for bodies with different body types (i.e. children should be less than one)")] public float distanceScale = 1f;
+        public KeypointOcclusionOverrides() {}
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class KeypointValue : System.ICloneable, UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+    {
+        public Vector2 location;
+        public Vector3 cameraCartesianLocation { get; set; }
+        public int index { get; set; }
+        public int state { get; set; }
+        public KeypointValue() {}
+        public object Clone();
+        public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class NormalAnnotation : UnityEngine.Perception.GroundTruth.DataModel.Annotation
+    {
+        public byte[] buffer { get; set; }
+        public Vector2 dimension { get; set; }
+        public ImageEncodingFormat imageFormat { get; set; }
+        public NormalAnnotation(NormalDefinition definition, string sensorId, ImageEncodingFormat imageFormat, Vector2 dimension, byte[] buffer) {}
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class NormalDefinition : UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition
+    {
+        public override string description { get; }
+        public override string modelType { get; }
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class NormalLabeler : CameraLabeler, IOverlayPanelProvider
+    {
+        public string annotationId = @"Normal";
+        public override string description { get; }
+        public string label { get; }
+        public override string labelerId { get; }
+        public Texture overlayImage { get; }
+        protected override bool supportsVisualization { get; }
+        public NormalLabeler() {}
+        protected override void Cleanup();
+        protected override void OnEndRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class ObjectCountLabeler : CameraLabeler
+    {
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig labelConfig;
+        public string objectCountMetricId = @"ObjectCount";
+        public event System.Action<int, Unity.Collections.NativeSlice<System.UInt32>, System.Collections.Generic.IReadOnlyList<UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelEntry>> ObjectCountsComputed;
+        public override string description { get; }
+        public override string labelerId { get; }
+        protected override bool supportsVisualization { get; }
+        public ObjectCountLabeler() {}
+        public ObjectCountLabeler(UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig labelConfig) {}
+        protected override void OnBeginRendering(UnityEngine.Rendering.ScriptableRenderContext scriptableRenderContext);
+        protected override void OnVisualizerEnabledChanged(bool isEnabled);
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class ObjectCountMetricDefinition : UnityEngine.Perception.GroundTruth.DataModel.MetricDefinition
+    {
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig.LabelEntrySpec[] spec { get; }
+        public override bool IsValid();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class OcclusionLabeler : CameraLabeler
+    {
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig;
+        public string metricId = @"Occlusion";
+        [Range(32f, 4096f)] [Tooltip(@"Adjust this parameter to control the cubemap resolution this labeler will use when rendering objects outside of the camera's field of view. Higher resolutions will increase accuracy at the expense of increased computational costs and slower capture frame rates.")] public int outOfFrameResolution = 512;
+        public event System.Action<int, Unity.Collections.NativeArray<OcclusionMetricEntry>> occlusionMetricsComputed;
+        public override string description { get; }
+        public override string labelerId { get; }
+        protected override bool supportsVisualization { get; }
+        public OcclusionLabeler() {}
+        public OcclusionLabeler(UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig) {}
+        protected override void Cleanup();
+        protected override void OnBeginRendering(UnityEngine.Rendering.ScriptableRenderContext scriptableRenderContext);
+        protected override void OnEndRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public struct OcclusionMetricEntry : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+    {
+        public System.UInt32 instanceID;
+        public float percentInFrame;
+        public float percentVisible;
+        public float visibilityInFrame;
+        public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class PixelPositionAnnotation : UnityEngine.Perception.GroundTruth.DataModel.Annotation
+    {
+        public byte[] buffer { get; }
+        public Vector2 dimension { get; }
+        public ImageEncodingFormat imageFormat { get; }
+        public PixelPositionAnnotation(PixelPositionDefinition definition, string sensorId, ImageEncodingFormat imageFormat, Vector2 dimension, byte[] buffer) {}
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class PixelPositionDefinition : UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition
+    {
+        public override string description { get; }
+        public override string modelType { get; }
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class PixelPositionLabeler : CameraLabeler
+    {
+        public string annotationId = @"PixelPosition";
+        public override string description { get; }
+        public override string labelerId { get; }
+        protected override bool supportsVisualization { get; }
+        public PixelPositionLabeler() {}
+        protected override void Cleanup();
+        protected override void OnEndRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class PoseTimestampRecord
+    {
+        public string poseLabel;
+        [Tooltip(@"The percentage within the clip that the pose starts, a value from 0 (beginning) to 1 (end)")] public float startOffsetPercent;
+        public PoseTimestampRecord() {}
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class RenderedObjectInfoLabeler : CameraLabeler
+    {
+        [UnityEngine.Serialization.FormerlySerializedAs(@"labelingConfiguration")] public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig;
+        public string objectInfoMetricId = @"RenderedObjectInfo";
+        public override string description { get; }
+        public override string labelerId { get; }
+        protected override bool supportsVisualization { get; }
+        public RenderedObjectInfoLabeler() {}
+        public RenderedObjectInfoLabeler(UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig) {}
+        protected override void OnBeginRendering(UnityEngine.Rendering.ScriptableRenderContext scriptableRenderContext);
+        protected override void OnVisualizerEnabledChanged(bool isEnabled);
+        protected override void Setup();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class RenderedObjectInfoMetricDefinition : UnityEngine.Perception.GroundTruth.DataModel.MetricDefinition
+    {
+        public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig.LabelEntrySpec[] spec { get; }
+        public override bool IsValid();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class SceneHierarchyNode : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+    {
+        public System.Collections.Generic.HashSet<System.UInt32> childrenInstanceIds { get; }
+        public System.Collections.Generic.List<string> labels { get; }
+        public System.UInt32 nodeInstanceId { get; }
+        public System.Nullable<System.UInt32> parentInstanceId { get; }
+        public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+        public bool TryGetParentInstanceId(out System.UInt32 parentsInstanceId);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class SemanticSegmentationAnnotation : UnityEngine.Perception.GroundTruth.DataModel.Annotation
+    {
+        public byte[] buffer { get; set; }
+        public Vector2 dimension { get; set; }
+        public ImageEncodingFormat imageFormat { get; set; }
+        public System.Collections.Generic.IReadOnlyList<SemanticSegmentationDefinitionEntry> instances { get; set; }
+        public SemanticSegmentationAnnotation(SemanticSegmentationDefinition definition, string sensorId, ImageEncodingFormat imageFormat, Vector2 dimension, System.Collections.Generic.IReadOnlyList<SemanticSegmentationDefinitionEntry> instances, byte[] buffer) {}
+        public override void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class SemanticSegmentationDefinition : UnityEngine.Perception.GroundTruth.DataModel.AnnotationDefinition
+    {
+        public System.Collections.Generic.IReadOnlyList<SemanticSegmentationDefinitionEntry> spec;
+        public override string description { get; }
+        public override string modelType { get; }
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public struct SemanticSegmentationDefinitionEntry : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+    {
+        public string labelName { get; set; }
+        public Color32 pixelValue { get; set; }
+        public SemanticSegmentationDefinitionEntry(string name, Color pixelValue) {}
+        public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class SemanticSegmentationLabeler : CameraLabeler, IOverlayPanelProvider
+    {
+        public string annotationId = @"semantic segmentation";
+        public UnityEngine.Perception.GroundTruth.LabelManagement.SemanticSegmentationLabelConfig labelConfig;
+        public event System.Action<int, Unity.Collections.NativeArray<Color32>, RenderTexture> imageReadback;
+        public override string description { get; }
+        public string label { get; }
+        public override string labelerId { get; }
+        public Texture overlayImage { get; }
+        protected override bool supportsVisualization { get; }
+        public SemanticSegmentationLabeler() {}
+        public SemanticSegmentationLabeler(UnityEngine.Perception.GroundTruth.LabelManagement.SemanticSegmentationLabelConfig labelConfig) {}
+        protected override void Cleanup();
+        protected override void OnEndRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected override void Setup();
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.LabelManagement
+{
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public enum HierarchyRelation
+    {
+        AddToParent = 1,
+        Independent = 0,
+    }
+
+    [CreateAssetMenu(fileName = @"IdLabelConfig", menuName = @"Perception/ID Label Config", order = 1)] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class IdLabelConfig : UnityEngine.Perception.GroundTruth.LabelManagement.LabelConfig<IdLabelEntry>
+    {
+        public bool autoAssignIds = true;
+        public StartingLabelId startingLabelId = StartingLabelId.One;
+        public IdLabelConfig() {}
+        public LabelEntryMatchCache CreateLabelEntryMatchCache(Unity.Collections.Allocator allocator);
+        public IdLabelConfig.LabelEntrySpec[] GetAnnotationSpecification();
+        protected override void OnInit();
+        public bool TryGetLabelEntryFromInstanceId(System.UInt32 instanceId, out IdLabelEntry labelEntry);
+        public bool TryGetLabelEntryFromInstanceId(System.UInt32 instanceId, out IdLabelEntry labelEntry, out int index);
+        public struct LabelEntrySpec : UnityEngine.Perception.GroundTruth.DataModel.IMessageProducer
+        {
+            [JetBrains.Annotations.UsedImplicitly] public int label_id;
+            [JetBrains.Annotations.UsedImplicitly] public string label_name;
+            public void ToMessage(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+        }
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public struct IdLabelEntry : ILabelEntry, System.IEquatable<IdLabelEntry>
+    {
+        public HierarchyRelation hierarchyRelation;
+        public int id;
+        public string label;
+        public override bool Equals(object obj);
+        public bool Equals(IdLabelEntry other);
+        public override int GetHashCode();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public interface ILabelEntry
+    {
+        public string label { get; }
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class LabelConfig<T> : ScriptableObject where T : ILabelEntry
+    {
+        [SerializeField] [UnityEngine.Serialization.FormerlySerializedAs(@"LabelEntries")] [UnityEngine.Serialization.FormerlySerializedAs(@"LabelingConfigurations")] protected System.Collections.Generic.List<T> m_LabelEntries;
+        public System.Collections.Generic.IReadOnlyList<T> labelEntries { get; }
+        public LabelConfig() {}
+        public bool DoesLabelMatchAnEntry(string label);
+        public void Init(System.Collections.Generic.IEnumerable<T> newLabelEntries);
+        protected virtual void OnInit();
+        public bool TryGetMatchingConfigurationEntry(Labeling labeling, out T labelEntry);
+        public bool TryGetMatchingConfigurationEntry(Labeling labeling, out T labelEntry, out int labelEntryIndex);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class LabelEntryMatchCache : IGroundTruthGenerator, System.IDisposable
+    {
+        public void Dispose();
+        public bool TryGetLabelEntryFromInstanceId(System.UInt32 instanceId, out IdLabelEntry labelEntry, out int index);
+    }
+
+    [AddComponentMenu(@"Perception/Labeling/Labeling")] [DisallowMultipleComponent] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class Labeling : MonoBehaviour
+    {
+        public string autoLabelingSchemeType;
+        [UnityEngine.Serialization.FormerlySerializedAs(@"classes")] public System.Collections.Generic.List<string> labels;
+        public bool useAutoLabeling;
+        public System.UInt32 instanceId { get; }
+        public Labeling() {}
+        public void RefreshLabeling();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class LabelManager
+    {
+        public Unity.Collections.NativeList<System.UInt32> instanceIds;
+        public Unity.Collections.NativeList<Color32> instanceSegmentationColors;
+        public System.Collections.Generic.IEnumerable<Labeling> registeredLabels { get; }
+        public static LabelManager singleton { get; }
+        public void Activate<T>() where T : IGroundTruthGenerator, new();
+        public void Activate(IGroundTruthGenerator generator);
+        public void Deactivate<T>();
+        public bool Deactivate(IGroundTruthGenerator generator);
+        public void RegisterPendingLabels();
+    }
+
+    [CreateAssetMenu(fileName = @"SemanticSegmentationLabelConfig", menuName = @"Perception/Semantic Segmentation Label Config", order = 1)] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class SemanticSegmentationLabelConfig : UnityEngine.Perception.GroundTruth.LabelManagement.LabelConfig<SemanticSegmentationLabelEntry>
+    {
+        public static readonly System.Collections.Generic.List<Color> s_StandardColors;
+        public Color skyColor;
+        public SemanticSegmentationLabelConfig() {}
+    }
+
+    public struct SemanticSegmentationLabelEntry : ILabelEntry
+    {
+        public Color color;
+        public string label;
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public enum StartingLabelId
+    {
+        [InspectorName(@"1")] One = 1,
+        [InspectorName(@"0")] Zero = 0,
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.MetadataReporter
+{
+    [RequireComponent(typeof(UnityEngine.Perception.GroundTruth.LabelManagement.Labeling))] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.ReportMetadata")] public abstract class LabeledMetadataTag : MetadataTag
+    {
+        protected LabeledMetadataTag() {}
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.ReportMetadata")] public abstract class MetadataTag : MonoBehaviour
+    {
+        protected abstract string key { get; }
+        protected MetadataTag() {}
+        protected abstract void GetReportedValues(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+        protected void OnDestroy();
+        protected void OnDisable();
+        protected void OnEnable();
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.MetadataReporter.Tags
+{
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.ReportMetadata")] public class LabelingChildNameMetadataTag : MetadataTag
+    {
+        public UnityEngine.Perception.GroundTruth.LabelManagement.Labeling labelingObject;
+        protected override string key { get; }
+        public LabelingChildNameMetadataTag() {}
+        protected override void GetReportedValues(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.ReportMetadata")] public class LabelingDistanceToMainCameraMetadataTag : LabeledMetadataTag
+    {
+        protected override string key { get; }
+        public LabelingDistanceToMainCameraMetadataTag() {}
+        protected override void GetReportedValues(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.ReportMetadata")] public class LabelingKeyValuesMetadataTag : LabeledMetadataTag
+    {
+        public string reportKey = @"Values";
+        public string[] values;
+        protected override string key { get; }
+        public LabelingKeyValuesMetadataTag() {}
+        protected override void GetReportedValues(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.ReportMetadata")] public class LabelingNameMetadataTag : LabeledMetadataTag
+    {
+        protected override string key { get; }
+        public LabelingNameMetadataTag() {}
+        protected override void GetReportedValues(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.ReportMetadata")] public class LabelingTagMetadataTag : LabeledMetadataTag
+    {
+        protected override string key { get; }
+        public LabelingTagMetadataTag() {}
+        protected override void GetReportedValues(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.ReportMetadata")] public class LabelingTransformDataMetadataTag : LabeledMetadataTag
+    {
+        public bool forwardVector;
+        public bool parentName;
+        public bool position;
+        public bool rotationEuler;
+        public bool rotationQuaternion;
+        public bool scale;
+        protected override string key { get; }
+        public LabelingTransformDataMetadataTag() {}
+        protected override void GetReportedValues(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+
+    [RequireComponent(typeof(Light))] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.ReportMetadata")] public class LightMetadataTag : MetadataTag
+    {
+        protected override string key { get; }
+        public LightMetadataTag() {}
+        protected override void GetReportedValues(UnityEngine.Perception.GroundTruth.DataModel.IMessageBuilder builder);
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.ReportMetadata
+{
+    [System.Obsolete(@"(UnityUpgradable) -> UnityEngine.Perception.GroundTruth.MetadataReporter.LabeledMetadataTag", true)] public abstract class LabelMetadataTag
+    {
+        protected LabelMetadataTag() {}
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.Sensors
+{
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public struct CameraChannelInputs
+    {
+        public Camera camera;
+        public UnityEngine.Rendering.RenderTargetIdentifier cameraColorBuffer;
+        public UnityEngine.Rendering.CommandBuffer cmd;
+        public UnityEngine.Rendering.ScriptableRenderContext ctx;
+        public UnityEngine.Rendering.CullingResults cullingResults;
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public abstract class CameraSensor
+    {
+        public abstract CameraSensorIntrinsics intrinsics { get; }
+        protected PerceptionCamera perceptionCamera { get; }
+        public abstract int pixelHeight { get; }
+        public abstract int pixelWidth { get; }
+        protected CameraSensor() {}
+        protected virtual void Cleanup();
+        protected virtual void OnBeginFrameRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected virtual void OnDisable();
+        protected virtual void OnEnable();
+        protected virtual void OnEndFrameRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected virtual void Setup();
+        protected abstract RenderTexture SetupChannel<T>(T channel) where T : Channels.CameraChannelBase, new();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public struct CameraSensorIntrinsics
+    {
+        public Unity.Mathematics.float3x3 matrix;
+        public string projection;
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth.Internal")] public enum CubemapResolution
+    {
+        _1024x1024 = 1024,
+        _128x128 = 128,
+        _2048x2048 = 2048,
+        _256x256 = 256,
+        _32x32 = 32,
+        _512x512 = 512,
+        _64x64 = 64,
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public enum SuperSamplingFactor
+    {
+        _2X = 2,
+        _4X = 4,
+        _8X = 8,
+        None = 1,
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class UnityCameraSensor : CameraSensor
+    {
+        [Tooltip(@"Averages multiple samples per pixel to enable a high quality anti-aliasing effect. Note that this field will not influence the final output resolution of this sensor.")] public SuperSamplingFactor superSamplingFactor = SuperSamplingFactor.None;
+        public override CameraSensorIntrinsics intrinsics { get; }
+        public override int pixelHeight { get; }
+        public override int pixelWidth { get; }
+        public int superResHeight { get; }
+        public int superResWidth { get; }
+        public UnityCameraSensor() {}
+        protected override void Cleanup();
+        protected override void OnEndFrameRendering(UnityEngine.Rendering.ScriptableRenderContext ctx);
+        protected override void Setup();
+        protected override RenderTexture SetupChannel<T>(T channel) where T : Channels.CameraChannelBase, new();
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.Sensors.Channels
+{
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public abstract class CameraChannel<T> : CameraChannelBase where T : struct, unmanaged, new()
+    {
+        public event System.Action<int, Unity.Collections.NativeArray<T>> outputTextureReadback;
+        protected CameraChannel() {}
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public abstract class CameraChannelBase
+    {
+        public abstract Color clearColor { get; }
+        public RenderTexture outputTexture { get; }
+        protected PerceptionCamera perceptionCamera { get; }
+        protected CameraChannelBase() {}
+        public abstract RenderTexture CreateOutputTexture(int width, int height);
+        public abstract void Execute(CameraChannelInputs inputs, RenderTexture renderTarget);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class DepthChannel : UnityEngine.Perception.GroundTruth.Sensors.Channels.CameraChannel<Unity.Mathematics.float4>
+    {
+        public override Color clearColor { get; }
+        public DepthChannel() {}
+        public override RenderTexture CreateOutputTexture(int width, int height);
+        public override void Execute(CameraChannelInputs inputs, RenderTexture renderTarget);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class InstanceIdChannel : UnityEngine.Perception.GroundTruth.Sensors.Channels.CameraChannel<System.UInt32>, IPostProcessChannel
+    {
+        public override Color clearColor { get; }
+        public RenderTexture preprocessTexture { get; set; }
+        public InstanceIdChannel() {}
+        public override RenderTexture CreateOutputTexture(int width, int height);
+        public RenderTexture CreatePreprocessTexture(int width, int height);
+        public override void Execute(CameraChannelInputs inputs, RenderTexture renderTarget);
+        public void PostProcessChannelOutput(UnityEngine.Rendering.ScriptableRenderContext ctx, UnityEngine.Rendering.CommandBuffer cmd, RenderTexture input, RenderTexture output);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public interface IPostProcessChannel
+    {
+        public RenderTexture preprocessTexture { get; set; }
+        public RenderTexture CreatePreprocessTexture(int width, int height);
+        public void PostProcessChannelOutput(UnityEngine.Rendering.ScriptableRenderContext ctx, UnityEngine.Rendering.CommandBuffer cmd, RenderTexture input, RenderTexture output);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class PixelPositionChannel : UnityEngine.Perception.GroundTruth.Sensors.Channels.CameraChannel<Unity.Mathematics.float4>
+    {
+        public override Color clearColor { get; }
+        public PixelPositionChannel() {}
+        public override RenderTexture CreateOutputTexture(int width, int height);
+        public override void Execute(CameraChannelInputs inputs, RenderTexture renderTarget);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class RangeChannel : UnityEngine.Perception.GroundTruth.Sensors.Channels.CameraChannel<Unity.Mathematics.float4>
+    {
+        public override Color clearColor { get; }
+        public RangeChannel() {}
+        public override RenderTexture CreateOutputTexture(int width, int height);
+        public override void Execute(CameraChannelInputs inputs, RenderTexture renderTarget);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class RGBChannel : UnityEngine.Perception.GroundTruth.Sensors.Channels.CameraChannel<Color32>
+    {
+        public override Color clearColor { get; }
+        public RGBChannel() {}
+        public override RenderTexture CreateOutputTexture(int width, int height);
+        public override void Execute(CameraChannelInputs inputs, RenderTexture renderTarget);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public class VertexNormalsChannel : UnityEngine.Perception.GroundTruth.Sensors.Channels.CameraChannel<Unity.Mathematics.float4>, IPostProcessChannel
+    {
+        public override Color clearColor { get; }
+        public RenderTexture preprocessTexture { get; set; }
+        public VertexNormalsChannel() {}
+        public override RenderTexture CreateOutputTexture(int width, int height);
+        public RenderTexture CreatePreprocessTexture(int width, int height);
+        public override void Execute(CameraChannelInputs inputs, RenderTexture renderTarget);
+        public void PostProcessChannelOutput(UnityEngine.Rendering.ScriptableRenderContext ctx, UnityEngine.Rendering.CommandBuffer cmd, RenderTexture input, RenderTexture output);
+    }
+}
+
+namespace UnityEngine.Perception.GroundTruth.Utilities
+{
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public static class ComputeBufferReader
+    {
+        public static void Capture<T>(UnityEngine.Rendering.CommandBuffer cmd, ComputeBuffer buffer, System.Action<int, Unity.Collections.NativeArray<T>> imageReadCallback) where T : struct, new();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public static class ImageEncoder
+    {
+        public static bool encodeImagesAsynchronously { get; set; }
+        public static ImageEncodingFormat ConvertFormat(LosslessImageEncodingFormat encodingFormat);
+        public static LosslessImageEncodingFormat ConvertFormat(ImageEncodingFormat encodingFormat);
+        public static void EncodeImage<T>(Unity.Collections.NativeArray<T> rawImageData, int width, int height, UnityEngine.Experimental.Rendering.GraphicsFormat graphicsFormat, ImageEncodingFormat encodingFormat, System.Action<Unity.Collections.NativeArray<byte>> callback) where T : struct, unmanaged, new();
+        public static void EncodeImage<T>(Unity.Collections.NativeArray<T> rawImageData, int width, int height, UnityEngine.Experimental.Rendering.GraphicsFormat graphicsFormat, LosslessImageEncodingFormat encodingFormat, System.Action<Unity.Collections.NativeArray<byte>> callback) where T : struct, unmanaged, new();
+        public static void WaitForAllEncodingJobsToComplete();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public static class InstanceIdToColorMapping
+    {
+        public static readonly Color32 invalidColor;
+        public const System.UInt32 maxId = 4261413887;
+        public static Color32 GetColorFromInstanceId(System.UInt32 id);
+        public static Color32 GetColorFromPackedColor(System.UInt32 color);
+        public static System.UInt32 GetInstanceIdFromColor(Color32 color);
+        public static System.UInt32 GetPackedColorFromColor(Color32 color);
+        public static bool TryGetColorFromInstanceId(System.UInt32 id, out Color32 color);
+        public static bool TryGetInstanceIdFromColor(Color32 color, out System.UInt32 id);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public static class RenderTextureReader
+    {
+        public static void Capture<T>(UnityEngine.Rendering.CommandBuffer cmd, RenderTexture sourceTex, System.Action<int, Unity.Collections.NativeArray<T>, RenderTexture> imageReadCallback) where T : struct, new();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public static class SegmentationUtilities
+    {
+        public static void CreateSegmentationColorTexture(UnityEngine.Rendering.CommandBuffer cmd, RenderTexture inputIndicesTexture, RenderTexture outputColorTexture, ComputeBuffer colorPerIndexBuffer);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public static class SuperSamplingUtility
+    {
+        public static void Downscale(UnityEngine.Rendering.CommandBuffer cmd, UnityEngine.Rendering.RenderTargetIdentifier superResTexture, UnityEngine.Rendering.RenderTargetIdentifier outputTexture, int outputWidth, int outputHeight, UnityEngine.Perception.GroundTruth.Sensors.SuperSamplingFactor scaleFactor);
+    }
+}
+
+namespace UnityEngine.Perception.Randomization
+{
+    public abstract class AssetRole<T> where T : UnityEngine.Object
+    {
+        public abstract string description { get; }
+        public abstract string label { get; }
+        protected AssetRole() {}
+        public abstract void Preprocess(T asset);
+    }
+
+    public sealed class AssetSource<T> where T : UnityEngine.Object
+    {
+        [SerializeReference] public AssetSourceLocation assetSourceLocation;
+        public UnityEngine.Perception.Randomization.AssetRole<T> assetRole { get; set; }
+        public int count { get; }
+        public AssetSource() {}
+        public T CreateProcessedInstance(int index);
+        public T[] CreateProcessedInstances();
+        public void Initialize();
+        public T[] LoadAllRawAssets();
+        public T LoadRawAsset(int index);
+        public void ReleaseAssets();
+        public T SampleAsset();
+        public T SampleInstance();
+    }
+
+    public class AssetSourceEditorDescriptionAttribute : System.Attribute
+    {
+        public string notes;
+        public AssetSourceEditorDescriptionAttribute(string notes) {}
+    }
+
+    public abstract class AssetSourceLocation
+    {
+        public abstract int count { get; }
+        protected AssetSourceLocation() {}
+        public abstract void Initialize<T>(UnityEngine.Perception.Randomization.AssetRole<T> assetRole) where T : UnityEngine.Object;
+        public abstract T LoadAsset<T>(int index) where T : UnityEngine.Object;
+        public abstract void ReleaseAssets();
+    }
+
+    [CreateAssetMenu(fileName = @"CameraSpec", menuName = @"Perception/Randomization/Camera Specification", order = 0)] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class CameraSpecification : ScriptableObject
+    {
+        public float focalLength;
+        public Camera.GateFitMode gateFitMode;
+        public Vector2 lensShift;
+        public Vector2 sensorSize;
+        public string specificationDescription;
+        public CameraSpecification() {}
+    }
+
+    [System.ComponentModel.DisplayName(@"Assets In Project")] public class LocalAssetSourceLocation : AssetSourceLocation
+    {
+        public System.Collections.Generic.List<UnityEngine.Object> assets;
+        public override int count { get; }
+        public LocalAssetSourceLocation() {}
+        public override void Initialize<T>(UnityEngine.Perception.Randomization.AssetRole<T> assetRole) where T : UnityEngine.Object;
+        public override T LoadAsset<T>(int index) where T : UnityEngine.Object;
+        public override void ReleaseAssets();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public abstract class VolumeEffect : System.IDisposable
+    {
+        [HideInInspector] public UnityEngine.Rendering.Volume targetVolume;
+        public abstract string displayName { get; }
+        protected VolumeEffect() {}
+        protected void DestroyProfile();
+        public abstract void Dispose();
+        protected T GetVolumeComponent<T>(ref T volumeComponent) where T : UnityEngine.Rendering.VolumeComponent;
+        public abstract void RandomizeEffect();
+        public abstract void SetActive(bool active);
+        public virtual void SetupEffect();
+    }
+}
+
+namespace UnityEngine.Perception.Randomization.Parameters
+{
+    public class BooleanParameter : UnityEngine.Perception.Randomization.Parameters.NumericParameter<bool>
+    {
+        [Range(0f, 1f)] public float threshold = 0.5f;
+        [HideInInspector] [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler value;
+        public override System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public BooleanParameter() {}
+        public override bool Sample();
+    }
+
+    public class CategoricalParameter<T> : CategoricalParameterBase
+    {
+        public System.Collections.Generic.IReadOnlyList<System.ValueTuple<T, float>> categories { get; }
+        public int Count { get; }
+        public override System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public System.Type sampleType { get; }
+        public CategoricalParameter() {}
+        public override object GenericSample();
+        public T GetCategory(int index);
+        [System.Obsolete(@"GetCategoryCount method has been deprecated. Please use Count (UnityUpgradable)")] public int GetCategoryCount();
+        public float GetProbability(int index);
+        public T Sample();
+        public void SetOptions(System.Collections.Generic.IEnumerable<System.ValueTuple<T, float>> categoricalOptions);
+        public void SetOptions(System.Collections.Generic.IEnumerable<T> categoricalOptions);
+        public override void Validate();
+    }
+
+    public abstract class CategoricalParameterBase : Parameter
+    {
+        protected CategoricalParameterBase() {}
+    }
+
+    public struct ColorHsva
+    {
+        public float a;
+        public float h;
+        public float s;
+        public float v;
+        public ColorHsva(float h, float s, float v, float a) {}
+        public static Color op_Explicit(ColorHsva c);
+        public static ColorHsva op_Explicit(Color c);
+        public static Unity.Mathematics.float4 op_Implicit(ColorHsva c);
+        public static ColorHsva op_Implicit(Unity.Mathematics.float4 f);
+        public static ColorHsva op_Implicit(Vector4 v);
+        public static Vector4 op_Implicit(ColorHsva c);
+        public override string ToString();
+    }
+
+    public class ColorHsvaParameter : UnityEngine.Perception.Randomization.Parameters.NumericParameter<Color>
+    {
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler alpha;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler hue;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler saturation;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler value;
+        public override System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public ColorHsvaParameter() {}
+        public override Color Sample();
+        public ColorHsva SampleHsva();
+    }
+
+    public class ColorRgbParameter : UnityEngine.Perception.Randomization.Parameters.NumericParameter<Color>
+    {
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler alpha;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler blue;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler green;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler red;
+        public override System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public ColorRgbParameter() {}
+        public override Color Sample();
+    }
+
+    public class FloatParameter : UnityEngine.Perception.Randomization.Parameters.NumericParameter<float>
+    {
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler value;
+        public override System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public FloatParameter() {}
+        public override float Sample();
+    }
+
+    public class IntegerParameter : UnityEngine.Perception.Randomization.Parameters.NumericParameter<int>
+    {
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler value;
+        public override System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public IntegerParameter() {}
+        public override int Sample();
+    }
+
+    public abstract class NumericParameter<T> : Parameter where T : struct, new()
+    {
+        public System.Type sampleType { get; }
+        protected NumericParameter() {}
+        public override object GenericSample();
+        public abstract T Sample();
+        public override void Validate();
+    }
+
+    public abstract class Parameter
+    {
+        public abstract System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public abstract System.Type sampleType { get; }
+        protected Parameter() {}
+        public abstract object GenericSample();
+        public static string GetDisplayName(System.Type type);
+        public virtual void Validate();
+    }
+
+    public class Vector2Parameter : UnityEngine.Perception.Randomization.Parameters.NumericParameter<Vector2>
+    {
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler x;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler y;
+        public override System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public Vector2Parameter() {}
+        public override Vector2 Sample();
+    }
+
+    public class Vector3Parameter : UnityEngine.Perception.Randomization.Parameters.NumericParameter<Vector3>
+    {
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler x;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler y;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler z;
+        public override System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public Vector3Parameter() {}
+        public override Vector3 Sample();
+    }
+
+    public class Vector4Parameter : UnityEngine.Perception.Randomization.Parameters.NumericParameter<Vector4>
+    {
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler w;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler x;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler y;
+        [SerializeReference] public UnityEngine.Perception.Randomization.Samplers.ISampler z;
+        public override System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Samplers.ISampler> samplers { get; }
+        public Vector4Parameter() {}
+        public override Vector4 Sample();
+    }
+}
+
+namespace UnityEngine.Perception.Randomization.Randomizers
+{
+    public class AddRandomizerMenuAttribute : System.Attribute
+    {
+        public string menuPath;
+        public AddRandomizerMenuAttribute(string menuPath) {}
+    }
+
+    [AddRandomizerMenu(@"Perception/Animation Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")] public class AnimationRandomizer : Randomizer
+    {
+        public AnimationRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddRandomizerMenu(@"Perception/Background Object Placement Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")] public class BackgroundObjectPlacementRandomizer : Randomizer
+    {
+        [Tooltip(@"The Z offset applied to positions of all placed objects.")] public float depth;
+        [Tooltip(@"The number of background layers to generate.")] public int layerCount = 2;
+        [Tooltip(@"The width and height of the area in which objects will be placed. These should be positive numbers and sufficiently large in relation with the Separation Distance specified.")] public Vector2 placementArea;
+        [Tooltip(@"The list of Prefabs to be placed by this Randomizer.")] public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<GameObject> prefabs;
+        [Tooltip(@"The minimum distance between the centers of the placed objects.")] public float separationDistance = 2f;
+        public BackgroundObjectPlacementRandomizer() {}
+        protected override void OnAwake();
+        protected override void OnIterationEnd();
+        protected override void OnIterationStart();
+    }
+
+    [AddRandomizerMenu(@"Perception/Color Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")] public class ColorRandomizer : Randomizer
+    {
+        [Tooltip(@"The range of random colors to assign to target objects.")] public UnityEngine.Perception.Randomization.Parameters.ColorHsvaParameter colorParameter;
+        public ColorRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddRandomizerMenu(@"Perception/Foreground Object Placement Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")] public class ForegroundObjectPlacementRandomizer : Randomizer
+    {
+        [Tooltip(@"The Z offset applied to positions of all placed objects.")] public float depth;
+        [Tooltip(@"The width and height of the area in which objects will be placed. These should be positive numbers and sufficiently large in relation with the Separation Distance specified.")] public Vector2 placementArea;
+        [Tooltip(@"The list of Prefabs to be placed by this Randomizer.")] public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<GameObject> prefabs;
+        [Tooltip(@"The minimum distance between the centers of the placed objects.")] public float separationDistance = 2f;
+        public ForegroundObjectPlacementRandomizer() {}
+        protected override void OnAwake();
+        protected override void OnIterationEnd();
+        protected override void OnIterationStart();
+    }
+
+    [AddRandomizerMenu(@"Perception/Hue Offset Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")] public class HueOffsetRandomizer : Randomizer
+    {
+        [Tooltip(@"The range of random hue offsets to assign to target objects.")] public UnityEngine.Perception.Randomization.Parameters.FloatParameter hueOffset;
+        public HueOffsetRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddRandomizerMenu(@"Perception/Light Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class LightRandomizer : Randomizer
+    {
+        public LightRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Light Randomizer Tag")] [RequireComponent(typeof(UnityEngine.Rendering.HighDefinition.HDAdditionalLightData))] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class LightRandomizerTag : RandomizerTag
+    {
+        [Tooltip(@"Values for each channel (range: 0 to 1) will be sampled based on the chosen Sampling method under Value and set as the Light component's color/filter. When using the Filter and Temperate mode for Light Appearance (under Emission for HDRP lights only), filter will be changed. Otherwise, color will be changed.")] public UnityEngine.Perception.Randomization.Parameters.ColorRgbParameter color;
+        [Tooltip(@"Randomly chooses a color from the options provided, if there exists any, and assigns it to the Light component based on the Light Appearance mode set for the component (under Emission for HDRP lights only). If the Filter and Temperature mode is used, the selected color will be applied as a filter to the light. Otherwise if the Color mode is used, the selected color will used as the light's emission color. The probability of each color being selected can be modified by disabling the Uniform flag and providing probability values manually.")] public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<Color> colorList;
+        [Tooltip(@"A value will be sampled based on the chosen Sampling method under Value. The unit for intensity will be the same as the one set under Emission. ")] public UnityEngine.Perception.Randomization.Parameters.FloatParameter intensity;
+        [Tooltip(@"Randomly chooses an intensity from the options provided and assigns it to the Light component in the unit specified under Emission. The probability of each color being selected can be modified by disabling the `Uniform flag and providing probability values manually.")] public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<float> intensityList;
+        [Tooltip(@"When set to true, values for color will be sampled from a list of values. When false, a range of values will be used instead.")] public bool specifyColorAsList = true;
+        [Tooltip(@"When set to true, values for intensity will be sampled from a list of values. When false, a range of values will be used instead.")] public bool specifyIntensityAsList = false;
+        [Tooltip(@"When set to true, values for temperature will be sampled from a list of values. When false, a range of values will be used instead.")] public bool specifyTemperatureAsList = false;
+        [Tooltip(@"The probability for the light to be off. At a threshold (probability) of 0, the light will always be on; at 1, always off and at 0.4, on about 60% of the time.")] public UnityEngine.Perception.Randomization.Parameters.BooleanParameter state;
+        [Tooltip(@"A value will be sampled based on the chosen Sampling method under Value and set as the Light component's Temperature. This is only utilized when using the Filter and Temperate mode for Light Appearance (under Emission for HDRP lights only).")] public UnityEngine.Perception.Randomization.Parameters.FloatParameter temperature;
+        [Tooltip(@"Randomly chooses a temperature from the options provided and assigns it to the Light component if the Light Appearance mode (under Emission) is set to Filter and Temperature (HDRP only). The probability of each color being selected can be modified by disabling the Uniform flag and providing probability values manually.")] public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<float> temperatureList;
+        public LightRandomizerTag() {}
+        public void Randomize();
+    }
+
+    [AddRandomizerMenu(@"Perception/Material Property Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class MaterialPropertyRandomizer : Randomizer
+    {
+        public MaterialPropertyRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Material Property Randomizer Tag")] [RequireComponent(typeof(Renderer))] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class MaterialPropertyRandomizerTag : RandomizerTag
+    {
+        [SerializeReference] [Tooltip(@"The shader properties which will be randomized on the selected material element.")] public System.Collections.Generic.List<UnityEngine.Perception.Utilities.ShaderPropertyEntry> propertiesToRandomize;
+        [Tooltip(@"The index of the material element whose shader properties will be randomized based on the options below.")] public int targetedMaterialIndex = 0;
+        public int attachedMaterialsCount { get; }
+        public Renderer Renderer { get; }
+        public Material targetMaterial { get; }
+        public MaterialPropertyRandomizerTag() {}
+        public void Randomize();
+    }
+
+    [AddRandomizerMenu(@"Perception/Material Swapper")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class MaterialSwapperRandomizer : Randomizer
+    {
+        public MaterialSwapperRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Material Swapper Tag")] [RequireComponent(typeof(Renderer))] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class MaterialSwapperRandomizerTag : RandomizerTag
+    {
+        [Tooltip(@"Randomly chooses a material from the options provided and assigns it to the submesh/material element specified above. The probability of each material being selected can be modified by disabling the Uniform flag and providing probability values manually.")] public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<Material> materials;
+        [Tooltip(@"The material element which will be randomized from the options below.")] public int targetedMaterialIndex = 0;
+        public Renderer Renderer { get; }
+        public MaterialSwapperRandomizerTag() {}
+        public void Randomize();
+    }
+
+    public abstract class Randomizer
+    {
+        public bool enabled { get; set; }
+        public bool enabledStateCanBeSwitchedByUser { get; set; }
+        public UnityEngine.Perception.Randomization.Scenarios.ScenarioBase scenario { get; }
+        public RandomizerTagManager tagManager { get; }
+        protected Randomizer() {}
+        protected virtual void OnAwake();
+        [System.Obsolete(@"Method OnCreate has been deprecated. Use OnAwake instead (UnityUpgradable)", true)] protected virtual void OnCreate();
+        protected virtual void OnDestroy();
+        protected virtual void OnDisable();
+        protected virtual void OnEnable();
+        protected virtual void OnIterationEnd();
+        protected virtual void OnIterationStart();
+        protected virtual void OnScenarioComplete();
+        protected virtual void OnScenarioStart();
+        [System.Obsolete(@"Method OnStartRunning has been deprecated. Use OnEnabled instead (UnityUpgradable)", true)] protected virtual void OnStartRunning();
+        [System.Obsolete(@"Method OnStopRunning has been deprecated. Use OnDisable instead (UnityUpgradable)", true)] protected virtual void OnStopRunning();
+        protected virtual void OnUpdate();
+        public System.Collections.Generic.IEnumerable<T> Query<T>() where T : RandomizerTag;
+    }
+
+    public abstract class RandomizerTag : MonoBehaviour
+    {
+        protected RandomizerTag() {}
+        protected virtual void OnDisable();
+        protected virtual void OnEnable();
+        public void Register();
+        public void Unregister();
+    }
+
+    public class RandomizerTagManager
+    {
+        public static RandomizerTagManager singleton { get; }
+        public RandomizerTagManager() {}
+        public System.Collections.Generic.IEnumerable<T> Query<T>(bool returnSubclasses = false) where T : RandomizerTag;
+    }
+
+    [AddRandomizerMenu(@"Perception/Rotation Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")] public class RotationRandomizer : Randomizer
+    {
+        [Tooltip(@"The range of random rotations to assign to target objects.")] public UnityEngine.Perception.Randomization.Parameters.Vector3Parameter rotation;
+        public RotationRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddRandomizerMenu(@"Perception/Scene Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class SceneRandomizer : Randomizer
+    {
+        [JetBrains.Annotations.UsedImplicitly] [Tooltip(@"When switching to a scene, the new scene will be picked from the options below. We ensure that no two consecutive scenes are the same.")] [UnityEngine.Serialization.FormerlySerializedAs(@"sceneReferenceParameter")] public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<UnityEngine.Perception.Utilities.SceneReference> includedScenes;
+        [JetBrains.Annotations.UsedImplicitly] [Tooltip(@"The number of iterations to spend in a scene before switching to a new one.")] public int iterationsPerScene = 20;
+        public SceneRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddRandomizerMenu(@"Perception/Skybox Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class SkyboxRandomizer : Randomizer
+    {
+        [Tooltip(@"The number of degrees by which the sampled skybox will be rotated around the Y-axis.")] public UnityEngine.Perception.Randomization.Parameters.FloatParameter rotation;
+        [Tooltip(@"Randomly chooses a skybox from the options provided and assigns it to the HDRI Sky property in the Volume component. The probability of each skybox being selected can be modified by disabling the Uniform flag and providing probability values manually.")] public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<Cubemap> skyboxes;
+        public SkyboxRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Skybox Randomizer Tag")] [RequireComponent(typeof(UnityEngine.Rendering.Volume))] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class SkyboxRandomizerTag : RandomizerTag
+    {
+        public UnityEngine.Rendering.HighDefinition.HDRISky sky { get; }
+        public SkyboxRandomizerTag() {}
+    }
+
+    [AddRandomizerMenu(@"Perception/Sun Angle Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")] public class SunAngleRandomizer : Randomizer
+    {
+        [Tooltip(@"The range of days in a year with 0 being Jan 1st and 364 being December 31st (default is 0 to 364).")] public UnityEngine.Perception.Randomization.Parameters.FloatParameter dayOfTheYear;
+        [Tooltip(@"The range of hours in a day (default is 0 to 24).")] public UnityEngine.Perception.Randomization.Parameters.FloatParameter hour;
+        [Tooltip(@"The range of latitudes. A latitude of -90 is the south pole, 0 is the equator, and +90 is the north pole (default is -90 to 90).")] public UnityEngine.Perception.Randomization.Parameters.FloatParameter latitude;
+        public SunAngleRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddRandomizerMenu(@"Perception/Texture Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")] public class TextureRandomizer : Randomizer
+    {
+        [Tooltip(@"The list of textures to sample and apply to target objects.")] public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<Texture2D> texture;
+        public TextureRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public enum TransformMethod
+    {
+        Absolute = 0,
+        Relative = 1,
+    }
+
+    [AddRandomizerMenu(@"Perception/RandomizerTags/Transform Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class TransformRandomizer : Randomizer
+    {
+        public TransformRandomizer() {}
+        protected override void OnIterationStart();
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Transform Randomizer Tag")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class TransformRandomizerTag : RandomizerTag
+    {
+        [Tooltip(@"The range of randomization for the target objects position.")] public UnityEngine.Perception.Randomization.Parameters.Vector3Parameter position;
+        [Tooltip(@"When set to "Relative," then values from randomization are applied as offsets to the original position of the GameObject. When set to "Absolute," the values from randomization are set as the objects position.")] public TransformMethod positionMode = TransformMethod.Relative;
+        [Tooltip(@"The range of randomization for the target objects rotation.")] public UnityEngine.Perception.Randomization.Parameters.Vector3Parameter rotation;
+        [Tooltip(@"When set to "Relative," then values from randomization are applied as offsets to the original rotation of the GameObject. When set to "Absolute," the values from randomization are set as the objects rotation.")] public TransformMethod rotationMode = TransformMethod.Relative;
+        [Tooltip(@"The range of randomization for the target objects scale, customizable on a per-axis level.")] public UnityEngine.Perception.Randomization.Parameters.Vector3Parameter scale;
+        [Tooltip(@"When set to "Relative," then values from randomization are applied as multipliers to the original scale of the GameObject. When set to "Absolute," the values from randomization are set as the objects scale.")] public TransformMethod scaleMode = TransformMethod.Relative;
+        [Tooltip(@"When set to true, provides the ability to randomize an objects position on each axis.")] public bool shouldRandomizePosition = false;
+        [Tooltip(@"When set to true, provides the ability to randomize an objects rotation on each axis.")] public bool shouldRandomizeRotation = false;
+        [Tooltip(@"When set to true, provides the ability to randomize an objects scale on each axis.")] public bool shouldRandomizeScale = false;
+        [Tooltip(@"The range of randomization for the target objects scale.")] public UnityEngine.Perception.Randomization.Parameters.FloatParameter uniformScale;
+        [Tooltip(@"When true, each axis of scale will have the same randomized value each iteration. Otherwise when false, each axis is randomly scaled independently. ")] public bool useUniformScale = false;
+        public TransformRandomizerTag() {}
+        public void Randomize();
+    }
+
+    [AddRandomizerMenu(@"Perception/Volume Randomizer")] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class VolumeRandomizer : Randomizer
+    {
+        public VolumeRandomizer() {}
+        protected override void OnIterationStart();
+        protected override void OnScenarioComplete();
+        protected override void OnScenarioStart();
+    }
+
+    [AddRandomizerMenu(@"Perception/RandomizerTags/Volume Randomizer Tag")] [RequireComponent(typeof(UnityEngine.Rendering.Volume))] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class VolumeRandomizerTag : RandomizerTag
+    {
+        [SerializeField] public UnityEngine.Perception.Randomization.Parameters.BooleanParameter enableEffect;
+        public static readonly System.Type[] SupportedEffects;
+        [SerializeReference] public System.Collections.Generic.List<VolumeEffect> usedEffects;
+        public VolumeRandomizerTag() {}
+        public void Dispose();
+        public void Randomize();
+        public void Setup();
+    }
+}
+
+namespace UnityEngine.Perception.Randomization.Randomizers.Tags
+{
+    [AddComponentMenu(@"Perception/RandomizerTags/Animation Randomizer Tag")] [RequireComponent(typeof(Animator))] [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags")] public class AnimationRandomizerTag : RandomizerTag
+    {
+        public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<AnimationClip> animationClips;
+        public bool applyRootMotion = false;
+        public AnimatorOverrideController animatorOverrideController { get; }
+        public AnimationRandomizerTag() {}
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Color Randomizer Tag")] [RequireComponent(typeof(Renderer))] public class ColorRandomizerTag : RandomizerTag
+    {
+        public ColorRandomizerTag() {}
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Hue Offset Randomizer Tag")] public class HueOffsetRandomizerTag : RandomizerTag
+    {
+        public HueOffsetRandomizerTag() {}
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Rotation Randomizer Tag")] public class RotationRandomizerTag : RandomizerTag
+    {
+        public RotationRandomizerTag() {}
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Sun Angle Randomizer Tag")] public class SunAngleRandomizerTag : RandomizerTag
+    {
+        public SunAngleRandomizerTag() {}
+    }
+
+    [AddComponentMenu(@"Perception/RandomizerTags/Texture Randomizer Tag")] public class TextureRandomizerTag : RandomizerTag
+    {
+        public TextureRandomizerTag() {}
+    }
+}
+
+namespace UnityEngine.Perception.Randomization.Samplers
+{
+    public class AnimationCurveSampler : ISampler
+    {
+        [Tooltip(@"Probability distribution curve used for this sampler. The X axis corresponds to the values this sampler will pick from, and the Y axis corresponds to the relative probability of the values. The relative probabilities (Y axis) do not need to max out at 1 as only the shape of the curve matters. The Y values cannot however be negative.")] public AnimationCurve distributionCurve;
+        [Tooltip(@"Number of internal samples used for integrating over the provided AnimationCurve. The larger the number of samples, the more accurately the resulting probability distribution will follow the provided AnimationCurve. Increase this if the default value proves insufficient.")] public int numOfSamplesForIntegration = 500;
+        public float maxAllowed { get; set; }
+        public float minAllowed { get; set; }
+        public bool shouldCheckValidRange { get; set; }
+        public AnimationCurveSampler() {}
+        public AnimationCurveSampler(AnimationCurve curve, int numberOfSamples = 500) {}
+        public void CheckAgainstValidRange();
+        public float Sample();
+        public void Validate();
+    }
+
+    public class ConstantSampler : ISampler
+    {
+        public float value = 0f;
+        public float maxAllowed { get; set; }
+        public float minAllowed { get; set; }
+        public bool shouldCheckValidRange { get; set; }
+        public ConstantSampler() {}
+        public ConstantSampler(float value, bool shouldCheckValidRange = false, float minAllowed = 0f, float maxAllowed = 0f) {}
+        public void CheckAgainstValidRange();
+        public float Sample();
+        public void Validate();
+    }
+
+    public struct FloatRange
+    {
+        public float maximum;
+        public float minimum;
+        public FloatRange(float min, float max) {}
+        public void Validate();
+    }
+
+    public interface ISampler
+    {
+        public float maxAllowed { get; set; }
+        public float minAllowed { get; set; }
+        public bool shouldCheckValidRange { get; set; }
+        public void CheckAgainstValidRange();
+        public float Sample();
+        public void Validate();
+    }
+
+    public class NormalSampler : ISampler
+    {
+        public float mean = 0f;
+        public FloatRange range;
+        public float standardDeviation = 1f;
+        public float maxAllowed { get; set; }
+        public float minAllowed { get; set; }
+        public bool shouldCheckValidRange { get; set; }
+        public NormalSampler() {}
+        public NormalSampler(float min, float max, float mean, float standardDeviation, bool shouldCheckValidRange = false, float minAllowed = 0f, float maxAllowed = 0f) {}
+        public void CheckAgainstValidRange();
+        public float Sample();
+        public void Validate();
+    }
+
+    public static class SamplerState
+    {
+        public static System.UInt32 randomState = 539662031;
+        public static Unity.Mathematics.Random CreateGenerator();
+        public static System.UInt32 NextRandomState();
+    }
+
+    public static class SamplerUtility
+    {
+        public const System.UInt32 largePrime = 539662031;
+        public const int samplingBatchSize = 64;
+        public static float AnimationCurveSample(float[] integratedCurve, float uniformSample, float interval, float startTime, float endTime);
+        public static System.UInt32 GenerateRandomSeed();
+        public static string GetSamplerDisplayName(System.Type samplerType);
+        public static System.UInt32 Hash32(System.UInt32 x);
+        public static System.UInt32 Hash32NonZero(System.UInt32 seed);
+        public static System.UInt64 Hash64(System.UInt64 x);
+        public static void IntegrateCurve(float[] array, AnimationCurve curve);
+        public static System.UInt32 IterateSeed(System.UInt32 index, System.UInt32 baseSeed);
+        public static float TruncatedNormalSample(float uniformSample, float min, float max, float mean, float stdDev);
+    }
+
+    public class UniformSampler : ISampler
+    {
+        public FloatRange range;
+        public float maxAllowed { get; set; }
+        public float minAllowed { get; set; }
+        public bool shouldCheckValidRange { get; set; }
+        public UniformSampler() {}
+        public UniformSampler(float min, float max, bool shouldCheckValidRange = false, float minAllowed = 0f, float maxAllowed = 0f) {}
+        public void CheckAgainstValidRange();
+        public float Sample();
+        public void Validate();
+    }
+}
+
+namespace UnityEngine.Perception.Randomization.Scenarios
+{
+    [AddComponentMenu(@"Perception/Scenarios/Fixed Length Scenario")] public class FixedLengthScenario : UnityEngine.Perception.Randomization.Scenarios.PerceptionScenario<FixedLengthScenario.Constants>
+    {
+        [Tooltip(@"The number of frames to render per iteration.")] public int framesPerIteration = 1;
+        protected override bool isIterationComplete { get; }
+        protected bool isScenarioComplete { get; }
+        public FixedLengthScenario() {}
+        protected void IncrementIteration();
+        protected override void LoadConfigurationAsset();
+        protected override void OnAwake();
+        protected override void OnResumeSimulation();
+        protected override void OnUpdate();
+        public class Constants : ScenarioConstants
+        {
+            [Tooltip(@"The number of iterations to run.")] public int iterationCount = 100;
+            [Tooltip(@"The index of the first iteration to execute.")] public int startIteration;
+            public Constants() {}
+        }
+    }
+
+    public abstract class PerceptionScenario<T> : UnityEngine.Perception.Randomization.Scenarios.Scenario<T> where T : ScenarioConstants, new()
+    {
+        protected override bool isScenarioReadyToStart { get; }
+        protected PerceptionScenario() {}
+        protected override void OnComplete();
+        protected override void OnIterationStart();
+        protected override void OnStart();
+    }
+
+    public abstract class Scenario<T> : ScenarioBase where T : ScenarioConstants, new()
+    {
+        public T constants;
+        public override ScenarioConstants genericConstants { get; }
+        protected Scenario() {}
+    }
+
+    [DefaultExecutionOrder(-1)] public abstract class ScenarioBase : MonoBehaviour
+    {
+        public TextAsset configuration;
+        public System.Collections.Generic.IEnumerable<UnityEngine.Perception.Randomization.Randomizers.Randomizer> activeRandomizers { get; }
+        public static ScenarioBase activeScenario { get; }
+        public int currentIteration { get; protected set; }
+        public int currentIterationFrame { get; }
+        public int framesSinceInitialization { get; }
+        public abstract ScenarioConstants genericConstants { get; }
+        protected abstract bool isIterationComplete { get; }
+        protected abstract bool isScenarioComplete { get; }
+        protected abstract bool isScenarioReadyToStart { get; }
+        public System.Collections.Generic.IReadOnlyList<UnityEngine.Perception.Randomization.Randomizers.Randomizer> randomizers { get; }
+        public ScenarioBase.State state { get; }
+        protected ScenarioBase() {}
+        public void AddRandomizer(UnityEngine.Perception.Randomization.Randomizers.Randomizer newRandomizer);
+        public void DelayIteration();
+        protected virtual void DeserializeConfiguration();
+        public T GetRandomizer<T>() where T : UnityEngine.Perception.Randomization.Randomizers.Randomizer;
+        public UnityEngine.Perception.Randomization.Randomizers.Randomizer GetRandomizer(int index);
+        protected virtual void IncrementIteration();
+        public void InsertRandomizer(int index, UnityEngine.Perception.Randomization.Randomizers.Randomizer newRandomizer);
+        protected virtual void LoadConfigurationAsset();
+        public void LoadConfigurationFromFile(string filePath);
+        protected virtual void OnAwake();
+        protected virtual void OnComplete();
+        protected void OnDestroy();
+        protected virtual void OnDisable();
+        protected virtual void OnEnable();
+        protected virtual void OnIdle();
+        protected virtual void OnIterationEnd();
+        protected virtual void OnIterationStart();
+        protected virtual void OnResumeSimulation();
+        protected virtual void OnStart();
+        protected virtual void OnUpdate();
+        protected void Quit();
+        public void RemoveRandomizerAt(int index);
+        protected virtual void ResetRandomStateOnIteration();
+        public void Restart();
+        public void RestartIteration();
+        public virtual void SerializeToFile(string filePath);
+        public virtual string SerializeToJson();
+        public enum State
+        {
+            Idle = 2,
+            Initializing = 0,
+            Playing = 1,
+        }
+    }
+
+    public class ScenarioConstants
+    {
+        [Tooltip(@"The starting value initializing all random value sequences generated through Samplers, Parameters, and Randomizers attached to a Scenario")] public System.UInt32 randomSeed = 539662031;
+        public ScenarioConstants() {}
+    }
+}
+
+namespace UnityEngine.Perception.Randomization.Utilities
+{
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.Utilities")] public class GameObjectOneWayCache
+    {
+        public int ActiveCachedObjectsCount { get; }
+        public GameObjectOneWayCache(Transform parent, GameObject[] gameObjects, UnityEngine.Perception.Randomization.Randomizers.Randomizer randomizer) {}
+        public GameObject GetOrInstantiate(int index);
+        public GameObject GetOrInstantiate(GameObject gameObject);
+        public GameObject GetOrInstantiateRandomCachedObject();
+        public void ResetAllObjects();
+        public void ResetObject(GameObject gameObject);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Randomization.Randomizers.Utilities")] public static class PoissonDiskSampling
+    {
+        public static Unity.Collections.NativeList<Unity.Mathematics.float2> GenerateSamples(float width, float height, float minimumRadius, System.UInt32 seed = 12345, int samplingResolution = 30, Unity.Collections.Allocator allocator = Unity.Collections.Allocator.TempJob);
+    }
+}
+
+namespace UnityEngine.Perception.Randomization.VolumeEffects
+{
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal.Effects")] public class BloomEffect : VolumeEffect
+    {
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter intensity;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter scatter;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter threshold;
+        public UnityEngine.Rendering.HighDefinition.Bloom bloom { get; }
+        public override string displayName { get; }
+        public BloomEffect() {}
+        public override void Dispose();
+        public override void RandomizeEffect();
+        public override void SetActive(bool active);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal.Effects")] public class CameraTypeEffect : VolumeEffect
+    {
+        public UnityEngine.Perception.Randomization.Parameters.CategoricalParameter<CameraSpecification> cameraSpecifications;
+        public Camera targetCamera;
+        public override string displayName { get; }
+        public CameraTypeEffect() {}
+        public override void Dispose();
+        public override void RandomizeEffect();
+        public override void SetActive(bool active);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal.Effects")] public class DepthOfFieldEffect : VolumeEffect
+    {
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter farFocusEnd;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter farFocusStart;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter nearFocusEnd;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter nearFocusStart;
+        public UnityEngine.Rendering.HighDefinition.DepthOfField depthOfField { get; }
+        public override string displayName { get; }
+        public DepthOfFieldEffect() {}
+        public override void Dispose();
+        public override void RandomizeEffect();
+        public override void SetActive(bool active);
+        public override void SetupEffect();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal.Effects")] public class ExposureEffect : VolumeEffect
+    {
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter Compensation;
+        public override string displayName { get; }
+        public UnityEngine.Rendering.HighDefinition.Exposure exposure { get; }
+        public ExposureEffect() {}
+        public override void Dispose();
+        public override void RandomizeEffect();
+        public override void SetActive(bool active);
+        public override void SetupEffect();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal.Effects")] public class LensDistortionEffect : VolumeEffect
+    {
+        public UnityEngine.Perception.Randomization.Parameters.Vector2Parameter center;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter intensity;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter scale;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter xMultiplier;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter yMultiplier;
+        public override string displayName { get; }
+        public UnityEngine.Rendering.HighDefinition.LensDistortion lensDistortion { get; }
+        public LensDistortionEffect() {}
+        public override void Dispose();
+        public override void RandomizeEffect();
+        public override void SetActive(bool active);
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal.Effects")] public class MotionBlurEffect : VolumeEffect
+    {
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter intensity;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter maximumVelocity;
+        public UnityEngine.Perception.Randomization.Parameters.FloatParameter minimumVelocity;
+        public override string displayName { get; }
+        public UnityEngine.Rendering.HighDefinition.MotionBlur motionBlur { get; }
+        public MotionBlurEffect() {}
+        public override void Dispose();
+        public override void RandomizeEffect();
+        public override void SetActive(bool active);
+    }
+}
+
+namespace UnityEngine.Perception.Settings
+{
+    public class AccumulationSettings
+    {
+        [Range(3f, 16383f)] [Tooltip(@"Number of frames used to accumulate a converged image")] public int accumulationSamples;
+        [Tooltip(@"Controls whether the Fixed Length Scenario in the Scene (if any) should automatically adapt its number of frames per iteration to account for the number of frames (Accumulation Samples) set here.")] public bool adaptFixedLengthScenarioFrames;
+        [Range(0f, 1f)] [Tooltip(@"The time during shutter interval when the shutter begins closing")] public float shutterBeginsClosing;
+        [Range(0f, 1f)] [Tooltip(@"The time during shutter interval when the shutter is fully open")] public float shutterFullyOpen;
+        [Range(0f, 1f)] [Tooltip(@"Controls the amount of motion blur. A value of 0 corresponds to no motion blur and a value of 1 corresponds to maximum motion blur. This only applies to motion caused by physics and animations, or Time.deltaTime based movement.")] public float shutterInterval;
+        public AccumulationSettings() {}
+    }
+
+    [AddComponentMenu(@"")] public class PerceptionSettings : MonoBehaviour
+    {
+        [SerializeReference] public AccumulationSettings accumulationSettings;
+        public static string defaultOutputPath { get; }
+        public static UnityEngine.Perception.GroundTruth.IConsumerEndpoint endpoint { get; set; }
+        public PerceptionSettings() {}
+        public static string GetOutputBasePath();
+        public static UnityEditor.SerializedObject GetSerializedSettings();
+        public static void Save();
+        public static void SetOutputBasePath(string path);
+    }
+}
+
+namespace UnityEngine.Perception.Utilities
+{
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.Internal")] public class SceneReference : ISerializationCallbackReceiver
+    {
+        public UnityEditor.SceneAsset sceneAsset;
+        public UnityEngine.SceneManagement.Scene scene { get; }
+        public string scenePath { get; }
+        public SceneReference() {}
+        public void OnAfterDeserialize();
+        public void OnBeforeSerialize();
+    }
+
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEditor.Perception.Internal")] public abstract class ShaderPropertyEntry
+    {
+        public string description;
+        public int index;
+        public string name;
+        public abstract UnityEngine.Perception.Randomization.Parameters.Parameter uiParameter { get; }
+        protected ShaderPropertyEntry() {}
+        public override bool Equals(object obj);
+        public static ShaderPropertyEntry FromShaderPropertyIndex(Shader shader, int propertyIndex);
+        public override int GetHashCode();
+        public abstract UnityEngine.Rendering.ShaderPropertyType SupportedShaderPropertyType();
+    }
+}

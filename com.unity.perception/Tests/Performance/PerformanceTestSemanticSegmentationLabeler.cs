@@ -18,7 +18,7 @@ namespace PerformanceTests
         public const string Label = "SemanticSegmentationLabeler";
 
         public PerformanceTestSemanticSegmentationLabeler(int resx, int resy, bool capData, bool vizOn)
-            : base(resx, resy, capData, vizOn, Label) { }
+            : base(resx, resy, capData, vizOn, Label) {}
     }
 }
 #endif

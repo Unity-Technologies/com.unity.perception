@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.CompilerServices;
-using Unity.Collections;
 using Unity.Mathematics;
 
 namespace UnityEngine.Perception.Randomization.Samplers
@@ -111,10 +110,10 @@ namespace UnityEngine.Perception.Randomization.Samplers
                 sign = -1;
             x = math.abs(x) / math.sqrt(2.0f);
 
-            var t = 1.0f / (1.0f + p*x);
-            var y = 1.0f - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t * math.exp(-x*x);
+            var t = 1.0f / (1.0f + p * x);
+            var y = 1.0f - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * math.exp(-x * x);
 
-            return 0.5f * (1.0f + sign*y);
+            return 0.5f * (1.0f + sign * y);
         }
 
         /// <summary>
@@ -128,7 +127,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
             const float d0 = 1.432788f;
             const float d1 = 0.189269f;
             const float d2 = 0.001308f;
-            return t - ((c2*t + c1)*t + c0) / (((d2*t + d1)*t + d0)*t + 1.0f);
+            return t - ((c2 * t + c1) * t + c0) / (((d2 * t + d1) * t + d0) * t + 1.0f);
         }
 
         /// <summary>
@@ -239,7 +238,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
                 {
                     var currentTime = startTime + i * interval;
                     var currentValue = curve.Evaluate(currentTime);
-                    array[i] = array[i-1] + (previousValue + currentValue) * interval / 2;
+                    array[i] = array[i - 1] + (previousValue + currentValue) * interval / 2;
                     previousValue = currentValue;
                 }
             }

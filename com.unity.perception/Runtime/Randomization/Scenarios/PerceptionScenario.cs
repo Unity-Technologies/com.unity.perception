@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+using System;
 using System.Linq;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.DataModel;
@@ -39,8 +38,12 @@ namespace UnityEngine.Perception.Randomization.Scenarios
         protected override void OnIterationStart()
         {
             DatasetCapture.StartNewSequence();
-            DatasetCapture.ReportMetric(m_RandomSeedMetricDefinition, new GenericMetric(genericConstants.randomSeed, m_RandomSeedMetricDefinition));
-            DatasetCapture.ReportMetric(m_IterationMetricDefinition, new GenericMetric(currentIteration, m_IterationMetricDefinition));
+
+            if (Application.isPlaying)
+            {
+                DatasetCapture.ReportMetric(m_RandomSeedMetricDefinition, new GenericMetric(genericConstants.randomSeed, m_RandomSeedMetricDefinition));
+                DatasetCapture.ReportMetric(m_IterationMetricDefinition, new GenericMetric(currentIteration, m_IterationMetricDefinition));
+            }
         }
 
         /// <inheritdoc/>

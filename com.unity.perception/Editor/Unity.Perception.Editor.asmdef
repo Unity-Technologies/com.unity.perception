@@ -7,7 +7,9 @@
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.HighDefinition.Editor",
         "Unity.RenderPipelines.HighDefinition.Runtime",
-        "UnityEngine.UI"
+        "UnityEngine.UI",
+        "UnityEditor.TestRunner",
+        "UnityEngine.TestRunner"
     ],
     "includePlatforms": [
         "Editor"
@@ -26,11 +28,6 @@
             "name": "com.unity.render-pipelines.high-definition",
             "expression": "",
             "define": "HDRP_PRESENT"
-        },
-        {
-            "name": "com.unity.render-pipelines.universal",
-            "expression": "",
-            "define": "URP_PRESENT"
         }
     ],
     "noEngineReferences": false

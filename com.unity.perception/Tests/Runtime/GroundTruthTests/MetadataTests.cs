@@ -1,13 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
+using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.MetadataReporter.Tags;
+using UnityEngine.Perception.Randomization.Parameters;
+using UnityEngine.Perception.Randomization.Randomizers;
+using UnityEngine.Perception.Randomization.Scenarios;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
 
 namespace GroundTruthTests
 {
     [TestFixture]
-    public class MetadataTests
+    public class MetadataTests : GroundTruthTestBase
     {
         [Test]
         public void TestSetValues()
@@ -20,10 +29,10 @@ namespace GroundTruthTests
             const bool testBool = true;
             const uint testUInt = UInt32.MaxValue;
 
-            var testInts = new [] { 8, 6, 7, 5, 3, 0, 9 };
-            var testStrings = new [] { "and", "thanks", "for", "all", "the", "fish" };
+            var testInts = new[] { 8, 6, 7, 5, 3, 0, 9 };
+            var testStrings = new[] { "and", "thanks", "for", "all", "the", "fish" };
             var testFloats = new[] { 1.1f, 2.2f, 3.3f, 4.4f };
-            var testBools = new [] { true, false, false, true, false };
+            var testBools = new[] { true, false, false, true, false };
 
 
             metadata.Add("testInt", testInt);
@@ -174,14 +183,14 @@ namespace GroundTruthTests
             m.Add("float_value", 4.2f);
             m.Add("string_value", "hello_world");
             m.Add("bool_value", false);
-            m.Add("int[]_valle", new [] {0, 1, 2, 3});
-            m.Add("float[]_value", new [] {1.1f, 2.2f, 3,3f, 4.4f, 5.5f});
-            m.Add("string[]_value", new [] {"this", "is", "an", "array"});
-            m.Add("bool[]_value", new [] {false, true, true, false});
+            m.Add("int[]_valle", new[] {0, 1, 2, 3});
+            m.Add("float[]_value", new[] {1.1f, 2.2f, 3, 3f, 4.4f, 5.5f});
+            m.Add("string[]_value", new[] {"this", "is", "an", "array"});
+            m.Add("bool[]_value", new[] {false, true, true, false});
 
             var nested = new Metadata();
             nested.Add("int_value", 42);
-            nested.Add("string_array", new [] {"life","universe", "everything"});
+            nested.Add("string_array", new[] {"life", "universe", "everything"});
 
             m.Add("nested", nested);
 
@@ -201,17 +210,17 @@ namespace GroundTruthTests
             Assert.AreEqual(4.2f, m2.GetFloat("float_value"));
             Assert.AreEqual("hello_world", m2.GetString("string_value"));
             Assert.AreEqual(false, m2.GetBool("bool_value"));
-            Assert.AreEqual(new [] {0,1,2,3}, m2.GetIntArray("int[]_valle"));
-            Assert.AreEqual(new [] {1.1f, 2.2f, 3,3f, 4.4f, 5.5f}, m2.GetFloatArray("float[]_value"));
-            Assert.AreEqual(new [] {"this", "is", "an", "array"}, m2.GetStringArray("string[]_value"));
-            Assert.AreEqual(new [] {false, true, true, false}, m2.GetBoolArray("bool[]_value"));
+            Assert.AreEqual(new[] {0, 1, 2, 3}, m2.GetIntArray("int[]_valle"));
+            Assert.AreEqual(new[] {1.1f, 2.2f, 3, 3f, 4.4f, 5.5f}, m2.GetFloatArray("float[]_value"));
+            Assert.AreEqual(new[] {"this", "is", "an", "array"}, m2.GetStringArray("string[]_value"));
+            Assert.AreEqual(new[] {false, true, true, false}, m2.GetBoolArray("bool[]_value"));
             var n = m2.GetSubMetadata("nested");
             Assert.AreEqual(42, n.GetInt("int_value"));
-            Assert.AreEqual(new [] {"life", "universe", "everything"}, n.GetStringArray("string_array"));
+            Assert.AreEqual(new[] {"life", "universe", "everything"}, n.GetStringArray("string_array"));
             var n2 = m2.GetSubMetadataArray("nested_array");
             Assert.AreEqual(2, n2.Length);
             Assert.AreEqual(42, n2[0].GetInt("int_value"));
-            Assert.AreEqual(new [] {"life", "universe", "everything"}, n2[0].GetStringArray("string_array"));
+            Assert.AreEqual(new[] {"life", "universe", "everything"}, n2[0].GetStringArray("string_array"));
             Assert.AreEqual(43, n2[1].GetInt("int_value"));
             Assert.AreEqual(44, n2[1].GetInt("int_value2"));
         }
@@ -230,6 +239,71 @@ namespace GroundTruthTests
             Assert.AreNotEqual("This wasn't empty", outValStr);
             Assert.IsTrue(metadata.TryGetValue(key, out outValInt));
             Assert.AreEqual(val, outValInt);
+        }
+
+        [UnityTest]
+        public IEnumerator MetadataReporterTest()
+        {
+            SceneManager.LoadScene("Keypoint_Null_Check_On_Animator", LoadSceneMode.Additive);
+            AddSceneForCleanup("Keypoint_Null_Check_On_Animator");
+            yield return null;
+
+            var cameraGo = new GameObject("camera");
+            AddTestObjectForCleanup(cameraGo);
+            var perceptionCamera = cameraGo.AddComponent<PerceptionCamera>();
+            var labeler = new MetadataReporterLabeler();
+            perceptionCamera.AddLabeler(labeler);
+
+            const string tagName = "Player";
+
+            var prefab = GameObject.Find("LabeledAndRandomized");
+            prefab.tag = tagName;
+
+            var lightGo = new GameObject("light");
+            var light = lightGo.AddComponent<Light>();
+            light.color = Color.white;
+            AddTestObjectForCleanup(lightGo);
+
+            var scenarioGo = new GameObject("scenario");
+            AddTestObjectForCleanup(scenarioGo);
+            var scenario = scenarioGo.AddComponent<FixedLengthScenario>();
+            var randomizer = new KeyPointGroundTruthTests.DeleteAndRecreateForegroundRandomizer();
+
+            var nameReportTag = prefab.AddComponent<LabelingNameMetadataTag>();
+            var distanceToMainCameraReportTag = prefab.AddComponent<LabelingDistanceToMainCameraMetadataTag>();
+            var tagReportTag = prefab.AddComponent<LabelingTagMetadataTag>();
+            var lightReport = lightGo.AddComponent<LightMetadataTag>();
+
+            prefab.SetActive(false);
+
+            randomizer.prefabs = new CategoricalParameter<GameObject>();
+            randomizer.prefabs.SetOptions(new[] { prefab });
+
+            scenario.AddRandomizer(randomizer);
+            scenario.AddRandomizer(new AnimationRandomizer());
+            scenario.constants.iterationCount = 10;
+            scenario.constants.totalIterations = 10;
+            scenario.constants.startIteration = 0;
+
+            // wait for a few frames
+            for (var i = 0; i < 6; i++)
+            {
+                yield return null;
+                var builder = new JsonMessageBuilder();
+                labeler.GenerateFrameData(builder);
+                var json = builder.ToJson();
+
+                Assert.AreEqual(json["instances"][0]["gameObjectName"]["name"].ToString(), $"{prefab.name}(Clone)");
+                Assert.AreEqual((double)json["instances"][0]["SqrMagnitudeToMainCamera"]["sqrMagnitudeToMainCamera"], 0d, 0.1d);
+                Assert.AreEqual((string)json["instances"][0]["gameObjectTag"]["unityTag"], tagName);
+
+
+                Assert.AreEqual((int)json[$"SceneLight-{lightGo.name}"]["Color"][0], 255);
+                Assert.AreEqual((double)json[$"SceneLight-{lightGo.name}"]["Intensity"], 1.0d, 0.1d);
+            }
+
+            //No error logs should be at this point
+            Assert.AreEqual(0, 0);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Parameters;
@@ -7,7 +7,7 @@ using UnityEngine.Perception.Randomization.Randomizers;
 namespace RandomizationTests.RandomizerTests
 {
     [Serializable]
-    [AddRandomizerMenu("Perception Tests/Example Transform Randomizer")]
+    [AddRandomizerMenu("")]
     public class ExampleTransformRandomizer : Randomizer
     {
         public Vector3Parameter position = new Vector3Parameter();

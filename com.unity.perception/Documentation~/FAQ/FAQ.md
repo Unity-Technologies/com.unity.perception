@@ -42,7 +42,7 @@ Keep in mind that any new label added with this method should already be present
   Labeling works on the GameObject level, so to achieve the scenarios described here, you will need to break down your main object into multiple GameObjects parented to the same root object, and add `Labeling` components to each of the inner objects, as shown below.
 
 <p align="center">
-<img src="../images/FAQ/images/inner_objects.png" width="800"/>
+<img src="../images/inner_objects.png" width="800"/>
 </p>
   
   Alternatively, in cases where parts of the surface of the object need to be labeled (e.g. decals on objects), you can add labeled invisible surfaces on top of these sections. These invisible surfaces need to have a fully transparent material. To create an invisible material:
@@ -54,7 +54,7 @@ Keep in mind that any new label added with this method should already be present
   An example labeled output for an object with separate labels on inner objects and decals is shown below:
 
 <p align="center">
-<img src="../images/FAQ/images/inner_labels.gif" width="600"/>
+<img src="../images/inner_labels.gif" width="600"/>
 </p> 
 
 ---
@@ -64,14 +64,6 @@ Keep in mind that any new label added with this method should already be present
   <summary><strong>Q: When visible surfaces of two objects are fully aligned, the bounding boxes seem to blink in and out of existence from one frame to another. Why is that?</strong></summary><br>
 
 This is due to a common graphics problem called *z-fighting*. This occurs when the shader can't decide which of the two surfaces to draw on top of the other, since they both have the exact same distance from the camera. To fix this, simply move one of the objects slightly so that the two problematic surfaces do not fully align.
-
----
-</details>
-
-<details>
-  <summary><strong>Q: Why aren't my character models labeled by the 3D Bounding Box Labeler?</strong></summary><br>
-
-Most human character models use Skinned Mesh Renderers. Unfortunately, at this time, GameObjects using this type of renderer are not supported by the 3D Bounding Box Labeler.
 
 ---
 </details>
@@ -118,7 +110,7 @@ Most human character models use Skinned Mesh Renderers. Unfortunately, at this t
   The ***Inspector*** view of a prefab cluster asset looks like below:
 
   <p align="center">
-<img src="../images/FAQ/images/prefab_cluster.png" width="400"/>
+<img src="../images/prefab_cluster.png" width="400"/>
 </p>  
 
   Now all that is left is to use our prefab clusters inside a Randomizer. Here is some sample code:
@@ -146,7 +138,7 @@ public class ClusterRandomizer : UnityEngine.Perception.Randomization.Randomizer
 This Randomizer takes a list of `PrefabCluster` assets, then, on each Iteration, it goes through all the provided clusters and samples one prefab from each. The ***Inspector*** view for this Randomizer looks like this:
 
 <p align="center">
-<img src="../images/FAQ/images/cluster_randomizer.png" width="400"/>
+<img src="../images/cluster_randomizer.png" width="400"/>
 </p>  
 
 ---
@@ -158,6 +150,7 @@ This Randomizer takes a list of `PrefabCluster` assets, then, on each Iteration,
 The provided `ForegroundObjectPlacementRandomizer` uses Poisson Disk sampling to find randomly positioned points in the space denoted by the provided `Width` and `Height` values. The lower bound on the distance between the sampled points will be `Separation Distance`. The number of sampled points will be the maximum number of points in the given area that match these criteria.
 
 Thus, to limit the number of spawned objects, you can simply introduce a hard limit in the `for` loop that iterates over the Poisson Disk samples, to break out of the loop if the limit is reached. Additionally, we will need to shuffle the list of points retrieved from the Poisson Disk sampling in order to remove any selection bias when building our subset of points. This is because Poisson Disk points are sampled in sequence and relative to the points already sampled, therefore, the initial points in the list are likely to be closer to each other. We will use a `FloatParameter` to perform this shuffle, so that we can guarantee that our simulation is deterministic and reproducible.
+
 ```C#
 FloatParameter m_IndexShuffleParameter = new FloatParameter { value = new UniformSampler(0, 1) };
 
@@ -426,7 +419,7 @@ Suppose we need to drop a few objects into the Scene, let them interact physical
 
 
 <p align="center">
-<img src="../images/FAQ/images/object_drop.gif" width="700"/>
+<img src="../images/object_drop.gif" width="700"/>
 </p>  
 
 ---
@@ -444,9 +437,7 @@ Yes. The Perception Camera offers two trigger modes, `Scheduled` and `Manual`, a
 <details>
   <summary><strong>Q: Can I have multiple Perception Cameras active in my Scene simultaneously?</strong></summary><br>
 
-No, at this time the Perception package only supports one active Perception Camera. This is something that is on our roadmap and we hope to support soon. 
-
-However, the package does support having more than one Perception Camera in the Scene, as long as only one is active when the simulation starts. Therefore, one possible workaround, if your simulation is fully deterministic from one run to the next, would be to run the simulation more than once, each time with one of the cameras active. While not ideal, this will at least let you generate matching datasets.
+Yes! Multiple GameObjects each with their own Camera and Perception Camera components will capture data together. Each camera will produce seperate Captures in the dataset.
 
 ---
 </details>
@@ -475,30 +466,11 @@ This can be done by adding custom annotations to your dataset. Have a look at [t
   <summary><strong>Q: Objects in my captured images have jagged edges, how can I fix this?</strong>
 </summary><br>
 
-This is a common issue with rendering graphics into raster images (digital images), when the resolution of the raster is not high enough to perfectly display slanting lines. The common solution to this issue is the use of anti-aliasing methods, and Unity offers a number of these in both URP and HDRP. To experiment with anti-aliasing, go to the ***Inspector*** view of your Perception Camera object and in the Camera component, change `Anti-aliasing` from `None` to another option.
+This is a common issue with rendering graphics into raster images (digital images), when the resolution of the raster is not high enough to perfectly display slanting lines. The common solution to this issue is the use of anti-aliasing methods, and Unity offers a number of these in HDRP. To experiment with anti-aliasing, go to the ***Inspector*** view of your Perception Camera object and in the Camera component, change `Anti-aliasing` from `None` to another option.
 
 ---
 </details>
 
-<details>
-  <summary><strong>Q: I am using an HDRP Unity project with Perception and my images have significant blurring around most objects. How can I remove this blur?</strong>
-</summary><br>
-
-The effect you are observing here is motion blur, which happens because the placement Randomizers used in the Perception tutorial cache their instantiated objects from one Iteration to the next, and move them to new locations on each Iteration instead of destroying them and creating new ones. This "motion" of the objects causes the motion blur effect to kick in. 
-
-
-HDRP projects have motion blur and a number of other post processing effects enabled by default. To disable motion blur or any other effect, follow these steps:
-1. Create an empty GameObject in your Scene and add a Volume component to it.
-2. Set the Volume's profile to the **Volume Global** asset.
-3. Uncheck the **Motion Blur** option.
-
-
-<p align="center">
-<img src="../images/FAQ/images/volume.png" width="500"/>
-</p>  
-
----
-</details>
 
 <details>
   <summary><strong>Q: Are all post processing effects provided by Unity safe to use in synthetic datasets?</strong>
@@ -552,9 +524,7 @@ Here are a few blog posts to give you some ideas: [1](https://blog.unity.com/tec
   <summary><strong>Q: Can I have more realistic rendering in my Scene?</strong>
 </summary><br>
 
-A project's lighting configuration typically has the greatest influence over the final rendered output over any other simulation property. Unity has many lighting options, each of which is designed as a different trade-off between performance and realism/capability. The 3 most pertinent options that you will likely be interested in are:
-
-* URP baked lighting: The Universal Render Pipeline offers the most performant lighting configurations by using an offline baking process to generate realistic bounce lighting within a static scene and then using simple shadow mapped dynamic lights in conjunctions with light probes to make dynamic (or randomized) objects "fit" into the baked scene. This option provides high performance, but lacks the visual fidelity needed for interior environments and is geared toward more outdoor-like settings. Also, depending on scene randomization complexity, light baking might not be the best option. Randomly generated scenes will often place objects and adjust lighting in ways that make the new scene incompatible with the original baked lighting configuration.
+A project's lighting configuration typically influences the final rendered output over any other simulation property. Unity has many lighting options, each designed as a different trade-off between performance and realism/capability. Supported options that you can choose from are:
 
 * HDRP lighting: A default HDRP scene offers a step toward more realistic environments with a much larger array of lighting settings (soft shadows, multiple dynamic lights, etc.) and a host of additional real-time effects like camera exposure and screen space ambient occlusion. A warning though: real time screen space effects may make your scene "look better", but the way these effects are calculated is not based on how light works in the real world, so realism may vary. Another huge advantage of HDRP is the potential to have moderately realistic lighting without baking your lighting configuration (though you can integrate light baking if you want to). However, there is no real-time global illumination option in default HDRP, meaning that your scene will not simulate complex real world light behavior such as light bouncing, light bleeding, or realistic shadows for dynamic scenes. This can result in unrealistically dark scenes when only using directional lights and windows (without extra interior lights to brighten things up). Overall though, HDRP offers a good compromise between performance and realism for some use cases.
 
@@ -573,25 +543,25 @@ A visual comparison of the different lighting configurations in HDRP is shown be
 Default HDRP:
 
 <p align="center">
-<img src="../images/FAQ/images/hdrp.png" width="700"/>
+<img src="../images/hdrp.png" width="700"/>
 </p>  
 
 HDRP with Global Illumination (notice how much brighter the scene is with ray traced light bouncing):
 
 <p align="center">
-<img src="../images/FAQ/images/hdrp_rt_gi.png" width="700"/>
+<img src="../images/hdrp_rt_gi.png" width="700"/>
 </p>  
 
 HDRP with Path Tracing (128 samples) (notice the red light bleeding from the cube onto the floor and the increased shadow quality):
 
 <p align="center">
-<img src="../images/FAQ/images/hdrp_pt_128_samples.png" width="700"/>
+<img src="../images/hdrp_pt_128_samples.png" width="700"/>
 </p>  
 
 HDRP with Path Tracing (4096 samples) (more samples leads to less ray tracing noise but also a longer time to render):
 
 <p align="center">
-<img src="../images/FAQ/images/hdrp_pt_4096_samples.png" width="700"/>
+<img src="../images/hdrp_pt_4096_samples.png" width="700"/>
 </p>  
 
 ---

@@ -17,11 +17,11 @@ namespace PerformanceTests
     {
         public PerformanceTestAllLabelers(int resx, int resy, bool capData, bool vizOn)
             : base(resx, resy, capData, vizOn,
-                PerformanceTestBoundingBoxLabeler.Label,
-                PerformanceTestObjectCountLabeler.Label,
-                PerformanceTestPixelCountLabeler.Label,
-                PerformanceTestSemanticSegmentationLabeler.Label
-                ) { }
+                   PerformanceTestBoundingBoxLabeler.Label,
+                   PerformanceTestObjectCountLabeler.Label,
+                   PerformanceTestPixelCountLabeler.Label,
+                   PerformanceTestSemanticSegmentationLabeler.Label
+            ) {}
     }
 }
 #endif

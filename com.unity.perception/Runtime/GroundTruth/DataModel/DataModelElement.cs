@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Perception.GroundTruth.DataModel
 {
@@ -7,8 +7,15 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
     /// </summary>
     public abstract class DataModelElement : IMessageProducer
     {
+        /// <summary>
+        /// Type of the data object
+        /// </summary>
         public abstract string modelType { get; }
 
+        /// <summary>
+        /// Public constructor for DataModelElement
+        /// </summary>
+        /// <param name="id">Element Id</param>
         protected DataModelElement(string id)
         {
             this.id = id;

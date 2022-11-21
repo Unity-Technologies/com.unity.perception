@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.Perception.GroundTruth.DataModel;
@@ -36,9 +34,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// The current perception version
         /// </summary>
-        public static string perceptionVersion => "0.10.0-preview.1"; // TODO: Can we automate this?
-
-        internal static int currentFrame => currentSimulation.currentFrame;
+        public static string perceptionVersion => PerceptionPackageVersion.perceptionVersion;
 
         /// <summary>
         /// Called when the simulation ends. The simulation ends on playmode exit, application exit, or when <see cref="ResetSimulation"/> is called.
@@ -95,6 +91,13 @@ namespace UnityEngine.Perception.GroundTruth
             currentSimulation.ReportMetric(definition, metric, null, null);
         }
 
+        /// <summary>
+        /// Reports a metric for the activate frame that is not associated with a sensor or an annotation. To
+        /// report a metric associated with an annotation use <see cref="AnnotationHandle.ReportMetric"/>, to
+        /// report a metric associated with a sensor user <see cref="SensorHandle.ReportMetric"/>.
+        /// </summary>
+        /// <param name="definition">The metric definition to use</param>
+        /// <returns>Metric to be reported</returns>
         public static AsyncFuture<Metric> ReportMetric(MetricDefinition definition)
         {
             return currentSimulation.CreateAsyncMetric(definition);
@@ -202,7 +205,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Retrieve a handle to the active endpoint.
         /// </summary>
-        public static IConsumerEndpoint activateEndpoint => m_ActiveSimulation.consumerEndpoint;
+        public static IConsumerEndpoint activateEndpoint => currentSimulation.consumerEndpoint;
 
         /// <summary>
         /// Sets the current output path for <see cref="IFileSystemEndpoint"/> endpoints. This will set the path for the next simulation, it will
@@ -213,22 +216,26 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="outputPath">The path to set</param>
         public static void SetOutputPath(string outputPath)
         {
-            PerceptionSettings.instance.SetOutputBasePath(outputPath);
+            PerceptionSettings.SetOutputBasePath(outputPath);
         }
 
-        internal static void OverrideEndpoint(IConsumerEndpoint endpoint)
+        /// <summary>
+        /// Overrides the currently configured endpoint.
+        /// </summary>
+        /// <param name="endpoint">The new endpoint to configure.</param>
+        public static void OverrideEndpoint(IConsumerEndpoint endpoint)
         {
             m_OverrideEndpoint = endpoint;
         }
 
         static SimulationState CreateSimulationData()
         {
-            if (m_OverrideEndpoint == null && PerceptionSettings.instance.endpoint == null)
+            if (m_OverrideEndpoint == null && PerceptionSettings.endpoint == null)
             {
                 throw new InvalidOperationException("An endpoint has not been set for dataset capture");
             }
 
-            var endpoint = m_OverrideEndpoint ?? PerceptionSettings.instance.endpoint.Clone();
+            var endpoint = m_OverrideEndpoint ?? PerceptionSettings.endpoint.Clone();
             return new SimulationState(endpoint as IConsumerEndpoint);
         }
 
@@ -237,11 +244,17 @@ namespace UnityEngine.Perception.GroundTruth
             currentSimulation.Update();
         }
 
+        internal static void OnDestroy()
+        {
+            m_ActiveSimulation.CleanUp();
+        }
+
         /// <summary>
         /// Shuts down the active simulation and starts a new simulation.
         /// </summary>
         public static void ResetSimulation()
         {
+            m_ActiveSimulation?.CleanUp();
             SimulationEnding?.Invoke();
 
             if (m_ActiveSimulation != null &&  m_ActiveSimulation.IsRunning())
@@ -252,6 +265,9 @@ namespace UnityEngine.Perception.GroundTruth
             }
 
             m_ActiveSimulation = CreateSimulationData();
+
+            SimulationState.frameOffset = 0;
+            SimulationState.sequenceId = 0;
         }
     }
 
@@ -259,7 +275,7 @@ namespace UnityEngine.Perception.GroundTruth
     {
         internal static PendingId CreateSensorId(int sequence, int step, string sensorId)
         {
-            return new PendingId(FutureType.Sensor, sequence, step, sensorId, string.Empty,string.Empty);
+            return new PendingId(FutureType.Sensor, sequence, step, sensorId, string.Empty, string.Empty);
         }
 
         internal static PendingId CreateMetricId(int sequence, int step, string metricId)
@@ -336,14 +352,14 @@ namespace UnityEngine.Perception.GroundTruth
 
                 switch (FutureType)
                 {
-                   case FutureType.Metric:
+                    case FutureType.Metric:
                         if (other.MetricId != MetricId) return false;
                         if (other.annotationId != annotationId) return false;
                         return other.SensorId == SensorId;
-                   case FutureType.Annotation:
+                    case FutureType.Annotation:
                         if (other.annotationId != annotationId) return false;
                         return other.SensorId == SensorId;
-                   case FutureType.Sensor:
+                    case FutureType.Sensor:
                         return other.SensorId == SensorId;
                     default:
                         return true;
@@ -359,7 +375,6 @@ namespace UnityEngine.Perception.GroundTruth
             hc = (SensorId != null ? SensorId.GetHashCode() : 0 * 397) ^ hc;
             hc = (annotationId != null ? annotationId.GetHashCode() : 0 * 397) ^ hc;
             return (MetricId != null ? MetricId.GetHashCode() : 0 * 397) ^ hc;
-
         }
     }
 
@@ -431,9 +446,20 @@ namespace UnityEngine.Perception.GroundTruth
         }
     }
 
+    /// <summary>
+    /// Interface that represents a dataset handler
+    /// </summary>
     public interface IDatasetHandle
     {
+        /// <summary>
+        /// Id of dataset handler
+        /// </summary>
         string Id { get; }
+
+        /// <summary>
+        /// Checks if dataset handler is valid
+        /// </summary>
+        /// <returns>True is handler valid, False is handler is not valid</returns>
         bool IsValid();
     }
 
@@ -448,14 +474,15 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public string Id { get; }
 
-        public bool valid => DatasetCapture.IsValid(Id);
-
         internal SensorHandle(string id)
         {
             Id = id ?? string.Empty;
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Overrides method ToString
+        /// </summary>
+        /// <returns>SensorHandler Id</returns>
         public override string ToString()
         {
             return Id;
@@ -479,6 +506,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         /// <param name="definition">The annotation definition</param>
         /// <param name="annotation">The annotation value</param>
+        /// <returns>created AnnotationHandle</returns>>
         /// <exception cref="InvalidOperationException">Thrown when an annotation is reported for a frame that should not be captured</exception>
         /// <exception cref="ArgumentException">Thrown when an annotation is reported with an invalid annotation definition</exception>
         public AnnotationHandle ReportAnnotation(AnnotationDefinition definition, Annotation annotation)
@@ -549,6 +577,12 @@ namespace UnityEngine.Perception.GroundTruth
         public bool ShouldCaptureThisFrame => DatasetCapture.currentSimulation.ShouldCaptureThisFrame(this);
 
         /// <summary>
+        /// Whether the sensor should start to accumulate on this frame. Sensors are expected to call this method each frame to determine whether
+        /// they should start accumulating during the frame.
+        /// </summary>
+        public bool ShouldAccumulateThisFrame => DatasetCapture.currentSimulation.ShouldAccumulateThisFrame(this);
+
+        /// <summary>
         /// Requests a capture from this sensor on the next rendered frame. Can only be used with manual capture mode (<see cref="CaptureTriggerMode.Manual"/>).
         /// </summary>
         public void RequestCapture()
@@ -613,7 +647,11 @@ namespace UnityEngine.Perception.GroundTruth
                 throw new InvalidOperationException("SensorHandle has been disposed or its simulation has ended");
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Compare two SensorHandle by Id
+        /// </summary>
+        /// <param name="other">Other SensorHandle to compare</param>
+        /// <returns>True if Id as equal, false if not</returns>
         public bool Equals(SensorHandle other)
         {
             switch (Id)
@@ -627,13 +665,21 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Compare two SensorHandle by Id
+        /// </summary>
+        /// <param name="obj">Any other object to compare</param>
+        /// <returns>True is obj is a SensorHandle and has the same Id</returns>
         public override bool Equals(object obj)
         {
             return obj is SensorHandle other && Equals(other);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Ovverided method for GetHashCode.
+        /// It uses Id.GetHashCode();
+        /// </summary>
+        /// <returns>Hash code based on Id</returns>
         public override int GetHashCode()
         {
             return Id.GetHashCode();
@@ -675,8 +721,11 @@ namespace UnityEngine.Perception.GroundTruth
 
         readonly AnnotationDefinition m_Definition;
 
+        /// <summary>
+        /// Check if handler is valid
+        /// </summary>
+        /// <returns>True is definition is not null</returns>
         public bool IsValid() => m_Definition != null;
-
 
         /// <summary>
         /// The ID of the annotation which will be used in the json metadata.
@@ -693,19 +742,30 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         public bool IsNil => Id == string.Empty;
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Compares AnnotationHandle handler with another AnnotationHandle
+        /// </summary>
+        /// <param name="other">AnnotationHandle</param>
+        /// <returns>True is SensorHandlers are equal and Definitions are equal</returns>
         public bool Equals(AnnotationHandle other)
         {
             return m_SensorHandle.Equals(other.m_SensorHandle) && m_Definition.Equals(other.m_Definition);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Compares AnnotationHandle handler with any other object
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>True is object is AnnotationHandle SensorHandlers are equal and Definitions are equal</returns>
         public override bool Equals(object obj)
         {
             return obj is AnnotationHandle other && Equals(other);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Ovverided GetHashCode based on Id
+        /// </summary>
+        /// <returns>Hash based on Id</returns>
         public override int GetHashCode()
         {
             var hash = (Id != null ? StringComparer.InvariantCulture.GetHashCode(Id) : 0);

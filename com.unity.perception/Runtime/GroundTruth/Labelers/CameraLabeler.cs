@@ -62,7 +62,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// Called just before the first call to <see cref="OnUpdate"/> or <see cref="OnBeginRendering"/>. Implement this
         /// to initialize state.
         /// </summary>
-        protected virtual void Setup() { }
+        protected virtual void Setup() {}
         /// <summary>
         /// Called when the labeler's visualization capability is turned on or off.
         /// </summary>
@@ -82,19 +82,19 @@ namespace UnityEngine.Perception.GroundTruth
         /// <summary>
         /// Called just after the camera renders each frame the the labeler is enabled and <see cref="SensorHandle.ShouldCaptureThisFrame"/> is true.
         /// </summary>
-        /// <param name="scriptableRenderContext">The current context from the Scriptable Render Pipeline.</param>
-        protected virtual void OnEndRendering(ScriptableRenderContext scriptableRenderContext) {}
+        /// <param name="ctx">The current context from the Scriptable Render Pipeline.</param>
+        protected virtual void OnEndRendering(ScriptableRenderContext ctx) {}
         /// <summary>
         /// Labeling pass to display labeler's visualization components, if applicable. Important note, all labeler's visualizations need
-        /// to use Unity's Immediate Mode GUI (IMGUI) <see cref="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
-        /// This called is triggered from <see cref="perceptionCamera.OnGUI"/> call. This call happens immediately before <see cref="OnVisualizeAdditionalUI"/>
+        /// to use Unity's Immediate Mode GUI (IMGUI) <see href="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
+        /// This called is triggered from <see cref="PerceptionCamera.OnGUI"/> call. This call happens immediately before <see cref="OnVisualizeAdditionalUI"/>
         /// so that the visualization components are drawn below the UI elements.
         /// </summary>
         protected virtual void OnVisualize() {}
         /// <summary>
         /// In this pass, a labeler can add custom GUI controls to the scene. Important note, all labeler's additional
-        /// GUIs need to use Unity's Immediate Mode GUI (IMGUI) <see cref="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
-        /// This called is triggered from <see cref="perceptionCamera.OnGUI"/> call. This call happens immediately after the <see cref="OnVisualize"/>
+        /// GUIs need to use Unity's Immediate Mode GUI (IMGUI) <see href="https://docs.unity3d.com/Manual/GUIScriptingGuide.html"/> system.
+        /// This called is triggered from <see cref="PerceptionCamera.OnGUI"/> call. This call happens immediately after the <see cref="OnVisualize"/>
         /// so that the visualization components are drawn below the UI elements.
         /// </summary>
         protected virtual void OnVisualizeAdditionalUI() {}
@@ -144,7 +144,7 @@ namespace UnityEngine.Perception.GroundTruth
         /// visualization (<see cref="supportsVisualization"/>) or visualization is not enabled on the PerceptionCamera
         /// this will not function.
         /// </summary>
-        internal bool visualizationEnabled
+        public bool visualizationEnabled
         {
             get
             {
@@ -178,6 +178,10 @@ namespace UnityEngine.Perception.GroundTruth
                 visualizationEnabled = GUILayout.Toggle(visualizationEnabled, "");
                 GUILayout.EndHorizontal();
                 if (visualizationEnabled) OnVisualizeAdditionalUI();
+            }
+            else
+            {
+                GUILayout.Label(GetType().Name);
             }
         }
 

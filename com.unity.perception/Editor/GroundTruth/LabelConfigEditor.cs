@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
-using UnityEngine.Perception.GroundTruth;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 
 namespace UnityEditor.Perception.GroundTruth
 {
@@ -229,9 +229,9 @@ namespace UnityEditor.Perception.GroundTruth
             if (m_EditorHasUi && m_UiInitialized)
             {
                 RefreshNonPresentLabels();
-                m_NonPresentLabelsListView.Refresh();
+                m_NonPresentLabelsListView.Rebuild();
                 RefreshListViewHeight();
-                m_LabelListView.Refresh();
+                m_LabelListView.Rebuild();
             }
         }
 
@@ -259,7 +259,7 @@ namespace UnityEditor.Perception.GroundTruth
         protected virtual void SetupPresentLabelsListView()
         {
             m_LabelListView.itemsSource = m_AddedLabels;
-            m_LabelListView.itemHeight = m_AddedLabelsItemHeight;
+            m_LabelListView.fixedItemHeight = m_AddedLabelsItemHeight;
             m_LabelListView.selectionType = SelectionType.Single;
 
             m_LabelListView.RegisterCallback<AttachToPanelEvent>(evt => { RefreshListViewHeight(); });
@@ -285,14 +285,14 @@ namespace UnityEditor.Perception.GroundTruth
 
             m_NonPresentLabelsListView.bindItem = BindItem;
             m_NonPresentLabelsListView.makeItem = MakeItem;
-            m_NonPresentLabelsListView.itemHeight = m_OtherLabelsItemHeight;
+            m_NonPresentLabelsListView.fixedItemHeight = m_OtherLabelsItemHeight;
             m_NonPresentLabelsListView.selectionType = SelectionType.None;
         }
 
         protected void RefreshListViewHeight()
         {
             m_LabelListView.style.minHeight =
-                Mathf.Clamp(m_LabelListView.itemsSource.Count * m_LabelListView.itemHeight, 300, 600);
+                Mathf.Clamp(m_LabelListView.itemsSource.Count * m_LabelListView.fixedItemHeight, 300, 600);
         }
 
         string FindNewLabelString(List<string> labels)

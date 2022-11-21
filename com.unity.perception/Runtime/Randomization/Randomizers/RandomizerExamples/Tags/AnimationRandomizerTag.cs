@@ -1,7 +1,7 @@
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags
+namespace UnityEngine.Perception.Randomization.Randomizers.Tags
 {
     /// <summary>
     /// Used in conjunction with a <see cref="AnimationRandomizer"/> to select a random animation frame for
@@ -9,12 +9,13 @@ namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tag
     /// </summary>
     [RequireComponent(typeof(Animator))]
     [AddComponentMenu("Perception/RandomizerTags/Animation Randomizer Tag")]
+    [MovedFrom("UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags")]
     public class AnimationRandomizerTag : RandomizerTag
     {
         /// <summary>
         /// A list of animation clips from which to choose
         /// </summary>
-        public AnimationClipParameter animationClips;
+        public CategoricalParameter<AnimationClip> animationClips;
 
         /// <summary>
         /// Apply the root motion to the animator. If true, if an animation has a rotation translation and/or rotation

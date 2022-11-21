@@ -1,15 +1,19 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 
 namespace GroundTruthTests
@@ -33,20 +37,120 @@ namespace GroundTruthTests
 
             if (Directory.Exists(m_Endpoint.currentPath))
                 Directory.Delete(m_Endpoint.currentPath, true);
+
             DatasetCapture.OverrideEndpoint(null);
         }
 
-        static (RgbSensorDefinition, SensorHandle) RegisterSensor(string id, string modality, string sensorDescription, int firstCaptureFrame, CaptureTriggerMode captureTriggerMode, float simDeltaTime, int framesBetween, bool affectTiming = false)
+        PerceptionCamera SetupCamera(IdLabelConfig config)
         {
-            var sensorDefinition = new RgbSensorDefinition(id, modality, sensorDescription)
+            var cameraObject = new GameObject();
+            var camera = cameraObject.AddComponent<Camera>();
+            camera.orthographic = false;
+            camera.fieldOfView = 60;
+            camera.nearClipPlane = 0.3f;
+            camera.farClipPlane = 1000;
+
+            var perceptionCamera = cameraObject.AddComponent<PerceptionCamera>();
+            perceptionCamera.captureRgbImages = true;
+            return perceptionCamera;
+        }
+
+        [UnityTest]
+        public IEnumerator AddNewLabelerTest_ReportsCorrectOutput()
+        {
+            DatasetCapture.ResetSimulation();
+
+            var(sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity);
+            var def = new CustomLabeler.CustomDefinition();
+
+            var cfg = ScriptableObject.CreateInstance<IdLabelConfig>();
+            cfg.Init(new List<IdLabelEntry> {new IdLabelEntry {id = 1, label = "test"}});
+
+            var labeler = new CustomLabeler(cfg);
+
+            var cam = SetupCamera(cfg);
+            cam.AddLabeler(labeler);
+
+            yield return null;
+            DatasetCapture.ResetSimulation();
+            Assert.IsFalse(sensorHandle.IsValid);
+
+            // Verify that annotation was written to annotation_definitions.json
+            var annDefPath = PathUtils.CombineUniversal(m_Endpoint.datasetPath, "annotation_definitions.json");
+            FileAssert.Exists(annDefPath);
+
+            var annDef = JObject.Parse(File.ReadAllText(annDefPath));
+
+            Assert.IsTrue(annDef.ContainsKey("annotation_definitions"));
+            var sub = annDef["annotation_definitions"];
+
+            var expectedDef = new JArray
             {
-                firstCaptureFrame = firstCaptureFrame,
-                captureTriggerMode = captureTriggerMode,
-                simulationDeltaTime = simDeltaTime,
-                framesBetweenCaptures = framesBetween,
-                manualSensorsAffectTiming = affectTiming
+                new JObject
+                {
+                    {"@type", "custom.type"},
+                    {"id", "TestTestTest"},
+                    { "description", "labeler" },
+                    { "spec", new JArray
+                      {
+                          new JObject
+                          {
+                              { "label_id", 1 },
+                              { "label_name", "test" }
+                          }
+                      }}
+                }
             };
-            return (sensorDefinition, DatasetCapture.RegisterSensor(sensorDefinition));
+
+            Assert.IsTrue(JToken.DeepEquals(sub, expectedDef));
+
+            var capturesPath = PathUtils.CombineUniversal(m_Endpoint.datasetPath, "captures_000.json");
+
+            FileAssert.Exists(capturesPath);
+
+            var cap = JObject.Parse(File.ReadAllText(capturesPath));
+            var a = cap["captures"][0]["annotations"][0];
+
+            var expectedAnn = new JObject
+            {
+                { "@type", "custom.type" },
+                { "id", "TestTestTest" },
+                { "sensorId", "camera" },
+                { "description", "labeler" },
+                { "values", new JArray
+                  {
+                      new JObject
+                      {
+                          { "instanceId", 0 },
+                          { "labelId", 1 },
+                          { "labelName", "test"},
+                          { "vals", new JArray {0, 17, 42 } }
+                      }
+                  }}
+            };
+
+            Assert.IsTrue(JToken.DeepEquals(a, expectedAnn));
+
+            UnityEngine.Object.DestroyImmediate(cam.gameObject);
+        }
+
+        [Test]
+        [Ignore("Interacts with PlayerPrefs, which causes other tests to fail")]
+        public void PerceptionEndpointIsValidTest()
+        {
+            // Create a directory, verify that endpoint is valid
+            var newDir = Guid.NewGuid().ToString();
+            var p = PathUtils.CombineUniversal(m_Endpoint.currentPath, newDir);
+            Directory.CreateDirectory(p);
+
+            m_Endpoint.basePath = p;
+            Assert.IsTrue(m_Endpoint.IsValid(out _));
+
+            // Delete that directory, verify that endpoint is not longer valid
+            Directory.Delete(p);
+
+            Assert.IsFalse(m_Endpoint.IsValid(out _));
         }
 
         [UnityTest]
@@ -63,7 +167,7 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
+            var(sensorDef, sensorHandle) = TestHelper.RegisterSensor(id, modality, def, firstFrame, mode, delta, framesBetween);
             Assert.IsTrue(sensorHandle.IsValid);
 
             yield return null;
@@ -179,8 +283,8 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            var (sensor, json) = CreateMocRgbCapture(sensorDef, DatasetCapture.currentSimulation.currentFrame);
+            var(sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var(sensor, json) = CreateMocRgbCapture(sensorDef, Time.frameCount);
             sensorHandle.ReportSensor(sensor);
 
             yield return null;
@@ -200,10 +304,10 @@ namespace GroundTruthTests
             // Need to reset simulation so that the override endpoint is used
             DatasetCapture.ResetSimulation();
 
-            var (def1, sensorHandle1) = RegisterSensor("camera1", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
-            var (def2, sensorHandle2) = RegisterSensor("camera2", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var(def1, sensorHandle1) = TestHelper.RegisterSensor("camera1", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var(def2, sensorHandle2) = TestHelper.RegisterSensor("camera2", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
 
-            var (sensor1, sensor2, json) = CreateMocRgbCapture2(def1, def2, DatasetCapture.currentSimulation.currentFrame);
+            var(sensor1, sensor2, json) = CreateMocRgbCapture2(def1, def2, Time.frameCount);
 
             sensorHandle1.ReportSensor(sensor1);
             sensorHandle2.ReportSensor(sensor2);
@@ -226,7 +330,7 @@ namespace GroundTruthTests
         {
             DatasetCapture.ResetSimulation();
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var(sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "camera", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
             var sensor = new RgbSensor(sensorDef, Vector3.zero, Quaternion.identity)
             {
                 buffer = Array.Empty<byte>()
@@ -249,13 +353,13 @@ namespace GroundTruthTests
 
             DatasetCapture.RegisterAnnotationDefinition(def);
             sensorHandle.ReportAnnotation(def, annotation);
-            var frameAtRecord = DatasetCapture.currentFrame;
+            var frameAtRecord = Time.frameCount;
 
             yield return null;
             DatasetCapture.ResetSimulation();
             Assert.IsFalse(sensorHandle.IsValid);
 
-           var annotationDefinitionsJsonExpected =
+            var annotationDefinitionsJsonExpected =
                 $@"{{
   ""version"": ""{PerceptionEndpoint.version}"",
   ""annotation_definitions"": [
@@ -316,7 +420,7 @@ namespace GroundTruthTests
 
             const string expectedLine = @"""step"": 0";
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var(sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
 
             yield return null;
             yield return null;
@@ -340,7 +444,7 @@ namespace GroundTruthTests
             var def = new TestMetricDef();
             DatasetCapture.RegisterMetric(def);
 
-            var (sensorDef, sensorHandle) = RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
+            var(sensorDef, sensorHandle) = TestHelper.RegisterSensor("camera", "", "", 0, CaptureTriggerMode.Scheduled, 1, 0);
 
             yield return null;
 
@@ -543,6 +647,117 @@ namespace GroundTruthTests
 }}";
 
             return (sensor1, sensor2, capturesJsonExpected);
+        }
     }
+
+    internal class CustomLabeler : CameraLabeler
+    {
+        internal struct CustomLabel : IMessageProducer
+        {
+            public int labelId { get; set; }
+            public string labelName { get; set; }
+            public uint instanceId { get; set; }
+            public int[] vals { get; set; }
+
+            public void ToMessage(IMessageBuilder builder)
+            {
+                builder.AddInt("instanceId", (int)instanceId);
+                builder.AddInt("labelId", labelId);
+                builder.AddString("labelName", labelName);
+                builder.AddIntArray("vals", vals);
+            }
+        }
+
+        internal class CustomDefinition : AnnotationDefinition
+        {
+            internal const string myDescription = "labeler";
+            internal const string sId = "test.def";
+
+            public CustomDefinition() : base(sId) {}
+
+            public override string modelType => "custom.type";
+            public override string description => myDescription;
+
+            public IdLabelConfig.LabelEntrySpec[] spec { get; }
+
+            public CustomDefinition(string id, IdLabelConfig.LabelEntrySpec[] spec)
+                : base(id)
+            {
+                this.spec = spec;
+            }
+
+            public override void ToMessage(IMessageBuilder builder)
+            {
+                base.ToMessage(builder);
+                foreach (var e in spec)
+                {
+                    var nested = builder.AddNestedMessageToVector("spec");
+                    e.ToMessage(nested);
+                }
+            }
+        }
+
+        internal class CustomAnnotation : Annotation
+        {
+            readonly List<CustomLabel> values;
+
+            public CustomAnnotation(AnnotationDefinition definition, string sensorId, List<CustomLabel> values)
+                : base(definition, sensorId)
+            {
+                this.values = values;
+            }
+
+            public override void ToMessage(IMessageBuilder builder)
+            {
+                base.ToMessage(builder);
+                foreach (var v in values)
+                {
+                    var nested = builder.AddNestedMessageToVector("values");
+                    v.ToMessage(nested);
+                }
+            }
+
+            public override bool IsValid() => true;
+        }
+
+        public override string description => CustomDefinition.myDescription;
+        public override string labelerId => "TestTestTest";
+        protected override bool supportsVisualization => false;
+        public IdLabelConfig idLabelConfig;
+        CustomDefinition m_Definition;
+
+        public CustomLabeler()
+        {
+        }
+
+        public CustomLabeler(IdLabelConfig cfg)
+        {
+            idLabelConfig = cfg;
+        }
+
+        /// <inheritdoc/>
+        protected override void Setup()
+        {
+            if (idLabelConfig == null)
+                throw new InvalidOperationException("IdLabelConfig field must be assigned");
+
+            m_Definition = new CustomDefinition(labelerId, idLabelConfig.GetAnnotationSpecification());
+
+            DatasetCapture.RegisterAnnotationDefinition(m_Definition);
+
+            visualizationEnabled = supportsVisualization;
+        }
+
+        protected override void OnBeginRendering(ScriptableRenderContext scriptableRenderContext)
+        {
+            var label = new CustomLabel();
+            label.instanceId = 0;
+            label.labelId = 1;
+            label.labelName = "test";
+            label.vals = new[] { 0, 17, 42 };
+
+            var annotation = new CustomAnnotation(m_Definition, perceptionCamera.id, new List<CustomLabel> { label });
+            perceptionCamera.SensorHandle.ReportAnnotation(m_Definition, annotation);
+        }
     }
 }

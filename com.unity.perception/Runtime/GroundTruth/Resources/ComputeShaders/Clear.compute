@@ -1,0 +1,18 @@
+﻿#pragma kernel ClearBuffer
+#pragma kernel ClearTexture
+
+float clearValue;
+RWStructuredBuffer<float> inputBuffer;
+RWTexture2D<float> inputTexture;
+
+[numthreads(256, 1, 1)]
+void ClearBuffer(uint3 threadId: SV_DispatchThreadID)
+{
+    inputBuffer[threadId.x] = clearValue;
+}
+
+[numthreads(16, 16, 1)]
+void ClearTexture(uint3 threadId: SV_DispatchThreadID)
+{
+    inputTexture[threadId.xy] = clearValue;
+}

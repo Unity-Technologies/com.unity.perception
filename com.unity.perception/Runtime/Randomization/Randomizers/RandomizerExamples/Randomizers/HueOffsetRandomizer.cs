@@ -1,15 +1,17 @@
-﻿using System;
+using System;
 using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers.Tags;
+using UnityEngine.Perception.Randomization.Randomizers.Tags;
 using UnityEngine.Perception.Randomization.Samplers;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers
+namespace UnityEngine.Perception.Randomization.Randomizers
 {
     /// <summary>
     /// Randomly offsets the hue of objects tagged with a ColorRandomizerTag
     /// </summary>
     [Serializable]
     [AddRandomizerMenu("Perception/Hue Offset Randomizer")]
+    [MovedFrom("UnityEngine.Perception.Randomization.Randomizers.SampleRandomizers")]
     public class HueOffsetRandomizer : Randomizer
     {
         static readonly int k_HueOffsetShaderProperty = Shader.PropertyToID("_HueOffset");

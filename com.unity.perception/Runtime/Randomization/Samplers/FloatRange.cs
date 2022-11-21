@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEngine.Perception.Randomization.Samplers

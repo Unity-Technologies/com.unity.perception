@@ -1,0 +1,21 @@
+﻿#pragma kernel InstanceIdToColor
+
+StructuredBuffer<uint> colorBuffer;
+Texture2D<uint> instanceIdTexture;
+RWTexture2D<float4> colorTexture;
+
+float4 ColorFromPackedColor(uint packedColor)
+{
+    return float4(
+        (packedColor       & 0xFFu) / 255.0f,
+        (packedColor >> 8  & 0xFFu) / 255.0f,
+        (packedColor >> 16 & 0xFFu) / 255.0f,
+        (packedColor >> 24 & 0xFFu) / 255.0f);
+}
+
+[numthreads(16, 16, 1)]
+void InstanceIdToColor(uint3 threadId: SV_DispatchThreadID)
+{
+    const uint instanceIdIndex = instanceIdTexture[threadId.xy];
+    colorTexture[threadId.xy] = ColorFromPackedColor(colorBuffer[instanceIdIndex]);
+}

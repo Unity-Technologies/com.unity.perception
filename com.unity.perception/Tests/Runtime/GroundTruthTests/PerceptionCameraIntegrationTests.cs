@@ -6,6 +6,8 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 using UnityEngine.TestTools;
 
 #if MOQ_PRESENT
@@ -40,6 +42,7 @@ namespace GroundTruthTests
             DatasetCapture.ResetSimulation();
 
             var plane = TestHelper.CreateLabeledPlane();
+            var instanceId = plane.GetComponent<Labeling>().instanceId;
             AddTestObjectForCleanup(plane);
             //a plane is 10x10 by default, so scale it down to be 10x1 to cover the center half of the image
             plane.transform.localScale = new Vector3(10f, -1f, .1f);
@@ -71,9 +74,9 @@ namespace GroundTruthTests
 
             Assert.AreEqual(1, boxes.boxes.Count);
             var box = boxes.boxes[0];
-            Assert.AreEqual(100,box.labelId);
-            Assert.AreEqual("label",box.labelName);
-            Assert.AreEqual(1,box.instanceId);
+            Assert.AreEqual(100, box.labelId);
+            Assert.AreEqual("label", box.labelName);
+            Assert.AreEqual(instanceId, box.instanceId);
             Assert.AreEqual(Screen.width, box.dimension.x);
             Assert.AreEqual(Screen.height / 2, box.dimension.y);
             Assert.AreEqual(0, box.origin.x);
@@ -162,6 +165,7 @@ namespace GroundTruthTests
             });
             return labelConfig;
         }
+
         static SemanticSegmentationLabelConfig CreateSemanticSegmentationLabelConfig()
         {
             var label = "label";

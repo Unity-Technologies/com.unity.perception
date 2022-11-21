@@ -1,7 +1,8 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.Randomization.Randomizers
+namespace UnityEngine.Perception.Randomization.Utilities
 {
     /// <summary>
     /// This collection has the properties of a HashSet that also preserves insertion order. As such, this data
@@ -9,12 +10,13 @@ namespace UnityEngine.Perception.Randomization.Randomizers
     /// O(1) lookup, O(1) insertion, O(1) removal, and O(n) traversal
     /// </summary>
     /// <typeparam name="T">The item type to store in this collection</typeparam>
+    [MovedFrom("UnityEngine.Perception.Randomization.Randomizers")]
     class LinkedHashSet<T> : ICollection<T>
     {
         readonly IDictionary<T, LinkedListNode<T>> m_Dictionary;
         readonly LinkedList<T> m_LinkedList;
 
-        public LinkedHashSet() : this(EqualityComparer<T>.Default) { }
+        public LinkedHashSet() : this(EqualityComparer<T>.Default) {}
 
         public LinkedHashSet(IEqualityComparer<T> comparer)
         {

@@ -1,13 +1,20 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 
 namespace UnityEditor.Perception.GroundTruth
 {
+    /// <summary>
+    /// Editor check for GameObject parent has a Labeling component
+    /// </summary>
     [CustomEditor(typeof(JointLabel))]
     [CanEditMultipleObjects]
     public class JointLabelEditor : Editor
     {
+        /// <summary>
+        /// Editor check for GameObject parent has a Labeling component
+        /// </summary>
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();

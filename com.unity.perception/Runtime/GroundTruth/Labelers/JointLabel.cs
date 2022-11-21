@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth.Labelers;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -92,7 +93,7 @@ namespace UnityEngine.Perception.GroundTruth
             Mesh sphereMesh = null;
 #if UNITY_EDITOR
             var defaultAssets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Library/unity default resources");
-            sphereMesh = (Mesh) defaultAssets.FirstOrDefault(a => a.name == "Sphere");
+            sphereMesh = (Mesh)defaultAssets.FirstOrDefault(a => a.name == "Sphere");
 
 #endif
             float occlusionDistance;
@@ -108,7 +109,7 @@ namespace UnityEngine.Perception.GroundTruth
                 }
                 else
                 {
-                    var keypointLabeler = (KeypointLabeler) s_SinglePerceptionCamera.labelers.FirstOrDefault(l => l is KeypointLabeler);
+                    var keypointLabeler = (KeypointLabeler)s_SinglePerceptionCamera.labelers.FirstOrDefault(l => l is KeypointLabeler);
                     var template = keypointLabeler?.activeTemplate;
                     if (template == null)
                         occlusionDistance = KeypointDefinition.defaultSelfOcclusionDistance;

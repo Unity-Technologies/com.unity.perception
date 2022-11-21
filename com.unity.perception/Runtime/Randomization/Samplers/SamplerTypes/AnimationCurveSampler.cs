@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine.Assertions;
+using System;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -19,6 +18,10 @@ namespace UnityEngine.Perception.Randomization.Samplers
         [Tooltip("Probability distribution curve used for this sampler. The X axis corresponds to the values this sampler will pick from, and the Y axis corresponds to the relative probability of the values. The relative probabilities (Y axis) do not need to max out at 1 as only the shape of the curve matters. The Y values cannot however be negative.")]
         public AnimationCurve distributionCurve;
 
+        /// <summary>
+        /// Checks if range valid
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
         public void CheckAgainstValidRange()
         {
             throw new NotImplementedException();
@@ -65,7 +68,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// </summary>
         /// <param name="curve">The animation curve to sample from</param>
         /// <param name="numberOfSamples">Number of samples used for integrating over the provided AnimationCurve</param>
-        public AnimationCurveSampler(AnimationCurve curve, int numberOfSamples=500)
+        public AnimationCurveSampler(AnimationCurve curve, int numberOfSamples = 500)
         {
             distributionCurve = curve;
             numOfSamplesForIntegration = numberOfSamples;

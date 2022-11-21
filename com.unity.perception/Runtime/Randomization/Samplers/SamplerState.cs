@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Perception.Randomization.Samplers
+namespace UnityEngine.Perception.Randomization.Samplers
 {
     /// <summary>
     /// Encapsulates the random state that all samplers mutate when generating random values

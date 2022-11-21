@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Perception.GroundTruth.DataModel;
 
 namespace UnityEngine.Perception.GroundTruth
@@ -12,6 +12,14 @@ namespace UnityEngine.Perception.GroundTruth
         /// The human readable description of the endpoint
         /// </summary>
         public string description { get; }
+
+        /// <summary>
+        /// Checks to see if an endpoint is configured properly. If an endpoint is invalid the endpoint
+        /// will not be able to properly produce generated data.
+        /// </summary>
+        /// <param name="errorMessage">If validation fails, this will be updated with an error message</param>
+        /// <returns>True if validation is successful</returns>
+        public bool IsValid(out string errorMessage);
 
         /// <summary>
         /// Called when the simulation begins. Provides simulation wide metadata to
@@ -51,5 +59,12 @@ namespace UnityEngine.Perception.GroundTruth
         /// </summary>
         /// <param name="metadata">Metadata describing the entire simulation process</param>
         public void SimulationCompleted(SimulationMetadata metadata);
+
+        /// <summary>
+        /// Call this method for endpoint to restore crash point and resume simulation to the same folder
+        /// </summary>
+        /// <returns>string - path to the folder. int - last generated frame</returns>
+        /// <param name="maxFrameCount">maxFrameCount describes required amount of frames to be generated</param>
+        public (string, int) ResumeSimulationFromCrash(int maxFrameCount);
     }
 }

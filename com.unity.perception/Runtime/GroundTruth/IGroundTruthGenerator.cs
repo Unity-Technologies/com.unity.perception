@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -13,8 +14,9 @@ namespace UnityEngine.Perception.GroundTruth
         /// <param name="mpb">The <see cref="MaterialPropertyBlock"/> for the given <see cref="MeshRenderer"/>. Can be used to set properties for custom rendering.</param>
         /// <param name="renderer">The <see cref="Renderer"/> under the given <see cref="LabelManager"/>.</param>
         /// <param name="labeling">The <see cref="LabelManager"/> component that was registered, created, or enabled</param>
+        /// <param name="material">The specific material on the Renderer that the MaterialPropertyBlock will be applied to.</param>
         /// <param name="instanceId">The instanceId assigned to the given <see cref="LabelManager"/> instance.</param>
-        void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, uint instanceId);
+        void SetupMaterialProperties(MaterialPropertyBlock mpb, Renderer renderer, Labeling labeling, Material material, uint instanceId);
 
         /// <summary>
         /// Disables ground truth generation for a <see cref="Labeling"/> component or its associated <see cref="MaterialPropertyBlock"/>. This function is called by <see cref="LabelManager"/> when a <see cref="Labeling"/> component is disabled.

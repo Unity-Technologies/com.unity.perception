@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.Labelers;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable NotAccessedField.Local
@@ -12,6 +15,46 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
 {
     static class PerceptionJsonFactory
     {
+        class PerceptionJsonMessageBuilder : JsonMessageBuilder
+        {
+            PerceptionEndpoint m_Endpoint;
+
+            public PerceptionJsonMessageBuilder(PerceptionEndpoint endpoint)
+            {
+                m_Endpoint = endpoint;
+            }
+
+            static string GetOrCreateDirectory(string basePath, string key)
+            {
+                var name = PathUtils.CombineUniversal(basePath, key);
+
+                if (!Directory.Exists(name))
+                {
+                    Directory.CreateDirectory(name);
+                }
+
+                return name;
+            }
+
+            public override void AddEncodedImage(string key, string extension, byte[] value)
+            {
+                var filename = string.Empty;
+
+                if (value.Length > 0)
+                {
+                    // Get the output directory for labeler, create if necessary, for this we use the key
+                    var fName = $"{key}_{m_Endpoint.currentFrame}.{extension.ToLower()}";
+                    var path = GetOrCreateDirectory(m_Endpoint.currentPath, key);
+                    path = PathUtils.CombineUniversal(path, fName);
+                    PathUtils.WriteAndReportImageFile(path, value);
+                    m_Endpoint.RegisterFile(path);
+                    filename = PathUtils.CombineUniversal(key, fName);
+                }
+
+                currentJToken["filename"] = filename;
+            }
+        }
+
         public static JToken Convert(PerceptionEndpoint consumer, string id, AnnotationDefinition annotationDefinition)
         {
             switch (annotationDefinition)
@@ -26,9 +69,12 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
                     return JToken.FromObject(PerceptionSemanticSegmentationAnnotationDefinition.Convert(def, "PNG"), consumer.Serializer);
                 case KeypointAnnotationDefinition kp:
                     return JToken.FromObject(PerceptionKeypointAnnotationDefinition.Convert(consumer, kp), consumer.Serializer);
+                default:
+                    // If not special case code, use the to message architecture
+                    var msgBuilder = new PerceptionJsonMessageBuilder(consumer);
+                    annotationDefinition.ToMessage(msgBuilder);
+                    return msgBuilder.ToJson();
             }
-
-            return null;
         }
 
         public static JToken Convert(PerceptionEndpoint consumer, string id, MetricDefinition def)
@@ -40,7 +86,10 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
                 case RenderedObjectInfoMetricDefinition casted:
                     return JToken.FromObject(LabelConfigMetricDefinition.Convert(id, def, casted.spec), consumer.Serializer);
                 default:
-                    return JToken.FromObject(GenericMetricDefinition.Convert(id, def), consumer.Serializer);
+                    // If not special case code, use the to message architecture
+                    var msgBuilder = new PerceptionJsonMessageBuilder(consumer);
+                    def.ToMessage(msgBuilder);
+                    return msgBuilder.ToJson();
             }
         }
 
@@ -96,8 +145,10 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
                 }
                 default:
                 {
-                    var tmp = JToken.FromObject(annotation, consumer.Serializer);
-                    return tmp;
+                    // If not special case code, use the to message architecture
+                    var msgBuilder = new PerceptionJsonMessageBuilder(consumer);
+                    annotation.ToMessage(msgBuilder);
+                    return msgBuilder.ToJson();
                 }
             }
         }
@@ -187,6 +238,9 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
             public int index;
             public float x;
             public float y;
+            public float camera_x;
+            public float camera_y;
+            public float camera_z;
             public int state;
 
             Keypoint(KeypointValue kp)
@@ -194,6 +248,9 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
                 index = kp.index;
                 x = kp.location.x;
                 y = kp.location.y;
+                camera_x = kp.cameraCartesianLocation.x;
+                camera_y = kp.cameraCartesianLocation.y;
+                camera_z = kp.cameraCartesianLocation.z;
                 state = kp.state;
             }
 
@@ -270,6 +327,7 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         }
     }
 
+
     [Serializable]
     struct PerceptionRgbSensor
     {
@@ -312,12 +370,16 @@ namespace UnityEngine.Perception.GroundTruth.Consumers
         internal struct Entry
         {
             public int instance_id;
+            public int labelId;
+            public string labelName;
             public Color32 color;
 
             Entry(InstanceSegmentationEntry entry)
             {
                 instance_id = entry.instanceId;
-                color = entry.rgba;
+                color = entry.color;
+                labelId = entry.labelId;
+                labelName = entry.labelName;
             }
 
             internal static Entry Convert(InstanceSegmentationEntry entry)

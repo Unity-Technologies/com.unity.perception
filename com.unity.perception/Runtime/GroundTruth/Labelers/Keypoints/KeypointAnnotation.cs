@@ -1,12 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// The product of the keypoint labeler
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class KeypointAnnotation : Annotation
     {
         internal KeypointAnnotation(AnnotationDefinition def, string sensorId, string templateId, List<KeypointComponent> entries)
@@ -20,6 +22,10 @@ namespace UnityEngine.Perception.GroundTruth
         /// The template that the points are based on
         /// </summary>
         public string templateId { get; set; }
+
+        /// <summary>
+        /// The captured keypoint entries.
+        /// </summary>
         public IEnumerable<KeypointComponent> entries { get; set; }
 
         /// <inheritdoc/>

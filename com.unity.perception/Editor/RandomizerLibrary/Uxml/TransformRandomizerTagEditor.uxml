@@ -1,0 +1,25 @@
+<UXML
+        xmlns="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements"
+>
+    <VisualElement style="margin: 2 4 2 4;">
+        <Style src="../Uss/Common.uss"/>
+        <Toggle label="Randomize Position?" name="shouldRandomizePosition" binding-path="shouldRandomizePosition" />
+        <VisualElement name="positionContainer" class="internal__group_container" style="margin-top: 6; margin-bottom: 6;">
+            <editor:EnumField label="Translation Mode" binding-path="positionMode" />
+            <editor:PropertyField name="position" binding-path="position"/>
+        </VisualElement>
+        <Toggle label="Randomize Rotation?" name="shouldRandomizeRotation" binding-path="shouldRandomizeRotation" />
+        <VisualElement name="rotationContainer" class="internal__group_container" style="margin-top: 6; margin-bottom: 6;">
+            <editor:EnumField label="Rotation Mode" binding-path="rotationMode" />
+            <editor:PropertyField name="rotation" binding-path="rotation"/>
+        </VisualElement>
+        <Toggle label="Randomize Scale?" name="shouldRandomizeScale" binding-path="shouldRandomizeScale" />
+        <VisualElement name="scaleContainer" class="internal__group_container" style="margin-top: 6; margin-bottom: 6;">
+            <Toggle name="useUniformScale" label="Scale all axes uniformly?" binding-path="useUniformScale" />
+            <editor:EnumField label="Scaling Mode" binding-path="scaleMode" />
+            <editor:PropertyField name="scale" binding-path="scale"/>
+            <editor:PropertyField name="uniformScale" binding-path="uniformScale" />
+        </VisualElement>
+    </VisualElement>
+</UXML>

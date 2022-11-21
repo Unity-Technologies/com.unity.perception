@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 
-namespace UnityEditor.Perception.GroundTruth {
+namespace UnityEditor.Perception.GroundTruth
+{
     /// <summary>
     /// Base class for all inspector drawers for <see cref="CameraLabeler"/> types. To override the inspector for a
     /// CameraLabeler, derive from this class and decorate the class with a <see cref="CameraLabelerDrawerAttribute"/>
@@ -18,7 +19,7 @@ namespace UnityEditor.Perception.GroundTruth {
         List<SerializedProperty> m_LabelerUserProperties = new List<SerializedProperty>();
 
         /// <summary>
-        /// The cameraLabeler instance
+        /// The cameraLabeler insta nce
         /// </summary>
         public CameraLabeler cameraLabeler { get; internal set; }
 
@@ -70,7 +71,7 @@ namespace UnityEditor.Perception.GroundTruth {
         /// <summary>
         /// Use this function to initialize the local SerializedProperty you will use in your labeler.
         /// </summary>
-        protected virtual void Initialize() { }
+        protected virtual void Initialize() {}
 
         internal void OnGUI(Rect rect, SerializedProperty property)
         {
@@ -117,7 +118,8 @@ namespace UnityEditor.Perception.GroundTruth {
             enabledRect.x = rect.xMax - enabledSize.x;
             enabledRect.width = enabledSize.x;
 
-            EditorGUI.LabelField(headerRect, new GUIContent($"{cameraLabeler.GetType().Name}", $"{cameraLabeler.description}"), EditorStyles.boldLabel);
+            var labelerName = ObjectNames.NicifyVariableName(cameraLabeler.GetType().Name);
+            EditorGUI.LabelField(headerRect, new GUIContent($"{labelerName}", $"{cameraLabeler.description}"), EditorStyles.boldLabel);
             EditorGUIUtility.labelWidth = enabledRect.width - 14;
             m_Enabled.boolValue = EditorGUI.Toggle(enabledRect, Styles.enabled, m_Enabled.boolValue);
             EditorGUIUtility.labelWidth = 0;

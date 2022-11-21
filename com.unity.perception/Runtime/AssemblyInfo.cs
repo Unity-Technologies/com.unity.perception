@@ -9,3 +9,5 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Perception.Runtime")]
 [assembly: InternalsVisibleTo("Unity.Perception.TestProject")]
 [assembly: InternalsVisibleTo("Unity.Perception.Performance.Tests")]
+[assembly: InternalsVisibleTo("Unity.Perception.Internal.Runtime")]
+[assembly: InternalsVisibleTo("Unity.Perception.Internal.Editor")]

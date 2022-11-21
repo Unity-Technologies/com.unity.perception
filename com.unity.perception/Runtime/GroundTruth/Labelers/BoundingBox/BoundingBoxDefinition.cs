@@ -1,10 +1,13 @@
-﻿using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// The annotation definition of a bounding box labeler
     /// </summary>
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
     public class BoundingBoxDefinition : AnnotationDefinition
     {
         internal const string labelerDescription = "Produces 2D bounding box annotations for all visible objects that bear a label defined in this labeler's associated label configuration.";

@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine.Assertions;
+using System;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -61,7 +60,7 @@ namespace UnityEngine.Perception.Randomization.Samplers
         /// <param name="max">The largest value contained within the range</param>
         /// <param name="mean">The mean of the normal distribution to sample from</param>
         /// <param name="standardDeviation">The standard deviation of the normal distribution to sample from</param>
-        /// <param name="shouldCheckValidRange">Whether the provided <see cref="minAllowed"/> and <see cref="maxAllowed"/> values should be used to validate the range provided with <see cref="minimum"/> and <see cref="maximum"/></param>
+        /// <param name="shouldCheckValidRange">Whether the provided min and max values should be used to validate the range provided with <see cref="minAllowed"/> and <see cref="maxAllowed"/></param>
         /// <param name="minAllowed">The smallest min value allowed for this range</param>
         /// <param name="maxAllowed">The largest max value allowed for this range</param>
         public NormalSampler(
@@ -95,6 +94,9 @@ namespace UnityEngine.Perception.Randomization.Samplers
             CheckAgainstValidRange();
         }
 
+        /// <summary>
+        /// Checks if range valid
+        /// </summary>
         public void CheckAgainstValidRange()
         {
             if (shouldCheckValidRange && (range.minimum < minAllowed || range.maximum > maxAllowed))

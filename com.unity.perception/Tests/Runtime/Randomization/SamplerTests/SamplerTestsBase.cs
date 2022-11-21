@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using NUnit.Framework;
-using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Perception.Randomization.Samplers;
 using UnityEngine.Perception.Randomization.Scenarios;

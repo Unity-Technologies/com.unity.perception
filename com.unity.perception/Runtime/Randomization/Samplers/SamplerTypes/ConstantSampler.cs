@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine.Assertions;
+using System;
 
 namespace UnityEngine.Perception.Randomization.Samplers
 {
@@ -73,6 +72,9 @@ namespace UnityEngine.Perception.Randomization.Samplers
             CheckAgainstValidRange();
         }
 
+        /// <summary>
+        /// Checks if range valid
+        /// </summary>
         public void CheckAgainstValidRange()
         {
             if (shouldCheckValidRange && (value < minAllowed || value > maxAllowed))

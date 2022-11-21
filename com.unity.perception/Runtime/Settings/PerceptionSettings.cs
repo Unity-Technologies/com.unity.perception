@@ -1,9 +1,8 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
 using System;
 using System.IO;
-using UnityEditor.Perception.GroundTruth;
 using UnityEngine;
 using UnityEngine.Perception.GroundTruth;
 using UnityEngine.Perception.GroundTruth.Consumers;
@@ -11,16 +10,62 @@ using UnityEngine.Perception.GroundTruth.DataModel;
 
 namespace UnityEngine.Perception.Settings
 {
+    /// <summary>
+    /// Package setting that can be stored in unity editor and passed during build execution as a command line parameter
+    /// </summary>
     [Serializable]
+    [AddComponentMenu("")]
     public class PerceptionSettings : MonoBehaviour
     {
         static string s_GameObjectName = "_PerceptionSettings";
         static PerceptionSettings s_Instance;
         static bool s_HideInHierarchy = true;
-#if !UNITY_EDITOR
-        (bool, string) GetPathFromCommandLine()
+        internal Metadata userPreferences { get; private set; }
+        string m_CachedPathValue = string.Empty;
+
+        [SerializeReference, ConsumerEndpointDrawer(typeof(IConsumerEndpoint))]
+        internal IConsumerEndpoint consumerEndpoint = new SoloEndpoint();
+
+        public static IConsumerEndpoint endpoint
         {
-            (bool, string) errorResult = (false, string.Empty);
+            get => instance.consumerEndpoint;
+            set => instance.consumerEndpoint = value;
+        }
+
+        /// <summary>
+        /// Instance for the managed object
+        /// </summary>
+        internal static PerceptionSettings instance
+        {
+            get
+            {
+                if (s_Instance == null)
+                {
+                    var obj = GameObject.Find(s_GameObjectName);
+                    if (obj == null)
+                    {
+                        obj = new GameObject(s_GameObjectName);
+                    }
+
+                    s_Instance = obj.GetComponent<PerceptionSettings>();
+                    if (s_Instance == null)
+                    {
+                        s_Instance = obj.AddComponent<PerceptionSettings>();
+                    }
+
+                    s_Instance.Initialize();
+                }
+
+                s_Instance.gameObject.hideFlags = s_HideInHierarchy ? HideFlags.HideInHierarchy | HideFlags.HideInInspector : HideFlags.None;
+
+                return s_Instance;
+            }
+        }
+
+#if !UNITY_EDITOR
+        static (bool, string) GetPathFromCommandLine()
+        {
+            (bool, string)errorResult = (false, string.Empty);
 
             var args = Environment.GetCommandLineArgs();
             var index = Array.FindIndex(args, x => x.Equals("--output-path"));
@@ -58,25 +103,35 @@ namespace UnityEngine.Perception.Settings
             return (true, path);
         }
 
-        public string GetOutputBasePath()
+        /// <summary>
+        /// Method to get output path based on configuration
+        /// </summary>
+        /// <returns>Path to the output file</returns>
+        public static string GetOutputBasePath()
         {
 #if UNITY_SIMULATION_CORE_PRESENT
             if (Unity.Simulation.Configuration.Instance.IsSimulationRunningInCloud())
                 return defaultOutputPath;
 #endif
-            var (isOk, path) = GetPathFromCommandLine();
+            var(isOk, path) = GetPathFromCommandLine();
 
             return isOk ? path : defaultOutputPath;
         }
+
 #else
-        public string GetOutputBasePath()
+        /// <summary>
+        /// Method to get output path based on configuration
+        /// </summary>
+        /// <returns>Path to the output file</returns>
+        public static string GetOutputBasePath()
         {
 #if UNITY_SIMULATION_CORE_PRESENT
             if (Unity.Simulation.Configuration.Instance.IsSimulationRunningInCloud())
                 return defaultOutputPath;
 #endif
-            return userPreferences.TryGetValue($"{endpoint.GetType().FullName}.output_path", out string path) ? path : defaultOutputPath;
+            return instance.userPreferences.TryGetValue($"{instance.consumerEndpoint.GetType().FullName}.output_path", out string path) ? path : defaultOutputPath;
         }
+
 #endif
 
         /// <summary>
@@ -85,15 +140,18 @@ namespace UnityEngine.Perception.Settings
         /// <see cref="DatasetCapture.ResetSimulation"/>
         /// </summary>
         /// <param name="path">The output path</param>
-        public void SetOutputBasePath(string path)
+        public static void SetOutputBasePath(string path)
         {
-            userPreferences.Add($"{endpoint.GetType().FullName}.output_path", path);
+            instance.userPreferences.Add($"{instance.consumerEndpoint.GetType().FullName}.output_path", path);
 #if UNITY_EDITOR
             Save();
 #endif
         }
 
-        public string defaultOutputPath
+        /// <summary>
+        /// Default output folder for the dataset generation
+        /// </summary>
+        public static string defaultOutputPath
         {
             get
             {
@@ -106,10 +164,6 @@ namespace UnityEngine.Perception.Settings
             }
         }
 
-        internal Metadata userPreferences { get; private set; }
-
-        string m_CachedPathValue = string.Empty;
-
         string filePath
         {
             get
@@ -120,7 +174,6 @@ namespace UnityEngine.Perception.Settings
                 }
 
                 return m_CachedPathValue;
-
             }
         }
 
@@ -145,39 +198,13 @@ namespace UnityEngine.Perception.Settings
             }
         }
 
-        public static PerceptionSettings instance
-        {
-            get
-            {
-                if (s_Instance == null)
-                {
-                    var obj = GameObject.Find(s_GameObjectName);
-                    if (obj == null)
-                    {
-                        obj = new GameObject(s_GameObjectName);
-                    }
-
-                    s_Instance = obj.GetComponent<PerceptionSettings>();
-                    if (s_Instance == null)
-                    {
-                        s_Instance = obj.AddComponent<PerceptionSettings>();
-                    }
-
-                    s_Instance.Initialize();
-                }
-
-                s_Instance.gameObject.hideFlags = s_HideInHierarchy ? HideFlags.HideInHierarchy | HideFlags.HideInInspector : HideFlags.None;
-
-                return s_Instance;
-            }
-        }
-
 #if UNITY_EDITOR
-        public void Save()
+        public static void Save()
         {
-            var json = userPreferences.ToJson();
-            File.WriteAllText(filePath, json);
+            var json = instance.userPreferences.ToJson();
+            File.WriteAllText(instance.filePath, json);
         }
+
 #endif
 
 #if UNITY_EDITOR
@@ -185,9 +212,17 @@ namespace UnityEngine.Perception.Settings
         {
             return new SerializedObject(instance);
         }
+
 #endif
 
-        [SerializeReference][ConsumerEndpointDrawer(typeof(IConsumerEndpoint))]
-        public IConsumerEndpoint endpoint = new PerceptionEndpoint();
+        [SerializeReference]
+        public AccumulationSettings accumulationSettings = new AccumulationSettings()
+        {
+            accumulationSamples = 256,
+            shutterInterval = 0,
+            shutterFullyOpen = 0,
+            shutterBeginsClosing = 1,
+            adaptFixedLengthScenarioFrames = true,
+        };
     }
 }

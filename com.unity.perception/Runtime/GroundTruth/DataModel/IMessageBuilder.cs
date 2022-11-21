@@ -1,4 +1,6 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 
 namespace UnityEngine.Perception.GroundTruth.DataModel
@@ -81,13 +83,37 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
         /// </summary>
         public enum ElementType
         {
+            /// <summary>
+            /// Byte element type
+            /// </summary>
             Byte,
+            /// <summary>
+            /// Char element type
+            /// </summary>
             Char,
+            /// <summary>
+            /// Bool element type
+            /// </summary>
             Bool,
+            /// <summary>
+            /// Int element type
+            /// </summary>
             Int,
+            /// <summary>
+            /// Uint element type
+            /// </summary>
             Uint,
+            /// <summary>
+            /// Float element type
+            /// </summary>
             Float,
+            /// <summary>
+            /// Double element type
+            /// </summary>
             Double,
+            /// <summary>
+            /// Long element type
+            /// </summary>
             Long
         }
 
@@ -496,7 +522,7 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
             var buffer = new byte[shape * sizeof(byte)];
             Buffer.BlockCopy(cArray, 0, buffer, 0, shape * sizeof(byte));
 
-            return new Tensor(Tensor.ElementType.Byte, new []{ shape }, buffer);
+            return new Tensor(Tensor.ElementType.Byte, new[] { shape }, buffer);
         }
 
         /// <summary>
@@ -605,15 +631,20 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
         }
 
         /// <summary>
-        /// Converts a float3x3 object into a tensor
+        /// Converts a float3x3 matrix into a tensor
         /// </summary>
-        /// <param name="f">The data to convert into a tensor</param>
-        /// <returns>The tensor form of the data</returns>
-        public static Tensor ToTensor(float3x3 f)
+        /// <param name="m">The matrix to convert into a tensor</param>
+        /// <returns>The tensor form of the matrix</returns>
+        public static Tensor ToTensor(float3x3 m)
         {
             var shape = new[] { 3, 3 };
             const int count = 9;
-            var fArray = new[] { f.c0.x, f.c0.y, f.c0.z, f.c1.x, f.c1.y, f.c1.z, f.c2.x, f.c2.y, f.c2.z };
+            var fArray = new[]
+            {
+                m.c0.x, m.c0.y, m.c0.z,
+                m.c1.x, m.c1.y, m.c1.z,
+                m.c2.x, m.c2.y, m.c2.z
+            };
             var buffer = new byte[count * sizeof(float)];
             Buffer.BlockCopy(fArray, 0, buffer, 0, count * sizeof(float));
 
@@ -693,6 +724,207 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
     }
 
     /// <summary>
+    /// Creates messageQueue immediately in memory. Later it can be converted to any message with IMessageBuilder
+    /// </summary>
+    public class InMemoryMessageBuilder : IMessageBuilder, IMessageProducer
+    {
+        class EncodedImage
+        {
+            internal EncodedImage(string ext, byte[] value)
+            {
+                Ext = ext;
+                Value = value;
+            }
+
+            internal readonly string Ext;
+            internal readonly byte[] Value;
+        }
+
+        readonly List<(string, object)> kvps = new();
+
+        public void AddByte(string key, byte value)
+        {
+            kvps.Add((key, value));
+        }
+
+        public void AddChar(string key, char value)
+        {
+            kvps.Add((key, value));
+        }
+
+        public void AddInt(string key, int value)
+        {
+            kvps.Add((key, value));
+        }
+
+        public void AddUInt(string key, uint value)
+        {
+            kvps.Add((key, value));
+        }
+
+        public void AddLong(string key, long value)
+        {
+            kvps.Add((key, value));
+        }
+
+        public void AddFloat(string key, float value)
+        {
+            kvps.Add((key, value));
+        }
+
+        public void AddDouble(string key, double value)
+        {
+            kvps.Add((key, value));
+        }
+
+        public void AddString(string key, string value)
+        {
+            kvps.Add((key, value));
+        }
+
+        public void AddBool(string key, bool value)
+        {
+            kvps.Add((key, value));
+        }
+
+        public void AddEncodedImage(string key, string extension, byte[] value)
+        {
+            kvps.Add((key, new EncodedImage(extension, value)));
+        }
+
+        public void AddByteArray(string key, IEnumerable<byte> value)
+        {
+            kvps.Add((key, value.ToArray()));
+        }
+
+        public void AddIntArray(string key, IEnumerable<int> value)
+        {
+            kvps.Add((key, value.ToArray()));
+        }
+
+        public void AddUIntArray(string key, IEnumerable<uint> value)
+        {
+            kvps.Add((key, value.ToArray()));
+        }
+
+        public void AddLongArray(string key, IEnumerable<long> value)
+        {
+            kvps.Add((key, value.ToArray()));
+        }
+
+        public void AddFloatArray(string key, IEnumerable<float> value)
+        {
+            kvps.Add((key, value.ToArray()));
+        }
+
+        public void AddDoubleArray(string key, IEnumerable<double> value)
+        {
+            kvps.Add((key, value.ToArray()));
+        }
+
+        public void AddStringArray(string key, IEnumerable<string> value)
+        {
+            kvps.Add((key, value.ToArray()));
+        }
+
+        public void AddBoolArray(string key, IEnumerable<bool> value)
+        {
+            kvps.Add((key, value.ToArray()));
+        }
+
+        public void AddTensor(string key, Tensor tensor)
+        {
+            kvps.Add((key, tensor));
+        }
+
+        public IMessageBuilder AddNestedMessage(string key)
+        {
+            var message = new InMemoryMessageBuilder();
+            kvps.Add((key, message));
+            return message;
+        }
+
+        public IMessageBuilder AddNestedMessageToVector(string arrayKey)
+        {
+            var message = new InMemoryMessageBuilder();
+            kvps.Add((arrayKey, new List<InMemoryMessageBuilder> { message }));
+            return message;
+        }
+
+        public void ToMessage(IMessageBuilder builder)
+        {
+            foreach (var kvp in kvps)
+            {
+                switch (kvp.Item2)
+                {
+                    case byte b:
+                        builder.AddByte(kvp.Item1, b);
+                        break;
+                    case char c:
+                        builder.AddChar(kvp.Item1, c);
+                        break;
+                    case int i:
+                        builder.AddInt(kvp.Item1, i);
+                        break;
+                    case uint i:
+                        builder.AddUInt(kvp.Item1, i);
+                        break;
+                    case long l:
+                        builder.AddLong(kvp.Item1, l);
+                        break;
+                    case float f:
+                        builder.AddFloat(kvp.Item1, f);
+                        break;
+                    case double d:
+                        builder.AddDouble(kvp.Item1, d);
+                        break;
+                    case string s:
+                        builder.AddString(kvp.Item1, s);
+                        break;
+                    case bool b:
+                        builder.AddBool(kvp.Item1, b);
+                        break;
+                    case EncodedImage encoded:
+                        builder.AddEncodedImage(kvp.Item1, encoded.Ext, encoded.Value);
+                        break;
+                    case IEnumerable<int> ints:
+                        builder.AddIntArray(kvp.Item1, ints);
+                        break;
+                    case IEnumerable<uint> uints:
+                        builder.AddUIntArray(kvp.Item1, uints);
+                        break;
+                    case IEnumerable<long> longs:
+                        builder.AddLongArray(kvp.Item1, longs);
+                        break;
+                    case IEnumerable<double> ds:
+                        builder.AddDoubleArray(kvp.Item1, ds);
+                        break;
+                    case IEnumerable<float> fs:
+                        builder.AddFloatArray(kvp.Item1, fs);
+                        break;
+                    case IEnumerable<string> strings:
+                        builder.AddStringArray(kvp.Item1, strings);
+                        break;
+                    case IEnumerable<bool> bs:
+                        builder.AddBoolArray(kvp.Item1, bs);
+                        break;
+                    case Tensor t:
+                        builder.AddTensor(kvp.Item1, t);
+                        break;
+                    case InMemoryMessageBuilder m:
+                        var messageBuilderChild = builder.AddNestedMessage(kvp.Item1);
+                        m.ToMessage(messageBuilderChild);
+                        break;
+                    case List<InMemoryMessageBuilder> m:
+                        var nestedMessageToVector = builder.AddNestedMessageToVector(kvp.Item1);
+                        m[0].ToMessage(nestedMessageToVector);
+                        break;
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Interface for a message builder class. A message builder is used to convert data
     /// inherited from <see cref="IMessageProducer"/> and convert it to a message.
     /// </summary>
@@ -752,55 +984,71 @@ namespace UnityEngine.Perception.GroundTruth.DataModel
         /// <param name="key">The key to add</param>
         /// <param name="value">The value to add</param>
         void AddBool(string key, bool value);
+        /// <summary>
+        /// Add an encoded byte array image to the message as a key/value pair.
+        /// </summary>
+        /// <param name="key">The key to add</param>
+        /// <param name="extension">Image extension for the image type, for example a PNG image would be "png"</param>
+        /// <param name="value">The array of values to add</param>
+        void AddEncodedImage(string key, string extension, byte[] value);
 
         /// <summary>
         /// Add a key/value array pair to the message.
         /// </summary>
         /// <param name="key">The key to add</param>
         /// <param name="value">The array of values to add</param>
-        void AddByteArray(string key, byte[] value);
+        /// <remarks>This method is obsolete, using <see cref="AddEncodedImage"/> instead</remarks>
+        [Obsolete("AddByteArray has been deprecated, Use AddEncodedImage instead", true)]
+        void AddByteArray(string key, IEnumerable<byte> value);
+
         /// <summary>
         /// Add a key/value array pair to the message.
         /// </summary>
         /// <param name="key">The key to add</param>
         /// <param name="value">The array of values to add</param>
-        void AddIntArray(string key, int[] value);
+        void AddIntArray(string key, IEnumerable<int> value);
+
         /// <summary>
         /// Add a key/value array pair to the message.
         /// </summary>
         /// <param name="key">The key to add</param>
         /// <param name="value">The array of values to add</param>
-        void AddUintArray(string key, uint[] value);
+        void AddUIntArray(string key, IEnumerable<uint> value);
+
         /// <summary>
         /// Add a key/value array pair to the message.
         /// </summary>
         /// <param name="key">The key to add</param>
         /// <param name="value">The array of values to add</param>
-        void AddLongArray(string key, long[] value);
+        void AddLongArray(string key, IEnumerable<long> value);
+
         /// <summary>
         /// Add a key/value array pair to the message.
         /// </summary>
         /// <param name="key">The key to add</param>
         /// <param name="value">The array of values to add</param>
-        void AddFloatArray(string key, float[] value);
+        void AddFloatArray(string key, IEnumerable<float> value);
+
         /// <summary>
         /// Add a key/value array pair to the message.
         /// </summary>
         /// <param name="key">The key to add</param>
         /// <param name="value">The array of values to add</param>
-        void AddDoubleArray(string key, double[] value);
+        void AddDoubleArray(string key, IEnumerable<double> value);
+
         /// <summary>
         /// Add a key/value array pair to the message.
         /// </summary>
         /// <param name="key">The key to add</param>
         /// <param name="value">The array of values to add</param>
-        void AddStringArray(string key, string[] value);
+        void AddStringArray(string key, IEnumerable<string> value);
+
         /// <summary>
         /// Add a key/value array pair to the message.
         /// </summary>
         /// <param name="key">The key to add</param>
         /// <param name="value">The array of values to add</param>
-        void AddBoolArray(string key, bool[] value);
+        void AddBoolArray(string key, IEnumerable<bool> value);
         /// <summary>
         /// Add a key/tensor value pair to the message.
         /// </summary>

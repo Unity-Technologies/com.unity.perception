@@ -1,13 +1,21 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Perception.GroundTruth.DataModel;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace UnityEngine.Perception.GroundTruth
+namespace UnityEngine.Perception.GroundTruth.Labelers
 {
     /// <summary>
     /// The generated product of the labeler
     /// </summary>
-    public class BoundingBox3DAnnotation : DataModel.Annotation
+    [MovedFrom("UnityEngine.Perception.GroundTruth")]
+    public class BoundingBox3DAnnotation : Annotation
     {
+        /// <summary>
+        /// Public constructor for the BoundingBox3DAnnotation
+        /// </summary>
+        /// <param name="def">BoundingBox3DDefinition</param>
+        /// <param name="sensorId">Sensor data was received from</param>
+        /// <param name="boxes">List of BoundingBox on screen</param>
         public BoundingBox3DAnnotation(BoundingBox3DDefinition def, string sensorId, List<BoundingBox3D> boxes)
             : base(def, sensorId)
         {

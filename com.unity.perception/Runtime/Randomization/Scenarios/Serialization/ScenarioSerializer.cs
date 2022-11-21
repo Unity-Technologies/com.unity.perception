@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -132,7 +132,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 samplerData.defaultSampler = new ConstantSampler
                 {
                     value = constantSampler.value,
-                    limits = constantSampler.shouldCheckValidRange? new Limits {
+                    limits = constantSampler.shouldCheckValidRange ? new Limits
+                    {
                         min = constantSampler.minAllowed,
                         max = constantSampler.maxAllowed,
                     } : null
@@ -142,7 +143,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 {
                     min = uniformSampler.range.minimum,
                     max = uniformSampler.range.maximum,
-                    limits = uniformSampler.shouldCheckValidRange? new Limits {
+                    limits = uniformSampler.shouldCheckValidRange ? new Limits
+                    {
                         min = uniformSampler.minAllowed,
                         max = uniformSampler.maxAllowed,
                     } : null
@@ -154,7 +156,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     max = normalSampler.range.maximum,
                     mean = normalSampler.mean,
                     stddev = normalSampler.standardDeviation,
-                    limits = normalSampler.shouldCheckValidRange? new Limits {
+                    limits = normalSampler.shouldCheckValidRange ? new Limits
+                    {
                         min = normalSampler.minAllowed,
                         max = normalSampler.maxAllowed,
                     } : null
@@ -186,7 +189,8 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                 return new DoubleScalarValue
                 {
                     num = Convert.ToDouble(field.GetValue(obj)),
-                    limits = shouldCheckValidRange? new Limits {
+                    limits = shouldCheckValidRange ? new Limits
+                    {
                         min = minAllowed,
                         max = maxAllowed,
                     } : null
@@ -195,6 +199,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
             return null;
         }
+
         #endregion
 
         #region Deserialization
@@ -313,7 +318,7 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
             if (rangeAttributes.Any())
             {
-                rangeAttribute = (RangeAttribute) rangeAttributes.First();
+                rangeAttribute = (RangeAttribute)rangeAttributes.First();
             }
 
             var readScalar = ReadScalarValue(obj, scalar);
@@ -343,7 +348,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
                     }
                     else
                         field.SetValue(obj, Convert.ChangeType(readScalar.Item1, field.FieldType));
-
                 }
                 else
                 {
@@ -353,7 +357,6 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
                     field.SetValue(obj, Convert.ChangeType(readScalar.Item1, field.FieldType));
                 }
-
             }
             else
             {
@@ -380,12 +383,16 @@ namespace UnityEngine.Perception.Randomization.Scenarios.Serialization
 
             return (value, limits);
         }
+
         #endregion
 
-        static bool IsSubclassOfRawGeneric(Type generic, Type toCheck) {
-            while (toCheck != null && toCheck != typeof(object)) {
+        static bool IsSubclassOfRawGeneric(Type generic, Type toCheck)
+        {
+            while (toCheck != null && toCheck != typeof(object))
+            {
                 var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
-                if (generic == cur) {
+                if (generic == cur)
+                {
                     return true;
                 }
                 toCheck = toCheck.BaseType;

@@ -14,7 +14,7 @@ This page serves as the hub for all Perception-related documentation. We have br
 | [SOLO Schema](../Schema/SoloSchema.md)                    | Schema for annotation, metric, and ground-truth data for the default SOLO endpoint                  |
 | [Labeling](../GroundTruthLabeling.md)                     | A component that marks a GameObject and its descendants with a set of labels                        |
 | [Label Config](../GroundTruthLabeling.md#label-config)    | An asset that defines a taxonomy of labels for ground truth generation                              |
-| [Randomization](../Randomization/Index.md)                | The Randomization tool set lets you integrate domain randomization principles into your simulation. |
+| [Randomization](../Randomization/index.md)                | The Randomization tool set lets you integrate domain randomization principles into your simulation. |
 | [FAQ](../FAQ/FAQ.md)                                      | Frequently Asked Questions about common workflows and issues.                                       |
 | [Legacy Perception Schema](../Schema/PerceptionSchema.md) | Schema for annotation, metric, and ground-truth data for the legacy Perception endpoint             |
 
@@ -34,7 +34,7 @@ This page serves as the hub for all Perception-related documentation. We have br
 
 | Feature                                               | Description                                                                                                                               |
 |-------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| [Randomization](../Randomization/Index.md)            | The Randomization toolset lets you integrate domain randomization principles into your simulation.                                        |
+| [Randomization](../Randomization/index.md)            | The Randomization toolset lets you integrate domain randomization principles into your simulation.                                        |
 | [Scenarios](../Randomization/Scenarios.md)            | Scenarios control execution flow of your simulation – how many iterations to run the simulation, what randomizers to use, etc.            |
 | [Randomizers](../Randomization/Randomizers.md)        | Randomizers encapsulate specific randomization activities to perform during the lifecycle of a randomized simulation.                     |
 | [Randomizer Tags](../Randomization/RandomizerTags.md) | RandomizerTags are the primary mechanism by which Randomizers query for a certain subset of GameObjects to randomize within a simulation. |

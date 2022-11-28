@@ -200,27 +200,27 @@ This will guarantee an upper limit of 50 on the number of objects. To have exact
 
   ```C#
   using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Perception.Randomization.Parameters;
-using UnityEngine.Perception.Randomization.Randomizers;
-using UnityEngine.Perception.Randomization.Randomizers.Utilities;
-using UnityEngine.Perception.Randomization.Samplers;
+  using System.Collections.Generic;
+  using System.Linq;
+  using UnityEngine;
+  using UnityEngine.Perception.Randomization.Parameters;
+  using UnityEngine.Perception.Randomization.Randomizers;
+  using UnityEngine.Perception.Randomization.Samplers;
+  using UnityEngine.Perception.Randomization.Utilities;
 
-[Serializable]
-[AddRandomizerMenu("Example/No Overlap Foreground Object Placement Randomizer")]
-public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
-{
+  [Serializable]
+  [AddRandomizerMenu("Example/No Overlap Foreground Object Placement Randomizer")]
+  public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
+  {
     public float depth;
     [Tooltip("Range of scales used for objects. All objects in each frame will use the same scale.")]
     public FloatParameter scaleParameter = new FloatParameter { value = new UniformSampler(4, 8) };
     public Vector2 placementArea;
-    public GameObjectParameter prefabs;
-    
+    public CategoricalParameter<GameObject> prefabs;
+
     [Tooltip("Degree to which we can guarantee that no objects will overlap. Use 1 for no overlap and smaller values (down to 0) for more dense placement with a possibility of some overlap.")]
     public float nonOverlapGuarantee = 1;
-    
+
     float m_ScaleFactor = 1f;
     GameObject m_Container;
     GameObjectOneWayCache m_GameObjectOneWayCache;
@@ -234,13 +234,13 @@ public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
         m_Container = new GameObject("Foreground Objects");
         m_Container.transform.parent = scenario.transform;
         m_GameObjectOneWayCache = new GameObjectOneWayCache(
-            m_Container.transform, prefabs.categories.Select(element => element.Item1).ToArray());
+            m_Container.transform, prefabs.categories.Select(element => element.Item1).ToArray(), this);
         m_GameObjectBoundsSizeCache = new Dictionary<GameObject, float>();
         m_SelectedPrefabs = new List<GameObject>();
 
         //Calculate the average bounds size for the prefabs included in this categorical parameter
         var averageBoundsSize = CalculateAverageBoundsSize();
-        
+
         //Calculate average scale based on the scale range given
         var averageScale = 1f;
         var sampler = (UniformSampler)scaleParameter.value;
@@ -249,7 +249,7 @@ public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
             averageScale = (sampler.range.minimum + sampler.range.maximum) / 2;
         }
 
-        //Use average bounds size and average scale to guess the maximum number of objects that can be placed without having them overlap. 
+        //Use average bounds size and average scale to guess the maximum number of objects that can be placed without having them overlap.
         //This is a heuristic to help us start the placement process. The actual number of items placed will usually be much smaller.
         m_SelectionPoolSizePerFrame = (int)(placementArea.x * placementArea.y / (averageBoundsSize * averageScale));
     }
@@ -259,14 +259,14 @@ public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
         m_ScaleFactor = scaleParameter.Sample();
         m_SelectedPrefabs.Clear();
 
-        //Select a random number of prefabs for this frame. Placement calculations will be done based on this subset. 
+        //Select a random number of prefabs for this frame. Placement calculations will be done based on this subset.
         for (var i = 0; i < m_SelectionPoolSizePerFrame; i++)
         {
             var randIndex = (int)Mathf.Round((m_IndexSelector.Sample() * prefabs.categories.Count) - 0.5f);
             m_SelectedPrefabs.Add(prefabs.categories[randIndex].Item1);
         }
 
-        //Calculate the minimum separation distance needed for the selected prefabs to not overlap.  
+        //Calculate the minimum separation distance needed for the selected prefabs to not overlap.
         var separationDistance = CalculateMaxSeparationDistance(m_SelectedPrefabs);
         var seed = SamplerState.NextRandomState();
         var placementSamples = PoissonDiskSampling.GenerateSamples(
@@ -295,7 +295,7 @@ public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
     /// <returns>The max separation distance</returns>
     float CalculateMaxSeparationDistance(ICollection<GameObject> categories)
     {
-        var maxBoundsSize = m_GameObjectBoundsSizeCache.Where(item => categories.Contains(item.Key)).Max(pair => pair.Value); 
+        var maxBoundsSize = m_GameObjectBoundsSizeCache.Where(item => categories.Contains(item.Key)).Max(pair => pair.Value);
         return maxBoundsSize * m_ScaleFactor * nonOverlapGuarantee;
     }
 
@@ -319,8 +319,7 @@ public class NoOverlapForegroundObjectPlacementRandomizer : Randomizer
 
         return m_GameObjectBoundsSizeCache.Values.Average();
     }
-}
-
+  }
   ```
 ---
 </details>
@@ -411,7 +410,7 @@ Each Iteration of the Scenario resets the Perception Camera's timing variables. 
 </details>
 
 <details>
-  <summary><strong>Q: I want to simulate physics (or other accumulative behaviors such as auto-exposure) for a number of frames and let things settle before capturing the Scene. Is this possible with the Perception package?</strong></summary><br>
+  <summary><strong>Q: I want to simulate physics for a number of frames and let things settle before capturing the Scene. Is this possible with the Perception package?</strong></summary><br>
 
 Yes. The Perception Camera can be set to capture at specific frame intervals, rather than every frame. The `Frames Between Captures` value is set to 0 by default, which causes the camera to capture all frames; however, you can change this to 1 to capture every other frame, or larger numbers to allow more time between captures. You can also have the camera start capturing at a certain frame rather than the first frame, by setting the `Start at Frame` value to a value other than 0. All of this timing happens within each Iteration of the Scenario, and gets reset when you advance to the next Iteration. Therefore, the combination of these properties and the Scenario's `Frames Per Iteration` property allows you to randomize the state of your Scene at the start of each Iteration, let things run for a number of frames, and then capture the Scene at the end of the Iteration.
 
@@ -421,6 +420,14 @@ Suppose we need to drop a few objects into the Scene, let them interact physical
 <p align="center">
 <img src="../images/object_drop.gif" width="700"/>
 </p>  
+
+---
+</details>
+
+<details>
+  <summary><strong>Q: Is there a way to use accumulated rendering effects such as Auto Exposure, Screen Space Global Illumination, or Path Tracing? </strong></summary><br>
+
+Yes. For this purpose, the Perception package offers an Accumulation feature, which allows you to accumulate a set number of rendered frames to achieve each final image. This feature works seamlessly by pausing all movement and physics when captures happen, and needs minimal effort to setup. You do not need to explicitly modify the number of frames per Iteration to make this feature work, as it automatically calculates things for you at runtime, as long as you use the default Scenario class provided in the package, which is named `FixedLengthScenario`. Head over to our [guide on Accumulation](../Accumulation.md) to learn how to use this feature.
 
 ---
 </details>
@@ -528,15 +535,13 @@ A project's lighting configuration typically influences the final rendered outpu
 
 * HDRP lighting: A default HDRP scene offers a step toward more realistic environments with a much larger array of lighting settings (soft shadows, multiple dynamic lights, etc.) and a host of additional real-time effects like camera exposure and screen space ambient occlusion. A warning though: real time screen space effects may make your scene "look better", but the way these effects are calculated is not based on how light works in the real world, so realism may vary. Another huge advantage of HDRP is the potential to have moderately realistic lighting without baking your lighting configuration (though you can integrate light baking if you want to). However, there is no real-time global illumination option in default HDRP, meaning that your scene will not simulate complex real world light behavior such as light bouncing, light bleeding, or realistic shadows for dynamic scenes. This can result in unrealistically dark scenes when only using directional lights and windows (without extra interior lights to brighten things up). Overall though, HDRP offers a good compromise between performance and realism for some use cases.
 
-* HDRP DXR (DirectX Raytracing): Unity offers some preview ray tracing features in its latest editor versions that can be used to drastically improve the realism of your scene. Here are the pros and cons of DXR:
+* HDRP DXR (DirectX Raytracing): Unity offers ray tracing features in its latest editor versions. These can be used to drastically improve the realism of your scene. Here are the pros and cons of DXR:
   * Pros:
-    * Can simulate more realistic light behaviors (light bouncing, light color bleeding, and realistic shadows)
+    * Can simulate more realistic light behaviors (light bouncing, light color bleeding, and realistic shadows) and even full path tracing
     * No light baking required
   * Cons:
-    * Requires special hardware to run (Nvidia RTX graphics cards)
-    * Time consuming to render (relative to default HDRP). Some lighting options (Global Illumination) are less expensive than others (Path Tracing).
-    * More complicated to configure
-    * These features are still in preview and subject to change
+    * Requires GPU acceleration for ray tracing
+    * Time consuming to render (relative to default HDRP). Some lighting options (Global Illumination) are less expensive than others (Path Tracing).        
  
 A visual comparison of the different lighting configurations in HDRP is shown below. The Scene includes one directional light and one dim point light on the ceiling.
 
@@ -563,6 +568,10 @@ HDRP with Path Tracing (4096 samples) (more samples leads to less ray tracing no
 <p align="center">
 <img src="../images/hdrp_pt_4096_samples.png" width="700"/>
 </p>  
+
+In addition, the path tracing feature now also offers denoising, which can drastically improve the quality of the output images with much fewer samples than the above example.
+
+To use path tracing, you will need to utilize the [Accumulation feature](../Accumulation.md) offered by Perception.
 
 ---
 </details>

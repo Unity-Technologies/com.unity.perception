@@ -5,5 +5,5 @@
   * [Labeling](GroundTruthLabeling.md)
   * [Perception Camera](PerceptionCamera.md)
   * [Dataset Capture](DatasetCapture.md)
-  * [Randomization](Randomization/Index.md)
+  * [Randomization](Randomization/index.md)
 

@@ -1,0 +1,174 @@
+{% metadata_file .yamato/environments.yml %}
+
+---
+
+{% for editor in complete_editors %}
+{% for suite in suites %}
+{% for project in projects %}
+{{project.name}}_windows_{{suite.name}}_{{editor.version}}:
+  name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Windows)
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - git submodule update --init --recursive
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    {% if suite.name == "standalone" %}
+    - utr/utr --testproject=./{{project.name}} --editor-location=./.Editor --reruncount=2 --artifacts_path=test-results --category=!Performance;!Python --stdout-filter=minimal --extra-editor-arg="--force-d3d11 -debugCodeOptimization" {{suite.args}}StandaloneWindows64
+    {% else %}
+    - utr/utr --testproject=./{{project.name}} --editor-location=./.Editor --reruncount=2 --artifacts_path=test-results --category=!Performance --stdout-filter=minimal --extra-editor-arg="--force-d3d11 -debugCodeOptimization" {{suite.args}}
+    {% endif %}
+    - git diff --exit-code *.api # fail if any changes are made to .api files
+  artifacts:
+    logs:
+      paths:
+        - "test-results/**/*"
+
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+{% for editor in coverage_editors %}
+{% for suite in suites %}
+codecoverage_windows_{{suite.name}}_{{editor.version}}:
+  name : CodeCoverage {{ suite.display_name }} tests ({{ editor.version }}, Windows)
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  commands:
+    - git submodule update --init --recursive
+    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    - .\.Editor\Unity.exe -projectPath ./PerceptionHDRP -testPlatform editmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results --category=!Performance -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;assemblyFilters:+Unity.Perception.Runtime
+    - .\.Editor\Unity.exe -projectPath ./PerceptionHDRP -testPlatform playmode -runTests -automated -testResults test-results -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results --category=!Performance -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;assemblyFilters:+Unity.Perception.Runtime
+  #  - .\.Editor\Unity.exe -projectPath ./PerceptionHDRP -debugCodeOptimization -enableCodeCoverage -coverageResultsPath test-results -coverageOptions enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;
+  artifacts:
+    logs:
+      paths:
+        - "test-results/**/*"
+        - "TestProjects/PerceptionHDRP/test-results/**/*"
+  dependencies:
+    - .yamato/upm-ci-full.yml#pack_Perception
+{% endfor %}
+{% endfor %}
+
+{% for editor in complete_editors %}
+{% for suite in suites %}
+{% for project in projects %}
+{{project.name}}_linux_{{suite.name}}_{{editor.version}}:
+  name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Linux)
+  agent:
+    type: Unity::VM::GPU
+    model: rtx2080
+    image: package-ci/ubuntu:v3.6.0-1145766
+    flavor: b1.large
+  variables:
+    PATH: /root/.local/bin:/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+  commands:
+    - git submodule update --init --recursive
+    - pip config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
+    - unity-downloader-cli -u {{ editor.version }} -c editor -c StandaloneSupport-IL2CPP -c Linux --wait --published
+    {% if suite.name == "standalone" %}
+    - DISPLAY=:0.0 utr/utr --testproject=./{{project.name}} --editor-location=.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --category=!Performance --extra-editor-arg="--force-vulkan" {{suite.args}}StandaloneLinux64
+    {% else %}
+    - DISPLAY=:0.0 utr/utr --testproject=./{{project.name}} --editor-location=.Editor --reruncount=2 --artifacts_path=test-results --stdout-filter=minimal --category=!Performance  --extra-editor-arg="--force-vulkan" {{suite.args}}
+    {% endif %}
+  artifacts:
+    logs:
+      paths:
+        - "test-results/**/*"
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+{% for editor in complete_editors %}
+{% for suite in suites %}
+{% for project in projects %}
+{{project.name}}_mac_{{suite.name}}_{{editor.version}}:
+  name : {{project.name}} {{ suite.display_name }} tests ({{ editor.version }}, Mac)
+  agent:
+    type: Unity::metal::macmini
+    image: slough-ops/macos-10.14-base
+    flavor: b1.medium
+  variables:
+    PATH: /root/.local/bin:/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+  commands:
+    - git submodule update --init --recursive
+
+    # Debug stuff.
+    - env | sort
+
+    # Fix SSH config on the VM. The Bokken team is fixing this in the base images.
+    - sed -i '' 's/172\.28\.218\.\*/172\.28\.224\.\*/g' ~/.ssh/config
+
+    # Cleanup stuff for a Yamato Remote re-run. Only delete the source dir on the device if you really need to wipe it.
+    - ssh bokken@$BOKKEN_DEVICE_IP "rm -rf ~/.ssh/id_rsa_cds_github ~/.ssh/config ~/.utr_result ~/setup_codesign.sh"
+    - rm -rf ~/.utr_result
+
+    # Get Github CDS SSH privkey.
+    - echo $GITHUB_CDS_SSH_PRIVKEY | base64 -D -i - -o id_rsa_cds_github
+    - scp id_rsa_cds_github bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_cds_github
+    - ssh bokken@$BOKKEN_DEVICE_IP "chmod 400 ~/.ssh/*"
+
+    # Get UTR into the test folder.
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
+    - chmod +x $YAMATO_SOURCE_DIR/utr
+
+    # Upload the repo to the device or update it. The folder will be at ~/YAMATO_SOURCE_DIR in the remote. Ignore dot files to keep it snappy (especially for Yamato Remote).
+    - rsync -uaqP --exclude=".*" --inplace $YAMATO_SOURCE_DIR  bokken@$BOKKEN_DEVICE_IP:~/
+    - rsync -uaqP --exclude=".*" --inplace utr  bokken@$BOKKEN_DEVICE_IP:~/
+
+    # Install the Unity Downloader.
+    - ssh bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install unity-downloader-cli --user --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade'"
+
+    # Get the Editor and required components for the project. This will be rendered as a single line command. Beware of the quotes! They bite, repeatedly. :(
+    - >
+        ssh bokken@$BOKKEN_DEVICE_IP
+        "\$(/usr/bin/python3 -m site --user-base)/bin/unity-downloader-cli    \\
+            -u {{ editor.version }} -c StandaloneSupport-IL2CPP                     \\
+            -c editor                                                               \\
+            -c StandaloneSupport-IL2CPP                                             \\
+            --wait                                                                  \\
+            --published"
+
+    # Build on the device and capture exit code. This will be rendered as a single line command. Beware of the backslashes and the semicolons too.
+    - >
+        ssh bokken@$BOKKEN_DEVICE_IP
+        "export UPM_REGISTRY=$UPM_REGISTRY;
+        echo ==================================================;
+        echo UPM Registry: \$UPM_REGISTRY;
+        echo ==================================================;
+        utr/utr                                         \\
+            --testproject=./perception/{{project.name}} \\
+            --editor-location=.Editor                   \\
+            --reruncount=2                              \\
+            --artifacts_path=test-results               \\
+            --category=!Performance                     \\
+            {{suite.args}}                              \\
+            --extra-editor-arg="--force-metal";
+        echo \$? > ~/.utr_result;"
+
+    # Read UTR result and data from test device.
+    - scp bokken@$BOKKEN_DEVICE_IP:~/.utr_result ~/.utr_result
+    - rsync -uaqP --inplace bokken@$BOKKEN_DEVICE_IP:~/test-results $YAMATO_SOURCE_DIR
+
+    # Print status and exit with UTR's exit code.
+    - |
+        UTR_RESULT=$(cat ~/.utr_result)
+        echo "=================================================="
+        echo "UTR test exit code: $UTR_RESULT"
+        echo "=================================================="
+        if [ "$UTR_RESULT" != "0" ]; then exit $UTR_RESULT; fi
+    
+  artifacts:
+    logs:
+      paths:
+        - "test-results/**/*"
+{% endfor %}
+{% endfor %}
+{% endfor %}

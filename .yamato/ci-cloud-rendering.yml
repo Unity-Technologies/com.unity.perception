@@ -1,0 +1,38 @@
+{% metadata_file .yamato/environments.yml %}
+
+---
+{% for editor in cloud_rendering_editors %}
+{% for project in projects %}
+{% for platform in cloud_rendering_plateforms %}
+{% for Scene in Scenes %}
+{{ project.name }}_{{ platform.name }}_{{ editor.version }}:
+  name: {{project.name}} CloudRendering ({{ editor.version }})
+  agent:
+    type: {{platform.type}}
+    model: {{platform.model}}
+    image: {{platform.image}}
+    flavor: {{platform.flavor}}
+  variables:
+    PATH: /root/.local/bin:/home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+  commands:
+    - git submodule update --init --recursive
+    - sudo apt-get install -y clang
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
+    - unity-downloader-cli -u {{ editor.version }} -c editor -c CloudRendering -c Linux --wait --published --fast
+    - '".Editor/Unity" -batchmode -quit -nographics -buildTarget CloudRendering -projectPath ./{{ project.name }} -executeMethod AutoBuilder.PerformBuild -sceneName "{{ Scene.name }}"'
+    - ./{{ project.name }}/Build/{{ project.name }}/{{ project.name }}.x86_64 --scenario-config-file={{ project.name }}/Build/{{ project.name }}/scenarioConfiguration.json
+  after:
+    - mkdir ./{{project.name}}/Datasets
+    - rsync -a /home/bokken/.config/unity3d/DefaultCompany/{{ project.name }}/ ./{{project.name}}/Datasets
+  artifacts:
+    results:
+      paths:
+        - "{{project.name}}/Datasets/**"
+    configuration:
+      paths:
+        - {{ project.name }}/Build/{{ project.name }}/scenarioConfiguration.json
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endfor %}

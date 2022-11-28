@@ -1,0 +1,105 @@
+
+upmci_registry: https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+
+cloud_rendering_editors:
+  - version: 2021.3.9f1
+
+cloud_rendering_plateforms:
+  - name: cloudrendering
+    type: Unity::VM::GPU
+    model: rtx2080
+    image: package-ci/ubuntu:v3.6.0-1145766
+    flavor: b1.large
+
+Scenes:
+  - name: SampleScene
+
+coverage_editors:
+  - version: 2021.3.9f1
+  - version: 2022.1.10f1
+
+per_commit_editors:
+  - version: 2021.3.9f1
+  - version: 2022.1.10f1
+
+performance_editors:
+  - version: 2021.3.9f1
+  - version: 2022.1.10f1
+
+complete_editors:
+  - version: 2021.3.9f1
+  - version: 2022.1.10f1
+
+publish_platforms:
+  - name: win
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+    extra-args: --force-d3d11
+    standalone-platform: StandaloneWindows64
+  - name: mac
+    type: Unity::VM::osx
+    image: package-ci/mac:stable
+    flavor: m1.mac
+    extra-args: --force-metal
+    standalone-platform: StandaloneOSX
+  - name: ubuntu
+    type: Unity::VM
+    image: package-ci/ubuntu:v3.6.0-1145766
+    flavor: b1.large
+
+
+test_platforms:
+  - name: win
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+    extra-args: --force-d3d11
+    standalone-platform: StandaloneWindows64
+  - name: mac
+    type: Unity::VM::osx
+    image: package-ci/mac:stable
+    flavor: m1.mac
+    extra-args: --force-metal
+    standalone-platform: StandaloneOSX
+  - name: ubuntu
+    type: Unity::VM
+    image: package-ci/ubuntu:v3.6.0-1145766
+    flavor: b1.large
+
+performance_platforms:
+  - name: win
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+    extra-args: --force-d3d11
+    standalone-platform: StandaloneWindows64
+  - name: mac
+    type: Unity::VM::osx
+    image: package-ci/mac:stable
+    flavor: m1.mac
+    extra-args: --force-metal
+    standalone-platform: StandaloneOSX
+  - name: ubuntu
+    type: Unity::VM
+    image: package-ci/ubuntu:v3.6.0-1145766
+    flavor: b1.large
+
+performance_suites:
+  - name: standalone
+    display_name: standalone
+    args: --suite=playmode --platform=
+
+suites:
+  - name: standalone
+    display_name: standalone
+    args: --suite=playmode --platform=
+  - name: editmode
+    display_name: editmode
+    args: --suite=playmode --suite=editor --platform=Editor
+
+package_variants:
+  - name: Perception
+
+projects:
+  - name: PerceptionHDRP

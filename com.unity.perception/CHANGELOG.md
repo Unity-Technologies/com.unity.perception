@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Upgrade Notes
 
 ### Added
+Added support for hierarchical label aggregation in instance segmentation labeler
 
 ### Changed
 

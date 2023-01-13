@@ -10,6 +10,7 @@ using UnityEngine.Perception.GroundTruth.Consumers;
 using UnityEngine.Perception.GroundTruth.DataModel;
 using UnityEngine.Perception.GroundTruth.Labelers;
 using UnityEngine.Perception.GroundTruth.LabelManagement;
+using UnityEngine.Perception.GroundTruth.Utilities;
 using UnityEngine.TestTools;
 
 namespace GroundTruthTests
@@ -748,6 +749,8 @@ namespace GroundTruthTests
             var annDesc = "Produces an instance segmentation image for each frame. The image will render the pixels of each labeled object in a distinct color.";
 
             var instanceId = cube.GetComponent<Labeling>().instanceId;
+            var color = InstanceIdToColorMapping.GetColorFromInstanceId(instanceId);
+
 
             var instances = new JArray
             {
@@ -756,7 +759,7 @@ namespace GroundTruthTests
                     { "instanceId", instanceId },
                     { "labelId", 1 },
                     { "labelName", "test" },
-                    { "color", new JArray { 255, 0, 0, 255 } }
+                    { "color", new JArray { color.r, color.g, color.b, color.a } }
                 }
             };
 

@@ -867,6 +867,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
 
     [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class InstanceSegmentationLabeler : CameraLabeler, IOverlayPanelProvider
     {
+        [Tooltip(@"Should the instance segmentation capture the single instance of the parent gameobject, or the individual sub-components")] public bool aggregateChildren = false;
         [Tooltip(@"The id to associate with instance segmentation annotations in the dataset.")] public string annotationId = @"instance segmentation";
         public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig;
         public System.Action<int, Unity.Collections.NativeArray<Color32>, RenderTexture> imageReadback;

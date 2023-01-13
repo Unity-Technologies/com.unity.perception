@@ -80,7 +80,7 @@ namespace UnityEngine.Perception.Settings
 
 namespace UnityEngine.Perception.UIElements
 {
-    public class UIntField : UnityEditor.UIElements.TextValueField<System.UInt32>
+    public class UIntField : UnityEngine.UIElements.TextValueField<System.UInt32>
     {
         public static readonly string inputUssClassName;
         public static readonly string labelUssClassName;
@@ -88,7 +88,7 @@ namespace UnityEngine.Perception.UIElements
         public UIntField() {}
         public UIntField(int maxLength) {}
         public UIntField(string label, int maxLength = -1) {}
-        public override void ApplyInputDeviceDelta(Vector3 delta, UnityEditor.UIElements.DeltaSpeed speed, System.UInt32 startValue);
+        public override void ApplyInputDeviceDelta(Vector3 delta, UnityEngine.UIElements.DeltaSpeed speed, System.UInt32 startValue);
         public static System.UInt32 ClampInput(long input);
         protected override System.UInt32 StringToValue(string str);
         protected override string ValueToString(System.UInt32 v);
@@ -96,7 +96,7 @@ namespace UnityEngine.Perception.UIElements
         {
             public UxmlFactory() {}
         }
-        public class UxmlTraits : UnityEditor.UIElements.TextValueFieldTraits<System.UInt32, UxmlUIntAttributeDescription>
+        public class UxmlTraits : UnityEngine.UIElements.TextValueFieldTraits<System.UInt32, UxmlUIntAttributeDescription>
         {
             public UxmlTraits() {}
         }

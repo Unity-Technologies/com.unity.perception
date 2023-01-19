@@ -32,7 +32,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
         /// <summary>
         /// The encoding format used when writing the captured segmentation images.
         /// </summary>
-        const LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Exr;
+        public static LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Exr;
 
         /// <inheritdoc cref="IOverlayPanelProvider"/>
         public Texture overlayImage => m_DepthTexture;

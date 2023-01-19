@@ -34,7 +34,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
         /// <summary>
         /// The encoding format used when writing the captured segmentation images.
         /// </summary>
-        const LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Png;
+        public static LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Png;
 
         /// <summary>
         /// Event which is called each frame a semantic segmentation image is read back from the GPU.

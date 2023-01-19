@@ -182,6 +182,7 @@ namespace UnityEngine.Perception.GroundTruth
         public int firstCaptureFrame;
         public int framesBetweenCaptures;
         public string id = @"camera";
+        public static ImageEncodingFormat k_RgbImageEncodingFormat = ImageEncodingFormat.Png;
         public bool manualSensorAffectSimulationTiming;
         public bool overrideLayerMask;
         public bool showVisualizations = true;
@@ -819,6 +820,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
     [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class DepthLabeler : CameraLabeler, IOverlayPanelProvider
     {
         public string annotationId = @"Depth";
+        public static LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Exr;
         [Tooltip(@"Capturing depth values returns the distance between the surface of the object and the forward plane of the camera. Capturing range values returns the line of sight distance between the surface of the object and the position of the camera.")] public DepthMeasurementStrategy measurementStrategy = DepthMeasurementStrategy.Depth;
         public override string description { get; }
         public string label { get; }
@@ -870,6 +872,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
         [Tooltip(@"The id to associate with instance segmentation annotations in the dataset.")] public string annotationId = @"instance segmentation";
         public UnityEngine.Perception.GroundTruth.LabelManagement.IdLabelConfig idLabelConfig;
         public System.Action<int, Unity.Collections.NativeArray<Color32>, RenderTexture> imageReadback;
+        public static LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Png;
         public override string description { get; }
         public string label { get; }
         public override string labelerId { get; }
@@ -989,6 +992,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
     [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class NormalLabeler : CameraLabeler, IOverlayPanelProvider
     {
         public string annotationId = @"Normal";
+        public static LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Exr;
         public override string description { get; }
         public string label { get; }
         public override string labelerId { get; }
@@ -1066,6 +1070,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
     [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class PixelPositionLabeler : CameraLabeler
     {
         public string annotationId = @"PixelPosition";
+        public static LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Exr;
         public override string description { get; }
         public override string labelerId { get; }
         protected override bool supportsVisualization { get; }
@@ -1140,6 +1145,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
     [UnityEngine.Scripting.APIUpdating.MovedFrom(@"UnityEngine.Perception.GroundTruth")] public sealed class SemanticSegmentationLabeler : CameraLabeler, IOverlayPanelProvider
     {
         public string annotationId = @"semantic segmentation";
+        public static LosslessImageEncodingFormat k_ImageEncodingFormat = LosslessImageEncodingFormat.Png;
         public UnityEngine.Perception.GroundTruth.LabelManagement.SemanticSegmentationLabelConfig labelConfig;
         public event System.Action<int, Unity.Collections.NativeArray<Color32>, RenderTexture> imageReadback;
         public override string description { get; }

@@ -91,7 +91,7 @@ namespace UnityEngine.Perception.GroundTruth
             if (PerceptionCamera.visualizedPerceptionCamera != null)
                 AsyncGPUReadback.WaitAllRequests();
 
-            BlitVisualizedPerceptionCameraToScreen(ctx);
+            // BlitVisualizedPerceptionCameraToScreen(ctx);
         }
 
         /// <summary>

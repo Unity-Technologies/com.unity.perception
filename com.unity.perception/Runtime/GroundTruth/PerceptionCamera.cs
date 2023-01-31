@@ -722,7 +722,7 @@ namespace UnityEngine.Perception.GroundTruth
             }
         }
 
-        bool ShouldCaptureThisFrame()
+        public bool ShouldCaptureThisFrame()
         {
             return !m_SimulationEnded && SensorHandle.ShouldCaptureThisFrame;
         }

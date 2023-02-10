@@ -133,7 +133,7 @@ namespace UnityEngine.Perception.GroundTruth.Utilities
                 JobHandle.CompleteAll(handles);
             }
 
-            var boundingBoxMap = new NativeHashMap<uint, RenderedObjectInfo>(100, Allocator.Temp);
+            var boundingBoxMap = new NativeParallelHashMap<uint, RenderedObjectInfo>(100, Allocator.Temp);
             using (s_LabelMerge.Auto())
             {
                 foreach (var boundingBoxList in jobBoundingBoxLists)

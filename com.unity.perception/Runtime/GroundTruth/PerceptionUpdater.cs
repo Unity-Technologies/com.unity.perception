@@ -122,8 +122,9 @@ namespace UnityEngine.Perception.GroundTruth
 #if UNITY_EDITOR
             var sceneView = SceneView.lastActiveSceneView;
             return cameras[0] == sceneView.camera;
-#endif
+#else
             return false;
+#endif
         }
 
         static void BlitVisualizedPerceptionCameraToScreen(ScriptableRenderContext ctx)

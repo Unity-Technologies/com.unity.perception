@@ -5,6 +5,9 @@ using UnityEngine.Perception.GroundTruth.LabelManagement;
 using UnityEngine.Perception.GroundTruth.Sensors.Channels;
 using UnityEngine.Perception.GroundTruth.Utilities;
 using UnityEngine.Rendering;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.Perception.GroundTruth
 {
@@ -73,7 +76,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         static void OnBeginContextRendering(ScriptableRenderContext ctx, List<Camera> cameras)
         {
-            if (!CamerasAreTargetingTheGameView(cameras) && AtLeastOneCameraInSceneTargetingGameView())
+            if (!CamerasAreTargetingTheGameView(cameras) && AtLeastOneCameraInSceneTargetingGameView() && !InSceneView(cameras))
                 return;
 
             if (beginFrameRendering != null)
@@ -82,7 +85,7 @@ namespace UnityEngine.Perception.GroundTruth
 
         static void OnEndContextRendering(ScriptableRenderContext ctx, List<Camera> cameras)
         {
-            if (!CamerasAreTargetingTheGameView(cameras) && AtLeastOneCameraInSceneTargetingGameView())
+            if (!CamerasAreTargetingTheGameView(cameras) && AtLeastOneCameraInSceneTargetingGameView() && !InSceneView(cameras))
                 return;
 
             if (endFrameRendering != null)
@@ -111,6 +114,16 @@ namespace UnityEngine.Perception.GroundTruth
         static bool AtLeastOneCameraInSceneTargetingGameView()
         {
             return camerasEnabledInScene.Any(camera => camera.targetTexture == null);
+        }
+
+        // Check for Scene view, if so it should still render
+        static bool InSceneView(List<Camera> cameras)
+        {
+#if UNITY_EDITOR
+            var sceneView = SceneView.lastActiveSceneView;
+            return cameras[0] == sceneView.camera;
+#endif
+            return false;
         }
 
         static void BlitVisualizedPerceptionCameraToScreen(ScriptableRenderContext ctx)

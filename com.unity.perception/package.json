@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "com.unity.burst": "1.7.3",
-    "com.unity.collections": "1.2.4",
+    "com.unity.collections": "1.4.0",
     "com.unity.nuget.newtonsoft-json": "3.0.2",
     "com.unity.render-pipelines.core": "12.1.7"
   },

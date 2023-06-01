@@ -181,7 +181,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
         {
             var labeledObjectColors = new NativeArray<Color32>(
                 LabelManager.singleton.instanceIds.Length, Allocator.Persistent);
-            labeledObjectColors[0] = new Color32(0, 0, 0, 255);
+            labeledObjectColors[0] = labelConfig.skyColor;
 
             var i = 1;
             foreach (var labeledObject in LabelManager.singleton.registeredLabels)

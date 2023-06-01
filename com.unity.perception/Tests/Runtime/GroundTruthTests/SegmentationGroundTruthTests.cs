@@ -58,7 +58,7 @@ namespace GroundTruthTests
     {
         static readonly Color32 k_SemanticPixelValue = new Color32(10, 20, 30, Byte.MaxValue);
         static readonly Color32 k_InstanceSegmentationPixelValue = new Color32(255, 0, 0, 255);
-        static readonly Color32 k_SkyValue = new Color32(0, 0, 0, 255);
+        static readonly Color32 k_SkyValue = new Color32(1, 1, 1, 255);
 
         public enum SegmentationKind
         {

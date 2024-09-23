@@ -1,3 +1,5 @@
+**NOTE:** This project is no longer supported by Unity. You may be able to find community support at **[Unity Computer Vision forums](https://forum.unity.com/forums/computer-vision.626/)** or the **[GitHub Issues page](https://github.com/Unity-Technologies/com.unity.perception/issues)**.
+
 <p align="center">
   <img src="com.unity.perception/Documentation~/images/unity-wide-whiteback.png" align="middle" width="600"/>
 </p>
@@ -105,15 +107,7 @@ The [**Robotics Object Pose Estimation**](https://github.com/Unity-Technologies/
 
 ## Community and Support
 
-Perception is an open-source project and we encourage and welcome
-contributions. If you wish to contribute, be sure to review our
-[contribution guidelines](CONTRIBUTING.md) and
-[code of conduct](CODE_OF_CONDUCT.md).
-
-For setup problems or discussions about leveraging the Perception package in your project, please create a new thread on the **[Unity Computer Vision forums](https://forum.unity.com/forums/computer-vision.626/)** with details such as operating system, reproduction steps, etc. If you run into any other problems with the Perception package or have a specific feature request, please open a **[GitHub Issue](https://github.com/Unity-Technologies/com.unity.perception/issues)**.
-
-For any other questions or feedback, connect directly with the Computer Vision team at [computer-vision@unity3d.com](mailto:computer-vision@unity3d.com).
-
+This project has been discontinued and is no longer supported by Unity. Please use the Github issues page to seek community support.
 
 ## License & Citation
 The Perception package is licensed under [Apache License Version 2.0](LICENSE.md).  If you find this package useful, consider citing it using:

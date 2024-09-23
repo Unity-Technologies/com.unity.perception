@@ -1,4 +1,4 @@
-**NOTE:** This project is no longer supported by Unity. You may be able to find community support at **[Unity Computer Vision forums](https://forum.unity.com/forums/computer-vision.626/)** or the **[GitHub Issues page](https://github.com/Unity-Technologies/com.unity.perception/issues)**.
+**NOTE:** This project has been discontinued and is no longer supported by Unity. Please use the Github issues page to seek community support.
 
 <p align="center">
   <img src="com.unity.perception/Documentation~/images/unity-wide-whiteback.png" align="middle" width="600"/>

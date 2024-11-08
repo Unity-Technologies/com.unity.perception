@@ -1,4 +1,4 @@
-**NOTE:** This project has been discontinued and is no longer supported by Unity. Please use the Github issues page to seek community support.
+**IMPORTANT: This project has been discontinued and is no longer supported by Unity. Please use the Github issues page to seek community support.**
 
 <p align="center">
   <img src="com.unity.perception/Documentation~/images/unity-wide-whiteback.png" align="middle" width="600"/>

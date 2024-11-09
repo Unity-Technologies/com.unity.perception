@@ -135,7 +135,7 @@ namespace UnityEditor.Perception.GroundTruth
             m_AddNewLabelButton.clicked += () => { AddNewLabel(m_AddedLabels); };
 
 #if UNITY_2020_1_OR_NEWER
-            m_LabelListView.onSelectionChange +=  UpdateMoveButtonState;
+            m_LabelListView.selectionChanged +=  UpdateMoveButtonState;
 #else
             m_LabelListView.onSelectionChanged +=  UpdateMoveButtonState;
 #endif

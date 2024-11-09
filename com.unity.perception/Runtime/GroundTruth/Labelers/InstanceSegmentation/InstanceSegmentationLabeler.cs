@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -48,6 +49,14 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
         /// The <see cref="idLabelConfig"/> which associates objects with labels.
         /// </summary>
         public IdLabelConfig idLabelConfig;
+
+        /// <summary>
+        /// Should child objects, defined by their label hierarchy be reported as an individual instance, or as
+        /// a part of their parent object. If this value is true, the children will be reported as a part of their
+        /// parent.
+        /// </summary>
+        [Tooltip("Should the instance segmentation capture the single instance of the parent gameobject, or the individual sub-components")]
+        public bool aggregateChildren = false;
 
         ///<inheritdoc/>
         public override string description => InstanceSegmentationDefinition.labelDescription;
@@ -115,6 +124,44 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
             }
         }
 
+        NativeArray<Color32> GetSegmentationColors(int frame)
+        {
+            var instanceIndices = LabelManager.singleton.instanceIds;
+            var max = uint.MinValue;
+            foreach (var i in instanceIndices)
+            {
+                if (i > max) max = i;
+            }
+
+            var activeColors = new NativeArray<Color32>((int)(max + 1), Allocator.Temp, NativeArrayOptions.ClearMemory);
+
+            for (var i = 0; i < max + 1; i++)
+            {
+                activeColors[i] = InstanceIdToColorMapping.GetColorFromInstanceId((uint)i);
+            }
+
+            if (!aggregateChildren) return activeColors;
+
+            if (!PerceptionCamera.savedHierarchies.TryGetValue(frame, out var hierarchyInformation))
+            {
+                Debug.LogError($"Could not get the scene hierarchy info for the current frame: {frame}");
+                return activeColors;
+            }
+
+            foreach (var i in instanceIndices)
+            {
+                if (!hierarchyInformation.hierarchy.TryGetValue(i, out var node))
+                {
+                    continue;
+                }
+
+                var idx = (int)(node?.parentInstanceId ?? i);
+                activeColors[(int)i] = activeColors[idx];
+            }
+
+            return activeColors;
+        }
+
         /// <inheritdoc/>
         protected override void OnEndRendering(ScriptableRenderContext ctx)
         {
@@ -126,9 +173,10 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
 
             // Create a compute buffer that maps instanceIndices to unique instance segmentation colors.
             var instanceIndices = LabelManager.singleton.instanceIds;
-            var instanceSegmentationColors = LabelManager.singleton.instanceSegmentationColors;
+            var colors = GetSegmentationColors(Time.frameCount);
+
             var colorBuffer = new ComputeBuffer(instanceIndices.Length, sizeof(uint));
-            cmd.SetBufferData(colorBuffer, instanceSegmentationColors.AsArray(), 0, 0, colorBuffer.count);
+            cmd.SetBufferData(colorBuffer, colors, 0, 0, colorBuffer.count);
 
             // Use a compute shader to map each pixel instance index to a unique color
             // to create the instance segmentation color texture.
@@ -149,6 +197,7 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
                 colorBuffer.Dispose();
             });
 
+            colors.Dispose();
             ctx.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -159,23 +208,76 @@ namespace UnityEngine.Perception.GroundTruth.Labelers
             SceneHierarchyInformation hierarchyInfo
         )
         {
-            var instances = new List<InstanceSegmentationEntry>();
+            // In order to support aggregate segmentation, we need to use the parent values, if requested,
+            // of the instances to report the instance type for color
+
+            var instances = new Dictionary<int, InstanceSegmentationEntry>();
 
             foreach (var objectInfo in renderedObjectInfos)
             {
-                if (!idLabelConfig.TryGetLabelEntryFromInstanceId(objectInfo.instanceId, out var labelEntry))
-                    continue;
-
-                instances.Add(new InstanceSegmentationEntry
+                if (!hierarchyInfo.hierarchy.TryGetValue(objectInfo.instanceId, out var node))
                 {
-                    instanceId = (int)objectInfo.instanceId,
-                    labelId = labelEntry.id,
-                    labelName = labelEntry.label,
-                    color = objectInfo.instanceColor
-                });
+                    Debug.LogError($"Could not find hierarchy info for instance id: {objectInfo.instanceId}");
+                    continue;
+                }
+
+                // If collecting aggregate info, use the parent id, else use the objectInfo.instanceId
+                var idx = aggregateChildren ? node?.parentInstanceId ?? objectInfo.instanceId : objectInfo.instanceId;
+                var intIdx = (int)idx;
+
+                // Ok, this exists because we have no good way to look up label information at runtime, if a label
+                // is not associated with an object that is captured in objectrenderinfo pass. This is seen routinely
+                // in parent geometry using hierarchical labeling not having geometry of its own, but just aggregating
+                // labeled child objects. To support this we have to create a way to query labels from the id label config.
+                // This is not the most performant way to do this, things that we could do in the future to speed this up
+                // * rework the way we are calculating labeled data
+                // * cache this
+                // Also, this only supports a 1-1 mapping of int id to label and label to int id. Re-using labels will
+                // break this but right now is *probably* supported in perception. We need to revisit that and codify
+                // that label strings need to be unique.
+                var labelMap = new Dictionary<string, int>();
+                var labels = idLabelConfig.GetAnnotationSpecification();
+                foreach (var l in labels)
+                {
+                    labelMap[l.label_name] = l.label_id;
+                }
+
+                if (!instances.ContainsKey(intIdx))
+                {
+                    var registeredLabels = LabelManager.singleton.registeredLabels;
+                    var targetNodes = registeredLabels.Where(x => x.instanceId == idx).ToList();
+
+                    if (targetNodes.Count != 1)
+                    {
+                        Debug.LogWarning($"Something went wrong when trying to find the node for label {idx}, query came back with {targetNodes.Count} entries");
+                        continue;
+                    }
+
+                    var targetNode = targetNodes.First();
+
+                    if (!InstanceIdToColorMapping.TryGetColorFromInstanceId(idx, out var color))
+                    {
+                        Debug.LogWarning($"Could not find the instance color for ID: {idx}");
+                        color = Color.black;
+                    }
+
+                    var labelName = targetNode.labels.First();
+                    if (!labelMap.TryGetValue(labelName, out var labelId))
+                    {
+                        Debug.LogWarning($"Could not find a labelId for the label: {labelName}");
+                    }
+
+                    instances[intIdx] = new InstanceSegmentationEntry
+                    {
+                        instanceId = intIdx,
+                        labelId = labelId,
+                        labelName = labelName,
+                        color = color
+                    };
+                }
             }
 
-            m_PendingEntries[frame] = instances;
+            m_PendingEntries[frame] = instances.Values.ToList();
 
             ReportFrameIfReady(frame);
         }
